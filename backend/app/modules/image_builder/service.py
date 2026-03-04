@@ -490,16 +490,8 @@ class ImageBuilderService:
                 log_to_file(res["stdout"] + res["stderr"])
                 log_to_file(f"--- 本地进程执行完毕，结果: {'成功' if res['success'] else '失败'} ---")
                 if res["success"]: final_status = "SUCCESS"
-            if final_status == "SUCCESS": log_to_file("\n--- ✅ 构建任务成功完成! ---")
-            else: log_to_file("\n--- ❌ 构建任务失败 ---")
-            try:
-                from app.services.notification_service import NotificationService
-                status_text = "成功" if final_status == "SUCCESS" else "失败"
-                summary = f"镜像构建{status_text}: {p['name']} ({repo_base}:{tags[0]})"
-                logger.info(f"🚀 [镜像构建] {summary} | 主机: {host_config.get('name')}")
-                asyncio.run(NotificationService.emit(event="image_builder.task_completed", title="Lens 镜像构建任务报告", message=(f"项目名称: {p['name']}\n目标镜像: {repo_base}\n标签版本: {', '.join(tags)}\n构建主机: {host_config.get('name')}\n最终状态: {status_text}\n结束时间: {datetime.now().strftime('%H:%M:%S')}")))
-            except Exception: pass
-        except Exception as e: log_to_file(f"\n--- ❌ 发生严重错误 ---\n{e}")
+        except Exception as e: 
+            log_to_file(f"\n--- ❌ 发生严重错误 ---\n{e}")
         finally:
             if temp_builder_name:
                 log_to_file(f"--- 🧹 正在清理临时构建环境: {temp_builder_name} ---")
@@ -509,6 +501,14 @@ class ImageBuilderService:
                 except: pass
             service.exec_command(f"rm -f {temp_config_path}", log_error=False)
             log_to_file(TASK_LOG_SENTINEL)
+            
+            try:
+                from app.services.notification_service import NotificationService
+                status_text = "成功" if final_status == "SUCCESS" else "失败"
+                summary = f"镜像构建{status_text}: {p['name']} ({repo_base}:{tags[0]})"
+                logger.info(f"🚀 [镜像构建] {summary} | 主机: {host_config.get('name')}")
+                asyncio.run(NotificationService.emit(event="image_builder.task_completed", title="Lens 镜像构建任务报告", message=(f"项目名称: {p['name']}\n目标镜像: {repo_base}\n标签版本: {', '.join(tags)}\n构建主机: {host_config.get('name')}\n最终状态: {status_text}\n结束时间: {datetime.now().strftime('%H:%M:%S')}")))
+            except Exception: pass
         return final_status
 
     @staticmethod

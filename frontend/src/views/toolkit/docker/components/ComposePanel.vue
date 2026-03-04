@@ -514,7 +514,7 @@ const runComposeAction = async (p: any, action: string) => {
 const pinProject = async (p: any) => {
   const currentHost = props.hosts.find(h => h.id === props.hostId)
   if (!currentHost) return
-  const path = p.path.replace(/.+$/, '')
+  const path = p.path.substring(0, p.path.lastIndexOf('/'))
   const pathList = (currentHost.compose_scan_paths || '').split(',').map((i: string) => i.trim()).filter((i: string) => i)
   if (!pathList.includes(path)) {
     pathList.push(path)

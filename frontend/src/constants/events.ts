@@ -10,6 +10,8 @@ export const NOTIFICATION_EVENTS = [
   { label: '标签任务完成 (autotag.task_done)', value: 'autotag.task_done' },
   { label: '容器操作 (docker.container_action)', value: 'docker.container_action' },
   { label: '主机维护 (docker.host_action)', value: 'docker.host_action' },
+  { label: '镜像构建完成 (image_builder.task_completed)', value: 'image_builder.task_completed' },
+  { label: '镜像构建进度 (image_builder.setup_progress)', value: 'image_builder.setup_progress' },
   { label: '系统告警 (system.alert)', value: 'system.alert' }
 ]
 
