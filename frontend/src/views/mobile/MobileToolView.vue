@@ -42,6 +42,23 @@ import MobileTypeManager from './tools/MobileTypeManager.vue'
 import MobileTmdbIdSearch from './tools/MobileTmdbIdSearch.vue'
 import MobileTmdbReverseLookup from './tools/MobileTmdbReverseLookup.vue'
 import MobileEmbyItemQuery from './tools/MobileEmbyItemQuery.vue'
+import MobilePlaybackReport from './tools/MobilePlaybackReport.vue'
+import MobileEmbyUsers from './tools/MobileEmbyUsers.vue'
+import MobileEmbyLibraries from './tools/MobileEmbyLibraries.vue'
+import MobileEmbyScheduledTasks from './tools/MobileEmbyScheduledTasks.vue'
+import MobileTerminalManager from './tools/MobileTerminalManager.vue'
+import MobileDockerManager from './tools/MobileDockerManager.vue'
+import MobileImageBuilder from './tools/MobileImageBuilder.vue'
+import MobilePostgresManager from './tools/MobilePostgresManager.vue'
+import MobileBackupManager from './tools/MobileBackupManager.vue'
+import MobileWebhookReceiver from './tools/MobileWebhookReceiver.vue'
+import MobileNotificationManager from './tools/MobileNotificationManager.vue'
+import MobileAccountManager from './tools/MobileAccountManager.vue'
+import MobileExternalControl from './tools/MobileExternalControl.vue'
+import MobileSiteNav from './tools/MobileSiteNav.vue'
+import MobileBookmarkManager from './tools/MobileBookmarkManager.vue'
+import MobileAutoTagsManager from './tools/MobileAutoTagsManager.vue'
+import MobileSettings from './tools/MobileSettings.vue'
 
 const route = useRoute()
 
@@ -88,21 +105,20 @@ const currentToolName = computed(() => {
 const currentToolComponent = computed(() => {
   const toolKey = route.params.tool as string
   switch (toolKey) {
-    case 'sitenav': return SiteNav
-    case 'bookmarks': return BookmarkManager
-    case 'terminal': return TerminalManager
-    case 'docker': return DockerManager
-    case 'emby': return EmbyLibraries
-    case 'emby-users': return EmbyUsers
+    case 'sitenav': return MobileSiteNav
+    case 'bookmarks': return MobileBookmarkManager
+    case 'terminal': return MobileTerminalManager
+    case 'docker': return MobileDockerManager
+    case 'emby': return MobileEmbyLibraries
+    case 'emby-users': return MobileEmbyUsers
     case 'cleanup': return MobileCleanupTools
-    case 'notifications': return NotificationManager
+    case 'notifications': return MobileNotificationManager
     case 'tmdb':
     case 'tmdb-lab': return MobileTmdbLab
-    case 'settings': return Settings
-    // case 'dedupe': return DedupeManager // 有语法错误，暂时禁用
+    case 'settings': return MobileSettings
     case 'type-manager': return MobileTypeManager
     case 'lock': return MobileMetadataLocker
-    case 'autotags': return AutoTagsManager
+    case 'autotags': return MobileAutoTagsManager
     case 'actor-manager': return MobileActorManager
     case 'item-query': return MobileEmbyItemQuery
     case 'tmdb-lookup': return MobileTmdbReverseLookup
@@ -110,14 +126,14 @@ const currentToolComponent = computed(() => {
     case 'bangumi-lab': return MobileBangumiLab
     case 'ai-lab': return MobileAILab
     case 'actor-lab': return MobileActorLab
-    case 'image-builder': return ImageBuilder
-    case 'postgres': return PostgresManager
-    case 'backup': return BackupManager
-    case 'webhook': return WebhookReceiver
-    case 'account': return AccountManager
-    case 'external-control': return ExternalControl
-    case 'reports': return PlaybackReport
-    case 'tasks': return EmbyScheduledTasks
+    case 'image-builder': return MobileImageBuilder
+    case 'postgres': return MobilePostgresManager
+    case 'backup': return MobileBackupManager
+    case 'webhook': return MobileWebhookReceiver
+    case 'account': return MobileAccountManager
+    case 'external-control': return MobileExternalControl
+    case 'reports': return MobilePlaybackReport
+    case 'tasks': return MobileEmbyScheduledTasks
     default: return null
   }
 })
