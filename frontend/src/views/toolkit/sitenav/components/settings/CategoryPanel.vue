@@ -217,17 +217,17 @@ const onDragEnd = () => {
 .category-list { display: flex; flex-direction: column; gap: 8px; }
 .category-item {
   display: flex; align-items: center; padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--n-card-color); border: 1px solid var(--n-border-color);
   border-radius: 8px; transition: all 0.2s;
 }
-.category-item:hover { background: rgba(255, 255, 255, 0.06); border-color: var(--primary-color); }
-.drag-handle { cursor: grab; margin-right: 12px; color: #666; }
+.category-item:hover { background: var(--n-hover-color); border-color: var(--primary-color); }
+.drag-handle { cursor: grab; margin-right: 12px; color: var(--n-text-color-3); }
 .cat-content { flex: 1; display: flex; align-items: center; gap: 8px; }
 .cat-display { display: flex; align-items: center; gap: 8px; flex: 1; }
 .cat-icon-preview { font-size: 16px; display: flex; align-items: center; }
 .cat-name { font-weight: 500; }
-.edit-btn { opacity: 0; transition: opacity 0.2s; }
-.category-item:hover .edit-btn { opacity: 0.5; }
+.edit-btn { opacity: 0.6; transition: opacity 0.2s; }
+.category-item:hover .edit-btn { opacity: 1; }
 .edit-btn:hover { opacity: 1 !important; }
 .is-dragging { opacity: 0.4; border-style: dashed; }
 .is-drag-over { border: 2px solid var(--primary-color); transform: scale(1.01); }
@@ -249,12 +249,12 @@ const onDragEnd = () => {
   height: 34px;
   border-radius: 6px;
   transition: all 0.2s ease;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--n-hover-color);
   overflow: hidden; /* 强制拦截溢出 */
   line-height: 1;
 }
 .emoji-item:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--n-color-primary-pressed);
   transform: scale(1.1);
   z-index: 1;
 }

@@ -318,7 +318,7 @@ const openUrl = (url: string) => window.open(url, '_blank')
           <n-space>
             <n-tooltip trigger="hover">
               <template #trigger>
-                <n-button circle quaternary @click="isHomeEntry = !isHomeEntry">
+                <n-button circle secondary type="primary" @click="isHomeEntry = !isHomeEntry">
                   <template #icon>
                     <n-icon>
                       <MenuOpenIcon v-if="isHomeEntry" />
@@ -331,13 +331,13 @@ const openUrl = (url: string) => window.open(url, '_blank')
             </n-tooltip>
             <n-tooltip trigger="hover">
               <template #trigger>
-                <n-button circle quaternary @click="showBookmarkManager = true">
+                <n-button circle secondary type="primary" @click="showBookmarkManager = true">
                   <template #icon><n-icon><BookmarkIcon /></n-icon></template>
                 </n-button>
               </template>
               书签管理
             </n-tooltip>
-            <n-button circle quaternary @click="showSettings = true">
+            <n-button circle secondary type="primary" @click="showSettings = true">
               <template #icon><n-icon><SettingsIcon /></n-icon></template>
             </n-button>
           </n-space>

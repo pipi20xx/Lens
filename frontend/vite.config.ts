@@ -47,6 +47,11 @@ export default defineConfig({
         target: 'http://backend:6565',
         changeOrigin: true,
       },
+      '/ws': {
+        target: 'ws://backend:6565',
+        changeOrigin: true,
+        ws: true,
+      },
       '/nav_icons': {
         target: 'http://backend:6565',
         changeOrigin: true,

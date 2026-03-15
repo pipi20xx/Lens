@@ -158,20 +158,21 @@ const renderDropdownOptions = (items: Bookmark[]): any[] => {
 
 .bookmark-item {
   display: flex;
-  items-center: center;
+  align-items: center;
   gap: 6px;
-  padding: 0 10px;
+  padding: 4px 10px;
   height: 28px;
   border-radius: 6px;
   cursor: pointer;
   white-space: nowrap;
-  color: rgba(255, 255, 255, 0.8);
+  background: var(--n-card-color);
+  color: var(--n-text-color-2);
   transition: all 0.2s;
 }
 
 .bookmark-item:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  background: var(--n-hover-color);
+  color: var(--n-text-color-1);
 }
 
 .no-scrollbar::-webkit-scrollbar {

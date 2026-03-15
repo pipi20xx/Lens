@@ -133,7 +133,7 @@ const onStyleChange = () => {
 <style scoped>
 .count-tag {
   line-height: 34px;
-  color: rgba(255,255,255,0.4);
+  color: var(--n-text-color-3);
   font-size: 12px;
 }
 .icon-grid-container {
@@ -145,14 +145,14 @@ const onStyleChange = () => {
   flex-direction: column;
   align-items: center;
   padding: 12px 8px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: var(--n-card-color);
+  border: 1px solid var(--n-border-color);
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
 }
 .icon-card:hover {
-  background: rgba(255,255,255,0.15);
+  background: var(--n-hover-color);
   border-color: var(--primary-color);
   transform: translateY(-2px);
 }
@@ -176,11 +176,11 @@ const onStyleChange = () => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: rgba(255,255,255,0.7);
+  color: var(--n-text-color-2);
 }
 .footer-tip {
   font-size: 12px;
-  color: rgba(255,255,255,0.4);
+  color: var(--n-text-color-3);
   text-align: right;
 }
 </style>

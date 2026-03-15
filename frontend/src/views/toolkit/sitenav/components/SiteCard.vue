@@ -166,7 +166,7 @@ const isEmoji = (str: string) => {
 
 .site-info { flex: 1; min-width: 0; text-align: left; display: flex; flex-direction: column; justify-content: center; z-index: 1; position: relative; }
 .site-name { font-size: 14px; font-weight: 600; color: var(--nav-text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; transition: color 0.3s; }
-.site-card:hover .site-name { color: #fff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.3); }
+.site-card:hover .site-name { color: var(--primary-color); }
 .site-desc { font-size: 11px; color: var(--nav-text-desc-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0.6; transition: all 0.3s; }
-.site-card:hover .site-desc { opacity: 1; color: #fff; }
+.site-card:hover .site-desc { opacity: 1; color: var(--n-text-color-1); }
 </style>

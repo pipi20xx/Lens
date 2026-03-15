@@ -99,7 +99,8 @@ const handleDateChange = (val: string | null) => {
 const connectWebSocket = () => {
   if (socket) return
   socketStatus.value = 'connecting'
-  const wsUrl = `${WS_BASE}/ws/system/logs`
+  const token = localStorage.getItem('lens_access_token') || ''
+  const wsUrl = `${WS_BASE}/ws/system/logs?token=${encodeURIComponent(token)}`
   socket = new WebSocket(wsUrl)
 
   socket.onopen = () => {

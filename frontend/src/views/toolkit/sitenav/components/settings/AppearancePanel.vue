@@ -524,7 +524,7 @@ const handleUploadBg = (options: { file: { file: File } }) => {
 .setting-item { margin-bottom: 12px; }
 .label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
 .label { font-size: 14px; font-weight: 500; }
-.label-small { font-size: 12px; margin-bottom: 4px; display: block; color: rgba(255,255,255,0.7); }
+.label-small { font-size: 12px; margin-bottom: 4px; display: block; color: var(--n-text-color-3); }
 .overlay-tip {
   text-align: center;
   padding: 10px;
