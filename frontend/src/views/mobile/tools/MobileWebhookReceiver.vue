@@ -5,78 +5,60 @@
       <p class="page-desc">管理 Webhook 端点与事件处理</p>
     </div>
 
-    <n-card class="endpoints-card" :bordered="false" title="端点列表">
+    <n-card class="info-card" :bordered="false" title="接收地址">
       <n-space vertical>
-        <n-button block type="primary" @click="showAddModal = true">
-          <template #icon><n-icon><AddIcon /></n-icon></template>
-          添加端点
+        <p style="color: var(--text-color); font-size: 13px;">
+          请在 Emby 管理后台 -> Webhook 中添加以下地址：
+        </p>
+        <code class="webhook-url">
+          http://{{ currentHost }}:6565/api/webhook/receive
+        </code>
+        <n-button block secondary @click="copyWebhookUrl">
+          <template #icon><n-icon><CopyIcon /></n-icon></template>
+          复制地址
         </n-button>
-        <div v-if="endpoints.length === 0" class="empty-state">
-          <n-empty description="暂无 Webhook 端点" />
-        </div>
-        <div v-else class="endpoint-list">
-          <div v-for="endpoint in endpoints" :key="endpoint.id" class="endpoint-item">
-            <div class="endpoint-info">
-              <div class="endpoint-name">{{ endpoint.name }}</div>
-              <div class="endpoint-url">{{ endpoint.url }}</div>
-              <div class="endpoint-events">
-                <n-tag v-for="event in endpoint.events" :key="event" size="small" type="info">
-                  {{ event }}
-                </n-tag>
-              </div>
-            </div>
-            <div class="endpoint-actions">
-              <n-button size="small" secondary type="warning" @click="editEndpoint(endpoint)">
-                编辑
-              </n-button>
-              <n-popconfirm @positive-click="deleteEndpoint(endpoint.id)" positive-text="确认删除" negative-text="取消">
-                <template #trigger>
-                  <n-button size="small" secondary type="error">
-                    删除
-                  </n-button>
-                </template>
-                确定删除此端点？
-              </n-popconfirm>
-            </div>
-          </div>
-        </div>
       </n-space>
     </n-card>
 
-    <n-card class="logs-card" :bordered="false" title="最近调用日志">
+    <n-card class="logs-card" :bordered="false" title="事件捕获日志">
+      <template #header-extra>
+        <n-space>
+          <n-button secondary type="error" size="small" @click="handleClear">
+            <template #icon><n-icon><DeleteIcon /></n-icon></template>
+            清空
+          </n-button>
+          <n-button secondary size="small" @click="loadLogs" :loading="loading">
+            <template #icon><n-icon><RefreshIcon /></n-icon></template>
+            刷新
+          </n-button>
+        </n-space>
+      </template>
       <div v-if="logs.length === 0" class="empty-state">
         <n-empty description="暂无调用日志" />
       </div>
       <div v-else class="log-list">
-        <div v-for="log in logs" :key="log.id" class="log-item">
+        <div v-for="log in logs" :key="log.id" class="log-item" @click="showJsonDetail(log.payload)">
           <div class="log-info">
-            <div class="log-endpoint">{{ log.endpoint_name }}</div>
-            <div class="log-time">{{ formatDate(log.created_at) }}</div>
-            <n-tag :type="log.status === 'success' ? 'success' : 'error'" size="small">
-              {{ log.status }}
-            </n-tag>
+            <div class="log-header">
+              <n-tag type="primary" size="small" quaternary>{{ log.event_type }}</n-tag>
+              <span class="log-time">{{ formatDate(log.created_at) }}</span>
+            </div>
+            <div class="log-ip">来源: {{ log.source_ip }}</div>
           </div>
+          <n-icon class="log-arrow"><ChevronRightIcon /></n-icon>
         </div>
       </div>
     </n-card>
 
-    <n-modal v-model:show="showAddModal" preset="card" title="添加端点" style="width: 90vw; max-width: 400px">
-      <n-form label-placement="top" size="small">
-        <n-form-item label="名称">
-          <n-input v-model:value="newEndpoint.name" placeholder="端点名称" />
-        </n-form-item>
-        <n-form-item label="URL 路径">
-          <n-input v-model:value="newEndpoint.url" placeholder="/webhook/myhook" />
-        </n-form-item>
-        <n-form-item label="事件类型">
-          <n-select v-model:value="newEndpoint.events" multiple :options="eventOptions" />
-        </n-form-item>
-      </n-form>
-      <template #action>
-        <n-space justify="end">
-          <n-button secondary @click="showAddModal = false">取消</n-button>
-          <n-button type="primary" @click="saveEndpoint" :loading="saving">保存</n-button>
-        </n-space>
+    <!-- JSON 详情弹窗 -->
+    <n-modal v-model:show="showDetailModal" preset="card" title="Webhook 原始 JSON 载荷" style="width: 95vw; max-width: 600px">
+      <div class="json-code-wrapper">
+        <n-code :code="JSON.stringify(selectedPayload, null, 2)" language="json" word-wrap />
+      </div>
+      <template #footer>
+        <n-button block type="primary" secondary @click="copyPayload">
+          复制数据
+        </n-button>
       </template>
     </n-modal>
   </div>
@@ -84,16 +66,20 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { NCard, NButton, NSpace, NEmpty, NModal, NForm, NFormItem, NInput, NSelect, NTag, NPopconfirm, NIcon } from 'naive-ui'
-import { AddOutlined as AddIcon } from '@vicons/material'
+import { NCard, NButton, NSpace, NEmpty, NModal, NForm, NFormItem, NInput, NSelect, NTag, NPopconfirm, NIcon, NCode } from 'naive-ui'
+import { RefreshOutlined as RefreshIcon, DeleteOutlined as DeleteIcon, ContentCopyOutlined as CopyIcon, ChevronRightOutlined as ChevronRightIcon } from '@vicons/material'
 import { webhookApi } from '@/api/webhook'
-import { useMessage } from 'naive-ui'
+import { useMessage, useDialog } from 'naive-ui'
 
 const message = useMessage()
+const dialog = useDialog()
 const endpoints = ref<any[]>([])
 const logs = ref<any[]>([])
 const showAddModal = ref(false)
 const saving = ref(false)
+const loading = ref(false)
+const showDetailModal = ref(false)
+const selectedPayload = ref({})
 
 const newEndpoint = ref({
   name: '',
@@ -108,29 +94,53 @@ const eventOptions = [
   { label: '用户登录', value: 'user_login' }
 ]
 
-const loadEndpoints = async () => {
-  message.info('请在桌面端配置 Webhook')
-}
-
 const loadLogs = async () => {
+  loading.value = true
   try {
     const res = await webhookApi.getLogs()
     logs.value = res as any || []
   } catch (e) {
     message.error('加载日志失败')
+  } finally {
+    loading.value = false
   }
 }
 
-const saveEndpoint = () => {
-  message.info('请在桌面端配置 Webhook')
+const handleClear = () => {
+  dialog.warning({
+    title: '确认清空日志',
+    content: '确定要清空所有 Webhook 日志吗？此操作无法撤销。',
+    positiveText: '确认清空',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      try {
+        await webhookApi.clearLogs()
+        message.success('日志已清空')
+        loadLogs()
+      } catch (e) {
+        message.error('清空失败')
+      }
+    }
+  })
 }
 
-const editEndpoint = (endpoint: any) => {
-  message.info('请在桌面端配置 Webhook')
+const showJsonDetail = (payload: any) => {
+  selectedPayload.value = payload
+  showDetailModal.value = true
 }
 
-const deleteEndpoint = (id: string) => {
-  message.info('请在桌面端配置 Webhook')
+const copyPayload = () => {
+  const text = JSON.stringify(selectedPayload.value, null, 2)
+  navigator.clipboard.writeText(text)
+  message.success('已复制到剪贴板')
+}
+
+const currentHost = window.location.hostname
+
+const copyWebhookUrl = () => {
+  const url = `http://${currentHost}:6565/api/webhook/receive`
+  navigator.clipboard.writeText(url)
+  message.success('Webhook 地址已复制')
 }
 
 const formatDate = (date: string) => {
@@ -139,7 +149,6 @@ const formatDate = (date: string) => {
 }
 
 onMounted(() => {
-  loadEndpoints()
   loadLogs()
 })
 </script>
@@ -167,64 +176,74 @@ onMounted(() => {
   margin: 0;
 }
 
-.endpoints-card,
+.info-card,
 .logs-card {
   margin-bottom: 12px;
+}
+
+.webhook-url {
+  display: block;
+  padding: 12px;
+  background: var(--app-bg-color);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--primary-color);
+  word-break: break-all;
 }
 
 .empty-state {
   padding: 24px 0;
 }
 
-.endpoint-list,
 .log-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.endpoint-item,
 .log-item {
   padding: 12px;
   background: var(--app-bg-color);
   border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
 }
 
-.endpoint-info,
 .log-info {
-  margin-bottom: 8px;
+  flex: 1;
 }
 
-.endpoint-name,
-.log-endpoint {
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--text-color);
+.log-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin-bottom: 4px;
 }
 
-.endpoint-url,
 .log-time {
   font-size: 12px;
   color: var(--text-color);
   opacity: 0.6;
-  margin-bottom: 4px;
 }
 
-.endpoint-events {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
+.log-ip {
+  font-size: 12px;
+  color: var(--text-color);
+  opacity: 0.5;
 }
 
-.endpoint-actions {
-  display: flex;
-  gap: 8px;
+.log-arrow {
+  color: var(--text-color);
+  opacity: 0.3;
 }
 
-.log-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.json-code-wrapper {
+  background: var(--app-bg-color);
+  padding: 16px;
+  border-radius: 8px;
+  max-height: 60vh;
+  overflow-y: auto;
 }
 </style>

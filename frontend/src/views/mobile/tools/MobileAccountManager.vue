@@ -57,13 +57,32 @@
         </div>
       </n-space>
     </n-card>
+
+    <!-- 两步验证设置弹窗 -->
+    <n-modal v-model:show="showOtpModal" preset="card" title="开启两步验证" style="width: 90vw; max-width: 400px">
+      <n-space vertical align="center">
+        <p style="color: var(--text-color); text-align: center;">请使用身份验证器扫描下方二维码</p>
+        <img v-if="otpQrCode" :src="otpQrCode" style="width: 200px; height: 200px;" />
+        <n-form-item label="或手动输入密钥" style="width: 100%;">
+          <n-input :value="otpSecret" readonly />
+        </n-form-item>
+        <n-form-item label="验证码" style="width: 100%;">
+          <n-input v-model:value="otpCode" placeholder="请输入6位验证码" maxlength="6" />
+        </n-form-item>
+        <n-space>
+          <n-button secondary @click="showOtpModal = false">取消</n-button>
+          <n-button type="primary" @click="enableOtp">确认开启</n-button>
+        </n-space>
+      </n-space>
+    </n-modal>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { NCard, NButton, NSpace, NFormItem, NInput, NSwitch, NTag, NAvatar } from 'naive-ui'
+import { NCard, NButton, NSpace, NFormItem, NInput, NSwitch, NTag, NAvatar, NModal, NForm } from 'naive-ui'
 import { accountApi } from '@/api/account'
+import { authApi } from '@/api/auth'
 import { useMessage } from 'naive-ui'
 
 const message = useMessage()
@@ -94,21 +113,87 @@ const loadProfile = async () => {
   }
 }
 
-const loadSecuritySettings = () => {
-  message.info('请在桌面端配置安全设置')
+const loadSecuritySettings = async () => {
+  try {
+    const meData: any = await authApi.getMe()
+    securitySettings.value.twoFactorEnabled = meData.is_otp_enabled || false
+  } catch (e) {
+    message.error('加载安全设置失败')
+  }
 }
 
-const changePassword = () => {
-  message.info('请在桌面端修改密码')
+const changePassword = async () => {
+  if (!passwordForm.value.oldPassword || !passwordForm.value.newPassword || !passwordForm.value.confirmPassword) {
+    message.warning('请填写完整的密码信息')
+    return
+  }
+  if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
+    message.warning('两次输入的新密码不一致')
+    return
+  }
+  changingPassword.value = true
+  try {
+    await authApi.changePassword({
+      old_password: passwordForm.value.oldPassword,
+      new_password: passwordForm.value.newPassword
+    })
+    message.success('密码修改成功')
+    passwordForm.value = { oldPassword: '', newPassword: '', confirmPassword: '' }
+  } catch (e: any) {
+    message.error('密码修改失败: ' + (e.response?.data?.detail || e.message))
+  } finally {
+    changingPassword.value = false
+  }
 }
 
-const toggleTwoFactor = () => {
-  message.info('请在桌面端配置两步验证')
+const toggleTwoFactor = async () => {
+  if (securitySettings.value.twoFactorEnabled) {
+    // 开启两步验证
+    showOtpModal.value = true
+    try {
+      const data: any = await authApi.setup2fa()
+      otpQrCode.value = data.qr_code
+      otpSecret.value = data.secret
+    } catch (e) {
+      message.error('获取二维码失败')
+    }
+  } else {
+    // 关闭两步验证
+    try {
+      await authApi.disable2fa()
+      message.success('两步验证已关闭')
+    } catch (e) {
+      message.error('关闭两步验证失败')
+      securitySettings.value.twoFactorEnabled = true
+    }
+  }
+}
+
+const enableOtp = async () => {
+  if (!otpCode.value) {
+    message.warning('请输入验证码')
+    return
+  }
+  try {
+    await authApi.enable2fa(otpCode.value)
+    message.success('两步验证已开启')
+    showOtpModal.value = false
+    otpCode.value = ''
+    otpQrCode.value = ''
+    otpSecret.value = ''
+  } catch (e) {
+    message.error('验证码错误')
+  }
 }
 
 const saveSecuritySettings = () => {
-  message.info('请在桌面端配置安全设置')
+  message.success('安全设置已保存')
 }
+
+const showOtpModal = ref(false)
+const otpQrCode = ref('')
+const otpSecret = ref('')
+const otpCode = ref('')
 
 onMounted(() => {
   loadProfile()

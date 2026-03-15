@@ -205,6 +205,32 @@
         </n-tab-pane>
       </n-tabs>
     </n-modal>
+
+    <!-- AI 智能整理弹窗 -->
+    <n-modal v-model:show="showAiModal" preset="card" title="AI 智能整理建议" style="width: 95vw; max-width: 500px">
+      <n-space vertical>
+        <n-alert type="info" :show-icon="false">
+          AI 分析发现 {{ aiSuggestions.length }} 条整理建议
+        </n-alert>
+        <div v-for="(suggestion, index) in aiSuggestions" :key="index" class="ai-suggestion-item">
+          <div class="suggestion-header">
+            <n-tag type="warning" size="small">{{ suggestion.action }}</n-tag>
+          </div>
+          <div class="suggestion-detail">
+            <div v-if="suggestion.bookmark_title">书签: {{ suggestion.bookmark_title }}</div>
+            <div v-if="suggestion.folder_name">目标文件夹: {{ suggestion.folder_name }}</div>
+            <div v-if="suggestion.reason" class="suggestion-reason">{{ suggestion.reason }}</div>
+          </div>
+          <n-button size="small" type="primary" @click="applyAiSuggestion(suggestion)">
+            应用
+          </n-button>
+        </div>
+        <n-space justify="end" style="margin-top: 16px;">
+          <n-button secondary @click="showAiModal = false">关闭</n-button>
+          <n-button type="primary" @click="applyAllSuggestions">全部应用</n-button>
+        </n-space>
+      </n-space>
+    </n-modal>
   </div>
 </template>
 
@@ -224,7 +250,9 @@ const {
   updateBookmark, 
   deleteBookmark: deleteBookmarkApi,
   exportBookmarks,
-  clearBookmarks
+  clearBookmarks,
+  aiAnalyze,
+  aiApply
 } = useBookmark()
 
 const searchQuery = ref('')
@@ -455,8 +483,52 @@ const onFileChange = async (e: Event) => {
   }
 }
 
-const handleAIAnalyze = () => {
-  message.info('AI智能整理功能需要后端支持，请在桌面端使用')
+const aiLoading = ref(false)
+const aiSuggestions = ref<any[]>([])
+const showAiModal = ref(false)
+
+const handleAIAnalyze = async () => {
+  aiLoading.value = true
+  try {
+    const result = await aiAnalyze()
+    if (result.suggestions && result.suggestions.length > 0) {
+      aiSuggestions.value = result.suggestions
+      showAiModal.value = true
+    } else {
+      message.info('AI分析完成，暂无整理建议')
+    }
+  } catch (e: any) {
+    message.error('AI分析失败: ' + (e.message || '未知错误'))
+  } finally {
+    aiLoading.value = false
+  }
+}
+
+const applyAiSuggestion = async (suggestion: any) => {
+  try {
+    await aiApply([suggestion])
+    message.success('已应用整理建议')
+    await fetchBookmarks(true)
+    // 从列表中移除已应用的建议
+    aiSuggestions.value = aiSuggestions.value.filter(s => s !== suggestion)
+    if (aiSuggestions.value.length === 0) {
+      showAiModal.value = false
+    }
+  } catch (e: any) {
+    message.error('应用失败: ' + (e.message || '未知错误'))
+  }
+}
+
+const applyAllSuggestions = async () => {
+  try {
+    await aiApply(aiSuggestions.value)
+    message.success('已应用所有整理建议')
+    await fetchBookmarks(true)
+    showAiModal.value = false
+    aiSuggestions.value = []
+  } catch (e: any) {
+    message.error('批量应用失败: ' + (e.message || '未知错误'))
+  }
 }
 
 const scanDuplicates = () => {
@@ -723,5 +795,35 @@ onMounted(() => {
   font-size: 14px;
   color: var(--text-color);
   margin-top: 8px;
+}
+
+.ai-suggestion-item {
+  background: var(--app-bg-color);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.suggestion-header {
+  margin-bottom: 8px;
+}
+
+.suggestion-detail {
+  font-size: 14px;
+  color: var(--text-color);
+  margin-bottom: 8px;
+}
+
+.suggestion-detail > div {
+  margin-bottom: 4px;
+}
+
+.suggestion-reason {
+  font-size: 12px;
+  color: var(--text-color);
+  opacity: 0.7;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-color);
 }
 </style>

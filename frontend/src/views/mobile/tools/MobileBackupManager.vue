@@ -51,15 +51,39 @@
         </div>
       </div>
     </n-card>
+
+    <!-- 恢复弹窗 -->
+    <n-modal v-model:show="showRestoreModal" preset="card" title="恢复备份" style="width: 90vw; max-width: 400px">
+      <n-space vertical>
+        <p style="color: var(--text-color); margin-bottom: 12px;">
+          请选择恢复模式：
+        </p>
+        <n-radio-group v-model:value="restoreMode">
+          <n-space vertical>
+            <n-radio value="overwrite">
+              覆盖还原（保留已有文件）
+            </n-radio>
+            <n-radio value="clear">
+              清空还原（删除目标目录所有内容）
+            </n-radio>
+          </n-space>
+        </n-radio-group>
+        <n-space justify="end" style="margin-top: 16px;">
+          <n-button secondary @click="showRestoreModal = false">取消</n-button>
+          <n-button type="warning" :loading="restoring" @click="confirmRestore">确认恢复</n-button>
+        </n-space>
+      </n-space>
+    </n-modal>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { NCard, NButton, NSpace, NEmpty, NPopconfirm, NIcon } from 'naive-ui'
+import { NCard, NButton, NSpace, NEmpty, NPopconfirm, NIcon, NModal, NSelect, NRadio, NRadioGroup } from 'naive-ui'
 import { BackupOutlined as BackupIcon, RefreshOutlined as RefreshIcon } from '@vicons/material'
 import { backupApi } from '@/api/backup'
 import { useMessage } from 'naive-ui'
+import axios from 'axios'
 
 const message = useMessage()
 const loading = ref(false)
@@ -105,13 +129,76 @@ const createBackup = async () => {
   }
 }
 
-const restoreBackup = (backup: any) => {
-  message.info('请在桌面端使用恢复功能')
+const restoreBackup = async (backup: any) => {
+  // 获取该任务的备份历史
+  try {
+    const res = await axios.get(`/api/backup/history?task_id=${backup.id}`)
+    const history = res.data || []
+    if (history.length === 0) {
+      message.warning('该任务暂无备份历史')
+      return
+    }
+    // 找到最新的成功备份
+    const latestBackup = history.find((h: any) => h.status === 'success')
+    if (!latestBackup) {
+      message.warning('没有找到成功的备份记录')
+      return
+    }
+    // 打开恢复弹窗
+    selectedHistory.value = latestBackup
+    showRestoreModal.value = true
+  } catch (e: any) {
+    message.error('获取备份历史失败: ' + (e.response?.data?.detail || e.message))
+  }
 }
 
-const downloadBackup = (backup: any) => {
-  message.info('请在桌面端使用下载功能')
+const confirmRestore = async () => {
+  if (!selectedHistory.value) return
+  restoring.value = true
+  try {
+    await axios.post(`/api/backup/history/${selectedHistory.value.id}/restore?clear_dst=${restoreMode.value === 'clear'}`)
+    message.success('恢复任务已启动')
+    showRestoreModal.value = false
+  } catch (e: any) {
+    message.error('恢复失败: ' + (e.response?.data?.detail || e.message))
+  } finally {
+    restoring.value = false
+  }
 }
+
+const downloadBackup = async (backup: any) => {
+  // 获取该任务的备份历史
+  try {
+    const res = await axios.get(`/api/backup/history?task_id=${backup.id}`)
+    const history = res.data || []
+    if (history.length === 0) {
+      message.warning('该任务暂无备份历史')
+      return
+    }
+    // 找到最新的成功备份
+    const latestBackup = history.find((h: any) => h.status === 'success')
+    if (!latestBackup) {
+      message.warning('没有找到成功的备份记录')
+      return
+    }
+    // 下载文件
+    const downloadUrl = `/api/backup/history/${latestBackup.id}/download`
+    const link = document.createElement('a')
+    link.href = downloadUrl
+    link.download = `${backup.name}.zip`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    message.success('开始下载备份')
+  } catch (e: any) {
+    message.error('下载失败: ' + (e.response?.data?.detail || e.message))
+  }
+}
+
+const showRestoreModal = ref(false)
+const selectedHistory = ref<any>(null)
+const restoreMode = ref('overwrite')
+const restoring = ref(false)
 
 const deleteBackup = async (id: string) => {
   try {

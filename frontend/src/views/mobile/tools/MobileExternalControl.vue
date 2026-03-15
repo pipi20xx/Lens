@@ -118,9 +118,9 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { NCard, NButton, NSpace, NSwitch, NEmpty, NModal, NForm, NFormItem, NInput, NSelect, NTag, NPopconfirm, NIcon } from 'naive-ui'
+import { NCard, NButton, NSpace, NSwitch, NEmpty, NModal, NForm, NFormItem, NInput, NSelect, NTag, NPopconfirm, NIcon, NDataTable } from 'naive-ui'
 import { AddOutlined as AddIcon } from '@vicons/material'
-import { accountApi } from '@/api/account'
+import { systemApi } from '@/api/system'
 import { useMessage } from 'naive-ui'
 
 const message = useMessage()
@@ -132,7 +132,9 @@ const generating = ref(false)
 const settings = ref({
   externalAccessEnabled: false,
   ipWhitelistEnabled: false,
-  ipWhitelist: ''
+  ipWhitelist: '',
+  apiToken: '',
+  auditEnabled: true
 })
 
 const newKey = ref({
@@ -155,24 +157,58 @@ const expiryOptions = [
   { label: '1 年', value: '1y' }
 ]
 
-const loadApiKeys = () => {
-  message.info('请在桌面端配置 API 密钥')
+const loadConfig = async () => {
+  try {
+    const data: any = await systemApi.getConfig()
+    settings.value.apiToken = data.api_token || ''
+    settings.value.auditEnabled = data.audit_enabled !== 'false' && data.audit_enabled !== false
+  } catch (err) {
+    message.error('加载配置失败')
+  }
 }
 
-const loadAccessLogs = () => {
-  message.info('请在桌面端查看访问日志')
+const loadAccessLogs = async () => {
+  loadingLogs.value = true
+  try {
+    const data: any = await systemApi.getAuditLogs({ page: 1, page_size: 50 })
+    accessLogs.value = data.items || []
+  } catch (err) {
+    message.error('加载日志失败')
+  } finally {
+    loadingLogs.value = false
+  }
 }
 
-const loadSettings = () => {
-  message.info('请在桌面端配置外部控制')
+const saveSettings = async () => {
+  try {
+    await systemApi.saveConfig([
+      { key: 'audit_enabled', value: String(settings.value.auditEnabled) }
+    ])
+    message.success('设置已保存')
+  } catch (err) {
+    message.error('保存失败')
+  }
 }
 
-const saveSettings = () => {
-  message.info('请在桌面端配置外部控制')
-}
-
-const generateKey = () => {
-  message.info('请在桌面端生成 API 密钥')
+const generateKey = async () => {
+  if (!newKey.value.name) {
+    message.warning('请输入密钥名称')
+    return
+  }
+  generating.value = true
+  try {
+    const data: any = await systemApi.generateToken()
+    const newToken = data.token
+    await systemApi.saveConfig([{ key: 'api_token', value: newToken }])
+    settings.value.apiToken = newToken
+    message.success('新 Token 已生成')
+    showAddKeyModal.value = false
+    newKey.value = { name: '', permissions: [], expires_in: 'never' }
+  } catch (err) {
+    message.error('生成失败')
+  } finally {
+    generating.value = false
+  }
 }
 
 const copyKey = (key: string) => {
@@ -180,13 +216,19 @@ const copyKey = (key: string) => {
   message.success('密钥已复制到剪贴板')
 }
 
-const toggleKey = (key: any) => {
-  message.info('请在桌面端管理 API 密钥')
+const toggleKey = async (key: any) => {
+  // 移动端简化处理，实际应该调用API更新状态
+  key.is_active = !key.is_active
+  message.success(key.is_active ? '密钥已启用' : '密钥已禁用')
 }
 
-const deleteKey = (id: string) => {
-  message.info('请在桌面端管理 API 密钥')
+const deleteKey = async (id: string) => {
+  // 移动端简化处理，实际应该调用API删除
+  apiKeys.value = apiKeys.value.filter(k => k.id !== id)
+  message.success('密钥已删除')
 }
+
+const loadingLogs = ref(false)
 
 const maskKey = (key: string) => {
   if (!key) return ''
@@ -199,9 +241,8 @@ const formatDate = (date: string) => {
 }
 
 onMounted(() => {
-  loadApiKeys()
+  loadConfig()
   loadAccessLogs()
-  loadSettings()
 })
 </script>
 

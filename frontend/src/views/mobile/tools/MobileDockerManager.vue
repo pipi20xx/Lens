@@ -45,15 +45,21 @@
         </div>
       </n-space>
     </n-card>
+
+    <!-- 日志弹窗 -->
+    <n-modal v-model:show="showLogsModal" preset="card" title="容器日志" style="width: 95vw; max-width: 800px">
+      <pre class="logs-content">{{ containerLogs }}</pre>
+    </n-modal>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { NCard, NButton, NSelect, NSpace, NEmpty, NTag, NIcon } from 'naive-ui'
+import { NCard, NButton, NSelect, NSpace, NEmpty, NTag, NIcon, NModal } from 'naive-ui'
 import { RefreshOutlined as RefreshIcon } from '@vicons/material'
 import { dockerApi } from '@/api/docker'
 import { useMessage } from 'naive-ui'
+import axios from 'axios'
 
 const message = useMessage()
 const loading = ref(false)
@@ -91,17 +97,41 @@ const loadContainers = async () => {
   }
 }
 
-const startContainer = (id: string) => {
-  message.info('请在桌面端管理容器')
+const startContainer = async (id: string) => {
+  if (!selectedHostId.value) return
+  try {
+    const res = await axios.post(`/api/docker/${selectedHostId.value}/containers/${id}/action`, { action: 'start' })
+    message.success('容器已启动')
+    setTimeout(() => loadContainers(), 2000)
+  } catch (e: any) {
+    message.error('启动失败: ' + (e.response?.data?.detail || e.message))
+  }
 }
 
-const stopContainer = (id: string) => {
-  message.info('请在桌面端管理容器')
+const stopContainer = async (id: string) => {
+  if (!selectedHostId.value) return
+  try {
+    const res = await axios.post(`/api/docker/${selectedHostId.value}/containers/${id}/action`, { action: 'stop' })
+    message.success('容器已停止')
+    setTimeout(() => loadContainers(), 2000)
+  } catch (e: any) {
+    message.error('停止失败: ' + (e.response?.data?.detail || e.message))
+  }
 }
 
-const viewLogs = (id: string) => {
-  message.info('请在桌面端查看容器日志')
+const viewLogs = async (id: string) => {
+  if (!selectedHostId.value) return
+  try {
+    const res = await axios.get(`/api/docker/${selectedHostId.value}/containers/${id}/logs?tail=100`)
+    containerLogs.value = res.data.logs || '暂无日志'
+    showLogsModal.value = true
+  } catch (e: any) {
+    message.error('获取日志失败: ' + (e.response?.data?.detail || e.message))
+  }
 }
+
+const containerLogs = ref('')
+const showLogsModal = ref(false)
 
 onMounted(() => {
   loadHosts()
@@ -180,5 +210,20 @@ onMounted(() => {
 .container-actions {
   display: flex;
   gap: 8px;
+}
+
+.logs-content {
+  margin: 0;
+  padding: 12px;
+  font-family: monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-all;
+  color: var(--text-color);
+  max-height: 60vh;
+  overflow-y: auto;
+  background: var(--app-bg-color);
+  border-radius: 8px;
 }
 </style>
