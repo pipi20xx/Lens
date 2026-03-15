@@ -26,6 +26,7 @@ from .playback_report import router as playback_report_router
 from .emby_tasks import router as emby_tasks_router
 
 from .auth import router as auth_router
+from .session import router as session_router
 from .backup import router as backup_router
 from .notification import router as notification_router
 from .terminal import router as terminal_router
@@ -35,6 +36,7 @@ from app.modules.image_builder import router as image_builder_router
 router = APIRouter()
 
 router.include_router(auth_router, prefix="/auth", tags=["Authentication"])
+router.include_router(session_router, prefix="/auth", tags=["Session"])
 router.include_router(terminal_router, prefix="/terminal", tags=["Terminal"])
 router.include_router(files_router, prefix="/files", tags=["FileManagement"])
 router.include_router(notification_router, prefix="/notification", tags=["Notification"])

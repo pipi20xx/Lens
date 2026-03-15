@@ -6,5 +6,9 @@ export const authApi = {
   enable2fa: (code: string) => request.post(`/api/auth/2fa/enable?code=${code}`),
   disable2fa: () => request.post('/api/auth/2fa/disable'),
   updateSystemConfig: (configs: any[]) => request.post('/api/system/config', { configs }),
-  changePassword: (data: any) => request.post('/api/auth/password', data)
+  changePassword: (data: any) => request.post('/api/auth/password', data),
+  getSessions: () => request.get('/api/auth/sessions'),
+  revokeSession: (sessionId: string) => request.delete(`/api/auth/sessions/${sessionId}`),
+  revokeAllSessions: () => request.delete('/api/auth/sessions'),
+  getSessionConfig: () => request.get('/api/server/current')
 }

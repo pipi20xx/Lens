@@ -15,3 +15,4 @@ class TokenResponse(BaseModel):
     token_type: str
     username: str
     status: str = "success"
+    session_id: Optional[str] = None

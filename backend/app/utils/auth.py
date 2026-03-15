@@ -68,12 +68,6 @@ async def get_current_user(request: Request, db: AsyncSession = Depends(get_db))
             result = await db.execute(select(User).where(User.username == username))
             user = result.scalars().first()
             if user:
-                # 校验密码指纹 (如果 Token 带有 ps 字段)
-                token_ps = payload.get("ps")
-                if token_ps:
-                    current_ps = user.hashed_password[:16]
-                    if token_ps != current_ps:
-                        raise HTTPException(status_code=401, detail="Password changed, please re-login")
                 return user
         
         # B. 尝试作为 静态 API Token 匹配

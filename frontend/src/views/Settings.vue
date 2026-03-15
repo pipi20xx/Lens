@@ -129,13 +129,39 @@
                 </n-space>
               </template>
             </n-card>
+
+            <!-- 4. 会话管理配置 -->
+            <n-card title="会话管理" size="small" segmented>
+              <template #header-extra>
+                <n-icon size="20" color="var(--primary-color)"><SessionIcon /></n-icon>
+              </template>
+              <n-form label-placement="left" label-width="140" size="small">
+                <n-form-item label="会话永不过期">
+                  <n-space vertical>
+                    <n-switch v-model:value="globalConfig.session_never_expire" />
+                    <n-text depth="3" style="font-size: 12px">
+                      开启后，登录会话将不会自动过期，直到用户主动登出或被管理员踢出。
+                      <br>关闭后，会话将在 24 小时后自动过期。
+                    </n-text>
+                  </n-space>
+                </n-form-item>
+              </n-form>
+              <template #action>
+                <n-space justify="end">
+                  <n-button type="primary" size="small" @click="handleSaveGlobal" :loading="savingGlobal">
+                    <template #icon><n-icon><SaveIcon /></n-icon></template>
+                    保存会话配置
+                  </n-button>
+                </n-space>
+              </template>
+            </n-card>
           </n-space>
         </n-gi>
 
         <!-- 右侧：维护与提示 -->
         <n-gi span="24 m:8">
           <n-space vertical size="large">
-            <!-- 4. 配置备份与恢复 -->
+            <!-- 5. 配置备份与恢复 -->
             <n-card title="数据备份与迁移" size="small" segmented>
               <template #header-extra>
                 <n-icon size="20" color="var(--primary-color)"><BackupIcon /></n-icon>
@@ -202,7 +228,8 @@ import {
   CheckCircleOutlined as CheckIcon,
   DeleteOutlined as DeleteIcon,
   ContentCopyOutlined as CopyIcon,
-  SaveOutlined as SaveIcon
+  SaveOutlined as SaveIcon,
+  DevicesOutlined as SessionIcon
 } from '@vicons/material'
 import { servers, activeServerId } from '../store/serverStore'
 import { copyElementContent, copyText } from '../utils/clipboard'

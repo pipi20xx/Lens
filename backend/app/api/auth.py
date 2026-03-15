@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.db.session import get_db
 from app.models.user import User
+from app.models.session import Session
 from app.utils.auth import verify_password, create_access_token, decode_access_token, get_password_hash, get_current_user
 from app.utils.audit import add_audit_log
 from app.utils.time import get_local_time
@@ -56,9 +57,19 @@ async def login(req: LoginRequest, request: Request, db: AsyncSession = Depends(
     user.last_login = get_local_time()
     await db.commit()
     
-    # 创建 Token 时包含密码指纹，确保修改密码后旧 Token 失效
+    # 创建会话记录
+    from app.services.session_service import create_session
+    session = await create_session(
+        db=db,
+        user=user,
+        ip_address=client_ip,
+        user_agent=request.headers.get("user-agent", ""),
+        expires_hours=24
+    )
+    
+    # 创建 Token 时包含密码指纹和 session_id，确保修改密码后旧 Token 失效
     password_fingerprint = user.hashed_password[:16]
-    access_token = create_access_token(data={"sub": user.username, "ps": password_fingerprint})
+    access_token = create_access_token(data={"sub": user.username, "ps": password_fingerprint, "sid": session.session_id})
     asyncio.create_task(add_audit_log("POST", "/api/auth/login", 200, client_ip, 0, payload=f"登录成功: {user.username}"))
     
     # 发送登录通知
@@ -68,7 +79,7 @@ async def login(req: LoginRequest, request: Request, db: AsyncSession = Depends(
         message=f"用户: {user.username}\nIP: {client_ip}\n时间: {get_local_time()}"
     ))
     
-    return {"access_token": access_token, "token_type": "bearer", "username": user.username, "status": "success"}
+    return {"access_token": access_token, "token_type": "bearer", "username": user.username, "status": "success", "session_id": session.session_id}
 
 @router.post("/password", summary="修改管理员密码")
 async def change_password(req: PasswordChangeRequest, db: AsyncSession = Depends(get_db), token: str = Depends(oauth2_scheme)):
@@ -79,8 +90,19 @@ async def change_password(req: PasswordChangeRequest, db: AsyncSession = Depends
     user = result.scalars().first()
     if not verify_password(req.old_password, user.hashed_password):
         raise HTTPException(status_code=400, detail="旧密码错误")
+    
+    # 修改密码
     user.hashed_password = get_password_hash(req.new_password)
     await db.commit()
+    
+    # 撤销该用户的所有会话（因为密码指纹已改变，旧 token 将失效）
+    from sqlalchemy import delete
+    await db.execute(
+        delete(Session)
+        .where(Session.user_id == user.id, Session.is_active == 1)
+    )
+    await db.commit()
+    
     asyncio.create_task(add_audit_log("POST", "/api/auth/password", 200, "internal", 0, payload=f"用户 {username} 修改密码"))
     return {"message": "成功"}
 

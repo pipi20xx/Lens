@@ -64,9 +64,41 @@ async def audit_middleware(request: Request, call_next):
                     valid = True
                 else:
                     # 检查 JWT Token
+                    from app.utils.auth import decode_access_token
+                    from app.db.session import AsyncSessionLocal
+                    from sqlalchemy import select
+                    from app.models.user import User
+                    
                     payload = decode_access_token(token)
                     if payload and payload.get("type") != "2fa_pending":
-                        valid = True
+                        # 必须有 session_id 和密码指纹
+                        session_id = payload.get("sid")
+                        token_ps = payload.get("ps")
+                        
+                        if not session_id or not token_ps:
+                            valid = False
+                        else:
+                            # 验证会话是否存在且活跃
+                            from app.services.session_service import get_session_by_id
+                            async with AsyncSessionLocal() as db:
+                                session = await get_session_by_id(db, session_id)
+                                if not session:
+                                    valid = False
+                                else:
+                                    # 验证密码指纹
+                                    result = await db.execute(select(User).where(User.id == session.user_id))
+                                    user = result.scalars().first()
+                                    if not user:
+                                        valid = False
+                                    else:
+                                        current_ps = user.hashed_password[:16]
+                                        if token_ps != current_ps:
+                                            valid = False
+                                        else:
+                                            # 更新会话最后活动时间
+                                            from app.services.session_service import update_session_activity
+                                            await update_session_activity(db, session_id)
+                                            valid = True
             
             if not valid:
                 from fastapi.responses import JSONResponse
@@ -200,7 +232,8 @@ async def startup_event():
 
     default_configs = [
         {"key": "audit_enabled", "value": "true", "description": "是否开启全局 API 审计日志"},
-        {"key": "api_token", "value": "", "description": "外部 API 调用 Token"}
+        {"key": "api_token", "value": "", "description": "外部 API 调用 Token"},
+        {"key": "session_never_expire", "value": "false", "description": "会话永不过期（开启后会话不会自动过期）"}
     ]
     for cfg in default_configs:
         # 强制同步核心配置项：如果 config.json 里有，以 config.json 为准覆盖数据库

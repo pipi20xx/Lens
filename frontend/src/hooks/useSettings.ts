@@ -18,7 +18,8 @@ export function useSettings() {
       enabled: false,
       url: '',
       exclude_emby: true
-    }
+    },
+    session_never_expire: false
   })
 
   const handleExportConfig = () => {
@@ -61,6 +62,7 @@ export function useSettings() {
           globalConfig.proxy.url = data.proxy.url || ''
           globalConfig.proxy.exclude_emby = data.proxy.exclude_emby !== false
         }
+        globalConfig.session_never_expire = !!data.session_never_expire
       }
     } catch (e) {
       console.error('Failed to load global config:', e)

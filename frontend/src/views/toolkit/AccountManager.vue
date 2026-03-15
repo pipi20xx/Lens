@@ -89,6 +89,11 @@
                 </n-card>
               </n-gi>
             </n-grid>
+
+            <!-- 3. 会话管理 -->
+            <n-gi span="24">
+              <SessionManager />
+            </n-gi>
           </n-space>
         </n-gi>
 
@@ -136,6 +141,7 @@ import {
 
 // 导入提取的逻辑
 import { useAuthManager } from './auth/hooks/useAuthManager'
+import SessionManager from './auth/SessionManager.vue'
 
 const { 
   pwdForm, authInfo, otpSetup,

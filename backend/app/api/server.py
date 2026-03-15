@@ -108,6 +108,12 @@ async def save_server_config(config: Dict[str, Any]):
             full_config[key] = value
     
     save_config(full_config)
+    
+    # 同步特殊配置到数据库
+    if "session_never_expire" in config:
+        from app.services.config_service import ConfigService
+        await ConfigService.set("session_never_expire", config["session_never_expire"], "会话永不过期（开启后会话不会自动过期）")
+    
     return full_config
 
 @router.get("/current")
@@ -122,6 +128,12 @@ async def get_current_config():
     # 合并全局配置与激活的服务器配置返回给前端
     result = config.copy()
     result.update(active_server)
+    
+    # 从数据库读取 session_never_expire 配置
+    from app.services.config_service import ConfigService
+    session_never_expire = await ConfigService.get("session_never_expire", False)
+    result["session_never_expire"] = session_never_expire
+    
     return result
 
 @router.post("/login")
