@@ -74,7 +74,7 @@ const lightOverrides: GlobalThemeOverrides = {
 }
 
 export function useTheme() {
-  const currentMode = ref<ThemeMode>((localStorage.getItem('lens_theme_mode') as ThemeMode) || 'dark')
+  const currentMode = ref<ThemeMode>((localStorage.getItem('lens_theme_mode') as ThemeMode) || 'light')
 
   const isDark = computed(() => currentMode.value === 'dark')
   const isLight = computed(() => currentMode.value === 'light')
