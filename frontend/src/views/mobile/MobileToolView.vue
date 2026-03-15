@@ -35,6 +35,13 @@ import MobileTmdbLab from './tools/MobileTmdbLab.vue'
 import MobileBangumiLab from './tools/MobileBangumiLab.vue'
 import MobileAILab from './tools/MobileAILab.vue'
 import MobileActorLab from './tools/MobileActorLab.vue'
+import MobileActorManager from './tools/MobileActorManager.vue'
+import MobileMetadataLocker from './tools/MobileMetadataLocker.vue'
+import MobileCleanupTools from './tools/MobileCleanupTools.vue'
+import MobileTypeManager from './tools/MobileTypeManager.vue'
+import MobileTmdbIdSearch from './tools/MobileTmdbIdSearch.vue'
+import MobileTmdbReverseLookup from './tools/MobileTmdbReverseLookup.vue'
+import MobileEmbyItemQuery from './tools/MobileEmbyItemQuery.vue'
 
 const route = useRoute()
 
@@ -87,19 +94,19 @@ const currentToolComponent = computed(() => {
     case 'docker': return DockerManager
     case 'emby': return EmbyLibraries
     case 'emby-users': return EmbyUsers
-    case 'cleanup': return CleanupTools
+    case 'cleanup': return MobileCleanupTools
     case 'notifications': return NotificationManager
     case 'tmdb':
     case 'tmdb-lab': return MobileTmdbLab
     case 'settings': return Settings
     // case 'dedupe': return DedupeManager // 有语法错误，暂时禁用
-    case 'type-manager': return TypeManager
-    case 'lock': return LockManager
+    case 'type-manager': return MobileTypeManager
+    case 'lock': return MobileMetadataLocker
     case 'autotags': return AutoTagsManager
-    case 'actor-manager': return ActorManager
-    case 'item-query': return EmbyItemQuery
-    case 'tmdb-lookup': return TmdbReverseLookup
-    case 'tmdb-search': return TmdbIdSearch
+    case 'actor-manager': return MobileActorManager
+    case 'item-query': return MobileEmbyItemQuery
+    case 'tmdb-lookup': return MobileTmdbReverseLookup
+    case 'tmdb-search': return MobileTmdbIdSearch
     case 'bangumi-lab': return MobileBangumiLab
     case 'ai-lab': return MobileAILab
     case 'actor-lab': return MobileActorLab
