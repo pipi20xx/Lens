@@ -12,7 +12,6 @@ import EmbyLibraries from '../EmbyLibraries.vue'
 import EmbyUsers from '../EmbyUsers.vue'
 import CleanupTools from '../toolkit/CleanupTools.vue'
 import NotificationManager from '../toolkit/NotificationManager.vue'
-import TmdbLab from '../toolkit/TmdbLab.vue'
 import Settings from '../Settings.vue'
 // import DedupeManager from '../toolkit/DedupeManager.vue' // 有语法错误，暂时禁用
 import TypeManager from '../toolkit/TypeManager.vue'
@@ -22,9 +21,6 @@ import ActorManager from '../toolkit/ActorManager.vue'
 import EmbyItemQuery from '../toolkit/EmbyItemQuery.vue'
 import TmdbReverseLookup from '../toolkit/TmdbReverseLookup.vue'
 import TmdbIdSearch from '../toolkit/TmdbIdSearch.vue'
-import BangumiLab from '../toolkit/BangumiLab.vue'
-import AILab from '../toolkit/AILab.vue'
-import ActorLab from '../toolkit/ActorLab.vue'
 import ImageBuilder from '../toolkit/ImageBuilder.vue'
 import PostgresManager from '../toolkit/PostgresManager.vue'
 import BackupManager from '../toolkit/BackupManager.vue'
@@ -33,6 +29,12 @@ import AccountManager from '../toolkit/AccountManager.vue'
 import ExternalControl from '../toolkit/ExternalControl.vue'
 import PlaybackReport from '../toolkit/playback-report/PlaybackReport.vue'
 import EmbyScheduledTasks from '../toolkit/emby-tasks/EmbyScheduledTasks.vue'
+
+// 导入移动端实验室组件
+import MobileTmdbLab from './tools/MobileTmdbLab.vue'
+import MobileBangumiLab from './tools/MobileBangumiLab.vue'
+import MobileAILab from './tools/MobileAILab.vue'
+import MobileActorLab from './tools/MobileActorLab.vue'
 
 const route = useRoute()
 
@@ -88,7 +90,7 @@ const currentToolComponent = computed(() => {
     case 'cleanup': return CleanupTools
     case 'notifications': return NotificationManager
     case 'tmdb':
-    case 'tmdb-lab': return TmdbLab
+    case 'tmdb-lab': return MobileTmdbLab
     case 'settings': return Settings
     // case 'dedupe': return DedupeManager // 有语法错误，暂时禁用
     case 'type-manager': return TypeManager
@@ -98,9 +100,9 @@ const currentToolComponent = computed(() => {
     case 'item-query': return EmbyItemQuery
     case 'tmdb-lookup': return TmdbReverseLookup
     case 'tmdb-search': return TmdbIdSearch
-    case 'bangumi-lab': return BangumiLab
-    case 'ai-lab': return AILab
-    case 'actor-lab': return ActorLab
+    case 'bangumi-lab': return MobileBangumiLab
+    case 'ai-lab': return MobileAILab
+    case 'actor-lab': return MobileActorLab
     case 'image-builder': return ImageBuilder
     case 'postgres': return PostgresManager
     case 'backup': return BackupManager
