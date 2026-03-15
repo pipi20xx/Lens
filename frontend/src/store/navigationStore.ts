@@ -5,8 +5,16 @@ const MENU_SETTINGS_KEY = 'lens_menu_settings'
 const AUTH_SAVE_KEY = 'lens_access_token'
 const ACTIVE_GROUP_KEY = 'lens_active_group'
 
-// 1. 初始化状态逻辑
-const initialView = localStorage.getItem(SAVE_KEY) || 'DashboardView'
+// 1. 初始化状态逻辑 - 优先从 URL hash 读取，其次是 localStorage
+const getInitialView = () => {
+  if (typeof window !== 'undefined') {
+    const hashView = window.location.hash.replace('#', '')
+    if (hashView) return hashView
+  }
+  return localStorage.getItem(SAVE_KEY) || 'DashboardView'
+}
+
+const initialView = getInitialView()
 const initialGroup = localStorage.getItem(ACTIVE_GROUP_KEY) || 'DashboardView'
 
 export const currentViewKey = ref(initialView)

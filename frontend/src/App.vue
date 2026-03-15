@@ -157,9 +157,14 @@ const handleLogout = () => {
 }
 
 onMounted(async () => {
+  // 处理 /home 路径进入站点导航
   if (window.location.pathname === '/home') {
     isHomeEntry.value = true
-    currentViewKey.value = 'SiteNavView'
+    // URL hash 中的视图已经在 navigationStore.ts 中处理
+    // 如果没有 hash，默认使用 SiteNavView
+    if (!window.location.hash || window.location.hash === '#') {
+      currentViewKey.value = 'SiteNavView'
+    }
     window.history.replaceState({}, '', '/')
   }
 

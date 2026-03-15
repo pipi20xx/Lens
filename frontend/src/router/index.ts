@@ -11,6 +11,12 @@ const router = createRouter({
       meta: { public: true }
     },
     {
+      path: '/home',
+      name: 'HomeEntry',
+      component: () => import('../views/Dashboard.vue'),
+      meta: { isHomeEntry: true }
+    },
+    {
       path: '/',
       name: 'Dashboard',
       component: () => import('../views/Dashboard.vue'),
