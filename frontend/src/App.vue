@@ -6,14 +6,12 @@ import {
   NLayout, 
   NLayoutContent, 
   NLayoutHeader,
-  darkTheme,
   NGlobalStyle,
   NModal,
   NCard,
   NSpace,
   NButton,
   NIcon,
-  NDropdown,
   NTooltip,
   NAvatar,
   NText,
@@ -42,13 +40,15 @@ import {
 
 import { useTheme } from './hooks/useTheme'
 import { viewMap } from './config/views'
-import { allMenuItems, SettingIcon, ConsoleIcon, ThemeIcon } from './config/menu'
+import { allMenuItems, SettingIcon, ConsoleIcon } from './config/menu'
 import { 
   ExitToAppOutlined as LogoutIcon,
   DnsOutlined as ServerIcon,
   DragHandleOutlined as MenuManageIcon,
   PersonOutlined as UserIcon,
-  LockOpenOutlined as UnlockedIcon
+  LockOpenOutlined as UnlockedIcon,
+  LightModeOutlined as LightIcon,
+  DarkModeOutlined as DarkIcon
 } from '@vicons/material'
 import { servers, activeServerId, fetchServers, activateServer } from './store/serverStore'
 import { useRouter } from 'vue-router'
@@ -56,7 +56,7 @@ import axios from 'axios'
 import { watch, computed, onMounted, ref, h } from 'vue'
 
 // --- Theme System ---
-const { currentThemeType, themeOverrides, themeOptions } = useTheme()
+const { isDark, naiveTheme, themeOverrides, toggleTheme } = useTheme()
 const router = useRouter()
 const showMenuManager = ref(false)
 
@@ -158,10 +158,6 @@ const handleLogout = () => {
   router.push('/login')
 }
 
-const handleThemeSelect = (val: string) => {
-  currentThemeType.value = val as any
-}
-
 onMounted(async () => {
   if (window.location.pathname === '/home') {
     isHomeEntry.value = true
@@ -202,7 +198,7 @@ const currentView = computed(() => {
 </script>
 
 <template>
-  <n-config-provider :theme="darkTheme" :theme-overrides="themeOverrides">
+  <n-config-provider :theme="naiveTheme" :theme-overrides="themeOverrides">
     <n-global-style />
     <n-dialog-provider>
       <n-message-provider>
@@ -226,7 +222,7 @@ const currentView = computed(() => {
               <div class="header-content">
                 <div class="header-left">
                   <div class="logo-box" @click="isLoggedIn && (currentViewKey = 'DashboardView')">
-                    <app-logo :size="28" :theme="currentThemeType" />
+                    <app-logo :size="28" :isDark="isDark" />
                     <span class="header-title">LENS</span>
                   </div>
                   
@@ -256,11 +252,14 @@ const currentView = computed(() => {
                 <div class="header-right">
                   <n-space :size="12" align="center">
                     <template v-if="isLoggedIn">
-                      <n-dropdown trigger="click" :options="themeOptions" @select="handleThemeSelect">
-                        <n-button circle quaternary size="small">
-                          <template #icon><n-icon><ThemeIcon /></n-icon></template>
-                        </n-button>
-                      </n-dropdown>
+                      <n-button circle quaternary size="small" @click="toggleTheme" :type="isDark ? 'default' : 'primary'">
+                        <template #icon>
+                          <n-icon>
+                            <DarkIcon v-if="isDark" />
+                            <LightIcon v-else />
+                          </n-icon>
+                        </template>
+                      </n-button>
                       
                       <n-button circle quaternary size="small" @click="isLogConsoleOpen = true">
                         <template #icon><n-icon><ConsoleIcon /></n-icon></template>

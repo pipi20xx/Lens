@@ -336,11 +336,12 @@ const copyRawJson = () => {
   overflow-y: auto;
 }
 .json-code-wrapper {
-  background: #000;
+  background: var(--card-bg-color);
   padding: 16px;
   border-radius: 8px;
   max-height: 65vh;
   overflow-y: auto;
+  border: 1px solid var(--border-color);
 }
 .overview-box {
   background: rgba(255, 255, 255, 0.03);

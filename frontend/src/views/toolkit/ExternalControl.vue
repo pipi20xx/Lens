@@ -133,11 +133,11 @@
         <!-- 4. API 文档 -->
         <n-tab-pane name="docs" tab="API 文档">
           <div class="docs-wrapper">
-            <iframe 
+            <iframe
               ref="docsIframe"
-              :key="`${currentThemeType}-${config.api_token}`"
-              :src="`/api/system/docs?theme=${currentThemeType}&token=${config.api_token}`" 
-              frameborder="0" 
+              :key="`${currentMode}-${config.api_token}`"
+              :src="`/api/system/docs?theme=${currentMode}&token=${config.api_token}`"
+              frameborder="0"
               class="docs-iframe"
               @load="initIframeMonitor"
               scrolling="no"
@@ -183,7 +183,7 @@ import { useExternalControl } from './externalControl/hooks/useExternalControl'
 import { useTheme } from '@/hooks/useTheme'
 
 const message = useMessage()
-const { currentThemeType } = useTheme()
+const { currentMode } = useTheme()
 
 const {
   config, auditLogs, loadingLogs, pagination, showLogDetail, currentPayload, activeTab,

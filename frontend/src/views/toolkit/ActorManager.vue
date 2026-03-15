@@ -165,7 +165,7 @@ const getEmbyAvatar = (person: any) => {
 }
 
 .json-code-wrapper { 
-  background: #000; 
+  background: var(--card-bg-color); 
   padding: 16px; 
   border-radius: 8px; 
   max-height: 60vh; 

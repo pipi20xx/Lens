@@ -5,30 +5,29 @@ import {
   NMenu, 
   NScrollbar,
   NButton,
-  NDropdown,
   NIcon,
   NSpace,
   NTooltip
 } from 'naive-ui'
-import { groupedMenuOptions, SettingIcon, ConsoleIcon, ThemeIcon } from '../config/menu'
+import { groupedMenuOptions, SettingIcon, ConsoleIcon } from '../config/menu'
 import MenuManagerModal from './MenuManagerModal.vue'
 import { currentViewKey, activeGroupKey, isLogConsoleOpen, menuSettings, isLoggedIn, logout, uiAuthEnabled } from '../store/navigationStore'
-import { ThemeType } from '../hooks/useTheme'
 import { 
   DragHandleOutlined as MenuManageIcon,
   ExitToAppOutlined as LogoutIcon,
-  DnsOutlined as ServerIcon
+  DnsOutlined as ServerIcon,
+  LightModeOutlined as LightIcon,
+  DarkModeOutlined as DarkIcon
 } from '@vicons/material'
 import { useRouter } from 'vue-router'
 import { servers, activeServerId, fetchServers, activateServer } from '../store/serverStore'
 import { useMessage } from 'naive-ui'
 
 const props = defineProps<{
-  themeType: ThemeType
-  themeOptions: { label: string, key: string }[]
+  isDark: boolean
 }>()
 
-const emit = defineEmits(['update:themeType'])
+const emit = defineEmits(['toggleTheme'])
 const router = useRouter()
 const message = useMessage()
 
@@ -81,8 +80,8 @@ watch(collapsed, (val) => {
   localStorage.setItem('lens_sidebar_collapsed', String(val))
 })
 
-const handleThemeSelect = (val: string) => {
-  emit('update:themeType', val as ThemeType)
+const handleToggleTheme = () => {
+  emit('toggleTheme')
 }
 </script>
 
@@ -135,11 +134,20 @@ const handleThemeSelect = (val: string) => {
             <template #icon><n-icon><MenuManageIcon /></n-icon></template>
           </n-button>
 
-          <n-dropdown trigger="click" :options="themeOptions" @select="handleThemeSelect">
-            <n-button circle secondary :size="collapsed ? 'medium' : 'small'" :type="themeType === 'purple' ? 'primary' : 'info'">
-              <template #icon><n-icon><ThemeIcon /></n-icon></template>
-            </n-button>
-          </n-dropdown>
+          <n-button 
+            circle 
+            secondary 
+            :size="collapsed ? 'medium' : 'small'" 
+            :type="isDark ? 'default' : 'primary'"
+            @click="handleToggleTheme"
+          >
+            <template #icon>
+              <n-icon>
+                <DarkIcon v-if="isDark" />
+                <LightIcon v-else />
+              </n-icon>
+            </template>
+          </n-button>
           
           <n-button 
             circle 
@@ -176,7 +184,7 @@ const handleThemeSelect = (val: string) => {
 <style scoped>
 .main-sider { 
   background-color: var(--sidebar-bg-color); 
-  border-right: 1px solid rgba(255, 255, 255, 0.03) !important; 
+  border-right: 1px solid var(--border-color) !important; 
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -198,95 +206,46 @@ const handleThemeSelect = (val: string) => {
   padding: 0 4px;
 }
 
-:deep(.n-menu-item-content-header) {
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
 .sidebar-footer { 
-  padding: 16px 8px; 
-  border-top: 1px solid rgba(255,255,255,0.03);
-  background-color: rgba(0,0,0,0.05);
+  padding: 12px; 
+  border-top: 1px solid var(--border-color); 
+  margin-top: auto;
 }
-.sidebar-footer.collapsed { padding: 16px 4px; }
+.sidebar-footer.collapsed { padding: 12px 4px; }
 
-.side-menu :deep(.n-menu-item-content) {
-  border-radius: 8px !important;
-  margin: 2px 4px;
-}
-</style>
-<style scoped>
-.main-sider { 
-  background-color: var(--sidebar-bg-color); 
-  border-right: 1px solid rgba(255, 255, 255, 0.05) !important; 
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
-}
-.main-sider.transparent-sider { 
-  background-color: rgba(15, 15, 20, 0.75) !important; 
-  backdrop-filter: blur(16px); 
+.transparent-sider {
+  background-color: transparent !important;
+  border-right: none !important;
 }
 
-.logo-container { 
-  display: flex; 
-  align-items: center; 
-  padding: 20px 16px; 
-  height: 70px; 
-}
-.logo-info { display: flex; flex-direction: column; justify-content: center; margin-left: 4px; }
-.logo-text { font-weight: 900; font-size: 1.25rem; color: var(--primary-color); line-height: 1; letter-spacing: 1.5px; }
-.version-tag { font-size: 0.65rem; color: var(--text-color); opacity: 0.4; font-family: var(--font-mono); margin-top: 2px; }
-
-.server-switcher { 
-  padding: 8px 12px 16px 12px; 
-  margin-bottom: 8px;
-  border-bottom: 1px solid rgba(255,255,255,0.03); 
-}
-.server-switcher.collapsed { padding: 8px 4px 16px 4px; }
-.server-name-text { font-size: 0.85rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 130px; }
-
-.menu-scrollbar {
-  padding: 0 4px;
+.transparent-sider :deep(.n-layout-sider-scroll-container) {
+  background-color: transparent !important;
 }
 
-:deep(.n-menu-item-content-header) {
-  font-size: 0.92rem;
-  font-weight: 500;
+/* 菜单样式调整 */
+:deep(.side-menu .n-menu-item-content) {
+  border-radius: 8px;
+  margin: 2px 0;
 }
 
-:deep(.n-menu-item-group-title) {
-  padding-top: 16px !important;
-  padding-bottom: 8px !important;
-  font-size: 0.72rem !important;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+:deep(.side-menu .n-menu-item-content--selected) {
+  background-color: var(--hover-bg) !important;
+}
+
+:deep(.side-menu .n-menu-item-content:hover) {
+  background-color: var(--hover-bg) !important;
+}
+
+:deep(.side-menu .n-menu-item-content--selected .n-menu-item-content__icon),
+:deep(.side-menu .n-menu-item-content--selected .n-menu-item-content-header) {
+  color: var(--primary-color) !important;
+}
+
+:deep(.side-menu .n-menu-item-content__icon) {
+  color: var(--text-secondary);
+}
+
+:deep(.side-menu .n-menu-item-content-header) {
   color: var(--text-color);
-  opacity: 0.35;
-  font-weight: 700;
-}
-
-.sidebar-footer { 
-  padding: 16px 8px; 
-  border-top: 1px solid rgba(255,255,255,0.03);
-  background-color: rgba(0,0,0,0.05);
-}
-.sidebar-footer.collapsed { padding: 16px 4px; }
-
-.side-menu :deep(.n-menu-item) {
-  margin-top: 2px;
-  margin-bottom: 2px;
-}
-
-.side-menu :deep(.n-menu-item-content) {
-  border-radius: 8px !important;
-  margin: 0 4px;
-}
-
-.side-menu :deep(.n-menu-item-content.n-menu-item-content--selected) {
-  background-color: var(--primary-color-suppl) !important;
-}
-
-.side-menu :deep(.n-menu-item-content:hover) {
-  background-color: rgba(255, 255, 255, 0.05);
 }
 </style>

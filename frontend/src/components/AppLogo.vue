@@ -1,7 +1,11 @@
 <script setup lang="ts">
 const props = withDefaults(defineProps<{
   size?: number | string
-}>(), { size: 24 })
+  isDark?: boolean
+}>(), { 
+  size: 24,
+  isDark: true
+})
 </script>
 
 <template>
@@ -15,6 +19,6 @@ const props = withDefaults(defineProps<{
     <circle cx="100" cy="100" r="85" fill="none" stroke="url(#logo-gradient)" stroke-width="18" />
     <circle cx="100" cy="100" r="55" fill="none" stroke="url(#logo-gradient)" stroke-width="8" stroke-dasharray="20 10" opacity="0.6" />
     <circle cx="100" cy="100" r="25" fill="url(#logo-gradient)" />
-    <path d="M60 60 A60 60 0 0 1 140 60" fill="none" stroke="white" stroke-width="10" stroke-linecap="round" opacity="0.4" />
+    <path d="M60 60 A60 60 0 0 1 140 60" fill="none" :stroke="isDark ? 'white' : '#e5e7eb'" stroke-width="10" stroke-linecap="round" :opacity="isDark ? 0.4 : 0.6" />
   </svg>
 </template>

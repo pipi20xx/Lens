@@ -151,7 +151,7 @@ const copyRawJson = () => {
 
 <style scoped>
 .toolkit-container { width: 100%; }
-.json-code-wrapper { background: #000; padding: 16px; border-radius: 8px; max-height: 60vh; overflow-y: auto; }
+.json-code-wrapper { background: var(--card-bg-color); padding: 16px; border-radius: 8px; max-height: 60vh; overflow-y: auto; border: 1px solid var(--border-color); }
 .empty-holder {
   height: 400px; display: flex; align-items: center; justify-content: center;
   border: 1px dashed var(--border-color); border-radius: 8px;

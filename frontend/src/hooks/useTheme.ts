@@ -1,9 +1,10 @@
-import { ref, computed, watch, onMounted } from 'vue'
-import { GlobalThemeOverrides } from 'naive-ui'
+import { ref, computed, onMounted } from 'vue'
+import { GlobalThemeOverrides, lightTheme, darkTheme } from 'naive-ui'
 
-export type ThemeType = 'modern' | 'purple' | 'oceanic' | 'crimson'
+export type ThemeMode = 'light' | 'dark'
 
-const purpleOverrides: GlobalThemeOverrides = {
+// 夜晚模式 (紫色主题) - 保持原有样式
+const darkOverrides: GlobalThemeOverrides = {
   common: {
     primaryColor: '#a370f7',
     primaryColorHover: '#b794f4',
@@ -14,7 +15,7 @@ const purpleOverrides: GlobalThemeOverrides = {
     bodyColor: '#0f0913',
     textColorBase: '#e2e2e9',
     dividerColor: 'rgba(163, 112, 247, 0.15)',
-    fontSize: '15px' // 略微增加基础字号以适应 PC
+    fontSize: '15px'
   },
   Card: {
     borderRadius: '12px',
@@ -37,86 +38,33 @@ const purpleOverrides: GlobalThemeOverrides = {
   }
 }
 
-const modernOverrides: GlobalThemeOverrides = {
+// 白天模式 - 浅色主题
+const lightOverrides: GlobalThemeOverrides = {
   common: {
-    primaryColor: '#6366f1',
-    primaryColorHover: '#818cf8',
-    primaryColorPressed: '#4f46e5',
-    borderRadius: '6px',
-    cardColor: '#18181b',
-    bodyColor: '#0e0e11',
-    modalColor: '#202023',
-    textColorBase: '#f4f4f5',
-    dividerColor: 'rgba(255, 255, 255, 0.08)',
+    primaryColor: '#7c3aed',
+    primaryColorHover: '#8b5cf6',
+    primaryColorPressed: '#6d28d9',
+    borderRadius: '8px',
+    cardColor: '#ffffff',
+    modalColor: '#ffffff',
+    bodyColor: '#f8f7fa',
+    textColorBase: '#1f2937',
+    dividerColor: 'rgba(124, 58, 237, 0.12)',
     fontSize: '15px'
   },
   Card: {
-    borderRadius: '10px',
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: '12px',
+    borderColor: 'rgba(124, 58, 237, 0.15)',
     titleFontSizeMedium: '18px',
     titleFontWeight: '600'
   },
   Button: {
-    borderRadiusMedium: '6px',
+    borderRadiusMedium: '8px',
     fontWeight: '500',
     fontSizeMedium: '14px'
   },
-  Menu: {
-    fontSize: '15px',
-    itemHeight: '42px'
-  }
-}
-
-const oceanicOverrides: GlobalThemeOverrides = {
-  common: {
-    primaryColor: '#2dd4bf',
-    primaryColorHover: '#5eead4',
-    primaryColorPressed: '#14b8a6',
+  Input: {
     borderRadius: '8px',
-    cardColor: '#0f172a',
-    bodyColor: '#020617',
-    modalColor: '#1e293b',
-    textColorBase: '#f1f5f9',
-    dividerColor: 'rgba(45, 212, 191, 0.12)',
-    fontSize: '15px'
-  },
-  Card: {
-    borderRadius: '12px',
-    borderColor: 'rgba(45, 212, 191, 0.15)',
-    titleFontSizeMedium: '18px',
-    titleFontWeight: '600'
-  },
-  Button: {
-    borderRadiusMedium: '8px',
-    fontSizeMedium: '14px'
-  },
-  Menu: {
-    fontSize: '15px',
-    itemHeight: '42px'
-  }
-}
-
-const crimsonOverrides: GlobalThemeOverrides = {
-  common: {
-    primaryColor: '#fb7185',
-    primaryColorHover: '#fda4af',
-    primaryColorPressed: '#f43f5e',
-    borderRadius: '8px',
-    cardColor: '#181212',
-    bodyColor: '#0a0808',
-    modalColor: '#1c1616',
-    textColorBase: '#fceef0',
-    dividerColor: 'rgba(251, 113, 133, 0.12)',
-    fontSize: '15px'
-  },
-  Card: {
-    borderRadius: '12px',
-    borderColor: 'rgba(251, 113, 133, 0.15)',
-    titleFontSizeMedium: '18px',
-    titleFontWeight: '600'
-  },
-  Button: {
-    borderRadiusMedium: '8px',
     fontSizeMedium: '14px'
   },
   Menu: {
@@ -126,73 +74,80 @@ const crimsonOverrides: GlobalThemeOverrides = {
 }
 
 export function useTheme() {
-  const currentThemeType = ref<ThemeType>((localStorage.getItem('lens_theme_type') as ThemeType) || 'purple')
+  const currentMode = ref<ThemeMode>((localStorage.getItem('lens_theme_mode') as ThemeMode) || 'dark')
 
-  watch(currentThemeType, (val) => localStorage.setItem('lens_theme_type', val))
+  const isDark = computed(() => currentMode.value === 'dark')
+  const isLight = computed(() => currentMode.value === 'light')
 
-  const syncThemeVariables = (theme: GlobalThemeOverrides) => {
+  const naiveTheme = computed(() => isDark.value ? darkTheme : lightTheme)
+
+  const syncThemeVariables = (mode: ThemeMode) => {
     const root = document.documentElement
-    const common = theme.common!
-    root.style.setProperty('--primary-color', common.primaryColor!)
-    root.style.setProperty('--primary-hover', common.primaryColorHover!)
-    root.style.setProperty('--app-bg-color', common.bodyColor!)
-    root.style.setProperty('--card-bg-color', common.cardColor!)
-    root.style.setProperty('--modal-bg-color', common.modalColor || common.cardColor!)
-    root.style.setProperty('--text-color', common.textColorBase!)
-    root.style.setProperty('--border-color', common.dividerColor!)
     
-    // 动态侧边栏背景
-    let sidebarBg = '#121215'
-    let subNavBg = 'rgba(255, 255, 255, 0.03)'
-    if (currentThemeType.value === 'purple') {
-      sidebarBg = '#140c1a'
-      subNavBg = 'rgba(163, 112, 247, 0.05)'
+    if (mode === 'dark') {
+      // 夜晚模式变量
+      root.style.setProperty('--primary-color', '#a370f7')
+      root.style.setProperty('--primary-hover', '#b794f4')
+      root.style.setProperty('--app-bg-color', '#0f0913')
+      root.style.setProperty('--card-bg-color', '#1a1021')
+      root.style.setProperty('--modal-bg-color', '#241630')
+      root.style.setProperty('--text-color', '#e2e2e9')
+      root.style.setProperty('--border-color', 'rgba(163, 112, 247, 0.15)')
+      root.style.setProperty('--sidebar-bg-color', '#140c1a')
+      root.style.setProperty('--nav-bg-color', '#140c1a')
+      root.style.setProperty('--sub-nav-bg-color', 'rgba(163, 112, 247, 0.05)')
+      root.style.setProperty('--primary-border-color', 'rgba(163, 112, 247, 0.2)')
+      root.style.setProperty('--text-secondary', '#9ca3af')
+      root.style.setProperty('--hover-bg', 'rgba(163, 112, 247, 0.08)')
+    } else {
+      // 白天模式变量
+      root.style.setProperty('--primary-color', '#7c3aed')
+      root.style.setProperty('--primary-hover', '#8b5cf6')
+      root.style.setProperty('--app-bg-color', '#f8f7fa')
+      root.style.setProperty('--card-bg-color', '#ffffff')
+      root.style.setProperty('--modal-bg-color', '#ffffff')
+      root.style.setProperty('--text-color', '#1f2937')
+      root.style.setProperty('--border-color', 'rgba(124, 58, 237, 0.12)')
+      root.style.setProperty('--sidebar-bg-color', '#ffffff')
+      root.style.setProperty('--nav-bg-color', '#ffffff')
+      root.style.setProperty('--sub-nav-bg-color', 'rgba(124, 58, 237, 0.05)')
+      root.style.setProperty('--primary-border-color', 'rgba(124, 58, 237, 0.15)')
+      root.style.setProperty('--text-secondary', '#6b7280')
+      root.style.setProperty('--hover-bg', 'rgba(124, 58, 237, 0.06)')
     }
-    if (currentThemeType.value === 'oceanic') {
-      sidebarBg = '#0b1120'
-      subNavBg = 'rgba(45, 212, 191, 0.05)'
-    }
-    if (currentThemeType.value === 'crimson') {
-      sidebarBg = '#120d0d'
-      subNavBg = 'rgba(251, 113, 133, 0.05)'
-    }
-    root.style.setProperty('--sidebar-bg-color', sidebarBg)
-    root.style.setProperty('--nav-bg-color', sidebarBg)
-    root.style.setProperty('--sub-nav-bg-color', subNavBg)
-    
-    root.style.setProperty('--primary-border-color', `${common.primaryColor}33`) // 20% opacity
   }
 
   const themeOverrides = computed(() => {
-    const map = {
-      purple: purpleOverrides,
-      modern: modernOverrides,
-      oceanic: oceanicOverrides,
-      crimson: crimsonOverrides
+    const overrides = isDark.value ? darkOverrides : lightOverrides
+    if (typeof document !== 'undefined') {
+      syncThemeVariables(currentMode.value)
     }
-    const overrides = map[currentThemeType.value] || purpleOverrides
-    if (typeof document !== 'undefined') { syncThemeVariables(overrides) }
     return overrides
   })
 
+  const toggleTheme = () => {
+    currentMode.value = isDark.value ? 'light' : 'dark'
+    localStorage.setItem('lens_theme_mode', currentMode.value)
+    syncThemeVariables(currentMode.value)
+  }
+
+  const setTheme = (mode: ThemeMode) => {
+    currentMode.value = mode
+    localStorage.setItem('lens_theme_mode', mode)
+    syncThemeVariables(mode)
+  }
+
   onMounted(() => {
-    const map = {
-      purple: purpleOverrides,
-      modern: modernOverrides,
-      oceanic: oceanicOverrides,
-      crimson: crimsonOverrides
-    }
-    syncThemeVariables(map[currentThemeType.value] || purpleOverrides)
+    syncThemeVariables(currentMode.value)
   })
 
   return {
-    currentThemeType,
+    currentMode,
+    isDark,
+    isLight,
+    naiveTheme,
     themeOverrides,
-    themeOptions: [
-      { label: '暗夜紫韵 (Purple)', key: 'purple' },
-      { label: '现代极客 (Modern)', key: 'modern' },
-      { label: '深海翠羽 (Oceanic)', key: 'oceanic' },
-      { label: '赤红余烬 (Crimson)', key: 'crimson' }
-    ]
+    toggleTheme,
+    setTheme
   }
 }

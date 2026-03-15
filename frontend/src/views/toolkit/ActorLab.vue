@@ -260,7 +260,7 @@ const languageOptions = [
 .work-text-item:hover { background: rgba(255, 255, 255, 0.02); }
 
 .json-code-wrapper { 
-  background: #000; padding: 16px; border-radius: 8px; 
+  background: var(--card-bg-color); padding: 16px; border-radius: 8px; 
   max-height: 65vh; overflow-y: auto; border: 1px solid var(--border-color); 
 }
 .empty-holder {

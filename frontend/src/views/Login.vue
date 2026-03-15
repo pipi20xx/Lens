@@ -6,7 +6,7 @@
 
     <n-card class="login-card" :bordered="false">
       <div class="login-header">
-        <n-icon size="48" color="var(--n-primary-color)"><LockIcon /></n-icon>
+        <n-icon size="48" color="var(--primary-color)"><LockIcon /></n-icon>
         <n-h2>Lens</n-h2>
         <n-text depth="3">请输入管理员凭据以访问系统</n-text>
       </div>
@@ -66,7 +66,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { 
   NCard, NForm, NFormItem, NInput, NButton, NIcon, NH2, NText, useMessage 
@@ -123,6 +123,24 @@ const handleLogin = async () => {
     loading.value = false
   }
 }
+
+onMounted(() => {
+  // 同步主题变量到登录页面
+  const savedMode = localStorage.getItem('lens_theme_mode') || 'dark'
+  const root = document.documentElement
+  
+  if (savedMode === 'dark') {
+    root.style.setProperty('--login-bg', '#000')
+    root.style.setProperty('--login-card-bg', 'rgba(24, 24, 28, 0.8)')
+    root.style.setProperty('--login-card-border', 'rgba(255, 255, 255, 0.08)')
+    root.style.setProperty('--login-shadow', '0 25px 50px -12px rgba(0, 0, 0, 0.5)')
+  } else {
+    root.style.setProperty('--login-bg', '#f8f7fa')
+    root.style.setProperty('--login-card-bg', 'rgba(255, 255, 255, 0.9)')
+    root.style.setProperty('--login-card-border', 'rgba(124, 58, 237, 0.15)')
+    root.style.setProperty('--login-shadow', '0 25px 50px -12px rgba(0, 0, 0, 0.15)')
+  }
+})
 </script>
 
 <style scoped>
@@ -132,7 +150,7 @@ const handleLogin = async () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #000;
+  background-color: var(--login-bg, var(--app-bg-color, #000));
   position: relative;
   overflow: hidden;
 }
@@ -150,7 +168,7 @@ const handleLogin = async () => {
 .top-left {
   top: -100px;
   left: -100px;
-  background-color: var(--n-primary-color);
+  background-color: var(--primary-color);
 }
 
 .bottom-right {
@@ -162,10 +180,10 @@ const handleLogin = async () => {
 .login-card {
   width: 420px;
   z-index: 1;
-  background-color: rgba(24, 24, 28, 0.8);
+  background-color: var(--login-card-bg, rgba(24, 24, 28, 0.8));
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--login-card-border, rgba(255, 255, 255, 0.08));
+  box-shadow: var(--login-shadow, 0 25px 50px -12px rgba(0, 0, 0, 0.5));
   padding: 32px;
   border-radius: 24px;
 }
