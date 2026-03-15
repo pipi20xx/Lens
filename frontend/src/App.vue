@@ -63,6 +63,11 @@ const shouldHideNav = computed(() => {
   return currentViewKey.value === 'SiteNavView' && isHomeEntry.value
 })
 
+// 判断是否使用移动端路由
+const isMobileRoute = computed(() => {
+  return router.currentRoute.value.path.startsWith('/mobile')
+})
+
 // 计算当前激活分组下的可见子项
 const currentSubMenuItems = computed(() => {
   if (!isLoggedIn.value) return []
@@ -189,9 +194,10 @@ const currentView = computed(() => {
         >
           
           <!-- 头部导航区域 - 包含一级和二级 -->
-          <div 
-            class="navigation-wrapper" 
+          <div
+            class="navigation-wrapper"
             :class="{ 'sticky-nav': isHeaderSticky && !shouldHideNav }"
+            v-if="!isMobileRoute"
           >
             <!-- 第一级：主顶部导航栏 -->
             <n-layout-header 
@@ -300,7 +306,10 @@ const currentView = computed(() => {
           >
             <div class="view-wrapper">
               <template v-if="isLoggedIn">
-                <transition name="fade" mode="out-in">
+                <!-- 移动端路由视图 -->
+                <router-view v-if="isMobileRoute" />
+                <!-- 桌面端自定义视图 -->
+                <transition v-else name="fade" mode="out-in">
                   <component :is="currentView" :key="currentViewKey" />
                 </transition>
               </template>
