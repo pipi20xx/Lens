@@ -102,6 +102,29 @@ const contextMenuOptions = [
   { label: '删除站点', key: 'delete', icon: () => h(NIcon, null, { default: () => h(DeleteIcon) }) },
 ]
 
+// 判断背景色是否为浅色
+const isLightBackground = (color: string): boolean => {
+  if (!color) return false
+  // 移除 # 号
+  const hex = color.replace('#', '')
+  // 支持 3位、6位、8位（带alpha）hex
+  let r: number, g: number, b: number
+  if (hex.length === 3) {
+    r = parseInt(hex[0] + hex[0], 16)
+    g = parseInt(hex[1] + hex[1], 16)
+    b = parseInt(hex[2] + hex[2], 16)
+  } else if (hex.length >= 6) {
+    r = parseInt(hex.substring(0, 2), 16)
+    g = parseInt(hex.substring(2, 4), 16)
+    b = parseInt(hex.substring(4, 6), 16)
+  } else {
+    return false
+  }
+  // 计算亮度 (YIQ公式)
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000
+  return brightness > 200 // 亮度大于200认为是浅色
+}
+
 // --- 核心拖拽排序逻辑 ---
 
 const onDragStart = (id: number) => {
@@ -210,7 +233,7 @@ const openUrl = (url: string) => window.open(url, '_blank')
 </script>
 
 <template>
-  <div 
+  <div
     class="site-nav-page"
     :style="{
       '--nav-card-bg': navSettings.card_background || 'rgba(255, 255, 255, 0.12)',
@@ -225,7 +248,8 @@ const openUrl = (url: string) => window.open(url, '_blank')
       '--nav-header-align': navSettings.header_alignment || 'left',
       '--nav-header-gap': `${navSettings.header_item_spacing ?? 12}px`,
       '--nav-header-mt': `${navSettings.header_margin_top ?? 20}px`,
-      '--nav-header-mb': `${navSettings.header_margin_bottom ?? 30}px`
+      '--nav-header-mb': `${navSettings.header_margin_bottom ?? 30}px`,
+      '--nav-overlay-bg': isLightBackground(navSettings.background_color) ? 'none' : 'radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.4) 100%), linear-gradient(to bottom, rgba(0, 0, 0, 0.2) 0%, transparent 20%, transparent 80%, rgba(0, 0, 0, 0.3) 100%)'
     }"
   >
     <!-- 背景层：底层实色 -->
@@ -447,7 +471,7 @@ const openUrl = (url: string) => window.open(url, '_blank')
   transition: opacity 1s ease, filter 1s ease;
 }
 
-/* 遮罩层：增加暗角和深度感，保护文字阅读 */
+/* 遮罩层：增加暗角和深度感，保护文字阅读（根据背景色自动调整） */
 .site-nav-overlay {
   position: absolute;
   top: 0;
@@ -455,8 +479,8 @@ const openUrl = (url: string) => window.open(url, '_blank')
   right: 0;
   bottom: 0;
   z-index: 2;
-  background: radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.4) 100%),
-              linear-gradient(to bottom, rgba(0, 0, 0, 0.2) 0%, transparent 20%, transparent 80%, rgba(0, 0, 0, 0.3) 100%);
+  background: var(--nav-overlay-bg, radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.4) 100%),
+              linear-gradient(to bottom, rgba(0, 0, 0, 0.2) 0%, transparent 20%, transparent 80%, rgba(0, 0, 0, 0.3) 100%));
   pointer-events: none;
 }
 
