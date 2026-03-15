@@ -20,13 +20,12 @@ export function useExternalControl() {
     pageSizes: [15, 30, 50],
   })
 
-  const config = reactive({ api_token: '', auth_enabled: false, audit_enabled: true })
+  const config = reactive({ api_token: '', audit_enabled: true })
 
   const loadConfig = async () => {
     try {
       const data: any = await systemApi.getConfig()
       config.api_token = data.api_token || ''
-      config.auth_enabled = data.ui_auth_enabled === 'true' || data.ui_auth_enabled === true
       config.audit_enabled = data.audit_enabled !== 'false' && data.audit_enabled !== false
     } catch (err) { /* 拦截器已处理弹窗 */ }
   }
@@ -34,7 +33,6 @@ export function useExternalControl() {
   const saveSettings = async () => {
     try {
       await systemApi.saveConfig([
-        { key: 'ui_auth_enabled', value: String(config.auth_enabled) },
         { key: 'audit_enabled', value: String(config.audit_enabled) }
       ])
       message.success('设置已保存')

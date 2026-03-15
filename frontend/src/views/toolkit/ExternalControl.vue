@@ -64,43 +64,23 @@
           <div style="padding-top: 16px;">
             <n-grid :x-gap="12" :y-gap="12" :cols="24" item-responsive responsive="screen">
               <n-gi span="24 m:16">
-                <n-grid :x-gap="12" :y-gap="12" :cols="2" item-responsive responsive="screen">
-                  <n-gi span="2 m:1">
-                    <n-card title="访问控制" size="small" segmented style="height: 100%">
-                      <n-space vertical>
-                        <div class="setting-item">
-                          <n-thing title="强制身份认证" description="开启后，所有 API 请求必须校验 Token" />
-                          <n-switch v-model:value="config.auth_enabled" @update:value="saveSettings" />
-                        </div>
-                        <n-divider />
-                        <div class="setting-item">
-                          <n-thing title="本地请求豁免" description="允许来自回环地址的请求跳过校验" />
-                          <n-switch :value="true" disabled />
-                        </div>
-                      </n-space>
-                    </n-card>
-                  </n-gi>
-                  <n-gi span="2 m:1">
-                    <n-card title="审计策略" size="small" segmented style="height: 100%">
-                      <n-space vertical>
-                        <div class="setting-item">
-                          <n-thing title="开启全局审计" description="记录所有 API 请求的方法、路径及状态码" />
-                          <n-switch v-model:value="config.audit_enabled" @update:value="saveSettings" />
-                        </div>
-                        <n-divider />
-                        <div class="setting-item">
-                          <n-thing title="Payload 捕获" description="自动脱敏并存储请求 Body 内容" />
-                          <n-switch :value="config.audit_enabled" disabled />
-                        </div>
-                      </n-space>
-                    </n-card>
-                  </n-gi>
-                </n-grid>
+                <n-card title="审计策略" size="small" segmented style="height: 100%">
+                  <n-space vertical>
+                    <div class="setting-item">
+                      <n-thing title="开启全局审计" description="记录所有 API 请求的方法、路径及状态码" />
+                      <n-switch v-model:value="config.audit_enabled" @update:value="saveSettings" />
+                    </div>
+                    <n-divider />
+                    <div class="setting-item">
+                      <n-thing title="Payload 捕获" description="自动脱敏并存储请求 Body 内容" />
+                      <n-switch :value="config.audit_enabled" disabled />
+                    </div>
+                  </n-space>
+                </n-card>
               </n-gi>
               <n-gi span="24 m:8">
                 <n-card title="设置说明" size="small" segmented>
                   <n-text depth="3" style="font-size: 13px">
-                    <b>强制认证：</b>建议始终开启。只有在调试或处于隔离的受信任内网时才考虑关闭。<br/><br/>
                     <b>审计日志：</b>开启审计会产生少量的数据库写入开销，但对于回溯系统操作和定位自动化对接问题非常有帮助。
                   </n-text>
                 </n-card>

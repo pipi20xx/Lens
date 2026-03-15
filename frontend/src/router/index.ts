@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { isLoggedIn, uiAuthEnabled } from '@/store/navigationStore'
-import { authApi } from '@/api/auth'
+import { isLoggedIn } from '@/store/navigationStore'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -136,18 +135,12 @@ const router = createRouter({
 })
 
 // 导航守卫
-router.beforeEach(async (to, from, next) => {
-  // 1. 检查服务器认证状态
-  try {
-    const data: any = await authApi.getStatus()
-    uiAuthEnabled.value = data.ui_auth_enabled === true || data.ui_auth_enabled === 'true'
-  } catch (err) { }
-
-  // 2. 鉴权逻辑
-  if (uiAuthEnabled.value && !isLoggedIn.value && !to.meta.public) {
+router.beforeEach((to, from, next) => {
+  // 鉴权逻辑 - 强制要求登录
+  if (!isLoggedIn.value && !to.meta.public) {
     next({ name: 'Login' })
-  } else if (to.name === 'Login' && (isLoggedIn.value || !uiAuthEnabled.value)) {
-    // 如果已经在登录页，但认证已关闭或已登录，则跳回首页
+  } else if (to.name === 'Login' && isLoggedIn.value) {
+    // 如果已经在登录页，但已登录，则跳回首页
     next({ name: 'Dashboard' })
   } else {
     next()

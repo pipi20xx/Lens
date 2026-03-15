@@ -56,7 +56,9 @@ async def login(req: LoginRequest, request: Request, db: AsyncSession = Depends(
     user.last_login = get_local_time()
     await db.commit()
     
-    access_token = create_access_token(data={"sub": user.username})
+    # 创建 Token 时包含密码指纹，确保修改密码后旧 Token 失效
+    password_fingerprint = user.hashed_password[:16]
+    access_token = create_access_token(data={"sub": user.username, "ps": password_fingerprint})
     asyncio.create_task(add_audit_log("POST", "/api/auth/login", 200, client_ip, 0, payload=f"登录成功: {user.username}"))
     
     # 发送登录通知
@@ -121,29 +123,6 @@ async def disable_2fa(db: AsyncSession = Depends(get_db), token: str = Depends(o
     user.is_otp_enabled = False
     await db.commit()
     return {"message": "成功"}
-
-@router.get("/status", summary="获取系统认证状态")
-async def get_auth_status():
-    val = await ConfigService.get("ui_auth_enabled", True)
-    # 强制转换为真正的 Python bool，确保 JSON 输出为 true/false 而非 "true"/"false"
-    ui_auth_enabled = val is True or str(val).lower() == "true"
-    return {"ui_auth_enabled": ui_auth_enabled}
-
-@router.post("/guest_login", response_model=TokenResponse, summary="免密登录接口")
-async def guest_login(db: AsyncSession = Depends(get_db)):
-    """在开启免密模式时，提供一种前端自动获取合法 Token 的方式"""
-    val = await ConfigService.get("ui_auth_enabled", True)
-    if val is True or str(val).lower() == "true":
-        raise HTTPException(status_code=403, detail="强制认证模式已开启，无法使用免密登录")
-    
-    # 默认返回 admin 用户的 Token
-    result = await db.execute(select(User).where(User.username == "admin"))
-    user = result.scalars().first()
-    if not user:
-        raise HTTPException(status_code=500, detail="未找到默认管理员账户")
-        
-    access_token = create_access_token(data={"sub": user.username})
-    return {"access_token": access_token, "token_type": "bearer", "username": user.username, "status": "success"}
 
 @router.get("/me", summary="获取当前用户信息")
 async def get_me(user: User = Depends(get_current_user)):

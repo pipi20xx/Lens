@@ -50,56 +50,44 @@ def decode_access_token(token: str) -> Optional[dict]:
 async def get_current_user(request: Request, db: AsyncSession = Depends(get_db)):
     """获取当前用户的核心依赖项 (支持 JWT 和 静态 API Token)"""
     
-    # 1. 检查配置
-    ui_auth_enabled_val = await ConfigService.get("ui_auth_enabled", True)
-    ui_auth_enabled = ui_auth_enabled_val is True or str(ui_auth_enabled_val).lower() == "true"
-    
-    api_auth_enabled_val = await ConfigService.get("auth_enabled", True)
-    api_auth_enabled = api_auth_enabled_val is True or str(api_auth_enabled_val).lower() == "true"
-
     auth_header = request.headers.get("Authorization")
     token = auth_header.replace("Bearer ", "") if auth_header and auth_header.startswith("Bearer ") else None
     
-    if token:
-        try:
-            # A. 尝试作为 JWT 令牌解析
-            payload = decode_access_token(token)
-            if payload and payload.get("type") != "2fa_pending":
-                username = payload.get("sub")
-                result = await db.execute(select(User).where(User.username == username))
-                user = result.scalars().first()
-                if user:
-                    # 校验密码指纹 (如果 Token 带有 ps 字段)
-                    token_ps = payload.get("ps")
-                    if token_ps:
-                        current_ps = user.hashed_password[:16]
-                        if token_ps != current_ps:
-                            # 仅在开启验证时报错
-                            if ui_auth_enabled or api_auth_enabled:
-                                raise HTTPException(status_code=401, detail="Password changed, please re-login")
-                    return user
-            
-            # B. 尝试作为 静态 API Token 匹配
-            static_token = await ConfigService.get("api_token")
-            if static_token and token == static_token:
-                result = await db.execute(select(User).where(User.username == "admin"))
-                return result.scalars().first()
-        except HTTPException as e:
-            # 仅在开启验证时透传 401
-            if ui_auth_enabled or api_auth_enabled:
-                raise e
-        except Exception:
-            # Token 解析出错，如果不开启强制认证，忽略异常
-            if ui_auth_enabled or api_auth_enabled:
-                raise HTTPException(status_code=401, detail="Invalid token")
-
-    # 2. 无效 Token 处理
-    if ui_auth_enabled:
+    if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authentication required",
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    result = await db.execute(select(User).where(User.username == "admin"))
-    return result.scalars().first()
+    try:
+        # A. 尝试作为 JWT 令牌解析
+        payload = decode_access_token(token)
+        if payload and payload.get("type") != "2fa_pending":
+            username = payload.get("sub")
+            result = await db.execute(select(User).where(User.username == username))
+            user = result.scalars().first()
+            if user:
+                # 校验密码指纹 (如果 Token 带有 ps 字段)
+                token_ps = payload.get("ps")
+                if token_ps:
+                    current_ps = user.hashed_password[:16]
+                    if token_ps != current_ps:
+                        raise HTTPException(status_code=401, detail="Password changed, please re-login")
+                return user
+        
+        # B. 尝试作为 静态 API Token 匹配
+        static_token = await ConfigService.get("api_token")
+        if static_token and token == static_token:
+            result = await db.execute(select(User).where(User.username == "admin"))
+            return result.scalars().first()
+    except HTTPException:
+        raise
+    except Exception:
+        pass
+    
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Invalid token",
+        headers={"WWW-Authenticate": "Bearer"},
+    )

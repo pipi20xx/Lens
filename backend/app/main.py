@@ -6,7 +6,7 @@ try:
 except ImportError:
     pass
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request, HTTPException
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -39,9 +39,11 @@ async def audit_middleware(request: Request, call_next):
     path = request.url.path
     
     # --- 1. 核心安全拦截逻辑 ---
-    public_paths = ["/api/auth/login", "/api/auth/status", "/api/system/config", "/api/system/version", "/api/stats/summary"]
+    # 只保留必须公开的接口：登录、图片代理
+    public_paths = ["/api/auth/login", "/api/playback-report/image-proxy"]
     is_api = path.startswith("/api")
-    is_public = any(p in path for p in public_paths) or path == "/"
+    # 使用精确匹配，避免子路径绕过
+    is_public = path in public_paths or path == "/"
     
     if is_api and not is_public:
         # 动态导入以避免循环依赖
@@ -50,20 +52,12 @@ async def audit_middleware(request: Request, call_next):
         api_auth_enabled_val = await ConfigService.get("auth_enabled", True)
         api_auth_enabled = api_auth_enabled_val is True or str(api_auth_enabled_val).lower() == "true"
         
-        ui_auth_enabled_val = await ConfigService.get("ui_auth_enabled", True)
-        ui_auth_enabled = ui_auth_enabled_val is True or str(ui_auth_enabled_val).lower() == "true"
-        
         if api_auth_enabled:
             auth_header = request.headers.get("Authorization")
             token = auth_header.replace("Bearer ", "") if auth_header and auth_header.startswith("Bearer ") else None
             
             valid = False
-            # 如果不带 token 且 ui 未开启验证，或者请求是 GET，则默认有效
-            if not token and not ui_auth_enabled:
-                valid = True
-            elif request.method == "GET":
-                valid = True
-            elif token:
+            if token:
                 # 检查静态 Token
                 static_token = await ConfigService.get("api_token")
                 if static_token and token == static_token:
@@ -72,9 +66,6 @@ async def audit_middleware(request: Request, call_next):
                     # 检查 JWT Token
                     payload = decode_access_token(token)
                     if payload and payload.get("type") != "2fa_pending":
-                        valid = True
-                    # 如果 JWT 失效但 ui 未开启验证，仍然视为有效 (由后端 get_current_user 处理降级)
-                    elif not ui_auth_enabled:
                         valid = True
             
             if not valid:
@@ -85,20 +76,13 @@ async def audit_middleware(request: Request, call_next):
     # 排除审计路径和文件上传路径
     exclude_paths = [
         "/api/system/logs", 
-        "/api/stats/summary", 
-        "/api/status",
-        "/api/auth/status",
-        "/api/system/config",
-        "/api/system/version",
         "/api/system/audit/logs",
-        "/api/docker",
-        "/api/pgsql",
-        "/api/navigation",
         "/ws/"
     ]
     
     is_api = request.url.path.startswith("/api")
-    is_excluded = any(p in request.url.path for p in exclude_paths)
+    # 使用 startswith 判断前缀，避免精确匹配导致子路径无法排除
+    is_excluded = any(request.url.path.startswith(p) for p in exclude_paths)
     is_upload = "multipart/form-data" in request.headers.get("content-type", "")
 
     # 捕获请求体 (仅针对非 GET 且非上传、非排除路径的请求)
@@ -215,7 +199,6 @@ async def startup_event():
             logger.info(f"已初始化 {len(default_cmds)} 条默认快捷命令")
 
     default_configs = [
-        {"key": "ui_auth_enabled", "value": "true", "description": "是否开启前端页面登录校验"},
         {"key": "audit_enabled", "value": "true", "description": "是否开启全局 API 审计日志"},
         {"key": "api_token", "value": "", "description": "外部 API 调用 Token"}
     ]
@@ -240,7 +223,27 @@ async def shutdown_event():
 
 # WebSocket 实时日志
 @app.websocket("/ws/system/logs")
-async def websocket_endpoint(websocket: WebSocket):
+async def websocket_endpoint(websocket: WebSocket, token: str = Query(...)):
+    # 验证 Token
+    from app.utils.auth import decode_access_token
+    from app.services.config_service import ConfigService
+    
+    valid = False
+    if token:
+        # 检查静态 Token
+        static_token = await ConfigService.get("api_token")
+        if static_token and token == static_token:
+            valid = True
+        else:
+            # 检查 JWT Token
+            payload = decode_access_token(token)
+            if payload and payload.get("type") != "2fa_pending":
+                valid = True
+    
+    if not valid:
+        await websocket.close(code=1008, reason="Unauthorized")
+        return
+    
     await websocket.accept()
     
     # 获取最近的历史日志并回填

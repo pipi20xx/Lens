@@ -28,7 +28,6 @@ import {
   activeGroupKey,
   isLogConsoleOpen, 
   isLoggedIn, 
-  uiAuthEnabled,
   isHomeEntry,
   menuLayout,
   username,
@@ -46,7 +45,6 @@ import {
   DnsOutlined as ServerIcon,
   DragHandleOutlined as MenuManageIcon,
   PersonOutlined as UserIcon,
-  LockOpenOutlined as UnlockedIcon,
   LightModeOutlined as LightIcon,
   DarkModeOutlined as DarkIcon
 } from '@vicons/material'
@@ -165,27 +163,6 @@ onMounted(async () => {
     window.history.replaceState({}, '', '/')
   }
 
-  try {
-    const res = await axios.get('/api/auth/status')
-    const enabled = res.data.ui_auth_enabled === true || res.data.ui_auth_enabled === 'true'
-    uiAuthEnabled.value = enabled
-    
-    // 如果是免密模式，自动尝试获取 guest token
-    if (!enabled) {
-      try {
-        const loginRes = await axios.post('/api/auth/guest_login')
-        if (loginRes.data.access_token) {
-          loginSuccess(loginRes.data.access_token, loginRes.data.username)
-        } else {
-          isLoggedIn.value = true // 兜底
-        }
-      } catch (e) {
-        console.error('Guest login failed:', e)
-        isLoggedIn.value = true // 降级处理
-      }
-    }
-  } catch (err) { }
-
   if (isLoggedIn.value) {
     fetchServers()
     initMenuSettingsFromBackend()
@@ -266,19 +243,16 @@ const currentView = computed(() => {
                       </n-button>
 
                       <n-dropdown trigger="click" :options="userDropdownOptions" @select="handleUserSelect">
-                        <div class="user-info" :class="{ 'no-auth-mode': !uiAuthEnabled }">
+                        <div class="user-info">
                           <n-avatar 
                             round 
                             size="small" 
-                            :style="{ backgroundColor: uiAuthEnabled ? 'var(--primary-color)' : '#4ade80' }"
+                            :style="{ backgroundColor: 'var(--primary-color)' }"
                           >
-                            <n-icon><UserIcon v-if="uiAuthEnabled" /><UnlockedIcon v-else /></n-icon>
+                            <n-icon><UserIcon /></n-icon>
                           </n-avatar>
                           <div class="user-text-box">
                             <n-text class="username-text">{{ username || 'Admin' }}</n-text>
-                            <n-tag v-if="!uiAuthEnabled" size="mini" type="success" :bordered="false" round class="auth-tag">
-                              免密
-                            </n-tag>
                           </div>
                         </div>
                       </n-dropdown>
@@ -430,11 +404,9 @@ const currentView = computed(() => {
 .header-right { flex-shrink: 0; }
 .user-info { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 4px 12px; border-radius: 20px; transition: all 0.3s; border: 1px solid transparent; }
 .user-info:hover { background-color: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.1); }
-.no-auth-mode:hover { background-color: rgba(74, 222, 128, 0.05); border-color: rgba(74, 222, 128, 0.2); }
 
 .user-text-box { display: flex; align-items: center; gap: 6px; }
 .username-text { font-size: 0.9rem; font-weight: 600; }
-.auth-tag { font-size: 10px; height: 18px; padding: 0 6px; font-weight: 800; }
 
 .view-wrapper { flex: 1; width: 100%; display: flex; flex-direction: column; }
 .login-container { flex: 1; display: flex; align-items: center; justify-content: center; }

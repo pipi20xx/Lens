@@ -14,23 +14,6 @@
         <!-- 左侧：主要配置区 -->
         <n-gi span="24 m:16">
           <n-space vertical size="large">
-            <!-- 0. 全局登录开关 -->
-            <n-card title="系统访问安全" size="small" segmented>
-              <div style="display: flex; justify-content: space-between; align-items: center;">
-                <n-thing title="强制登录验证" description="开启后，访问系统必须先通过账号密码登录。关闭则直接进入仪表盘。" />
-                <n-space align="center">
-                  <n-switch v-model:value="authInfo.ui_auth_enabled" size="large">
-                    <template #checked>已开启</template>
-                    <template #unchecked>已关闭</template>
-                  </n-switch>
-                  <n-button type="primary" secondary size="small" @click="toggleGlobalAuth">
-                    <template #icon><n-icon><SaveIcon /></n-icon></template>
-                    保存设置
-                  </n-button>
-                </n-space>
-              </div>
-            </n-card>
-
             <n-grid :x-gap="12" :y-gap="12" :cols="2" item-responsive responsive="screen">
               <!-- 1. 密码修改 -->
               <n-gi span="2 m:1">
@@ -116,7 +99,7 @@
               <n-text depth="3" style="font-size: 13px">
                 1. <b>定期更换密码</b>：建议每 3-6 个月更换一次管理员密码。<br/>
                 2. <b>启用 2FA</b>：即使密码泄露，二次验证也能拦截非法登录。<br/>
-                3. <b>局域网免密</b>：如果您在受信任的局域网内使用，可以关闭强制登录以提高便捷性。
+                3. <b>保护 Token</b>：API Token 拥有系统所有权限，请妥善保管，不要泄露给他人。
               </n-text>
             </n-card>
 
@@ -156,7 +139,7 @@ import { useAuthManager } from './auth/hooks/useAuthManager'
 
 const { 
   pwdForm, authInfo, otpSetup,
-  toggleGlobalAuth, loadAuthInfo, setupOtp, enableOtp, disableOtp, handleChangePassword 
+  loadAuthInfo, setupOtp, enableOtp, disableOtp, handleChangePassword 
 } = useAuthManager()
 
 onMounted(() => {
