@@ -241,7 +241,7 @@ const openUrl = (url: string) => window.open(url, '_blank')
       '--nav-card-border': navSettings.card_border_color || 'rgba(255, 255, 255, 0.15)',
       '--nav-text-color': navSettings.text_color || '#ffffff',
       '--nav-text-desc-color': navSettings.text_description_color || 'rgba(255, 255, 255, 0.7)',
-      '--nav-bg-color': navSettings.background_color || '#1e1e22',
+      '--nav-bg-color': navSettings.enable_background_color ? (navSettings.background_color || '#1e1e22') : 'transparent',
       '--nav-category-color': navSettings.category_title_color || '#ffffff',
       '--nav-content-width': `${navSettings.content_max_width || 90}%`,
       '--nav-category-align': navSettings.category_alignment || 'left',
@@ -249,7 +249,14 @@ const openUrl = (url: string) => window.open(url, '_blank')
       '--nav-header-gap': `${navSettings.header_item_spacing ?? 12}px`,
       '--nav-header-mt': `${navSettings.header_margin_top ?? 20}px`,
       '--nav-header-mb': `${navSettings.header_margin_bottom ?? 30}px`,
-      '--nav-overlay-bg': isLightBackground(navSettings.background_color) ? 'none' : 'radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.4) 100%), linear-gradient(to bottom, rgba(0, 0, 0, 0.2) 0%, transparent 20%, transparent 80%, rgba(0, 0, 0, 0.3) 100%)'
+      '--nav-overlay-bg': (!navSettings.enable_background_color || isLightBackground(navSettings.background_color)) ? 'none' : 'radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.4) 100%), linear-gradient(to bottom, rgba(0, 0, 0, 0.2) 0%, transparent 20%, transparent 80%, rgba(0, 0, 0, 0.3) 100%)',
+      // 内容组件独立样式
+      '--nav-header-text-color': navSettings.header_text_color || '#ffffff',
+      '--nav-header-subtitle-color': navSettings.header_subtitle_color || 'rgba(255, 255, 255, 0.85)',
+      '--nav-clock-text-color': navSettings.clock_text_color || '#ffffff',
+      '--nav-hitokoto-bg': navSettings.hitokoto_background || 'rgba(30, 30, 35, 0.6)',
+      '--nav-hitokoto-text-color': navSettings.hitokoto_text_color || '#ffffff',
+      '--nav-hitokoto-from-color': navSettings.hitokoto_from_color || 'rgba(255, 255, 255, 0.7)'
     }"
   >
     <!-- 背景层：底层实色 -->
@@ -257,21 +264,21 @@ const openUrl = (url: string) => window.open(url, '_blank')
     
     <!-- 背景层：顶层图片（受透明度和模糊度影响） -->
     <transition name="fade-bg">
-      <div 
+      <div
         :key="computedBgUrl"
         v-if="computedBgUrl"
         class="site-nav-background-image"
         :style="{
           backgroundImage: `url('${computedBgUrl}')`,
-          opacity: navSettings.background_opacity ?? 0.7,
-          filter: `blur(${navSettings.background_blur ?? 0}px)`,
+          opacity: navSettings.enable_hd_mode ? 1 : (navSettings.background_opacity ?? 0.7),
+          filter: navSettings.enable_hd_mode ? 'none' : `blur(${navSettings.background_blur ?? 0}px)`,
           backgroundSize: navSettings.background_size || 'cover'
         }"
       ></div>
     </transition>
 
     <!-- 背景遮罩层：防止壁纸太亮干扰视线 -->
-    <div class="site-nav-overlay"></div>
+    <div v-if="!navSettings.enable_hd_mode" class="site-nav-overlay"></div>
 
     <!-- 每日一言底部对齐保护层 -->
     <div 
@@ -296,10 +303,10 @@ const openUrl = (url: string) => window.open(url, '_blank')
           gap: 'var(--nav-header-gap)'
         }">
           <!-- 时钟积木 -->
-          <NavClock 
-            v-if="navSettings.show_clock" 
-            :alignment="navSettings.header_alignment" 
-            :textColor="navSettings.text_color"
+          <NavClock
+            v-if="navSettings.show_clock"
+            :alignment="navSettings.header_alignment"
+            :textColor="navSettings.clock_text_color"
           />
 
           <div class="page-title">{{ navSettings.page_title }}</div>
@@ -490,12 +497,12 @@ const openUrl = (url: string) => window.open(url, '_blank')
 }
 
 .nav-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-.page-title { 
-  font-size: 24px; font-weight: 800; color: var(--nav-text-color); 
-  text-shadow: 0 4px 12px rgba(0,0,0,0.5); 
+.page-title {
+  font-size: 24px; font-weight: 800; color: var(--nav-header-text-color);
+  text-shadow: 0 4px 12px rgba(0,0,0,0.5);
   letter-spacing: -0.5px;
 }
-.page-subtitle { font-size: 13px; color: var(--nav-text-desc-color); margin-bottom: 8px; opacity: 0.9; }
+.page-subtitle { font-size: 13px; color: var(--nav-header-subtitle-color); margin-bottom: 8px; }
 
 .hitokoto-container {
   display: inline-flex;
@@ -506,16 +513,16 @@ const openUrl = (url: string) => window.open(url, '_blank')
   max-width: 600px;
   padding: 8px 12px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--nav-hitokoto-bg);
   backdrop-filter: blur(4px);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
-.hitokoto-container:hover { 
-  background: rgba(255, 255, 255, 0.1); 
+.hitokoto-container:hover {
+  background: rgba(255, 255, 255, 0.1);
   transform: translateY(-2px);
 }
-.hitokoto-text { font-size: 14px; color: var(--nav-text-color); font-style: italic; opacity: 0.95; }
-.hitokoto-from { font-size: 12px; color: var(--nav-text-desc-color); align-self: flex-end; margin-top: 6px; }
+.hitokoto-text { font-size: 14px; color: var(--nav-hitokoto-text-color); font-style: italic; }
+.hitokoto-from { font-size: 12px; color: var(--nav-hitokoto-from-color); align-self: flex-end; margin-top: 6px; }
 
 /* 分类标题美化 */
 .category-section { margin-bottom: 48px; }

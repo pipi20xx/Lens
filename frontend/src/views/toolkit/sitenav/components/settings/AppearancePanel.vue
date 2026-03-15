@@ -17,6 +17,8 @@ const props = defineProps<{
     background_blur: number
     background_size: string
     background_color: string
+    enable_background_color: boolean
+    enable_hd_mode: boolean
     card_background: string
     card_blur: number
     card_border_color: string
@@ -40,6 +42,19 @@ const props = defineProps<{
     header_item_spacing: number
     header_margin_top: number
     header_margin_bottom: number
+    show_category_line: boolean
+    // 内容组件独立样式
+    header_background: string
+    header_blur: number
+    header_border_color: string
+    header_text_color: string
+    header_subtitle_color: string
+    clock_text_color: string
+    hitokoto_background: string
+    hitokoto_blur: number
+    hitokoto_border_color: string
+    hitokoto_text_color: string
+    hitokoto_from_color: string
   }
 }>()
 
@@ -226,6 +241,16 @@ const handleUploadBg = (options: { file: { file: File } }) => {
         
         <n-space vertical size="large">
           <div class="setting-item">
+            <n-space justify="space-between" align="center">
+              <span class="label-small" style="margin-bottom: 0">启用背景底色</span>
+              <n-switch 
+                :value="settings.enable_background_color" 
+                @update:value="val => emit('updateSettings', { enable_background_color: val })" 
+              />
+            </n-space>
+          </div>
+
+          <div v-if="settings.enable_background_color" class="setting-item">
             <div class="label-row">
               <span class="label">背景底色</span>
               <n-text depth="3" size="small">无图片或图片透明时显示的颜色</n-text>
@@ -240,39 +265,51 @@ const handleUploadBg = (options: { file: { file: File } }) => {
 
           <div v-if="settings.background_url || settings.wallpaper_mode !== 'custom'" style="margin-top: 8px;">
             <div class="setting-item">
-              <div class="label-row">
-                <span class="label">填充模式</span>
-                <n-text depth="3" size="small">决定图片如何适配屏幕</n-text>
-              </div>
-              <n-select 
-                :value="settings.background_size" 
-                :options="sizeOptions" 
-                @update:value="val => emit('updateSettings', { background_size: val })" 
-              />
+              <n-space justify="space-between" align="center">
+                <span class="label-small" style="margin-bottom: 0">高清背景模式</span>
+                <n-switch 
+                  :value="settings.enable_hd_mode" 
+                  @update:value="val => emit('updateSettings', { enable_hd_mode: val })" 
+                />
+              </n-space>
             </div>
 
-            <div class="setting-item">
-              <div class="label-row">
-                <span class="label">背景透明度</span>
-                <n-text depth="3" size="small">{{ Math.round(settings.background_opacity * 100) }}%</n-text>
+            <div v-if="!settings.enable_hd_mode">
+              <div class="setting-item">
+                <div class="label-row">
+                  <span class="label">填充模式</span>
+                  <n-text depth="3" size="small">决定图片如何适配屏幕</n-text>
+                </div>
+                <n-select 
+                  :value="settings.background_size" 
+                  :options="sizeOptions" 
+                  @update:value="val => emit('updateSettings', { background_size: val })" 
+                />
               </div>
-              <n-slider 
-                :value="settings.background_opacity" 
-                :min="0" :max="1" :step="0.01" 
-                @update:value="val => emit('updateSettings', { background_opacity: val })" 
-              />
-            </div>
 
-            <div class="setting-item">
-              <div class="label-row">
-                <span class="label">背景模糊度</span>
-                <n-text depth="3" size="small">{{ settings.background_blur }}px</n-text>
+              <div class="setting-item">
+                <div class="label-row">
+                  <span class="label">背景透明度</span>
+                  <n-text depth="3" size="small">{{ Math.round(settings.background_opacity * 100) }}%</n-text>
+                </div>
+                <n-slider 
+                  :value="settings.background_opacity" 
+                  :min="0" :max="1" :step="0.01" 
+                  @update:value="val => emit('updateSettings', { background_opacity: val })" 
+                />
               </div>
-              <n-slider 
-                :value="settings.background_blur" 
-                :min="0" :max="20" :step="1" 
-                @update:value="val => emit('updateSettings', { background_blur: val })" 
-              />
+
+              <div class="setting-item">
+                <div class="label-row">
+                  <span class="label">背景模糊度</span>
+                  <n-text depth="3" size="small">{{ settings.background_blur }}px</n-text>
+                </div>
+                <n-slider 
+                  :value="settings.background_blur" 
+                  :min="0" :max="20" :step="1" 
+                  @update:value="val => emit('updateSettings', { background_blur: val })" 
+                />
+              </div>
             </div>
           </div>
         </n-space>
@@ -290,37 +327,84 @@ const handleUploadBg = (options: { file: { file: File } }) => {
           <div class="setting-item">
             <n-space justify="space-between" align="center">
               <span class="label-small" style="margin-bottom: 0">显示数字时钟</span>
-              <n-switch 
-                :value="settings.show_clock" 
-                @update:value="val => emit('updateSettings', { show_clock: val })" 
+              <n-switch
+                :value="settings.show_clock"
+                @update:value="val => emit('updateSettings', { show_clock: val })"
               />
             </n-space>
+          </div>
+          <div v-if="settings.show_clock" class="setting-item">
+            <span class="label-small">时钟文字颜色</span>
+            <n-color-picker
+              :value="settings.clock_text_color"
+              @update:value="val => emit('updateSettings', { clock_text_color: val })"
+            />
           </div>
           <div class="setting-item">
             <n-space justify="space-between" align="center">
-              <span class="label-small" style="margin-bottom: 0">显示“每日一言”</span>
-              <n-switch 
-                :value="settings.show_hitokoto" 
-                @update:value="val => emit('updateSettings', { show_hitokoto: val })" 
+              <span class="label-small" style="margin-bottom: 0">显示"每日一言"</span>
+              <n-switch
+                :value="settings.show_hitokoto"
+                @update:value="val => emit('updateSettings', { show_hitokoto: val })"
               />
             </n-space>
           </div>
+          <template v-if="settings.show_hitokoto">
+            <div class="setting-item">
+              <span class="label-small">一言背景色</span>
+              <n-color-picker
+                show-alpha
+                :value="settings.hitokoto_background"
+                @update:value="val => emit('updateSettings', { hitokoto_background: val })"
+              />
+            </div>
+            <div class="setting-item">
+              <span class="label-small">一言文字颜色</span>
+              <n-color-picker
+                :value="settings.hitokoto_text_color"
+                @update:value="val => emit('updateSettings', { hitokoto_text_color: val })"
+              />
+            </div>
+            <div class="setting-item">
+              <span class="label-small">一言来源颜色</span>
+              <n-color-picker
+                show-alpha
+                :value="settings.hitokoto_from_color"
+                @update:value="val => emit('updateSettings', { hitokoto_from_color: val })"
+              />
+            </div>
+          </template>
           <div class="setting-item">
             <span class="label-small">主标题</span>
-            <n-input 
-              :value="settings.page_title" 
+            <n-input
+              :value="settings.page_title"
               placeholder="站点导航"
-              @update:value="val => emit('updateSettings', { page_title: val })" 
+              @update:value="val => emit('updateSettings', { page_title: val })"
+            />
+          </div>
+          <div class="setting-item">
+            <span class="label-small">主标题颜色</span>
+            <n-color-picker
+              :value="settings.header_text_color"
+              @update:value="val => emit('updateSettings', { header_text_color: val })"
             />
           </div>
           <div class="setting-item">
             <span class="label-small">副标题 (提示文字)</span>
-            <n-input 
+            <n-input
               type="textarea"
               :autosize="{ minRows: 1, maxRows: 3 }"
-              :value="settings.page_subtitle" 
+              :value="settings.page_subtitle"
               placeholder="提示文字..."
-              @update:value="val => emit('updateSettings', { page_subtitle: val })" 
+              @update:value="val => emit('updateSettings', { page_subtitle: val })"
+            />
+          </div>
+          <div class="setting-item">
+            <span class="label-small">副标题颜色</span>
+            <n-color-picker
+              show-alpha
+              :value="settings.header_subtitle_color"
+              @update:value="val => emit('updateSettings', { header_subtitle_color: val })"
             />
           </div>
         </n-space>

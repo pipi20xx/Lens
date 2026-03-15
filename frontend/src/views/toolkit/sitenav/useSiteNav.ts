@@ -42,23 +42,25 @@ const authFetch = async (url: string, options: RequestInit = {}) => {
 
 const DEFAULT_SETTINGS = {
   background_url: '',
-  background_opacity: 0.7,
+  background_opacity: 0.5,
   background_blur: 0,
   background_size: 'cover',
-  background_color: '#1e1e22',
-  card_background: 'rgba(255, 255, 255, 0.12)',
-  card_blur: 16,
-  card_border_color: 'rgba(255, 255, 255, 0.15)',
+  enable_hd_mode: false,
+  background_color: '#1a1a1f',
+  enable_background_color: false,
+  card_background: 'rgba(30, 30, 35, 0.85)',
+  card_blur: 12,
+  card_border_color: 'rgba(255, 255, 255, 0.25)',
   card_style: 'glass',
   text_color: '#ffffff',
-  text_description_color: 'rgba(255, 255, 255, 0.7)',
+  text_description_color: 'rgba(255, 255, 255, 0.85)',
   category_title_color: '#ffffff',
   show_category_line: true,
-  content_max_width: 90,
+  content_max_width: 85,
   page_title: '站点导航',
   page_subtitle: '个性化您的导航面板',
-  wallpaper_mode: 'custom', // 'custom', 'bing', 'unsplash'
-  wallpaper_type: 'anime', // 'scenery', 'anime', 'minimalist', 'random'
+  wallpaper_mode: 'custom',
+  wallpaper_type: 'anime',
   wallpaper_keyword: '',
   wallpaper_resolution: '1920x1080',
   show_hitokoto: false,
@@ -70,8 +72,20 @@ const DEFAULT_SETTINGS = {
   header_alignment: 'left',
   category_alignment: 'left',
   header_item_spacing: 12,
-  header_margin_top: 20,
-  header_margin_bottom: 30
+  header_margin_top: 30,
+  header_margin_bottom: 40,
+  // 内容组件独立样式
+  header_background: 'rgba(30, 30, 35, 0.75)',
+  header_blur: 8,
+  header_border_color: 'rgba(255, 255, 255, 0.2)',
+  header_text_color: '#ffffff',
+  header_subtitle_color: 'rgba(255, 255, 255, 0.85)',
+  clock_text_color: '#ffffff',
+  hitokoto_background: 'rgba(30, 30, 35, 0.6)',
+  hitokoto_blur: 6,
+  hitokoto_border_color: 'rgba(255, 255, 255, 0.15)',
+  hitokoto_text_color: '#ffffff',
+  hitokoto_from_color: 'rgba(255, 255, 255, 0.7)'
 }
 
 const navSettings = ref({ ...DEFAULT_SETTINGS })

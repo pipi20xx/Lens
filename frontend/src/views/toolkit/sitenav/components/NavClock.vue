@@ -43,14 +43,14 @@ const dateStr = computed(() => {
 </script>
 
 <template>
-  <div class="nav-clock" :style="{ 
-    alignItems: alignment === 'center' ? 'center' : (alignment === 'right' ? 'flex-end' : 'flex-start') 
+  <div class="nav-clock" :style="{
+    alignItems: alignment === 'center' ? 'center' : (alignment === 'right' ? 'flex-end' : 'flex-start')
   }">
-    <div class="time-wrapper" :style="{ color: textColor || '#fff' }">
+    <div class="time-wrapper" :style="{ color: textColor || 'var(--nav-clock-text-color, #fff)' }">
       <span class="main-time">{{ timeStr }}</span>
       <span class="seconds">{{ secondsStr }}</span>
     </div>
-    <div class="date-wrapper" :style="{ color: textColor || '#fff', opacity: 0.8 }">
+    <div class="date-wrapper" :style="{ color: textColor || 'var(--nav-clock-text-color, #fff)' }">
       {{ dateStr }}
     </div>
   </div>
@@ -90,5 +90,6 @@ const dateStr = computed(() => {
   margin-top: 4px;
   font-weight: 500;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  opacity: 0.8;
 }
 </style>
