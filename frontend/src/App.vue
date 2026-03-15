@@ -160,12 +160,10 @@ onMounted(async () => {
   // 处理 /home 路径进入站点导航
   if (window.location.pathname === '/home') {
     isHomeEntry.value = true
-    // URL hash 中的视图已经在 navigationStore.ts 中处理
-    // 如果没有 hash，默认使用 SiteNavView
-    if (!window.location.hash || window.location.hash === '#') {
-      currentViewKey.value = 'SiteNavView'
-    }
+    // 清除 URL hash，避免 navigationStore.ts 读取到错误的视图
     window.history.replaceState({}, '', '/')
+    // 强制使用 SiteNavView
+    currentViewKey.value = 'SiteNavView'
   }
 
   if (isLoggedIn.value) {

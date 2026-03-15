@@ -6,8 +6,13 @@ const AUTH_SAVE_KEY = 'lens_access_token'
 const ACTIVE_GROUP_KEY = 'lens_active_group'
 
 // 1. 初始化状态逻辑 - 优先从 URL hash 读取，其次是 localStorage
+// 注意：/home 路径下不读取 hash，由 App.vue 处理
 const getInitialView = () => {
   if (typeof window !== 'undefined') {
+    // 如果是 /home 路径，不读取 hash，返回默认值
+    if (window.location.pathname === '/home') {
+      return 'SiteNavView'
+    }
     const hashView = window.location.hash.replace('#', '')
     if (hashView) return hashView
   }
@@ -30,8 +35,8 @@ export const isHomeEntry = ref(false)
 let isPopping = false
 
 if (typeof window !== 'undefined') {
-  // 初始状态注入
-  if (!history.state?.lensView) {
+  // 初始状态注入 - /home 路径下不写入历史记录
+  if (!history.state?.lensView && window.location.pathname !== '/home') {
     history.replaceState({ lensView: currentViewKey.value }, '', '#' + currentViewKey.value)
   }
 
@@ -47,7 +52,10 @@ if (typeof window !== 'undefined') {
 
 // 监听视图变化：持久化到 LocalStorage 并 同步到浏览器 History
 watch(currentViewKey, (newVal) => {
-  localStorage.setItem(SAVE_KEY, newVal)
+  // /home 路径下不写入 localStorage，避免缓存错误状态
+  if (typeof window !== 'undefined' && window.location.pathname !== '/home') {
+    localStorage.setItem(SAVE_KEY, newVal)
+  }
   
   if (!isPopping) {
     history.pushState({ lensView: newVal }, '', '#' + newVal)
