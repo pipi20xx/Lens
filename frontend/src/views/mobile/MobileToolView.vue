@@ -59,6 +59,7 @@ import MobileSiteNav from './tools/MobileSiteNav.vue'
 import MobileBookmarkManager from './tools/MobileBookmarkManager.vue'
 import MobileAutoTagsManager from './tools/MobileAutoTagsManager.vue'
 import MobileSettings from './tools/MobileSettings.vue'
+import MobileDedupe from './tools/MobileDedupe.vue'
 
 const route = useRoute()
 
@@ -134,6 +135,7 @@ const currentToolComponent = computed(() => {
     case 'external-control': return MobileExternalControl
     case 'reports': return MobilePlaybackReport
     case 'tasks': return MobileEmbyScheduledTasks
+    case 'dedupe': return MobileDedupe
     default: return null
   }
 })

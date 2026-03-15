@@ -20,6 +20,30 @@
             </template>
           </n-input>
         </div>
+        <div v-if="webhookConfig.enabled" class="config-row">
+          <n-form-item label="安全密钥">
+            <n-input v-model:value="webhookConfig.secret_token" placeholder="自定义 Token" />
+          </n-form-item>
+        </div>
+        <div v-if="webhookConfig.enabled" class="config-row">
+          <n-form-item label="写入模式">
+            <n-select v-model:value="webhookConfig.write_mode" :options="[
+              { label: '合并现有标签', value: 'merge' },
+              { label: '覆盖所有标签', value: 'overwrite' }
+            ]" />
+          </n-form-item>
+        </div>
+        <div v-if="webhookConfig.enabled" class="switch-row">
+          <span class="switch-label">自动化状态</span>
+          <n-checkbox v-model:checked="webhookConfig.automation_enabled">
+            接收到 item.added 事件时自动执行规则比对
+          </n-checkbox>
+        </div>
+        <div v-if="webhookConfig.enabled" class="config-row">
+          <n-form-item label="处理延迟(秒)">
+            <n-input-number v-model:value="webhookConfig.delay_seconds" :min="0" :max="3600" />
+          </n-form-item>
+        </div>
         <n-alert type="info" :bordered="false">
           在 Emby 后台添加此 URL，选择 application/json 类型，并勾选"已添加新媒体"事件。
         </n-alert>
@@ -70,9 +94,17 @@
           <template #icon><n-icon><PlayIcon /></n-icon></template>
           运行所有规则
         </n-button>
-        <n-button block type="warning" secondary @click="clearAllTags">
+        <n-button block type="warning" secondary @click="testWrite" :loading="testing">
+          <template #icon><n-icon><TestIcon /></n-icon></template>
+          测试写入
+        </n-button>
+        <n-button block type="error" secondary @click="clearAllTags">
           <template #icon><n-icon><ClearIcon /></n-icon></template>
           清空所有标签
+        </n-button>
+        <n-button block secondary @click="showClearSpecificModal = true">
+          <template #icon><n-icon><FilterIcon /></n-icon></template>
+          清空特定标签
         </n-button>
       </n-space>
     </n-card>
@@ -96,31 +128,54 @@
         </n-space>
       </template>
     </n-modal>
+
+    <n-modal v-model:show="showClearSpecificModal" preset="card" title="清空特定标签" style="width: 90vw; max-width: 400px">
+      <n-form label-placement="top" size="small">
+        <n-form-item label="选择标签">
+          <n-dynamic-tags v-model:value="clearSpecificTags" />
+        </n-form-item>
+      </n-form>
+      <template #action>
+        <n-space justify="end">
+          <n-button secondary @click="showClearSpecificModal = false">取消</n-button>
+          <n-button type="error" @click="handleClearSpecific">清空</n-button>
+        </n-space>
+      </template>
+    </n-modal>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { NCard, NButton, NSpace, NSwitch, NInput, NAlert, NEmpty, NModal, NForm, NFormItem, NTag, NPopconfirm, NIcon, NDynamicTags } from 'naive-ui'
-import { AddOutlined as AddIcon, PlayArrowOutlined as PlayIcon, DeleteOutlineOutlined as ClearIcon } from '@vicons/material'
+import { ref, computed, onMounted } from 'vue'
+import { NCard, NButton, NSpace, NSwitch, NInput, NAlert, NEmpty, NModal, NForm, NFormItem, NTag, NPopconfirm, NIcon, NDynamicTags, NSelect, NCheckbox, NInputNumber } from 'naive-ui'
+import { AddOutlined as AddIcon, PlayArrowOutlined as PlayIcon, DeleteOutlineOutlined as ClearIcon, ScienceOutlined as TestIcon, FilterListOutlined as FilterIcon } from '@vicons/material'
 import { useMessage } from 'naive-ui'
+import { useAutoTags } from '../../toolkit/autotags/useAutoTags'
 
 const message = useMessage()
-const rules = ref<any[]>([])
+const { rules, fetchRules, saveRules, startTask, clearAll, clearSpecific, testWrite: testWriteApi } = useAutoTags()
+
 const webhookConfig = ref({
   enabled: false,
-  secret_token: ''
+  secret_token: '',
+  write_mode: 'merge',
+  automation_enabled: true,
+  delay_seconds: 10
 })
 const showAddRuleModal = ref(false)
+const showClearSpecificModal = ref(false)
 const running = ref(false)
 const saving = ref(false)
+const testing = ref(false)
 
 const editingRule = ref({
-  id: null,
+  id: null as number | null,
   name: '',
   condition: '',
-  tags: []
+  tags: [] as string[]
 })
+
+const clearSpecificTags = ref<string[]>([])
 
 const webhookUrl = computed(() => {
   const baseUrl = window.location.origin
@@ -137,49 +192,100 @@ const editRule = (index: number) => {
   showAddRuleModal.value = true
 }
 
-const saveRule = () => {
+const saveRule = async () => {
   if (!editingRule.value.name || !editingRule.value.condition) {
     message.warning('请填写完整的规则信息')
     return
   }
   saving.value = true
-  setTimeout(() => {
+  try {
+    const newRules = [...rules.value]
     if (editingRule.value.id !== null) {
-      rules.value[editingRule.value.id] = { ...editingRule.value }
+      newRules[editingRule.value.id] = { 
+        name: editingRule.value.name,
+        condition: editingRule.value.condition,
+        tags: editingRule.value.tags
+      }
     } else {
-      rules.value.push({
-        id: Date.now(),
-        ...editingRule.value
+      newRules.push({
+        name: editingRule.value.name,
+        condition: editingRule.value.condition,
+        tags: editingRule.value.tags
       })
     }
+    await saveRules(newRules)
     message.success('规则保存成功')
     showAddRuleModal.value = false
     editingRule.value = { id: null, name: '', condition: '', tags: [] }
+  } catch (e: any) {
+    message.error('保存失败: ' + (e.message || '未知错误'))
+  } finally {
     saving.value = false
-  }, 500)
+  }
 }
 
-const deleteRule = (index: number) => {
-  rules.value.splice(index, 1)
-  message.success('规则已删除')
+const deleteRule = async (index: number) => {
+  try {
+    const newRules = [...rules.value]
+    newRules.splice(index, 1)
+    await saveRules(newRules)
+    message.success('规则已删除')
+  } catch (e: any) {
+    message.error('删除失败: ' + (e.message || '未知错误'))
+  }
 }
 
-const runAllRules = () => {
+const runAllRules = async () => {
   running.value = true
-  setTimeout(() => {
+  try {
+    await startTask({ all: true })
     message.success('所有规则已执行')
+  } catch (e: any) {
+    message.error('执行失败: ' + (e.message || '未知错误'))
+  } finally {
     running.value = false
-  }, 1000)
+  }
 }
 
-const clearAllTags = () => {
-  message.info('请在桌面端执行清空操作')
+const clearAllTags = async () => {
+  try {
+    await clearAll()
+    message.success('所有标签已清空')
+  } catch (e: any) {
+    message.error('清空失败: ' + (e.message || '未知错误'))
+  }
 }
 
-rules.value = [
-  { id: 1, name: '电影标签', condition: '类型=电影', tags: ['电影', '高清'] },
-  { id: 2, name: '剧集标签', condition: '类型=剧集', tags: ['剧集', '连续剧'] }
-]
+const testWrite = async () => {
+  testing.value = true
+  try {
+    await testWriteApi()
+    message.success('测试写入成功')
+  } catch (e: any) {
+    message.error('测试写入失败: ' + (e.message || '未知错误'))
+  } finally {
+    testing.value = false
+  }
+}
+
+const handleClearSpecific = async () => {
+  if (clearSpecificTags.value.length === 0) {
+    message.warning('请选择要清空的标签')
+    return
+  }
+  try {
+    await clearSpecific(clearSpecificTags.value)
+    message.success('指定标签已清空')
+    showClearSpecificModal.value = false
+    clearSpecificTags.value = []
+  } catch (e: any) {
+    message.error('清空失败: ' + (e.message || '未知错误'))
+  }
+}
+
+onMounted(() => {
+  fetchRules()
+})
 </script>
 
 <style scoped>

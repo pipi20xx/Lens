@@ -10,15 +10,31 @@
         <div v-for="category in categories" :key="category.id" class="category-item">
           <div class="category-header" @click="toggleCategory(category.id)">
             <div class="category-name">{{ category.name }}</div>
-            <n-icon :component="category.expanded ? ExpandLessIcon : ExpandMoreIcon" />
+            <n-space :size="4">
+              <n-button size="tiny" secondary circle @click.stop="editCategory(category)">
+                <template #icon><n-icon :component="EditIcon" /></template>
+              </n-button>
+              <n-button size="tiny" secondary type="error" circle @click.stop="handleDeleteCategory(category)">
+                <template #icon><n-icon :component="DeleteIcon" /></template>
+              </n-button>
+              <n-icon :component="isExpanded(category.id) ? ExpandLessIcon : ExpandMoreIcon" />
+            </n-space>
           </div>
-          <div v-if="category.expanded" class="category-sites">
+          <div v-if="isExpanded(category.id)" class="category-sites">
             <div v-for="site in getSitesByCategory(category.id)" :key="site.id" class="site-item" @click="openSite(site)">
               <div class="site-icon">
                 <img v-if="site.icon" :src="site.icon" :alt="site.name" />
                 <n-icon v-else :component="LinkIcon" />
               </div>
               <div class="site-name">{{ site.name }}</div>
+              <n-space :size="4" class="site-actions">
+                <n-button size="tiny" secondary circle @click.stop="editSite(site)">
+                  <template #icon><n-icon :component="EditIcon" /></template>
+                </n-button>
+                <n-button size="tiny" secondary type="error" circle @click.stop="handleDeleteSite(site)">
+                  <template #icon><n-icon :component="DeleteIcon" /></template>
+                </n-button>
+              </n-space>
             </div>
             <div v-if="!getSitesByCategory(category.id).length" class="empty-sites">
               暂无站点
@@ -44,7 +60,7 @@
       </n-space>
     </n-card>
 
-    <n-modal v-model:show="showAddSiteModal" preset="card" title="添加站点" style="width: 90vw; max-width: 400px">
+    <n-modal v-model:show="showAddSiteModal" preset="card" :title="editingSite ? '编辑站点' : '添加站点'" style="width: 90vw; max-width: 400px">
       <n-form label-placement="top" size="small">
         <n-form-item label="站点名称">
           <n-input v-model:value="newSite.name" placeholder="站点名称" />
@@ -61,7 +77,7 @@
       </n-form>
       <template #action>
         <n-space justify="end">
-          <n-button secondary @click="showAddSiteModal = false">取消</n-button>
+          <n-button secondary @click="closeSiteModal">取消</n-button>
           <n-button type="primary" @click="saveSite" :loading="saving">保存</n-button>
         </n-space>
       </template>
@@ -75,7 +91,21 @@
       </n-form>
       <template #action>
         <n-space justify="end">
-          <n-button secondary @click="showAddCategoryModal = false">取消</n-button>
+          <n-button secondary @click="closeCategoryModal">取消</n-button>
+          <n-button type="primary" @click="saveCategory" :loading="saving">保存</n-button>
+        </n-space>
+      </template>
+    </n-modal>
+
+    <n-modal v-model:show="showEditCategoryModal" preset="card" title="编辑分类" style="width: 90vw; max-width: 400px">
+      <n-form label-placement="top" size="small">
+        <n-form-item label="分类名称">
+          <n-input v-model:value="newCategory.name" placeholder="分类名称" />
+        </n-form-item>
+      </n-form>
+      <template #action>
+        <n-space justify="end">
+          <n-button secondary @click="closeCategoryModal">取消</n-button>
           <n-button type="primary" @click="saveCategory" :loading="saving">保存</n-button>
         </n-space>
       </template>
@@ -86,26 +116,45 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { NCard, NButton, NSpace, NEmpty, NModal, NForm, NFormItem, NInput, NSelect, NIcon } from 'naive-ui'
-import { AddOutlined as AddIcon, CreateNewFolderOutlined as FolderAddIcon, LinkOutlined as LinkIcon, ExpandLessOutlined as ExpandLessIcon, ExpandMoreOutlined as ExpandMoreIcon } from '@vicons/material'
+import { AddOutlined as AddIcon, CreateNewFolderOutlined as FolderAddIcon, LinkOutlined as LinkIcon, ExpandLessOutlined as ExpandLessIcon, ExpandMoreOutlined as ExpandMoreIcon, EditOutlined as EditIcon, DeleteOutlineOutlined as DeleteIcon } from '@vicons/material'
 import { useMessage } from 'naive-ui'
+import { useSiteNav } from '../../toolkit/sitenav/useSiteNav'
 
 const message = useMessage()
-const categories = ref<any[]>([])
-const sites = ref<any[]>([])
+const { 
+  sites, 
+  categories, 
+  loading, 
+  fetchSites, 
+  fetchCategories,
+  addSite,
+  addCategory,
+  updateSite,
+  deleteSite,
+  updateCategory,
+  deleteCategory
+} = useSiteNav()
+
 const showAddSiteModal = ref(false)
 const showAddCategoryModal = ref(false)
+const showEditCategoryModal = ref(false)
 const saving = ref(false)
 
 const newSite = ref({
   name: '',
   url: '',
-  category_id: null,
+  category_id: null as number | null,
   icon: ''
 })
 
 const newCategory = ref({
   name: ''
 })
+
+const editingSite = ref<any>(null)
+const editingCategory = ref<any>(null)
+
+const expandedCategories = ref<Set<number>>(new Set())
 
 const categoryOptions = computed(() => {
   return categories.value.map(c => ({ label: c.name, value: c.id }))
@@ -116,63 +165,146 @@ const getSitesByCategory = (categoryId: number) => {
 }
 
 const toggleCategory = (categoryId: number) => {
-  const category = categories.value.find(c => c.id === categoryId)
-  if (category) {
-    category.expanded = !category.expanded
+  if (expandedCategories.value.has(categoryId)) {
+    expandedCategories.value.delete(categoryId)
+  } else {
+    expandedCategories.value.add(categoryId)
   }
+}
+
+const isExpanded = (categoryId: number) => {
+  return expandedCategories.value.has(categoryId)
 }
 
 const openSite = (site: any) => {
   window.open(site.url, '_blank')
 }
 
-const saveSite = () => {
+const closeSiteModal = () => {
+  showAddSiteModal.value = false
+  editingSite.value = null
+  newSite.value = { name: '', url: '', category_id: null, icon: '' }
+}
+
+const closeCategoryModal = () => {
+  showAddCategoryModal.value = false
+  showEditCategoryModal.value = false
+  editingCategory.value = null
+  newCategory.value = { name: '' }
+}
+
+const editSite = (site: any) => {
+  editingSite.value = site
+  newSite.value = {
+    name: site.title || site.name,
+    url: site.url,
+    category_id: site.category_id,
+    icon: site.icon || ''
+  }
+  showAddSiteModal.value = true
+}
+
+const handleDeleteSite = async (site: any) => {
+  try {
+    await deleteSite(site.id)
+    message.success('站点已删除')
+    await fetchSites()
+  } catch (e: any) {
+    message.error('删除失败: ' + (e.message || '未知错误'))
+  }
+}
+
+const editCategory = (category: any) => {
+  editingCategory.value = category
+  newCategory.value = {
+    name: category.name
+  }
+  showEditCategoryModal.value = true
+}
+
+const handleDeleteCategory = async (category: any) => {
+  try {
+    await deleteCategory(category.id)
+    message.success('分类已删除')
+    await fetchCategories()
+    await fetchSites()
+  } catch (e: any) {
+    message.error('删除失败: ' + (e.message || '未知错误'))
+  }
+}
+
+const saveSite = async () => {
   if (!newSite.value.name || !newSite.value.url) {
     message.warning('请填写完整的站点信息')
     return
   }
   saving.value = true
-  setTimeout(() => {
-    sites.value.push({
-      id: Date.now(),
-      ...newSite.value
-    })
-    message.success('站点添加成功')
+  try {
+    if (editingSite.value) {
+      await updateSite(editingSite.value.id, {
+        title: newSite.value.name,
+        url: newSite.value.url,
+        category_id: newSite.value.category_id || undefined,
+        icon: newSite.value.icon || undefined
+      })
+      message.success('站点更新成功')
+    } else {
+      await addSite({
+        title: newSite.value.name,
+        url: newSite.value.url,
+        category_id: newSite.value.category_id || undefined,
+        icon: newSite.value.icon || undefined
+      })
+      message.success('站点添加成功')
+    }
     showAddSiteModal.value = false
+    editingSite.value = null
     newSite.value = { name: '', url: '', category_id: null, icon: '' }
+    await fetchSites()
+  } catch (e: any) {
+    message.error('保存失败: ' + (e.message || '未知错误'))
+  } finally {
     saving.value = false
-  }, 500)
+  }
 }
 
-const saveCategory = () => {
+const saveCategory = async () => {
   if (!newCategory.value.name) {
     message.warning('请填写分类名称')
     return
   }
   saving.value = true
-  setTimeout(() => {
-    categories.value.push({
-      id: Date.now(),
-      name: newCategory.value.name,
-      expanded: false
-    })
-    message.success('分类添加成功')
+  try {
+    if (editingCategory.value) {
+      await updateCategory(editingCategory.value.id, {
+        name: newCategory.value.name
+      })
+      message.success('分类更新成功')
+    } else {
+      await addCategory({
+        name: newCategory.value.name
+      })
+      message.success('分类添加成功')
+    }
     showAddCategoryModal.value = false
+    showEditCategoryModal.value = false
+    editingCategory.value = null
     newCategory.value = { name: '' }
+    await fetchCategories()
+  } catch (e: any) {
+    message.error('保存失败: ' + (e.message || '未知错误'))
+  } finally {
     saving.value = false
-  }, 500)
+  }
 }
 
-onMounted(() => {
-  categories.value = [
-    { id: 1, name: '常用工具', expanded: true },
-    { id: 2, name: '娱乐', expanded: false },
-    { id: 3, name: '工作', expanded: false }
-  ]
-  sites.value = [
-    { id: 1, name: 'Google', url: 'https://www.google.com', category_id: 1, icon: '' },
-    { id: 2, name: 'GitHub', url: 'https://github.com', category_id: 1, icon: '' }
-  ]
+onMounted(async () => {
+  await fetchCategories()
+  await fetchSites()
+  // 默认展开第一个分类
+  if (categories.value.length > 0) {
+    expandedCategories.value.add(categories.value[0].id)
+  }
 })
 </script>
 
@@ -238,6 +370,7 @@ onMounted(() => {
   border-radius: 8px;
   margin-bottom: 6px;
   cursor: pointer;
+  position: relative;
 }
 
 .site-icon {
@@ -259,6 +392,11 @@ onMounted(() => {
 .site-name {
   font-size: 14px;
   color: var(--text-color);
+  flex: 1;
+}
+
+.site-actions {
+  flex-shrink: 0;
 }
 
 .empty-sites,

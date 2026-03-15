@@ -16,9 +16,22 @@
               <div class="server-name">{{ server.name }}</div>
               <div class="server-url">{{ server.url }}</div>
             </div>
-            <n-tag v-if="server.id === activeServerId" type="success" size="small" round>
-              已激活
-            </n-tag>
+            <div class="server-actions">
+              <n-tag v-if="server.id === activeServerId" type="success" size="small" round>
+                已激活
+              </n-tag>
+              <n-button v-else size="small" secondary type="primary" @click="handleActivate(server.id)">
+                激活
+              </n-button>
+              <n-popconfirm @positive-click="handleDelete(server.id)" positive-text="确认删除" negative-text="取消">
+                <template #trigger>
+                  <n-button size="small" secondary type="error">
+                    删除
+                  </n-button>
+                </template>
+                确定删除此服务器？
+              </n-popconfirm>
+            </div>
           </div>
         </div>
         <n-button block type="primary" secondary @click="showAddServerModal = true">
@@ -78,11 +91,18 @@
 
     <n-card class="data-card" :bordered="false" title="数据管理">
       <n-space vertical>
+        <input 
+          type="file" 
+          ref="fileInputRef" 
+          style="display: none" 
+          accept=".json,.yaml,.yml"
+          @change="handleImport"
+        />
         <n-button block type="warning" secondary @click="exportData">
           <template #icon><n-icon><DownloadIcon /></n-icon></template>
           导出数据
         </n-button>
-        <n-button block type="info" secondary @click="importData">
+        <n-button block type="info" secondary @click="triggerImport">
           <template #icon><n-icon><UploadIcon /></n-icon></template>
           导入数据
         </n-button>
@@ -116,18 +136,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { NCard, NButton, NSpace, NEmpty, NModal, NForm, NFormItem, NInput, NTag, NRadioGroup, NRadio, NSelect, NIcon } from 'naive-ui'
+import { ref, onMounted, reactive } from 'vue'
+import { NCard, NButton, NSpace, NEmpty, NModal, NForm, NFormItem, NInput, NTag, NRadioGroup, NRadio, NSelect, NIcon, NPopconfirm } from 'naive-ui'
 import { AddOutlined as AddIcon, RefreshOutlined as RefreshIcon, DownloadOutlined as DownloadIcon, UploadOutlined as UploadIcon, DeleteOutlineOutlined as DeleteIcon } from '@vicons/material'
 import { useMessage } from 'naive-ui'
+import { serverApi } from '@/api/server'
+import { configApi } from '@/api/config'
+import { fetchServers, servers, activeServerId, activateServer } from '@/store/serverStore'
 
 const message = useMessage()
-const servers = ref<any[]>([])
-const activeServerId = ref<number | null>(null)
 const showAddServerModal = ref(false)
 const saving = ref(false)
+const fileInputRef = ref<HTMLInputElement | null>(null)
 
-const settings = ref({
+const settings = reactive({
   tmdb_api_key: '',
   bangumi_token: '',
   theme: 'auto',
@@ -140,41 +162,84 @@ const newServer = ref({
   api_key: ''
 })
 
-const version = '1.0.0'
-const buildTime = '2024-01-01'
+const version = ref('1.0.0')
+const buildTime = ref('2024-01-01')
 
 const languageOptions = [
   { label: '简体中文', value: 'zh-CN' },
   { label: 'English', value: 'en-US' }
 ]
 
-const addServer = () => {
+const fetchCurrent = async () => {
+  await fetchServers()
+  try {
+    const res: any = await serverApi.getCurrent()
+    const data = res
+    if (data) {
+      settings.tmdb_api_key = data.tmdb_api_key || ''
+      settings.bangumi_token = data.bangumi_api_token || ''
+    }
+  } catch (e) {
+    console.error('Failed to load global config:', e)
+  }
+}
+
+const addServer = async () => {
   if (!newServer.value.name || !newServer.value.url) {
     message.warning('请填写完整的服务器信息')
     return
   }
   saving.value = true
-  setTimeout(() => {
-    servers.value.push({
-      id: Date.now(),
-      ...newServer.value
+  try {
+    await serverApi.createServer({
+      name: newServer.value.name,
+      url: newServer.value.url,
+      api_key: newServer.value.api_key
     })
-    if (!activeServerId.value) {
-      activeServerId.value = servers.value[0].id
-    }
     message.success('服务器添加成功')
     showAddServerModal.value = false
     newServer.value = { name: '', url: '', api_key: '' }
+    await fetchCurrent()
+  } catch (e: any) {
+    message.error('添加服务器失败: ' + (e.response?.data?.detail || '未知错误'))
+  } finally {
     saving.value = false
-  }, 500)
+  }
 }
 
-const saveSettings = () => {
+const handleActivate = async (serverId: string) => {
+  const success = await activateServer(serverId)
+  if (success) {
+    message.success('已切换当前激活服务器')
+    await fetchCurrent()
+  } else {
+    message.error('切换失败')
+  }
+}
+
+const handleDelete = async (serverId: string) => {
+  try {
+    await serverApi.deleteServer(serverId)
+    message.success('服务器已删除')
+    await fetchCurrent()
+  } catch (e: any) {
+    message.error('删除失败: ' + (e.response?.data?.detail || '未知错误'))
+  }
+}
+
+const saveSettings = async () => {
   saving.value = true
-  setTimeout(() => {
+  try {
+    await configApi.saveGlobal({
+      tmdb_api_key: settings.tmdb_api_key,
+      bangumi_api_token: settings.bangumi_token
+    })
     message.success('设置已保存')
+  } catch (e: any) {
+    message.error('保存失败: ' + (e.response?.data?.detail || '未知错误'))
+  } finally {
     saving.value = false
-  }, 500)
+  }
 }
 
 const checkUpdate = () => {
@@ -182,21 +247,38 @@ const checkUpdate = () => {
 }
 
 const exportData = () => {
-  message.info('请在桌面端导出数据')
+  window.open('/api/system/config/export', '_blank')
 }
 
-const importData = () => {
-  message.info('请在桌面端导入数据')
+const triggerImport = () => {
+  fileInputRef.value?.click()
+}
+
+const handleImport = async (event: Event) => {
+  const input = event.target as HTMLInputElement
+  if (!input.files || input.files.length === 0) return
+  
+  const file = input.files[0]
+  const formData = new FormData()
+  formData.append('file', file)
+  
+  try {
+    await configApi.importConfig(formData)
+    message.success('配置导入成功，页面将刷新以应用更改')
+    setTimeout(() => location.reload(), 1500)
+  } catch (e: any) {
+    message.error('导入失败: ' + (e.response?.data?.detail || '未知错误'))
+  } finally {
+    input.value = ''
+  }
 }
 
 const clearCache = () => {
+  localStorage.clear()
   message.success('缓存已清除')
 }
 
-servers.value = [
-  { id: 1, name: '主服务器', url: 'http://192.168.1.1:8096' }
-]
-activeServerId.value = 1
+onMounted(fetchCurrent)
 </script>
 
 <style scoped>
@@ -265,6 +347,12 @@ activeServerId.value = 1
   font-size: 12px;
   color: var(--text-color);
   opacity: 0.6;
+}
+
+.server-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
 
 .setting-item,
