@@ -6,6 +6,23 @@ import {
 } from 'naive-ui'
 import { SearchOutlined as SearchIcon } from '@vicons/material'
 
+// 辅助函数：获取认证头
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('lens_access_token')
+  return token ? { 'Authorization': `Bearer ${token}` } : {}
+}
+
+// 辅助函数：带认证的fetch
+const authFetch = async (url: string, options: RequestInit = {}) => {
+  return fetch(url, {
+    ...options,
+    headers: {
+      ...options.headers,
+      ...getAuthHeaders()
+    }
+  })
+}
+
 const props = defineProps<{
   show: boolean
 }>()
@@ -26,7 +43,7 @@ const styles = [
 const fetchIcons = async () => {
   loading.value = true
   try {
-    const response = await fetch('/api/toolkit/navigation/hd-icons')
+    const response = await authFetch('/api/toolkit/navigation/hd-icons')
     const data = await response.json()
     iconData.value = data.icons || []
   } catch (error) {

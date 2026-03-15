@@ -2,6 +2,23 @@ import { ref, h, defineComponent, reactive } from 'vue'
 import { useMessage, useDialog, NDynamicTags, NAlert, NButton, NSpace } from 'naive-ui'
 import axios from 'axios'
 
+// 辅助函数：获取认证头
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('lens_access_token')
+  return token ? { 'Authorization': `Bearer ${token}` } : {}
+}
+
+// 辅助函数：带认证的fetch
+const authFetch = async (url: string, options: RequestInit = {}) => {
+  return fetch(url, {
+    ...options,
+    headers: {
+      ...options.headers,
+      ...getAuthHeaders()
+    }
+  })
+}
+
 const DEFAULT_CATEGORIES = [
   "AI智能工具", "编程与开发", "设计与素材", "办公与协作",
   "网络与安全", "服务器与 NAS", "在线工具箱", "软件与资源",
@@ -116,7 +133,7 @@ export function useBookmarkAI(bookmarkApi: any, actions: any, state: any) {
     message.info(`AI 整理任务已启动 [${targetFolderName}]`, { duration: 5000 })
     
     try {
-      const response = await fetch('/api/bookmarks/ai-auto-organize', {
+      const response = await authFetch('/api/bookmarks/ai-auto-organize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ folder_id: targetFolderId })

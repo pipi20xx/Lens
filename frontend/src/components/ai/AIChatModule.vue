@@ -52,6 +52,23 @@ import {
 } from '@vicons/material'
 import { useMessage, NCard, NEmpty, NInput, NButton, NIcon } from 'naive-ui'
 
+// 辅助函数：获取认证头
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('lens_access_token')
+  return token ? { 'Authorization': `Bearer ${token}` } : {}
+}
+
+// 辅助函数：带认证的fetch
+const authFetch = async (url: string, options: RequestInit = {}) => {
+  return fetch(url, {
+    ...options,
+    headers: {
+      ...options.headers,
+      ...getAuthHeaders()
+    }
+  })
+}
+
 const message = useMessage()
 
 const formatMessage = (text: string) => {
@@ -105,7 +122,7 @@ const sendMessage = async () => {
     }
 
     // 使用 fetch 获取流式响应
-    const response = await fetch('/api/ai/chat', {
+    const response = await authFetch('/api/ai/chat', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

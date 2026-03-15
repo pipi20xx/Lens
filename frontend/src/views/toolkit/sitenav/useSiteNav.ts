@@ -23,6 +23,23 @@ export interface SiteNav {
 const sites = ref<SiteNav[]>([])
 const categories = ref<Category[]>([])
 
+// 辅助函数：获取认证头
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('lens_access_token')
+  return token ? { 'Authorization': `Bearer ${token}` } : {}
+}
+
+// 辅助函数：带认证的fetch
+const authFetch = async (url: string, options: RequestInit = {}) => {
+  return fetch(url, {
+    ...options,
+    headers: {
+      ...options.headers,
+      ...getAuthHeaders()
+    }
+  })
+}
+
 const DEFAULT_SETTINGS = {
   background_url: '',
   background_opacity: 0.7,
@@ -125,7 +142,7 @@ export function useSiteNav() {
     try {
       wallpaperLoading.value = true
       
-      const res = await fetch('/api/navigation/save-remote-bg', {
+      const res = await authFetch('/api/navigation/save-remote-bg', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url }) // 这里的 url 已经是解析后的静态地址了
@@ -159,7 +176,7 @@ export function useSiteNav() {
   const fetchBingWallpaper = async () => {
     try {
       const { bing_index, bing_mkt, bing_resolution } = navSettings.value
-      const res = await fetch(`/api/navigation/bing-wallpaper?index=${bing_index}&mkt=${bing_mkt}&resolution=${bing_resolution}`)
+      const res = await authFetch(`/api/navigation/bing-wallpaper?index=${bing_index}&mkt=${bing_mkt}&resolution=${bing_resolution}`)
       const data = await res.json()
       if (data.url) bingInfo.value = data
     } catch (e) {}
@@ -167,7 +184,7 @@ export function useSiteNav() {
 
   const fetchSettings = async () => {
     try {
-      const response = await fetch('/api/navigation/settings')
+      const response = await authFetch('/api/navigation/settings')
       const data = await response.json()
       navSettings.value = { ...DEFAULT_SETTINGS, ...data }
       if (navSettings.value.wallpaper_mode === 'bing') fetchBingWallpaper()
@@ -187,7 +204,7 @@ export function useSiteNav() {
 
   const updateNavSettings = async (settings: any) => {
     try {
-      await fetch('/api/navigation/settings', {
+      await authFetch('/api/navigation/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(settings)
@@ -215,7 +232,7 @@ export function useSiteNav() {
     const formData = new FormData()
     formData.append('file', file)
     try {
-      const res = await fetch('/api/navigation/upload-bg', {
+      const res = await authFetch('/api/navigation/upload-bg', {
         method: 'POST',
         body: formData
       })
@@ -233,23 +250,37 @@ export function useSiteNav() {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('/api/navigation/categories')
+      const response = await authFetch('/api/navigation/categories')
       const data = await response.json()
-      // 按照 order 排序
-      categories.value = data.sort((a: any, b: any) => a.order - b.order)
+      // 验证数据类型并按照 order 排序
+      if (Array.isArray(data)) {
+        categories.value = data.sort((a: any, b: any) => a.order - b.order)
+      } else {
+        console.error('Fetch categories failed: expected array but got', typeof data)
+        categories.value = []
+      }
     } catch (e) {
       console.error('Fetch categories failed', e)
+      categories.value = []
     }
   }
 
   const fetchSites = async () => {
     loading.value = true
     try {
-      const response = await fetch('/api/navigation/')
+      const response = await authFetch('/api/navigation/')
       const data = await response.json()
-      // 按照 order 排序
-      sites.value = data.sort((a: any, b: any) => a.order - b.order)
+      // 验证数据类型并按照 order 排序
+      if (Array.isArray(data)) {
+        sites.value = data.sort((a: any, b: any) => a.order - b.order)
+      } else {
+        console.error('Fetch sites failed: expected array but got', typeof data)
+        sites.value = []
+        message.error('获取站点列表失败')
+      }
     } catch (e) {
+      console.error('Fetch sites failed', e)
+      sites.value = []
       message.error('获取站点列表失败')
     } finally {
       loading.value = false
@@ -258,7 +289,7 @@ export function useSiteNav() {
 
   const addCategory = async (name: string, icon: string = '') => {
     try {
-      await fetch('/api/navigation/categories', {
+      await authFetch('/api/navigation/categories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, icon, order: categories.value.length })
@@ -278,7 +309,7 @@ export function useSiteNav() {
     }
     
     try {
-      const response = await fetch(`/api/navigation/categories/${id}`, {
+      const response = await authFetch(`/api/navigation/categories/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, icon })
@@ -296,7 +327,7 @@ export function useSiteNav() {
 
   const deleteCategory = async (id: number) => {
     try {
-      await fetch(`/api/navigation/categories/${id}`, { method: 'DELETE' })
+      await authFetch(`/api/navigation/categories/${id}`, { method: 'DELETE' })
       await fetchCategories()
       await fetchSites()
     } catch (e) {
@@ -306,7 +337,7 @@ export function useSiteNav() {
 
   const updateCategoryOrder = async (ids: number[]) => {
     try {
-      await fetch('/api/navigation/categories/reorder', {
+      await authFetch('/api/navigation/categories/reorder', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(ids)
@@ -323,7 +354,7 @@ export function useSiteNav() {
   const fetchIconFromUrl = async (url: string) => {
     if (!url) return null
     try {
-      const response = await fetch(`/api/navigation/fetch-icon?url=${encodeURIComponent(url)}`)
+      const response = await authFetch(`/api/navigation/fetch-icon?url=${encodeURIComponent(url)}`)
       const data = await response.json()
       return data.icon
     } catch (e) {
@@ -333,7 +364,7 @@ export function useSiteNav() {
 
   const addSite = async (site: Partial<SiteNav>) => {
     try {
-      const response = await fetch('/api/navigation/', {
+      const response = await authFetch('/api/navigation/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(site)
@@ -350,7 +381,7 @@ export function useSiteNav() {
 
   const updateSite = async (id: number, site: Partial<SiteNav>) => {
     try {
-      const response = await fetch(`/api/navigation/${id}`, {
+      const response = await authFetch(`/api/navigation/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(site)
@@ -367,7 +398,7 @@ export function useSiteNav() {
 
   const deleteSite = async (id: number) => {
     try {
-      await fetch(`/api/navigation/${id}`, { method: 'DELETE' })
+      await authFetch(`/api/navigation/${id}`, { method: 'DELETE' })
       await fetchSites()
       message.success('删除成功')
     } catch (e) {
@@ -377,7 +408,7 @@ export function useSiteNav() {
 
   const updateSiteOrder = async (ids: number[]) => {
     try {
-      await fetch('/api/navigation/reorder', {
+      await authFetch('/api/navigation/reorder', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(ids)
@@ -395,7 +426,7 @@ export function useSiteNav() {
     const formData = new FormData()
     formData.append('file', file)
     try {
-      const res = await fetch('/api/navigation/import', {
+      const res = await authFetch('/api/navigation/import', {
         method: 'POST',
         body: formData
       })
