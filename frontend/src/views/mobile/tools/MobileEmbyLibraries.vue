@@ -22,6 +22,7 @@
           <template #icon><n-icon><BackupIcon /></n-icon></template>
           一键备份所有媒体库
         </n-button>
+        <MobileEmbyConfigBackupManager category="libraries" :server-id="activeServerId" @restored="loadLibraries" />
         <n-button block type="primary" @click="showAddModal = true">
           <template #icon><n-icon><LibAddIcon /></n-icon></template>
           新增媒体库
@@ -91,37 +92,12 @@
     </n-modal>
 
     <!-- 编辑媒体库模态框 -->
-    <n-modal v-model:show="showEditModal" preset="card" :title="'编辑: ' + editingLib?.Name" style="width: 90vw; max-width: 500px">
-      <n-space vertical>
-        <n-form-item label="显示名称">
-          <n-input v-model:value="editingLib.Name" />
-        </n-form-item>
-        <n-form-item label="内容类型">
-          <n-select v-model:value="editingLib.CollectionType" :options="collectionTypeOptions" disabled />
-        </n-form-item>
-        <n-form-item label="文件夹路径">
-          <n-input v-model:value="editingLib.Path" type="textarea" :rows="2" />
-        </n-form-item>
-        <n-divider>高级设置</n-divider>
-        <n-form-item label="首选元数据语言">
-          <n-input v-model:value="editingLib.PreferredMetadataLanguage" placeholder="zh-CN" />
-        </n-form-item>
-        <n-form-item label="首选国家">
-          <n-input v-model:value="editingLib.PreferredMetadataCountryCode" placeholder="CN" />
-        </n-form-item>
-        <n-form-item label="最小自动收集文件夹深度">
-          <n-input-number v-model:value="editingLib.MinCollectionItems" :min="1" style="width: 100%" />
-        </n-form-item>
-      </n-space>
-      <template #action>
-        <n-space justify="end">
-          <n-button strong secondary @click="showEditModal = false">取消</n-button>
-          <n-button type="primary" strong secondary :loading="saving" @click="handleSaveLibrary">
-            保存设置
-          </n-button>
-        </n-space>
-      </template>
-    </n-modal>
+    <MobileLibraryEditModal 
+      v-model:show="showEditModal"
+      :library="editingLib"
+      :server-id="activeServerId"
+      @saved="loadLibraries"
+    />
   </div>
 </template>
 
@@ -135,11 +111,12 @@ import {
 import { 
   listEmbyLibraries, 
   addEmbyLibrary, 
-  removeEmbyLibrary,
-  updateEmbyLibrary
+  removeEmbyLibrary
 } from '@/api/embyLibraries'
 import { createEmbyBackup, createAllEmbyBackups } from '@/api/embyBackup'
 import { servers, activeServerId, fetchServers } from '@/store/serverStore'
+import MobileLibraryEditModal from './MobileLibraryEditModal.vue'
+import MobileEmbyConfigBackupManager from './MobileEmbyConfigBackupManager.vue'
 import { 
   RefreshOutlined as RefreshIcon,
   BackupOutlined as BackupIcon,
@@ -151,8 +128,6 @@ import {
 const message = useMessage()
 const loading = ref(false)
 const adding = ref(false)
-const saving = ref(false)
-const backingUp = ref(false)
 const backingUpAll = ref(false)
 const libraries = ref<any[]>([])
 
@@ -217,21 +192,6 @@ const openEdit = (lib: any) => {
   showEditModal.value = true
 }
 
-const handleSaveLibrary = async () => {
-  if (!editingLib.value?.Id) return
-  saving.value = true
-  try {
-    await updateEmbyLibrary(editingLib.value, activeServerId.value)
-    message.success('媒体库设置已更新')
-    showEditModal.value = false
-    await loadLibraries()
-  } catch (e: any) {
-    message.error(e.response?.data?.detail || '更新媒体库失败')
-  } finally {
-    saving.value = false
-  }
-}
-
 const handleRemoveLibrary = async (name: string, id: string) => {
   try {
     await removeEmbyLibrary(name, id, activeServerId.value)
@@ -243,14 +203,11 @@ const handleRemoveLibrary = async (name: string, id: string) => {
 }
 
 const handleDirectBackup = async (lib: any) => {
-  backingUp.value = true
   try {
     await createEmbyBackup('libraries', lib.Id, activeServerId.value)
     message.success(`媒体库 ${lib.Name} 已备份`)
   } catch (e: any) {
     message.error(e.response?.data?.detail || '备份失败')
-  } finally {
-    backingUp.value = false
   }
 }
 

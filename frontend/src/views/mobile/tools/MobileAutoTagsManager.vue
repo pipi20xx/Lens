@@ -9,7 +9,7 @@
       <n-space vertical>
         <div class="switch-row">
           <span class="switch-label">启用 Webhook</span>
-          <n-switch v-model:value="webhookConfig.enabled" />
+          <n-switch v-model:value="webhookConfig.enabled" @update:value="saveWebhookConfig" />
         </div>
         <div v-if="webhookConfig.enabled" class="webhook-url">
           <n-input :value="webhookUrl" readonly>
@@ -20,30 +20,25 @@
             </template>
           </n-input>
         </div>
-        <div v-if="webhookConfig.enabled" class="config-row">
+        <n-form v-if="webhookConfig.enabled" label-placement="top" size="small">
           <n-form-item label="安全密钥">
-            <n-input v-model:value="webhookConfig.secret_token" placeholder="自定义 Token" />
+            <n-input v-model:value="webhookConfig.secret_token" @blur="saveWebhookConfig" placeholder="自定义 Token" />
           </n-form-item>
-        </div>
-        <div v-if="webhookConfig.enabled" class="config-row">
           <n-form-item label="写入模式">
-            <n-select v-model:value="webhookConfig.write_mode" :options="[
+            <n-select v-model:value="webhookConfig.write_mode" @update:value="saveWebhookConfig" :options="[
               { label: '合并现有标签', value: 'merge' },
               { label: '覆盖所有标签', value: 'overwrite' }
             ]" />
           </n-form-item>
-        </div>
-        <div v-if="webhookConfig.enabled" class="switch-row">
-          <span class="switch-label">自动化状态</span>
-          <n-checkbox v-model:checked="webhookConfig.automation_enabled">
-            接收到 item.added 事件时自动执行规则比对
-          </n-checkbox>
-        </div>
-        <div v-if="webhookConfig.enabled" class="config-row">
-          <n-form-item label="处理延迟(秒)">
-            <n-input-number v-model:value="webhookConfig.delay_seconds" :min="0" :max="3600" />
+          <n-form-item label="自动化状态">
+            <n-checkbox v-model:checked="webhookConfig.automation_enabled" @update:checked="saveWebhookConfig">
+              接收到 item.added 事件时自动执行规则比对
+            </n-checkbox>
           </n-form-item>
-        </div>
+          <n-form-item label="处理延迟(秒)">
+            <n-input-number v-model:value="webhookConfig.delay_seconds" @blur="saveWebhookConfig" :min="0" :max="3600" />
+          </n-form-item>
+        </n-form>
         <n-alert type="info" :bordered="false">
           在 Emby 后台添加此 URL，选择 application/json 类型，并勾选"已添加新媒体"事件。
         </n-alert>
@@ -59,30 +54,16 @@
         <div v-if="rules.length === 0" class="empty-state">
           <n-empty description="暂无规则" />
         </div>
-        <div v-else class="rule-list">
-          <div v-for="(rule, index) in rules" :key="index" class="rule-item">
-            <div class="rule-info">
-              <div class="rule-name">{{ rule.name }}</div>
-              <div class="rule-condition">条件: {{ rule.condition }}</div>
-              <div class="rule-tags">
-                <n-tag v-for="tag in rule.tags" :key="tag" size="small" type="info">
-                  {{ tag }}
-                </n-tag>
-              </div>
-            </div>
-            <div class="rule-actions">
-              <n-button size="small" secondary type="warning" @click="editRule(index)">
-                编辑
-              </n-button>
-              <n-popconfirm @positive-click="deleteRule(index)" positive-text="确认删除" negative-text="取消">
-                <template #trigger>
-                  <n-button size="small" secondary type="error">
-                    删除
-                  </n-button>
-                </template>
-                确定删除此规则？
-              </n-popconfirm>
-            </div>
+        <div v-else class="rule-list" @dragover.prevent @drop="onDrop">
+          <div v-for="(rule, index) in rules" :key="index" class="rule-item-wrapper">
+            <MobileRuleCard 
+              :rule="rule" 
+              :index="index"
+              @edit="editRule(index)"
+              @delete="deleteRule(index)"
+              @drag-start="onDragStart"
+              @drag-enter="onDragEnter"
+            />
           </div>
         </div>
       </n-space>
@@ -109,24 +90,13 @@
       </n-space>
     </n-card>
 
-    <n-modal v-model:show="showAddRuleModal" preset="card" :title="editingRule.id !== null ? '编辑规则' : '添加规则'" style="width: 90vw; max-width: 400px">
-      <n-form label-placement="top" size="small">
-        <n-form-item label="规则名称">
-          <n-input v-model:value="editingRule.name" placeholder="规则名称" />
-        </n-form-item>
-        <n-form-item label="匹配条件">
-          <n-input v-model:value="editingRule.condition" placeholder="例如：类型=电影" />
-        </n-form-item>
-        <n-form-item label="标签">
-          <n-dynamic-tags v-model:value="editingRule.tags" />
-        </n-form-item>
-      </n-form>
-      <template #action>
-        <n-space justify="end">
-          <n-button secondary @click="showAddRuleModal = false">取消</n-button>
-          <n-button type="primary" @click="saveRule" :loading="saving">保存</n-button>
-        </n-space>
-      </template>
+    <n-modal v-model:show="showAddRuleModal" preset="card" :title="editingRule.id !== null ? '编辑规则' : '添加规则'" style="width: 95vw; max-width: 500px">
+      <MobileRuleEditorModal 
+        v-model:show="showAddRuleModal"
+        :rule="editingRule"
+        :is-new="editingRule.id === null"
+        @confirm="saveRule"
+      />
     </n-modal>
 
     <n-modal v-model:show="showClearSpecificModal" preset="card" title="清空特定标签" style="width: 90vw; max-width: 400px">
@@ -146,11 +116,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { NCard, NButton, NSpace, NSwitch, NInput, NAlert, NEmpty, NModal, NForm, NFormItem, NTag, NPopconfirm, NIcon, NDynamicTags, NSelect, NCheckbox, NInputNumber } from 'naive-ui'
+import { ref, computed, reactive, onMounted } from 'vue'
+import { NCard, NButton, NSpace, NSwitch, NInput, NAlert, NEmpty, NModal, NIcon, NSelect, NCheckbox, NInputNumber, NDynamicTags, NForm, NFormItem } from 'naive-ui'
 import { AddOutlined as AddIcon, PlayArrowOutlined as PlayIcon, DeleteOutlineOutlined as ClearIcon, ScienceOutlined as TestIcon, FilterListOutlined as FilterIcon } from '@vicons/material'
 import { useMessage } from 'naive-ui'
 import { useAutoTags } from '../../toolkit/autotags/useAutoTags'
+import MobileRuleEditorModal from './MobileRuleEditorModal.vue'
+import MobileRuleCard from './MobileRuleCard.vue'
+import axios from 'axios'
 
 const message = useMessage()
 const { rules, fetchRules, saveRules, startTask, clearAll, clearSpecific, testWrite: testWriteApi } = useAutoTags()
@@ -167,12 +140,16 @@ const showClearSpecificModal = ref(false)
 const running = ref(false)
 const saving = ref(false)
 const testing = ref(false)
+const draggedIndex = ref<number | null>(null)
 
 const editingRule = ref({
   id: null as number | null,
   name: '',
-  condition: '',
-  tags: [] as string[]
+  tag: '',
+  item_type: 'all',
+  match_all_conditions: false,
+  is_negative_match: false,
+  conditions: { countries: [], genres: [], years_text: '' }
 })
 
 const clearSpecificTags = ref<string[]>([])
@@ -187,13 +164,36 @@ const copyWebhookUrl = () => {
   message.success('URL 已复制到剪贴板')
 }
 
+const saveWebhookConfig = async () => {
+  try {
+    await axios.post('/api/autotags/webhook-config', webhookConfig.value)
+    message.success('Webhook 配置已更新')
+  } catch (e: any) {
+    message.error('保存失败: ' + (e.message || '未知错误'))
+  }
+}
+
+const loadWebhookConfig = async () => {
+  try {
+    const res = await axios.get('/api/autotags/webhook-config')
+    Object.assign(webhookConfig.value, res.data)
+  } catch (e: any) {
+    console.error('加载 webhook 配置失败:', e)
+  }
+}
+
 const editRule = (index: number) => {
-  editingRule.value = { ...rules.value[index], id: index }
+  const rule = rules.value[index]
+  editingRule.value = { 
+    ...rule, 
+    id: index,
+    conditions: { ...rule.conditions }
+  }
   showAddRuleModal.value = true
 }
 
 const saveRule = async () => {
-  if (!editingRule.value.name || !editingRule.value.condition) {
+  if (!editingRule.value.name || !editingRule.value.tag) {
     message.warning('请填写完整的规则信息')
     return
   }
@@ -203,20 +203,34 @@ const saveRule = async () => {
     if (editingRule.value.id !== null) {
       newRules[editingRule.value.id] = { 
         name: editingRule.value.name,
-        condition: editingRule.value.condition,
-        tags: editingRule.value.tags
+        tag: editingRule.value.tag,
+        item_type: editingRule.value.item_type,
+        match_all_conditions: editingRule.value.match_all_conditions,
+        is_negative_match: editingRule.value.is_negative_match,
+        conditions: editingRule.value.conditions
       }
     } else {
       newRules.push({
         name: editingRule.value.name,
-        condition: editingRule.value.condition,
-        tags: editingRule.value.tags
+        tag: editingRule.value.tag,
+        item_type: editingRule.value.item_type,
+        match_all_conditions: editingRule.value.match_all_conditions,
+        is_negative_match: editingRule.value.is_negative_match,
+        conditions: editingRule.value.conditions
       })
     }
     await saveRules(newRules)
     message.success('规则保存成功')
     showAddRuleModal.value = false
-    editingRule.value = { id: null, name: '', condition: '', tags: [] }
+    editingRule.value = { 
+      id: null, 
+      name: '', 
+      tag: '', 
+      item_type: 'all',
+      match_all_conditions: false,
+      is_negative_match: false,
+      conditions: { countries: [], genres: [], years_text: '' }
+    }
   } catch (e: any) {
     message.error('保存失败: ' + (e.message || '未知错误'))
   } finally {
@@ -283,8 +297,27 @@ const handleClearSpecific = async () => {
   }
 }
 
+const onDragStart = (index: number) => { 
+  draggedIndex.value = index 
+}
+
+const onDragEnter = (index: number) => {
+  if (draggedIndex.value === null || draggedIndex.value === index) return
+  const newRules = [...rules.value]
+  const item = newRules.splice(draggedIndex.value, 1)[0]
+  newRules.splice(index, 0, item)
+  rules.value = newRules
+  draggedIndex.value = index
+}
+
+const onDrop = async () => { 
+  draggedIndex.value = null
+  await saveRules(rules.value)
+}
+
 onMounted(() => {
   fetchRules()
+  loadWebhookConfig()
 })
 </script>
 
@@ -314,23 +347,61 @@ onMounted(() => {
 .webhook-card,
 .rules-card,
 .actions-card {
-  margin-bottom: 12px;
+  margin-bottom: 16px;
+}
+
+.webhook-card :deep(.n-card__content) {
+  padding: 16px;
+}
+
+.webhook-card :deep(.n-form-item) {
+  margin-bottom: 16px;
+}
+
+.webhook-card :deep(.n-form-item-label) {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-color);
+  margin-bottom: 8px;
+}
+
+.webhook-card :deep(.n-input),
+.webhook-card :deep(.n-input-number),
+.webhook-card :deep(.n-select) {
+  width: 100%;
+}
+
+.webhook-card :deep(.n-checkbox) {
+  font-size: 13px;
 }
 
 .switch-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
 }
 
 .switch-label {
-  font-size: 14px;
+  font-size: 15px;
+  font-weight: 500;
   color: var(--text-color);
 }
 
 .webhook-url {
-  margin-bottom: 12px;
+  margin-bottom: 16px;
+}
+
+.webhook-url :deep(.n-input) {
+  font-size: 13px;
+}
+
+.webhook-url :deep(.n-input__input-el) {
+  color: var(--text-color-2);
 }
 
 .empty-state {
@@ -343,38 +414,17 @@ onMounted(() => {
   gap: 12px;
 }
 
-.rule-item {
-  padding: 12px;
-  background: var(--app-bg-color);
-  border-radius: 8px;
+.rule-item-wrapper {
+  transition: all 0.2s ease;
 }
 
-.rule-info {
-  margin-bottom: 8px;
+.rule-item-wrapper.is-dragging {
+  opacity: 0.5;
+  transform: scale(0.98);
 }
 
-.rule-name {
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--text-color);
-  margin-bottom: 4px;
+.rule-item-wrapper.drag-over {
+  border-top: 2px solid var(--n-primary-color);
 }
 
-.rule-condition {
-  font-size: 12px;
-  color: var(--text-color);
-  opacity: 0.6;
-  margin-bottom: 4px;
-}
-
-.rule-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-
-.rule-actions {
-  display: flex;
-  gap: 8px;
-}
 </style>

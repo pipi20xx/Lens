@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { NIcon, NGrid, NGridItem } from 'naive-ui'
+import { NIcon } from 'naive-ui'
 import {
   HomeOutlined as HomeIcon,
   SettingsOutlined as SettingsIcon,
   SearchOutlined as SearchIcon,
-  BookmarkOutlined as BookmarkIcon,
   TerminalOutlined as TerminalIcon,
   StorageOutlined as StorageIcon,
   CleaningServicesOutlined as CleanIcon,
-  NotificationsOutlined as NotifyIcon
+  NotificationsOutlined as NotifyIcon,
+  ChevronRightOutlined as RightIcon
 } from '@vicons/material'
 
 const router = useRouter()
@@ -127,11 +127,6 @@ const handleSearch = () => {
     </section>
   </div>
 </template>
-
-<script lang="ts">
-import { ChevronRightOutlined as RightIcon } from '@vicons/material'
-export { RightIcon }
-</script>
 
 <style scoped>
 .mobile-home {

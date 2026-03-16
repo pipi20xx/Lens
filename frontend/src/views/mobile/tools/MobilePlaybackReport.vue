@@ -33,53 +33,12 @@
 
     <!-- 核心指标 -->
     <n-card class="stats-card" :bordered="false" title="核心指标">
-      <n-grid :cols="2" :x-gap="8" :y-gap="8">
-        <n-gi>
-          <div class="stat-item">
-            <div class="stat-value">{{ stats.totalPlays }}</div>
-            <div class="stat-label">总播放次数</div>
-          </div>
-        </n-gi>
-        <n-gi>
-          <div class="stat-item">
-            <div class="stat-value">{{ formatDuration(stats.totalDuration) }}</div>
-            <div class="stat-label">总播放时长</div>
-          </div>
-        </n-gi>
-        <n-gi>
-          <div class="stat-item">
-            <div class="stat-value">{{ stats.activeUsers }}</div>
-            <div class="stat-label">活跃用户</div>
-          </div>
-        </n-gi>
-        <n-gi>
-          <div class="stat-item">
-            <div class="stat-value">{{ stats.activeItems }}</div>
-            <div class="stat-label">活跃内容</div>
-          </div>
-        </n-gi>
-      </n-grid>
+      <MobileOverviewStats :stats="stats" />
     </n-card>
 
     <!-- 活跃用户排行榜 -->
     <n-card class="leaderboard-card" :bordered="false" title="活跃用户排行榜">
-      <div v-if="reports.users.length === 0" class="empty-state">
-        <n-empty description="暂无数据" />
-      </div>
-      <div v-else class="user-list">
-        <div v-for="(user, index) in reports.users.slice(0, 10)" :key="user.id || index" class="user-item">
-          <div class="user-rank" :class="{ 'top-3': index < 3 }">{{ index + 1 }}</div>
-          <div class="user-avatar">
-            <img :src="getImageUrl(user, 'user')" onerror="this.src='/favicon.svg'" />
-          </div>
-          <div class="user-info">
-            <div class="user-name">{{ user.name || user.user_name || user.UserName }}</div>
-            <div class="user-stats">
-              {{ user.play_count || user.playCount || 0 }} 次播放 · {{ formatDuration(user.total_duration || user.totalDuration || 0) }}
-            </div>
-          </div>
-        </div>
-      </div>
+      <MobileUserLeaderboard :users="usersWithBadges" />
     </n-card>
 
     <!-- 最近播放活动 -->
@@ -109,52 +68,12 @@
 
     <!-- 内容热度排行 -->
     <n-card class="media-card" :bordered="false" title="内容热度排行">
-      <n-tabs type="segment" size="small">
-        <n-tab-pane name="movies" tab="电影">
-          <div v-if="reports.movies.length === 0" class="empty-state">
-            <n-empty description="暂无数据" />
-          </div>
-          <div v-else class="media-list">
-            <div v-for="(movie, index) in reports.movies.slice(0, 5)" :key="index" class="media-item">
-              <div class="media-rank">{{ index + 1 }}</div>
-              <div class="media-poster">
-                <img :src="getImageUrl(movie)" onerror="this.src='/favicon.svg'" />
-              </div>
-              <div class="media-info">
-                <div class="media-name">{{ movie.name || movie.item_name || movie.label }}</div>
-                <div class="media-stats">{{ movie.play_count || 0 }} 次播放</div>
-              </div>
-            </div>
-          </div>
-        </n-tab-pane>
-        <n-tab-pane name="tv" tab="剧集">
-          <div v-if="reports.tvShows.length === 0" class="empty-state">
-            <n-empty description="暂无数据" />
-          </div>
-          <div v-else class="media-list">
-            <div v-for="(show, index) in reports.tvShows.slice(0, 5)" :key="index" class="media-item">
-              <div class="media-rank">{{ index + 1 }}</div>
-              <div class="media-poster">
-                <img :src="getImageUrl(show)" onerror="this.src='/favicon.svg'" />
-              </div>
-              <div class="media-info">
-                <div class="media-name">{{ show.name || show.item_name || show.label }}</div>
-                <div class="media-stats">{{ show.play_count || 0 }} 次播放</div>
-              </div>
-            </div>
-          </div>
-        </n-tab-pane>
-      </n-tabs>
+      <MobileMediaLeaderboard :movies="reports.movies" :tv-shows="reports.tvShows" :get-image-url="getImageUrl" />
     </n-card>
 
     <!-- 24小时播放热度 -->
     <n-card class="heatmap-card" :bordered="false" title="24小时播放热度">
-      <div class="heatmap-grid">
-        <div v-for="hour in 24" :key="hour" class="heatmap-item">
-          <div class="heatmap-bar" :style="{ height: getHourHeight(hour - 1) + '%' }"></div>
-          <div class="heatmap-label">{{ hour - 1 }}:00</div>
-        </div>
-      </div>
+      <MobileActivityHeatmap :hourly-data="reports.hourly" />
     </n-card>
   </div>
 </template>
@@ -162,8 +81,8 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { 
-  NCard, NButton, NSelect, NGrid, NGi, NEmpty, 
-  NTabs, NTabPane, NSpace, NIcon 
+  NCard, NButton, NSelect, NEmpty, 
+  NSpace, NIcon 
 } from 'naive-ui'
 import { 
   RefreshOutlined, PeopleOutlined 
@@ -171,6 +90,10 @@ import {
 import { playbackReportApi } from '@/api/playbackReport'
 import { useMessage } from 'naive-ui'
 import request from '@/utils/request'
+import MobileOverviewStats from './MobileOverviewStats.vue'
+import MobileActivityHeatmap from './MobileActivityHeatmap.vue'
+import MobileUserLeaderboard from './MobileUserLeaderboard.vue'
+import MobileMediaLeaderboard from './MobileMediaLeaderboard.vue'
 
 const message = useMessage()
 const loading = ref(false)
@@ -203,6 +126,17 @@ const stats = computed(() => {
   const activeUsers = reports.users.length
   const activeItems = reports.movies.length + reports.tvShows.length
   return { totalPlays, totalDuration, activeUsers, activeItems }
+})
+
+const usersWithBadges = computed(() => {
+  return reports.users.map((user, index) => ({
+    ...user,
+    label: user.name || user.user_name || user.UserName,
+    count: user.play_count || user.playCount || 0,
+    time: user.total_duration || user.totalDuration || 0,
+    rank: index + 1,
+    badges: []
+  }))
 })
 
 const urlCache = new Map<string, string>()
@@ -280,13 +214,6 @@ const formatDuration = (seconds: number) => {
   if (hours < 1) return Math.floor(seconds / 60) + 'm'
   if (hours < 24) return hours + 'h'
   return Math.floor(hours / 24) + 'd'
-}
-
-const getHourHeight = (hour: number) => {
-  const key = String(hour).padStart(2, '0')
-  const value = reports.hourly[key] || 0
-  const max = Math.max(...Object.values(reports.hourly), 1)
-  return Math.max((value / max) * 100, 5)
 }
 
 const fetchAllData = async () => {
@@ -374,34 +301,8 @@ onUnmounted(() => {
   margin: 0;
 }
 
-.filter-card {
-  margin-bottom: 12px;
-}
-
-.stats-card {
-  margin-bottom: 12px;
-}
-
-.stat-item {
-  text-align: center;
-  padding: 12px;
-  background: var(--card-bg-color);
-  border-radius: 8px;
-}
-
-.stat-value {
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--primary-color);
-}
-
-.stat-label {
-  font-size: 12px;
-  color: var(--text-color);
-  opacity: 0.6;
-  margin-top: 4px;
-}
-
+.filter-card,
+.stats-card,
 .leaderboard-card,
 .activity-card,
 .media-card,
@@ -413,17 +314,13 @@ onUnmounted(() => {
   padding: 24px 0;
 }
 
-.user-list,
-.activity-list,
-.media-list {
+.activity-list {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.user-item,
-.activity-item,
-.media-item {
+.activity-item {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -432,26 +329,6 @@ onUnmounted(() => {
   border-radius: 8px;
 }
 
-.user-rank {
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-color);
-  background: var(--border-color);
-  border-radius: 50%;
-}
-
-.user-rank.top-3 {
-  background: var(--primary-color);
-  color: white;
-}
-
-.user-avatar,
-.media-poster,
 .activity-poster {
   width: 40px;
   height: 40px;
@@ -460,24 +337,18 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 
-.user-avatar img,
-.media-poster img,
 .activity-poster img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.user-info,
-.activity-info,
-.media-info {
+.activity-info {
   flex: 1;
   min-width: 0;
 }
 
-.user-name,
-.activity-name,
-.media-name {
+.activity-name {
   font-size: 14px;
   font-weight: 500;
   color: var(--text-color);
@@ -486,10 +357,8 @@ onUnmounted(() => {
   text-overflow: ellipsis;
 }
 
-.user-stats,
 .activity-user,
-.activity-time,
-.media-stats {
+.activity-time {
   font-size: 12px;
   color: var(--text-color);
   opacity: 0.6;
@@ -519,47 +388,5 @@ onUnmounted(() => {
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
-}
-
-.media-rank {
-  width: 20px;
-  text-align: center;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--primary-color);
-}
-
-.heatmap-grid {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  height: 100px;
-  padding: 8px 0;
-}
-
-.heatmap-item {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-
-.heatmap-bar {
-  width: 100%;
-  max-width: 8px;
-  background: var(--primary-color);
-  border-radius: 2px;
-  opacity: 0.7;
-  transition: height 0.3s;
-}
-
-.heatmap-label {
-  font-size: 9px;
-  color: var(--text-color);
-  opacity: 0.5;
-  transform: rotate(-45deg);
-  transform-origin: center;
-  white-space: nowrap;
 }
 </style>

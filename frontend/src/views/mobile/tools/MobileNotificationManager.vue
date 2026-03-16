@@ -8,7 +8,7 @@
     <n-card class="switch-card" :bordered="false" title="全局设置">
       <div class="switch-row">
         <span class="switch-label">启用通知</span>
-        <n-switch v-model:value="settings.enabled" @update:value="saveSettings" />
+        <n-switch v-model:value="settings.enabled" @update:value="saveSettings" size="medium" />
       </div>
     </n-card>
 
@@ -23,22 +23,38 @@
         </div>
         <div v-else class="bot-list">
           <div v-for="bot in settings.bots" :key="bot.id" class="bot-item">
+            <div class="bot-header">
+              <div class="bot-name">
+                <n-text strong>{{ bot.name }}</n-text>
+                <n-tag :type="bot.enabled ? 'success' : 'default'" size="tiny" round>
+                  {{ bot.enabled ? '运行中' : '已停用' }}
+                </n-tag>
+              </div>
+              <n-switch v-model:value="bot.enabled" @update:value="saveSettings" size="small" />
+            </div>
+            
             <div class="bot-info">
-              <div class="bot-name">{{ bot.name }}</div>
               <div class="bot-type">{{ bot.type }}</div>
+              <div v-if="bot.is_interactive" class="bot-interactive">
+                <n-tag type="warning" size="tiny">交互模式</n-tag>
+              </div>
               <div class="bot-events">
                 <n-tag v-for="event in bot.subscribed_events" :key="event" size="small" type="info">
                   {{ event }}
                 </n-tag>
               </div>
             </div>
+            
             <div class="bot-actions">
-              <n-button size="small" secondary type="info" @click="editBot(bot)">
+              <n-button size="tiny" secondary type="info" @click="testBot(bot.id)">
+                测试
+              </n-button>
+              <n-button size="tiny" secondary @click="editBot(bot)">
                 编辑
               </n-button>
-              <n-popconfirm @positive-click="deleteBot(bot.id)" positive-text="确认删除" negative-text="取消">
+              <n-popconfirm @positive-click="() => deleteBot(bot.id)" positive-text="确认删除" negative-text="取消">
                 <template #trigger>
-                  <n-button size="small" secondary type="error">
+                  <n-button size="tiny" secondary type="error">
                     删除
                   </n-button>
                 </template>
@@ -50,7 +66,7 @@
       </n-space>
     </n-card>
 
-    <n-modal v-model:show="showAddBotModal" preset="card" :title="editingBot.id ? '编辑机器人' : '添加机器人'" style="width: 90vw; max-width: 400px">
+    <n-modal v-model:show="showAddBotModal" preset="card" :title="editingBot.id ? '编辑机器人' : '添加机器人'" style="width: 90vw; max-width: 500px">
       <n-form label-placement="top" size="small">
         <n-form-item label="名称">
           <n-input v-model:value="editingBot.name" placeholder="例如：Lens 备份助手" />
@@ -67,6 +83,26 @@
         <n-form-item label="订阅事件">
           <n-select v-model:value="editingBot.subscribed_events" multiple :options="eventOptions" />
         </n-form-item>
+        <n-form-item label="开启交互">
+          <n-space vertical style="width: 100%">
+            <n-switch v-model:value="editingBot.is_interactive" />
+            <n-alert v-if="editingBot.is_interactive" type="warning" size="tiny">
+              开启后，你可以通过 Telegram 直接操控 Docker。请务必配置下方的授权用户 ID。
+            </n-alert>
+          </n-space>
+        </n-form-item>
+        <n-form-item v-if="editingBot.is_interactive" label="授权用户 ID">
+          <n-select
+            v-model:value="editingBot.allowed_user_ids"
+            multiple
+            filterable
+            tag
+            placeholder="输入你的 Telegram User ID 并回车"
+          />
+        </n-form-item>
+        <n-form-item label="是否启用">
+          <n-switch v-model:value="editingBot.enabled" />
+        </n-form-item>
       </n-form>
       <template #action>
         <n-space justify="end">
@@ -75,15 +111,17 @@
         </n-space>
       </template>
     </n-modal>
+
+    <n-modal v-model:show="showTestModal" preset="dialog" title="发送测试消息" positive-text="发送" negative-text="取消" @positive-click="sendTestMessage">
+      <n-input v-model:value="testMessage" type="textarea" placeholder="输入测试内容..." />
+    </n-modal>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { NCard, NButton, NSpace, NSwitch, NEmpty, NModal, NForm, NFormItem, NInput, NSelect, NTag, NPopconfirm, NIcon } from 'naive-ui'
-import { AddOutlined as AddIcon } from '@vicons/material'
+import { NCard, NButton, NSpace, NSwitch, NEmpty, NModal, NForm, NFormItem, NInput, NSelect, NTag, NPopconfirm, NText, NAlert, useMessage } from 'naive-ui'
 import { notificationApi } from '@/api/notification'
-import { useMessage } from 'naive-ui'
 
 const message = useMessage()
 const settings = ref({
@@ -91,27 +129,32 @@ const settings = ref({
   bots: []
 })
 const showAddBotModal = ref(false)
+const showTestModal = ref(false)
 const saving = ref(false)
+const testMessage = ref('')
 const editingBot = ref({
   id: null,
   name: '',
   type: 'telegram',
   token: '',
   chat_id: '',
-  subscribed_events: []
+  subscribed_events: [],
+  is_interactive: false,
+  allowed_user_ids: [],
+  enabled: true
 })
 
 const typeOptions = [
-  { label: 'Telegram', value: 'telegram' },
-  { label: '企业微信', value: 'wechat' },
-  { label: '钉钉', value: 'dingtalk' }
+  { label: 'Telegram', value: 'telegram' }
 ]
 
 const eventOptions = [
   { label: '备份完成', value: 'backup_completed' },
   { label: '任务完成', value: 'task_completed' },
   { label: '系统告警', value: 'system_alert' },
-  { label: '用户登录', value: 'user_login' }
+  { label: '用户登录', value: 'user_login' },
+  { label: 'Docker 事件', value: 'docker_event' },
+  { label: '镜像构建', value: 'image_build' }
 ]
 
 const loadSettings = async () => {
@@ -168,6 +211,21 @@ const deleteBot = async (id: number) => {
   }
 }
 
+const testBot = async (id: string) => {
+  testMessage.value = '这是一条测试消息'
+  showTestModal.value = true
+}
+
+const sendTestMessage = async () => {
+  try {
+    await notificationApi.sendTestMessage(testMessage.value)
+    message.success('测试消息已发送')
+    showTestModal.value = false
+  } catch (e) {
+    message.error('发送测试消息失败')
+  }
+}
+
 onMounted(() => {
   loadSettings()
 })
@@ -205,11 +263,13 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: 8px 0;
 }
 
 .switch-label {
-  font-size: 14px;
+  font-size: 15px;
   color: var(--text-color);
+  font-weight: 500;
 }
 
 .empty-state {
@@ -228,21 +288,34 @@ onMounted(() => {
   border-radius: 8px;
 }
 
-.bot-info {
+.bot-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 8px;
 }
 
 .bot-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 15px;
   font-weight: 500;
   color: var(--text-color);
-  margin-bottom: 4px;
+}
+
+.bot-info {
+  margin-bottom: 8px;
 }
 
 .bot-type {
   font-size: 12px;
   color: var(--text-color);
   opacity: 0.6;
+  margin-bottom: 4px;
+}
+
+.bot-interactive {
   margin-bottom: 4px;
 }
 
