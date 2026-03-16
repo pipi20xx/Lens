@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { NSpace, NCard, NText, NSelect, NButton, NTabs, NTabPane, NIcon, useMessage } from 'naive-ui'
-import { DnsOutlined as ServerIcon } from '@vicons/material'
+import { NSpace, NCard, NText, NSelect, NButton, NIcon, useMessage } from 'naive-ui'
+import { DnsOutlined as ServerIcon, RefreshOutlined as RefreshIcon } from '@vicons/material'
 import MobileDockerContainerList from './MobileDockerContainerList.vue'
 import MobileDockerComposeList from './MobileDockerComposeList.vue'
 import MobileDockerSystemInfo from './MobileDockerSystemInfo.vue'
 import MobileDockerMaintenancePanel from './MobileDockerMaintenancePanel.vue'
 import MobileDockerHostManager from './MobileDockerHostManager.vue'
 import { dockerApi } from '@/api/docker'
+import MobileTabs from '../components/MobileTabs.vue'
 import {
   ButtonTypes,
   ButtonSizes,
@@ -27,6 +28,17 @@ const loading = ref(false)
 const selectedHostId = ref<string | null>(null)
 const hosts = ref<any[]>([])
 const activeTab = ref('containers')
+
+const placeholder = {
+  SELECT_HOST: '选择 Docker 主机',
+}
+
+const tabs = [
+  { name: 'containers', label: '容器' },
+  { name: 'compose', label: 'Compose' },
+  { name: 'system', label: '系统信息' },
+  { name: 'maintenance', label: '维护' },
+]
 const showHostManager = ref(false)
 
 const hostOptions = computed(() => {
@@ -99,20 +111,20 @@ onMounted(() => {
     </n-card>
 
     <n-card class="content-card" :bordered="false">
-      <n-tabs v-model:value="activeTab" type="segment" :size="buttonSizes.MEDIUM">
-        <n-tab-pane name="containers" tab="容器">
+      <MobileTabs v-model="activeTab" :tabs="tabs">
+        <template #containers>
           <MobileDockerContainerList :host-id="selectedHostId" />
-        </n-tab-pane>
-        <n-tab-pane name="compose" tab="Compose">
+        </template>
+        <template #compose>
           <MobileDockerComposeList :host-id="selectedHostId" />
-        </n-tab-pane>
-        <n-tab-pane name="system" tab="环境">
+        </template>
+        <template #system>
           <MobileDockerSystemInfo :host-id="selectedHostId" />
-        </n-tab-pane>
-        <n-tab-pane name="maintenance" tab="配置">
+        </template>
+        <template #maintenance>
           <MobileDockerMaintenancePanel :host-id="selectedHostId" />
-        </n-tab-pane>
-      </n-tabs>
+        </template>
+      </MobileTabs>
     </n-card>
 
     <MobileDockerHostManager 

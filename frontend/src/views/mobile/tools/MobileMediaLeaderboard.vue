@@ -1,7 +1,7 @@
 <template>
   <div class="mobile-media-leaderboard">
-    <n-tabs type="segment" size="small">
-      <n-tab-pane name="movies" tab="电影">
+    <MobileTabs v-model="activeTab" :tabs="tabs">
+      <template #movies>
         <div v-if="movies.length === 0" class="empty-state">
           <n-empty description="暂无电影数据" />
         </div>
@@ -25,15 +25,14 @@
                 <span v-if="item.year" class="year">{{ item.year }}</span>
               </div>
               <div v-if="item.rating" class="rating">
-                <n-icon :size="12" color="#f0a020"><StarIcon /></n-icon>
                 {{ item.rating.toFixed(1) }}
               </div>
             </div>
           </div>
         </div>
-      </n-tab-pane>
+      </template>
       
-      <n-tab-pane name="tv" tab="剧集">
+      <template #tv>
         <div v-if="tvShows.length === 0" class="empty-state">
           <n-empty description="暂无剧集数据" />
         </div>
@@ -57,24 +56,32 @@
                 <span v-if="item.year" class="year">{{ item.year }}</span>
               </div>
               <div v-if="item.rating" class="rating">
-                <n-icon :size="12" color="#f0a020"><StarIcon /></n-icon>
                 {{ item.rating.toFixed(1) }}
               </div>
             </div>
           </div>
         </div>
-      </n-tab-pane>
-    </n-tabs>
+      </template>
+    </MobileTabs>
   </div>
 </template>
 
 <script setup lang="ts">
-import { NIcon, NEmpty, NTabs, NTabPane } from 'naive-ui'
+import { ref } from 'vue'
+import { NEmpty } from 'naive-ui'
+import MobileTabs from '../components/MobileTabs.vue'
 const props = defineProps<{
   movies: any[]
   tvShows: any[]
   getImageUrl: (item: any) => string
 }>()
+
+const activeTab = ref('movies')
+
+const tabs = [
+  { name: 'movies', label: '电影' },
+  { name: 'tv', label: '剧集' },
+]
 </script>
 
 <style scoped>

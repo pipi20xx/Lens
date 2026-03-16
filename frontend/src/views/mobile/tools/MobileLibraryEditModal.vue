@@ -7,24 +7,24 @@
     style="width: 95vw; max-width: 600px"
     :bordered="false"
   >
-    <n-tabs type="segment" size="small">
-      <n-tab-pane name="basic" tab="基础信息">
+    <MobileTabs v-model="activeTab" :tabs="tabs">
+      <template #basic>
         <BasicInfoTab v-model="localData" />
-      </n-tab-pane>
+      </template>
 
-      <n-tab-pane name="metadata-fetchers" tab="元数据下载器">
+      <template #metadata-fetchers>
         <MetadataFetchersTab v-model="localData" />
-      </n-tab-pane>
+      </template>
 
-      <n-tab-pane name="image-settings" tab="图片设置">
+      <template #image-settings>
         <ImageSettingsTab v-model="localData" />
-      </n-tab-pane>
+      </template>
 
-      <n-tab-pane name="features" tab="功能开关">
+      <template #features>
         <FeatureSwitchesTab v-model="localData" />
-      </n-tab-pane>
+      </template>
 
-      <n-tab-pane name="json" tab="JSON">
+      <template #json>
         <n-space vertical>
           <n-alert type="info" size="small">
             高级操作：您可以直接编辑下方的原始 JSON 数据进行高级配置。
@@ -37,8 +37,8 @@
             @update:value="handleJsonInput"
           />
         </n-space>
-      </n-tab-pane>
-    </n-tabs>
+      </template>
+    </MobileTabs>
 
     <template #action>
       <n-space vertical style="width: 100%">
@@ -75,11 +75,12 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { useMessage, NButton, NSpace, NAlert, NInput, NTabs, NTabPane, NModal } from 'naive-ui'
+import { useMessage, NButton, NSpace, NAlert, NInput, NModal } from 'naive-ui'
 import BasicInfoTab from '../../emby-library/tabs/BasicInfoTab.vue'
 import MetadataFetchersTab from '../../emby-library/tabs/MetadataFetchersTab.vue'
 import ImageSettingsTab from '../../emby-library/tabs/ImageSettingsTab.vue'
 import FeatureSwitchesTab from '../../emby-library/tabs/FeatureSwitchesTab.vue'
+import MobileTabs from '../components/MobileTabs.vue'
 import { updateEmbyLibrary } from '@/api/embyLibraries'
 import { createEmbyBackup } from '@/api/embyBackup'
 
@@ -95,6 +96,15 @@ const loading = ref(false)
 const backingUp = ref(false)
 const localData = ref<any>({ LibraryOptions: {} })
 const jsonRaw = ref('')
+const activeTab = ref('basic')
+
+const tabs = [
+  { name: 'basic', label: '基础信息' },
+  { name: 'metadata-fetchers', label: '元数据下载器' },
+  { name: 'image-settings', label: '图片设置' },
+  { name: 'features', label: '功能开关' },
+  { name: 'json', label: 'JSON' },
+]
 
 watch(() => props.library, (newVal) => {
   if (newVal) {

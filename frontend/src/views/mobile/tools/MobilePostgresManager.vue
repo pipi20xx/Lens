@@ -23,23 +23,23 @@
     </n-card>
 
     <n-card v-if="selectedHost" class="tabs-card" :bordered="false">
-      <n-tabs v-model:value="activeTab" type="segment" animated>
-        <n-tab-pane name="data" tab="数据浏览器">
+      <MobileTabs v-model="activeTab" :tabs="tabs">
+        <template #data>
           <MobilePgsqlTableBrowser ref="tablePanelRef" :host="selectedHost" />
-        </n-tab-pane>
+        </template>
 
-        <n-tab-pane name="databases" tab="数据库列表">
+        <template #databases>
           <MobilePgsqlDatabasePanel ref="dbPanelRef" :host="selectedHost" />
-        </n-tab-pane>
+        </template>
 
-        <n-tab-pane name="users" tab="用户列表">
+        <template #users>
           <MobilePgsqlUserPanel ref="userPanelRef" :host="selectedHost" />
-        </n-tab-pane>
+        </template>
 
-        <n-tab-pane name="backup" tab="备份与恢复">
+        <template #backup>
           <MobilePgsqlBackupPanel ref="backupPanelRef" :host="selectedHost" />
-        </n-tab-pane>
-      </n-tabs>
+        </template>
+      </MobileTabs>
     </n-card>
 
     <MobilePgsqlHostManagerModal 
@@ -51,7 +51,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { NCard, NButton, NSpace, NIcon, NTabs, NTabPane, NSelect, useMessage } from 'naive-ui'
+import { NCard, NButton, NSpace, NIcon, NSelect, useMessage } from 'naive-ui'
 import { 
   DnsOutlined as ServerIcon
 } from '@vicons/material'
@@ -61,6 +61,7 @@ import MobilePgsqlDatabasePanel from './MobilePgsqlDatabasePanel.vue'
 import MobilePgsqlUserPanel from './MobilePgsqlUserPanel.vue'
 import MobilePgsqlBackupPanel from './MobilePgsqlBackupPanel.vue'
 import MobilePgsqlHostManagerModal from './MobilePgsqlHostManagerModal.vue'
+import MobileTabs from '../components/MobileTabs.vue'
 
 import { usePgsqlHosts } from '@/views/toolkit/pgsql/hooks/usePgsqlHosts'
 import {
@@ -85,6 +86,13 @@ const refreshing = ref(false)
 const { hosts, selectedHostId, hostOptions, selectedHost, fetchHosts } = usePgsqlHosts()
 
 const showHostModal = ref(false)
+
+const tabs = [
+  { name: 'data', label: '数据浏览器' },
+  { name: 'databases', label: '数据库列表' },
+  { name: 'users', label: '用户列表' },
+  { name: 'backup', label: '备份与恢复' },
+]
 
 const tablePanelRef = ref()
 const dbPanelRef = ref()

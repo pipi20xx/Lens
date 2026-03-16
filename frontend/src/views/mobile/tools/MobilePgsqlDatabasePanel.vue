@@ -20,11 +20,13 @@
             <div class="database-name">{{ db.name }}</div>
             <n-space>
               <n-button size="tiny" secondary type="info" @click="openEditModal(db)">
-                </n-button>
+                编辑
+              </n-button>
               <n-popconfirm @positive-click="() => handleDrop(db.name)" positive-text="确认" negative-text="取消">
                 <template #trigger>
                   <n-button size="tiny" secondary type="error">
-                    </n-button>
+                    删除
+                  </n-button>
                 </template>
                 确认删除？
               </n-popconfirm>
@@ -32,11 +34,9 @@
           </div>
           <div class="database-info">
             <div class="info-row">
-              <n-icon size="14"><UserIcon /></n-icon>
               <span>所有者: {{ db.owner }}</span>
             </div>
             <div v-if="db.description" class="info-row">
-              <n-icon size="14"><DescIcon /></n-icon>
               <span>{{ db.description }}</span>
             </div>
           </div>
@@ -87,7 +87,7 @@
 
 <script setup lang="ts">
 import { ref, watch, reactive, computed } from 'vue'
-import { NSpace, NButton, NModal, NForm, NFormItem, NInput, NSelect, NIcon, NEmpty, NPopconfirm, useMessage, useDialog } from 'naive-ui'
+import { NSpace, NButton, NModal, NForm, NFormItem, NInput, NSelect, NEmpty, NPopconfirm, useMessage, useDialog } from 'naive-ui'
 import axios from 'axios'
 
 const props = defineProps<{ host: any }>()

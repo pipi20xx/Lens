@@ -6,33 +6,41 @@
     </div>
 
     <n-card class="tabs-card" :bordered="false">
-      <n-tabs v-model:value="activeTab" type="segment" animated>
-        <n-tab-pane name="projects" tab="项目管理">
+      <MobileTabs v-model="activeTab" :tabs="tabs">
+        <template #projects>
           <mobile-image-project-list />
-        </n-tab-pane>
-        <n-tab-pane name="registries" tab="仓库管理">
+        </template>
+        <template #registries>
           <mobile-image-registry-manager />
-        </n-tab-pane>
-        <n-tab-pane name="proxies" tab="代理设置">
+        </template>
+        <template #proxies>
           <mobile-image-proxy-manager />
-        </n-tab-pane>
-        <n-tab-pane name="system" tab="环境监测">
+        </template>
+        <template #system>
           <mobile-image-system-info />
-        </n-tab-pane>
-      </n-tabs>
+        </template>
+      </MobileTabs>
     </n-card>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { NCard, NTabs, NTabPane } from 'naive-ui'
+import { NCard } from 'naive-ui'
 import MobileImageProjectList from './MobileImageProjectList.vue'
 import MobileImageRegistryManager from './MobileImageRegistryManager.vue'
 import MobileImageProxyManager from './MobileImageProxyManager.vue'
 import MobileImageSystemInfo from './MobileImageSystemInfo.vue'
+import MobileTabs from '../components/MobileTabs.vue'
 
 const activeTab = ref('projects')
+
+const tabs = [
+  { name: 'projects', label: '项目列表' },
+  { name: 'registries', label: '仓库管理' },
+  { name: 'proxies', label: '代理设置' },
+  { name: 'system', label: '系统信息' },
+]
 </script>
 
 <style scoped>

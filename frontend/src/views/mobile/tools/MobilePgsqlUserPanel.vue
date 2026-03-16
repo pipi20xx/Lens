@@ -20,11 +20,13 @@
             <div class="user-name">{{ user.username }}</div>
             <n-space>
               <n-button size="tiny" secondary type="info" @click="openEditModal(user)">
-                </n-button>
+                编辑
+              </n-button>
               <n-popconfirm @positive-click="() => handleDrop(user.username)" positive-text="确认" negative-text="取消">
                 <template #trigger>
                   <n-button size="tiny" secondary type="error">
-                    </n-button>
+                    删除
+                  </n-button>
                 </template>
                 确认删除？
               </n-popconfirm>
@@ -32,15 +34,12 @@
           </div>
           <div class="user-info">
             <div class="info-row">
-              <n-icon size="14"><LoginIcon /></n-icon>
               <span>允许登录: {{ user.can_login ? '是' : '否' }}</span>
             </div>
             <div v-if="user.is_superuser" class="info-row">
-              <n-icon size="14"><SuperIcon /></n-icon>
               <span>超级用户</span>
             </div>
             <div v-if="user.can_create_db" class="info-row">
-              <n-icon size="14"><DbIcon /></n-icon>
               <span>可创建数据库</span>
             </div>
           </div>
@@ -113,7 +112,7 @@
 
 <script setup lang="ts">
 import { ref, watch, reactive } from 'vue'
-import { NSpace, NButton, NModal, NForm, NFormItem, NInput, NCheckbox, NIcon, NDatePicker, NInputNumber, NDivider, NEmpty, NPopconfirm, useMessage, useDialog } from 'naive-ui'
+import { NSpace, NButton, NModal, NForm, NFormItem, NInput, NCheckbox, NDatePicker, NInputNumber, NDivider, NEmpty, NPopconfirm, useMessage, useDialog } from 'naive-ui'
 import axios from 'axios'
 
 const props = defineProps<{ host: any }>()

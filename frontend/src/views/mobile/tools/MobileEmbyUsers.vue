@@ -72,8 +72,8 @@
 
     <!-- 用户设置模态框 -->
     <n-modal v-model:show="showEditModal" preset="card" :title="buttonText.SETTINGS + ': ' + editingUser?.Name" style="width: 95vw; max-width: 600px">
-      <n-tabs type="segment" :size="buttonSizes.SMALL">
-        <n-tab-pane name="account" tab="账户">
+      <MobileTabs v-model="activeTab" :tabs="tabs">
+        <template #account>
           <n-space vertical class="settings-section">
             <div class="setting-item">
               <span class="setting-label">{{ statusText.DISABLE }}此账户</span>
@@ -104,8 +104,8 @@
               <n-input-number v-model:value="policy.RemoteClientBitrateLimit" :min="0" :step="1000000" :size="buttonSizes.SMALL" style="width: 150px" />
             </div>
           </n-space>
-        </n-tab-pane>
-        <n-tab-pane name="playback" tab="播放">
+        </template>
+        <template #playback>
           <n-space vertical class="settings-section">
             <div class="setting-item">
               <span class="setting-label">允许媒体播放</span>
@@ -136,8 +136,8 @@
               <n-input-number v-model:value="policy.AutoRemoteQuality" :min="0" :size="buttonSizes.SMALL" style="width: 100px" />
             </div>
           </n-space>
-        </n-tab-pane>
-        <n-tab-pane name="features" tab="功能">
+        </template>
+        <template #features>
           <n-space vertical class="settings-section">
             <div class="setting-item">
               <span class="setting-label">允许删除媒体</span>
@@ -168,8 +168,8 @@
               <n-switch v-model:value="policy.EnableSharedDeviceControl" class="mobile-switch" />
             </div>
           </n-space>
-        </n-tab-pane>
-        <n-tab-pane name="library" tab="媒体库">
+        </template>
+        <template #library>
           <n-space vertical class="settings-section">
             <div class="setting-item">
               <span class="setting-label">允许访问所有媒体库</span>
@@ -192,16 +192,16 @@
               <n-switch v-model:value="policy.EnableLiveTvManagement" class="mobile-switch" />
             </div>
           </n-space>
-        </n-tab-pane>
-        <n-tab-pane name="password" tab="密码">
+        </template>
+        <template #password>
           <n-space vertical class="settings-section">
             <n-input v-model:value="newPassword" type="password" show-password-on="click" :placeholder="placeholder.NEW_PASSWORD" />
             <n-button :type="buttonTypes.WARNING" secondary block :disabled="!newPassword" @click="handleUpdatePassword">
               {{ buttonText.UPDATE }}密码
             </n-button>
           </n-space>
-        </n-tab-pane>
-        <n-tab-pane name="json" tab="JSON">
+        </template>
+        <template #json>
           <n-space vertical>
             <n-alert :type="tagTypes.INFO" :size="buttonSizes.SMALL">
               高级操作：您可以直接编辑下方的原始 JSON 数据。请确保格式正确，非法 JSON 将无法保存。
@@ -215,8 +215,8 @@
               @update:value="handleJsonInput"
             />
           </n-space>
-        </n-tab-pane>
-      </n-tabs>
+        </template>
+      </MobileTabs>
       <template #action>
         <n-space vertical style="width: 100%">
           <n-space justify="end">
@@ -238,7 +238,7 @@
 import { ref, onMounted } from 'vue'
 import { 
   NButton, NSpace, NTag, NPopconfirm, useMessage, NIcon, 
-  NInput, NCard, NModal, NTabs, NTabPane, NSwitch, 
+  NInput, NCard, NModal, NSwitch, 
   NInputNumber, NAlert, NEmpty 
 } from 'naive-ui'
 import { 
@@ -252,6 +252,7 @@ import {
 import { createEmbyBackup, createAllEmbyBackups } from '@/api/embyBackup'
 import { servers, activeServerId, fetchServers } from '@/store/serverStore'
 import MobileEmbyConfigBackupManager from './MobileEmbyConfigBackupManager.vue'
+import MobileTabs from '../components/MobileTabs.vue'
 import {
   BackupOutlined as BackupIcon,
   Person
@@ -295,6 +296,16 @@ const policy = ref<any>({})
 const jsonRaw = ref('')
 const newPassword = ref('')
 const savingPolicy = ref(false)
+const activeTab = ref('account')
+
+const tabs = [
+  { name: 'account', label: '账户' },
+  { name: 'playback', label: '播放' },
+  { name: 'features', label: '功能' },
+  { name: 'library', label: '媒体库' },
+  { name: 'password', label: '密码' },
+  { name: 'json', label: 'JSON' },
+]
 
 const loadUsers = async () => {
   if (!activeServerId.value) {

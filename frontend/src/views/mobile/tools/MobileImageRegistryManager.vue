@@ -1,7 +1,7 @@
 <template>
   <div class="mobile-image-registry-manager">
-    <n-tabs v-model:value="activeTab" type="segment" size="small">
-      <n-tab-pane name="registries" tab="仓库配置">
+    <MobileTabs v-model="activeTab" :tabs="tabs">
+      <template #registries>
         <n-space vertical>
           <n-button type="primary" size="small" @click="openRegistryModal">
             添加仓库
@@ -34,20 +34,18 @@
 
               <div class="registry-info">
                 <div class="info-row">
-                  <n-icon size="14"><UrlIcon /></n-icon>
                   <span>{{ registry.is_https ? 'https://' : 'http://' }}{{ registry.url }}</span>
                 </div>
                 <div v-if="getCredentialName(registry.credential_id)" class="info-row">
-                  <n-icon size="14"><CredIcon /></n-icon>
                   <span>凭据: {{ getCredentialName(registry.credential_id) }}</span>
                 </div>
               </div>
             </div>
           </div>
         </n-space>
-      </n-tab-pane>
+      </template>
 
-      <n-tab-pane name="credentials" tab="凭据管理">
+      <template #credentials>
         <n-space vertical>
           <n-button type="primary" size="small" @click="openCredModal">
             添加凭据
@@ -84,8 +82,8 @@
             </div>
           </div>
         </n-space>
-      </n-tab-pane>
-    </n-tabs>
+      </template>
+    </MobileTabs>
 
     <n-modal v-model:show="showRegistryModal" preset="card" :title="editRegistryMode ? '编辑仓库' : '添加仓库'" style="width: 90vw; max-width: 400px">
       <n-form label-placement="top" size="small">
@@ -135,7 +133,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { 
-  NTabs, NTabPane, NSpace, NButton, NModal, NForm, NFormItem, 
+  NSpace, NButton, NModal, NForm, NFormItem, 
   NInput, NSelect, NSwitch, NIcon, NEmpty, NPopconfirm, useMessage, useDialog 
 } from 'naive-ui'
 import {
@@ -143,11 +141,17 @@ import {
   Vpn
 } from '@vicons/material'
 import axios from 'axios'
+import MobileTabs from '../components/MobileTabs.vue'
 
 const message = useMessage()
 const dialog = useDialog()
 
 const activeTab = ref('registries')
+
+const tabs = [
+  { name: 'registries', label: '仓库列表' },
+  { name: 'credentials', label: '凭据管理' },
+]
 const registries = ref([])
 const credentials = ref([])
 const showRegistryModal = ref(false)

@@ -8,8 +8,8 @@
 
     <!-- 输入面板 -->
     <n-card class="input-card" :bordered="false">
-      <n-tabs v-model:value="activeTab" type="segment" animated>
-        <n-tab-pane name="search" tab="关键词搜索">
+      <MobileTabs v-model="activeTab" :tabs="tabs">
+        <template #search>
           <n-form label-placement="top" class="mobile-form">
             <n-form-item label="关键词">
               <n-input
@@ -55,9 +55,9 @@
               </div>
             </div>
           </div>
-        </n-tab-pane>
+        </template>
 
-        <n-tab-pane name="direct" tab="直接 ID 抓取">
+        <template #direct>
           <n-form label-placement="top" class="mobile-form">
             <n-form-item label="Subject ID">
               <n-input
@@ -77,8 +77,8 @@
               执行抓取
             </n-button>
           </n-form>
-        </n-tab-pane>
-      </n-tabs>
+        </template>
+      </MobileTabs>
     </n-card>
 
     <!-- 结果展示区 -->
@@ -214,16 +214,22 @@ import { ref, reactive, computed } from 'vue'
 import {
   useMessage, NSpace, NCard, NInput, NButton,
   NCode, NTag, NEmpty, NForm, NFormItem,
-  NSelect, NDivider, NTabs, NTabPane,
+  NSelect, NDivider,
   NIcon, NModal, NAvatar
 } from 'naive-ui'
 import {
   ListAltOutlined as ListIcon
 } from '@vicons/material'
 import axios from 'axios'
+import MobileTabs from '../components/MobileTabs.vue'
 
 const message = useMessage()
 const activeTab = ref('search')
+
+const tabs = [
+  { name: 'search', label: '搜索' },
+  { name: 'collection', label: '收藏' },
+]
 
 // 类型选项
 const typeOptions = [

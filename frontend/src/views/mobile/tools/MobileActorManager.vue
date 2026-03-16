@@ -8,8 +8,8 @@
 
     <!-- 搜索区域 -->
     <n-card class="search-card" :bordered="false">
-      <n-tabs v-model:value="activeTab" type="segment">
-        <n-tab-pane name="search" tab="搜索演员">
+      <MobileTabs v-model="activeTab" :tabs="tabs">
+        <template #search>
           <n-space vertical class="search-form">
             <n-radio-group v-model:value="embyMode">
               <n-radio-button value="name">按名称</n-radio-button>
@@ -57,9 +57,9 @@
             </div>
           </div>
           <n-empty v-else-if="!embyLoading && hasSearched" description="未找到结果" />
-        </n-tab-pane>
+        </template>
 
-        <n-tab-pane name="edit" tab="编辑资料" :disabled="!selectedEmby">
+        <template #edit>
           <div v-if="selectedEmby" class="edit-section">
             <div class="selected-actor">
               <n-avatar round size="huge" :src="getEmbyAvatar(selectedEmby)" />
@@ -85,8 +85,8 @@
             </n-alert>
           </div>
           <n-empty v-else description="请先选择一名演员" />
-        </n-tab-pane>
-      </n-tabs>
+        </template>
+      </MobileTabs>
     </n-card>
 
     <!-- JSON 弹窗 -->
@@ -107,16 +107,22 @@
 import { ref, reactive, watch } from 'vue'
 import { 
   useMessage, NSpace, NCard, NInput, NButton, NAvatar, 
-  NTag, NEmpty, NCode, NSelect, NModal, NIcon, NTabs, NTabPane,
+  NTag, NEmpty, NCode, NSelect, NModal, NIcon,
   NRadioGroup, NRadioButton, NDivider, NAlert
 } from 'naive-ui'
 // 导入提取的逻辑
 import { useActorSearch } from '../../toolkit/actor/hooks/useActorSearch'
 import { useActorSync } from '../../toolkit/actor/hooks/useActorSync'
+import MobileTabs from '../components/MobileTabs.vue'
 
 const message = useMessage()
 const activeTab = ref('search')
 const hasSearched = ref(false)
+
+const tabs = [
+  { name: 'search', label: '搜索' },
+  { name: 'edit', label: '编辑资料' },
+]
 
 // 1. 搜索逻辑
 const { 

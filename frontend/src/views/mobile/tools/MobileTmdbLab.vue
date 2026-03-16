@@ -8,8 +8,8 @@
 
     <!-- 输入面板 -->
     <n-card class="input-card" :bordered="false">
-      <n-tabs v-model:value="activeTab" type="segment" animated>
-        <n-tab-pane name="search" tab="关键词搜索">
+      <MobileTabs v-model="activeTab" :tabs="tabs">
+        <template #search>
           <n-form label-placement="top" class="mobile-form">
             <n-form-item :label="formLabel.NAME">
               <n-input 
@@ -54,9 +54,9 @@
               </div>
             </div>
           </div>
-        </n-tab-pane>
+        </template>
 
-        <n-tab-pane name="direct" tab="直接 ID 抓取">
+        <template #direct>
           <n-form label-placement="top" class="mobile-form">
             <n-form-item label="TMDB ID">
               <n-input v-model:value="detailForm.tmdb_id" :placeholder="placeholder.EXAMPLE_TMDB_ID" size="large" />
@@ -82,8 +82,8 @@
               {{ buttonText.EXECUTE_FETCH }}
             </n-button>
           </n-form>
-        </n-tab-pane>
-      </n-tabs>
+        </template>
+      </MobileTabs>
     </n-card>
 
     <!-- 结果展示区 -->
@@ -230,7 +230,7 @@ import { ref } from 'vue'
 import { 
   useMessage, NSpace, NCard, NInput, NButton, 
   NCode, NTag, NEmpty, NForm, NFormItem,
-  NSelect, NDivider, NTabs, NTabPane,
+  NSelect, NDivider,
   NCheckbox, NAlert, NCollapse, NCollapseItem, NIcon, NModal, NProgress
 } from 'naive-ui'
 // 导入提取的逻辑
@@ -238,6 +238,7 @@ import { useTmdbSearch } from '../../toolkit/tmdb/hooks/useTmdbSearch'
 import { useTmdbFetch } from '../../toolkit/tmdb/hooks/useTmdbFetch'
 import { useTmdbJson } from '../../toolkit/tmdb/hooks/useTmdbJson'
 import { copyElementContent } from '@/utils/clipboard'
+import MobileTabs from '../components/MobileTabs.vue'
 import {
   ButtonTypes,
   ButtonText,
@@ -247,6 +248,11 @@ import {
 
 const message = useMessage()
 const activeTab = ref('search')
+
+const tabs = [
+  { name: 'search', label: '搜索' },
+  { name: 'collection', label: '收藏' },
+]
 
 // 使用常量
 const buttonTypes = ButtonTypes

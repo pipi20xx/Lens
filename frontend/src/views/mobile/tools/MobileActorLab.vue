@@ -8,8 +8,8 @@
 
     <!-- 输入面板 -->
     <n-card class="input-card" :bordered="false">
-      <n-tabs v-model:value="activeTab" type="segment" animated>
-        <n-tab-pane name="search" tab="姓名搜索">
+      <MobileTabs v-model="activeTab" :tabs="tabs">
+        <template #search>
           <n-form label-placement="top" class="mobile-form">
             <n-form-item label="演员姓名">
               <n-input
@@ -55,9 +55,9 @@
               </div>
             </div>
           </div>
-        </n-tab-pane>
+        </template>
 
-        <n-tab-pane name="direct" tab="直接 ID 探测">
+        <template #direct>
           <n-form label-placement="top" class="mobile-form">
             <n-form-item label="TMDB Person ID">
               <n-input
@@ -85,8 +85,8 @@
               执行分析
             </n-button>
           </n-form>
-        </n-tab-pane>
-      </n-tabs>
+        </template>
+      </MobileTabs>
     </n-card>
 
     <!-- 结果展示区 -->
@@ -185,10 +185,11 @@
 import {
   NSpace, NCard, NInput, NButton,
   NCode, NTag, NEmpty, NForm, NFormItem,
-  NSelect, NDivider, NIcon, NModal, NAvatar, NTabs, NTabPane
+  NSelect, NDivider, NIcon, NModal, NAvatar
 } from 'naive-ui'
 // 导入提取的逻辑
 import { useActorLab } from '../../toolkit/actorLab/hooks/useActorLab'
+import MobileTabs from '../components/MobileTabs.vue'
 
 const {
   activeTab, searchQuery, searchLoading, searchResults, personId, detailLanguage,

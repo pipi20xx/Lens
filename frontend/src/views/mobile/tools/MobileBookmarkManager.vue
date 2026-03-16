@@ -134,8 +134,8 @@
     </n-modal>
 
     <n-modal v-model:show="showHealthModal" preset="card" :title="modalTitle.HEALTH_CENTER" style="width: 90vw; max-width: 500px">
-      <n-tabs v-model:value="healthActiveTab" type="line" animated>
-        <n-tab-pane name="duplicates" :tab="tabText.DUPLICATE_CHECK">
+      <MobileTabs v-model="healthActiveTab" :tabs="healthTabs">
+        <template #duplicates>
           <n-space vertical>
             <n-button block :type="buttonTypes.PRIMARY" @click="scanDuplicates" :loading="loadingDuplicates">
               {{ buttonText.SCAN_DUPLICATES }}
@@ -163,8 +163,8 @@
               <n-empty :description="emptyText.NO_DUPLICATES" />
             </div>
           </n-space>
-        </n-tab-pane>
-        <n-tab-pane name="health" :tab="tabText.DEAD_LINK_CHECK">
+        </template>
+        <template #health>
           <n-space vertical>
             <n-button block :type="buttonTypes.PRIMARY" @click="scanHealth" :disabled="isScanningHealth">
               {{ buttonText.START_SCAN }}
@@ -193,8 +193,8 @@
               <n-empty :description="emptyText.NO_DEAD_LINKS" />
             </div>
           </n-space>
-        </n-tab-pane>
-      </n-tabs>
+        </template>
+      </MobileTabs>
     </n-modal>
 
     <!-- AI 智能整理弹窗 -->
@@ -227,9 +227,10 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { NCard, NButton, NSpace, NEmpty, NModal, NForm, NFormItem, NInput, NSelect, NTag, NPopconfirm, NIcon, NTabs, NTabPane, NProgress, NAlert, NDivider } from 'naive-ui'
+import { NCard, NButton, NSpace, NEmpty, NModal, NForm, NFormItem, NInput, NSelect, NTag, NPopconfirm, NIcon, NProgress, NAlert, NDivider } from 'naive-ui'
 import { useMessage } from 'naive-ui'
 import { useBookmark } from '../../toolkit/sitenav/useBookmark'
+import MobileTabs from '../components/MobileTabs.vue'
 import {
   ButtonTypes,
   ButtonSizes,
@@ -284,6 +285,11 @@ const loadingDuplicates = ref(false)
 const healthResults = ref<any[]>([])
 const healthProgress = ref(0)
 const isScanningHealth = ref(false)
+
+const healthTabs = [
+  { name: 'duplicates', label: tabText.DUPLICATE_CHECK },
+  { name: 'health', label: tabText.DEAD_LINK_CHECK },
+]
 
 const editingBookmark = ref({
   id: null as string | null,
