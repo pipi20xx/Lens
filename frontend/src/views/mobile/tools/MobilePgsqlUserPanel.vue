@@ -252,9 +252,10 @@ defineExpose({ refresh: fetchUsers })
 
 .user-item {
   padding: 12px;
-  background: rgba(255, 255, 255, 0.02);
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: var(--card-color);
+  border: 1px solid #7c3aed;
+  border-radius: 12px;
+  margin-bottom: 12px;
 }
 
 .user-header {

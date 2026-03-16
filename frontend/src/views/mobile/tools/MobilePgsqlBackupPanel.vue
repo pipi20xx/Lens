@@ -24,11 +24,13 @@
             <div class="backup-filename">{{ backup.filename }}</div>
             <n-space>
               <n-button size="tiny" secondary type="warning" @click="openRestoreModal(backup)">
-                </n-button>
+                还原
+              </n-button>
               <n-popconfirm @positive-click="() => handleDelete(backup.filename)" positive-text="确认" negative-text="取消">
                 <template #trigger>
                   <n-button size="tiny" secondary type="error">
-                    </n-button>
+                    删除
+                  </n-button>
                 </template>
                 确认删除？
               </n-popconfirm>
@@ -243,9 +245,10 @@ defineExpose({ refresh: fetchBackups })
 
 .backup-item {
   padding: 12px;
-  background: rgba(255, 255, 255, 0.02);
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: var(--card-color);
+  border: 1px solid #7c3aed;
+  border-radius: 12px;
+  margin-bottom: 12px;
 }
 
 .backup-header {

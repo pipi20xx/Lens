@@ -16,7 +16,7 @@ const router = useRouter()
 
 // 设置菜单
 const settingMenus = [
-  { name: '页面设置', icon: SettingsIcon, path: '/mobile/settings' },
+  { name: '系统设置', icon: SettingsIcon, path: '/mobile/settings' },
   { name: '通知设置', icon: NotifyIcon, path: '/mobile/tools/notifications' },
   { name: '深色模式', icon: DarkIcon, action: 'toggleDark' },
   { name: '语言', icon: LanguageIcon, action: 'language' },

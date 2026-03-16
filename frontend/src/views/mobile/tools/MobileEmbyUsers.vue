@@ -493,8 +493,10 @@ onMounted(() => {
 
 .user-item {
   padding: 12px;
-  background: var(--app-bg-color);
-  border-radius: 8px;
+  background: var(--card-color);
+  border: 1px solid #7c3aed;
+  border-radius: 12px;
+  margin-bottom: 12px;
 }
 
 .user-info {

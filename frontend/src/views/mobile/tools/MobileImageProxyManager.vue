@@ -25,7 +25,8 @@
               <n-popconfirm @positive-click="() => deleteProxy(proxy.id)" positive-text="确认" negative-text="取消">
                 <template #trigger>
                   <n-button size="tiny" secondary type="error">
-                    </n-button>
+                    删除
+                  </n-button>
                 </template>
                 确认删除？
               </n-popconfirm>
@@ -169,9 +170,11 @@ onMounted(fetchProxies)
 }
 
 .proxy-item {
-  background: var(--app-bg-color);
-  border-radius: 8px;
+  background: var(--card-color);
+  border: 1px solid #7c3aed;
+  border-radius: 12px;
   padding: 12px;
+  margin-bottom: 12px;
 }
 
 .proxy-header {

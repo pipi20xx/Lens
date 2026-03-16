@@ -404,9 +404,11 @@ defineExpose({ refresh: fetchContainers })
 }
 
 .container-item {
-  background: var(--app-bg-color);
-  border-radius: 8px;
+  background: var(--card-color);
+  border: 1px solid #7c3aed;
+  border-radius: 12px;
   padding: 12px;
+  margin-bottom: 12px;
 }
 
 .container-header {

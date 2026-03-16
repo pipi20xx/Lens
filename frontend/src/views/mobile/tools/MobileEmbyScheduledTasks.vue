@@ -280,11 +280,14 @@ onUnmounted(() => {
 }
 
 .task-card {
-  background: var(--app-bg-color);
+  background: var(--card-color);
+  border: 1px solid #7c3aed;
+  border-radius: 12px;
+  margin-bottom: 12px;
 }
 
 .task-card.running {
-  border: 1px solid var(--primary-color);
+  border: 2px solid var(--primary-color);
 }
 
 .task-header {

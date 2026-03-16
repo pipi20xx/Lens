@@ -42,12 +42,14 @@
 
     <n-card class="api-card" :bordered="false" :title="pageTitle.API_SETTINGS">
       <n-space vertical>
-        <n-form-item label="TMDB API Key">
+        <div class="form-item-card">
+          <div class="form-item-label">TMDB API Key</div>
           <n-input v-model:value="settings.tmdb_api_key" type="password" show-password-on="click" placeholder="The Movie Database V3 Key" />
-        </n-form-item>
-        <n-form-item label="Bangumi API Token">
+        </div>
+        <div class="form-item-card">
+          <div class="form-item-label">Bangumi API Token</div>
           <n-input v-model:value="settings.bangumi_token" type="password" show-password-on="click" placeholder="Bangumi API Token" />
-        </n-form-item>
+        </div>
         <n-button block :type="buttonTypes.PRIMARY" @click="saveSettings" :loading="saving">
           {{ buttonText.SAVE }}{{ formLabel.CONFIG }}
         </n-button>
@@ -358,11 +360,13 @@ onMounted(fetchCurrent)
 
 .server-item {
   padding: 12px;
-  background: var(--app-bg-color);
-  border-radius: 8px;
+  background: var(--card-color);
+  border: 1px solid #7c3aed;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-bottom: 12px;
 }
 
 .server-info {
@@ -393,13 +397,35 @@ onMounted(fetchCurrent)
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--border-color);
+  padding: 16px;
+  background: var(--card-color);
+  border: 1px solid #7c3aed;
+  border-radius: 12px;
+  margin-bottom: 12px;
 }
 
 .setting-item:last-child,
 .info-item:last-child {
-  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.form-item-card {
+  padding: 16px;
+  background: var(--card-color);
+  border: 1px solid #7c3aed;
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+
+.form-item-card:last-child {
+  margin-bottom: 0;
+}
+
+.form-item-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-color);
+  margin-bottom: 8px;
 }
 
 .setting-label,
