@@ -33,7 +33,6 @@
               :loading="searchLoading"
               @click="handleSearch"
             >
-              <template #icon><n-icon><SearchIcon /></n-icon></template>
               执行搜索
             </n-button>
           </n-form>
@@ -75,7 +74,6 @@
               :loading="loading"
               @click="handleFetchAll"
             >
-              <template #icon><n-icon><LabIcon /></n-icon></template>
               执行抓取
             </n-button>
           </n-form>
@@ -146,15 +144,12 @@
         <n-card class="tools-card" :bordered="false">
           <div class="tools-list">
             <n-button block secondary type="primary" @click="showJson(subjectResult, '条目')" :disabled="!subjectResult">
-              <template #icon><n-icon><CodeIcon /></n-icon></template>
               条目 JSON
             </n-button>
             <n-button block secondary type="info" @click="showJson(episodesResult, '章节')" :disabled="!episodesResult">
-              <template #icon><n-icon><ListIcon /></n-icon></template>
               章节 JSON
             </n-button>
             <n-button block secondary type="success" @click="showJson(charactersResult, '角色')" :disabled="!charactersResult">
-              <template #icon><n-icon><PeopleIcon /></n-icon></template>
               角色 JSON
             </n-button>
           </div>
@@ -223,11 +218,7 @@ import {
   NIcon, NModal, NAvatar
 } from 'naive-ui'
 import {
-  TerminalOutlined as CodeIcon,
-  SearchOutlined as SearchIcon,
-  ScienceOutlined as LabIcon,
-  ListAltOutlined as ListIcon,
-  PeopleAltOutlined as PeopleIcon
+  ListAltOutlined as ListIcon
 } from '@vicons/material'
 import axios from 'axios'
 

@@ -8,15 +8,14 @@
 
     <!-- 刷新按钮 -->
     <n-card class="action-card" :bordered="false">
-      <n-button block type="primary" secondary :loading="loading" @click="fetchTasks(true)">
-        <template #icon><n-icon><RefreshOutlined /></n-icon></template>
-        刷新任务列表
+      <n-button block :type="buttonTypes.PRIMARY" secondary :loading="loading" @click="fetchTasks(true)">
+        {{ buttonText.REFRESH_TASK_LIST }}
       </n-button>
     </n-card>
 
     <!-- 任务列表 -->
     <div v-if="tasks.length === 0" class="empty-state">
-      <n-empty description="暂无任务" />
+      <n-empty :description="emptyText.NO_TASK" />
     </div>
     <div v-else class="task-groups">
       <div v-for="(group, category) in groupedTasks" :key="category" class="task-group">
@@ -32,30 +31,28 @@
                 v-if="task.State !== 'Running'"
                 quaternary
                 circle
-                size="small"
-                type="primary"
+                :size="buttonSizes.MEDIUM"
+                :type="buttonTypes.PRIMARY"
                 @click="handleRun(task.Id)"
               >
-                <template #icon><n-icon><PlayArrowFilled /></n-icon></template>
-              </n-button>
+                </n-button>
               <n-button
                 v-else
                 quaternary
                 circle
-                size="small"
-                type="error"
+                :size="buttonSizes.MEDIUM"
+                :type="buttonTypes.ERROR"
                 @click="handleStop(task.Id)"
               >
-                <template #icon><n-icon><StopFilled /></n-icon></template>
-              </n-button>
+                </n-button>
             </div>
             <div class="task-desc">{{ task.Description || '暂无任务描述' }}</div>
             <div class="task-status">
               <template v-if="task.State === 'Running'">
                 <n-space vertical :size="4">
                   <n-space justify="space-between">
-                    <n-text type="success" strong style="font-size: 12px">正在运行</n-text>
-                    <n-text type="success" style="font-size: 12px">{{ task.CurrentProgressPercentage?.toFixed(1) }}%</n-text>
+                    <n-text :type="tagTypes.SUCCESS" strong style="font-size: 12px">{{ statusText.RUNNING }}</n-text>
+                    <n-text :type="tagTypes.SUCCESS" style="font-size: 12px">{{ task.CurrentProgressPercentage?.toFixed(1) }}%</n-text>
                   </n-space>
                   <n-progress
                     type="line"
@@ -69,8 +66,8 @@
               </template>
               <template v-else>
                 <n-space justify="space-between">
-                  <n-tag :type="task.State === 'Idle' ? 'success' : 'default'" size="tiny" round>
-                    {{ task.State === 'Idle' ? '空闲' : task.State }}
+                  <n-tag :type="task.State === 'Idle' ? tagTypes.SUCCESS : tagTypes.DEFAULT" size="tiny" round>
+                    {{ task.State === 'Idle' ? statusText.IDLE : task.State }}
                   </n-tag>
                   <n-text depth="3" style="font-size: 11px">{{ formatTaskDate(task.LastExecutionResult?.EndTimeUtc) }}</n-text>
                 </n-space>
@@ -96,8 +93,33 @@ import {
 } from '@vicons/material'
 import { embyTasksApi } from '@/api/embyTasks'
 import { useMessage } from 'naive-ui'
+import {
+  ButtonTypes,
+  ButtonSizes,
+  ButtonText,
+  TagTypes,
+  MessageText,
+} from '../constants'
 
 const message = useMessage()
+
+// 使用常量
+const buttonTypes = ButtonTypes
+const buttonSizes = ButtonSizes
+const buttonText = ButtonText
+const tagTypes = TagTypes
+const messageText = MessageText
+
+// 额外的文本常量
+const emptyText = {
+  NO_TASK: '暂无任务',
+}
+
+const statusText = {
+  RUNNING: '正在运行',
+  IDLE: '空闲',
+}
+
 const tasks = ref<any[]>([])
 const loading = ref(false)
 let timer: any = null
@@ -125,7 +147,7 @@ const fetchTasks = async (showLoading = false) => {
     }
   } catch (err) {
     console.error('Failed to fetch emby tasks:', err)
-    message.error('加载任务列表失败')
+    message.error(messageText.LOAD_TASK_FAILED)
   } finally {
     if (showLoading) loading.value = false
   }
@@ -134,20 +156,20 @@ const fetchTasks = async (showLoading = false) => {
 const handleRun = async (id: string) => {
   try {
     await embyTasksApi.run(id)
-    message.success('任务已启动')
+    message.success(messageText.TASK_START_SUCCESS)
     fetchTasks()
   } catch (err) {
-    message.error('启动失败')
+    message.error(messageText.TASK_START_FAILED)
   }
 }
 
 const handleStop = async (id: string) => {
   try {
     await embyTasksApi.stop(id)
-    message.warning('已发送停止指令')
+    message.warning(messageText.TASK_STOP_WARNING)
     fetchTasks()
   } catch (err) {
-    message.error('停止失败')
+    message.error(messageText.TASK_STOP_FAILED)
   }
 }
 

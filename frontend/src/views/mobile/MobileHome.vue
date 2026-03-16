@@ -11,15 +11,25 @@ import {
   TerminalOutlined as TerminalIcon,
   ViewListOutlined as ListIcon
 } from '@vicons/material'
+import {
+  PageTitle,
+  QuickActions,
+  Colors,
+  StatusText,
+} from './constants'
 
 const router = useRouter()
 
-// 快捷功能
+// 使用常量
+const pageTitle = PageTitle
+const statusText = StatusText
+
+// 快捷功能 - 使用常量并添加图标
 const quickActions = [
-  { name: '站点导航', icon: HomeIcon, color: '#705df2', path: '/mobile/tools/site-nav' },
-  { name: '仪表盘', icon: StorageIcon, color: '#4ade80', path: '/mobile/tools/dashboard' },
-  { name: '终端', icon: TerminalIcon, color: '#f59e0b', path: '/mobile/tools/terminal' },
-  { name: 'Docker', icon: ListIcon, color: '#3b82f6', path: '/mobile/tools/docker' },
+  { name: QuickActions[0].name, icon: HomeIcon, color: Colors.SITE_NAV, path: QuickActions[0].path },
+  { name: QuickActions[1].name, icon: StorageIcon, color: Colors.DASHBOARD, path: QuickActions[1].path },
+  { name: QuickActions[2].name, icon: TerminalIcon, color: Colors.TERMINAL, path: QuickActions[2].path },
+  { name: QuickActions[3].name, icon: ListIcon, color: Colors.DOCKER, path: QuickActions[3].path },
 ]
 
 // 最近使用的工具
@@ -31,8 +41,8 @@ const recentTools = ref([
 
 // 系统状态
 const systemStatus = ref({
-  embyStatus: '运行中',
-  dockerStatus: '正常',
+  embyStatus: statusText.RUNNING,
+  dockerStatus: statusText.NORMAL,
   cpuUsage: 45,
   memoryUsage: 62
 })

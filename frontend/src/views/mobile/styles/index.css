@@ -177,11 +177,27 @@
 }
 
 /* ==================== Switch 开关样式 ==================== */
-/* 手机端 Switch 样式类 - 需要在组件中添加 class="mobile-switch" */
 .mobile-switch {
-  --n-rail-color: var(--border-color) !important;
+  --n-rail-width: 50px !important;
+  --n-rail-height: 28px !important;
+  --n-button-width: 24px !important;
+  --n-button-height: 24px !important;
+  --n-rail-color: #9ca3af !important;
   --n-rail-color-active: var(--primary-color) !important;
   --n-button-color: #ffffff !important;
+}
+
+.mobile-switch .n-switch__rail {
+  background-color: #9ca3af !important;
+}
+
+.mobile-switch.n-switch--active .n-switch__rail {
+  background-color: var(--primary-color) !important;
+}
+
+.mobile-switch .n-switch__button {
+  background-color: #ffffff !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
 }
 
 /* ==================== 工具类 ==================== */

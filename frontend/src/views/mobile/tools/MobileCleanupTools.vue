@@ -43,7 +43,6 @@
             :loading="loading"
             @click="handleAction('people_remover')"
           >
-            <template #icon><n-icon><DeleteIcon /></n-icon></template>
             执行清空演职员
           </n-button>
         </n-card>
@@ -58,7 +57,6 @@
             :loading="loading"
             @click="handleAction('episode_deleter')"
           >
-            <template #icon><n-icon><FixIcon /></n-icon></template>
             执行修复重置
           </n-button>
         </n-card>

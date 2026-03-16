@@ -50,11 +50,9 @@
     <n-card class="quick-actions-card" :bordered="false" title="快捷操作">
       <n-space vertical>
         <n-button block secondary @click="showAddSiteModal = true">
-          <template #icon><n-icon><AddIcon /></n-icon></template>
           添加站点
         </n-button>
         <n-button block secondary @click="showAddCategoryModal = true">
-          <template #icon><n-icon><FolderAddIcon /></n-icon></template>
           添加分类
         </n-button>
       </n-space>
@@ -116,7 +114,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { NCard, NButton, NSpace, NEmpty, NModal, NForm, NFormItem, NInput, NSelect, NIcon } from 'naive-ui'
-import { AddOutlined as AddIcon, CreateNewFolderOutlined as FolderAddIcon, LinkOutlined as LinkIcon, ExpandLessOutlined as ExpandLessIcon, ExpandMoreOutlined as ExpandMoreIcon, EditOutlined as EditIcon, DeleteOutlineOutlined as DeleteIcon } from '@vicons/material'
+import { CreateNew, DeleteOutlineOutlined as DeleteIcon } from '@vicons/material'
 import { useMessage } from 'naive-ui'
 import { useSiteNav } from '../../toolkit/sitenav/useSiteNav'
 

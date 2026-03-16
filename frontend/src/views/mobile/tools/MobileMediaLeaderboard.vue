@@ -70,8 +70,6 @@
 
 <script setup lang="ts">
 import { NIcon, NEmpty, NTabs, NTabPane } from 'naive-ui'
-import { StarOutlined as StarIcon } from '@vicons/material'
-
 const props = defineProps<{
   movies: any[]
   tvShows: any[]

@@ -7,12 +7,11 @@
 
     <n-card class="api-keys-card" :bordered="false" title="API 密钥">
       <n-space vertical>
-        <n-button block type="primary" @click="showAddKeyModal = true">
-          <template #icon><n-icon><AddIcon /></n-icon></template>
-          生成新密钥
+        <n-button block :type="buttonTypes.PRIMARY" @click="showAddKeyModal = true">
+          {{ buttonText.CREATE }}新密钥
         </n-button>
         <div v-if="apiKeys.length === 0" class="empty-state">
-          <n-empty description="暂无 API 密钥" />
+          <n-empty :description="messageText.EMPTY_DATA" />
         </div>
         <div v-else class="key-list">
           <div v-for="key in apiKeys" :key="key.id" class="key-item">
@@ -21,25 +20,25 @@
               <div class="key-preview">{{ maskKey(key.key) }}</div>
               <div class="key-meta">
                 <span>{{ formatDate(key.created_at) }}</span>
-                <n-tag :type="key.is_active ? 'success' : 'default'" size="small">
-                  {{ key.is_active ? '活跃' : '已禁用' }}
+                <n-tag :type="key.is_active ? tagTypes.SUCCESS : tagTypes.DEFAULT" :size="buttonSizes.SMALL">
+                  {{ key.is_active ? statusText.ACTIVE : statusText.DISABLED }}
                 </n-tag>
               </div>
             </div>
             <div class="key-actions">
-              <n-button size="small" secondary type="info" @click="copyKey(key.key)">
-                复制
+              <n-button :size="buttonSizes.MEDIUM" secondary :type="buttonTypes.INFO" @click="copyKey(key.key)">
+                {{ buttonText.COPY }}
               </n-button>
-              <n-button size="small" secondary type="warning" @click="toggleKey(key)">
-                {{ key.is_active ? '禁用' : '启用' }}
+              <n-button :size="buttonSizes.MEDIUM" secondary :type="buttonTypes.WARNING" @click="toggleKey(key)">
+                {{ key.is_active ? buttonText.DISABLE : buttonText.ENABLE }}
               </n-button>
-              <n-popconfirm @positive-click="deleteKey(key.id)" positive-text="确认删除" negative-text="取消">
+              <n-popconfirm @positive-click="deleteKey(key.id)" :positive-text="buttonText.CONFIRM_DELETE" :negative-text="buttonText.CANCEL">
                 <template #trigger>
-                  <n-button size="small" secondary type="error">
-                    删除
+                  <n-button :size="buttonSizes.MEDIUM" secondary :type="buttonTypes.ERROR">
+                    {{ buttonText.DELETE }}
                   </n-button>
                 </template>
-                确定删除此密钥？
+                {{ messageText.DELETE_CONFIRM }}
               </n-popconfirm>
             </div>
           </div>
@@ -77,7 +76,7 @@
 
     <n-card class="logs-card" :bordered="false" title="访问日志">
       <div v-if="accessLogs.length === 0" class="empty-state">
-        <n-empty description="暂无访问日志" />
+        <n-empty :description="messageText.EMPTY_DATA" />
       </div>
       <div v-else class="log-list">
         <div v-for="log in accessLogs" :key="log.id" class="log-item">
@@ -85,7 +84,7 @@
             <div class="log-endpoint">{{ log.endpoint }}</div>
             <div class="log-meta">
               <span>{{ formatDate(log.created_at) }}</span>
-              <n-tag :type="log.status_code === 200 ? 'success' : 'error'" size="small">
+              <n-tag :type="log.status_code === 200 ? tagTypes.SUCCESS : tagTypes.ERROR" :size="buttonSizes.SMALL">
                 {{ log.status_code }}
               </n-tag>
             </div>
@@ -94,22 +93,22 @@
       </div>
     </n-card>
 
-    <n-modal v-model:show="showAddKeyModal" preset="card" title="生成新密钥" style="width: 90vw; max-width: 400px">
-      <n-form label-placement="top" size="small">
-        <n-form-item label="密钥名称">
-          <n-input v-model:value="newKey.name" placeholder="例如：生产环境密钥" />
+    <n-modal v-model:show="showAddKeyModal" preset="card" :title="buttonText.CREATE + '新密钥'" style="width: 90vw; max-width: 400px">
+      <n-form label-placement="top" :size="formSizes.SMALL">
+        <n-form-item :label="formLabel.KEY_NAME">
+          <n-input v-model:value="newKey.name" :placeholder="placeholder.KEY_NAME" />
         </n-form-item>
-        <n-form-item label="权限范围">
+        <n-form-item :label="formLabel.PERMISSIONS">
           <n-select v-model:value="newKey.permissions" multiple :options="permissionOptions" />
         </n-form-item>
-        <n-form-item label="过期时间">
+        <n-form-item :label="formLabel.EXPIRY">
           <n-select v-model:value="newKey.expires_in" :options="expiryOptions" />
         </n-form-item>
       </n-form>
       <template #action>
         <n-space justify="end">
-          <n-button secondary @click="showAddKeyModal = false">取消</n-button>
-          <n-button type="primary" @click="generateKey" :loading="generating">生成</n-button>
+          <n-button secondary @click="showAddKeyModal = false">{{ buttonText.CANCEL }}</n-button>
+          <n-button :type="buttonTypes.PRIMARY" @click="generateKey" :loading="generating">{{ buttonText.CREATE }}</n-button>
         </n-space>
       </template>
     </n-modal>
@@ -118,12 +117,42 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { NCard, NButton, NSpace, NSwitch, NEmpty, NModal, NForm, NFormItem, NInput, NSelect, NTag, NPopconfirm, NIcon, NDataTable } from 'naive-ui'
-import { AddOutlined as AddIcon } from '@vicons/material'
+import { NCard, NButton, NSpace, NSwitch, NEmpty, NModal, NForm, NFormItem, NInput, NSelect, NTag, NPopconfirm, NIcon } from 'naive-ui'
 import { systemApi } from '@/api/system'
 import { useMessage } from 'naive-ui'
+import {
+  ButtonTypes,
+  ButtonSizes,
+  TagTypes,
+  FormSizes,
+  ButtonText,
+  StatusText,
+  MessageText,
+} from '../constants'
 
 const message = useMessage()
+
+// 使用常量
+const buttonTypes = ButtonTypes
+const buttonSizes = ButtonSizes
+const tagTypes = TagTypes
+const formSizes = FormSizes
+const buttonText = ButtonText
+const statusText = StatusText
+const messageText = MessageText
+
+// 表单标签
+const formLabel = {
+  KEY_NAME: '密钥名称',
+  PERMISSIONS: '权限范围',
+  EXPIRY: '过期时间',
+}
+
+// 占位符
+const placeholder = {
+  KEY_NAME: '例如：生产环境密钥',
+}
+
 const apiKeys = ref<any[]>([])
 const accessLogs = ref<any[]>([])
 const showAddKeyModal = ref(false)
@@ -163,7 +192,7 @@ const loadConfig = async () => {
     settings.value.apiToken = data.api_token || ''
     settings.value.auditEnabled = data.audit_enabled !== 'false' && data.audit_enabled !== false
   } catch (err) {
-    message.error('加载配置失败')
+    message.error(messageText.OPERATION_FAILED)
   }
 }
 
@@ -173,7 +202,7 @@ const loadAccessLogs = async () => {
     const data: any = await systemApi.getAuditLogs({ page: 1, page_size: 50 })
     accessLogs.value = data.items || []
   } catch (err) {
-    message.error('加载日志失败')
+    message.error(messageText.OPERATION_FAILED)
   } finally {
     loadingLogs.value = false
   }
@@ -184,9 +213,9 @@ const saveSettings = async () => {
     await systemApi.saveConfig([
       { key: 'audit_enabled', value: String(settings.value.auditEnabled) }
     ])
-    message.success('设置已保存')
+    message.success(messageText.SETTINGS_SAVED)
   } catch (err) {
-    message.error('保存失败')
+    message.error(messageText.SAVE_FAILED)
   }
 }
 
@@ -201,11 +230,11 @@ const generateKey = async () => {
     const newToken = data.token
     await systemApi.saveConfig([{ key: 'api_token', value: newToken }])
     settings.value.apiToken = newToken
-    message.success('新 Token 已生成')
+    message.success(messageText.CREATE_SUCCESS)
     showAddKeyModal.value = false
     newKey.value = { name: '', permissions: [], expires_in: 'never' }
   } catch (err) {
-    message.error('生成失败')
+    message.error(messageText.CREATE_FAILED)
   } finally {
     generating.value = false
   }
@@ -213,19 +242,19 @@ const generateKey = async () => {
 
 const copyKey = (key: string) => {
   navigator.clipboard.writeText(key)
-  message.success('密钥已复制到剪贴板')
+  message.success(messageText.COPY_SUCCESS)
 }
 
 const toggleKey = async (key: any) => {
   // 移动端简化处理，实际应该调用API更新状态
   key.is_active = !key.is_active
-  message.success(key.is_active ? '密钥已启用' : '密钥已禁用')
+  message.success(key.is_active ? buttonText.ENABLE + statusText.SUCCESS : buttonText.DISABLE + statusText.SUCCESS)
 }
 
 const deleteKey = async (id: string) => {
   // 移动端简化处理，实际应该调用API删除
   apiKeys.value = apiKeys.value.filter(k => k.id !== id)
-  message.success('密钥已删除')
+  message.success(messageText.DELETE_SUCCESS)
 }
 
 const loadingLogs = ref(false)

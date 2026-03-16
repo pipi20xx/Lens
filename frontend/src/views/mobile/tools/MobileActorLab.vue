@@ -26,7 +26,6 @@
               :loading="searchLoading"
               @click="handleSearch"
             >
-              <template #icon><n-icon><SearchIcon /></n-icon></template>
               执行搜索
             </n-button>
           </n-form>
@@ -83,7 +82,6 @@
               :loading="analyzeLoading"
               @click="handleAnalyze"
             >
-              <template #icon><n-icon><LabIcon /></n-icon></template>
               执行分析
             </n-button>
           </n-form>
@@ -111,8 +109,7 @@
             </n-space>
           </div>
           <n-button secondary circle type="primary" @click="showJson(result.raw)">
-            <template #icon><n-icon><CodeIcon /></n-icon></template>
-          </n-button>
+            </n-button>
         </div>
 
         <!-- 详细信息 -->
@@ -190,12 +187,6 @@ import {
   NCode, NTag, NEmpty, NForm, NFormItem,
   NSelect, NDivider, NIcon, NModal, NAvatar, NTabs, NTabPane
 } from 'naive-ui'
-import {
-  TerminalOutlined as CodeIcon,
-  SearchOutlined as SearchIcon,
-  ScienceOutlined as LabIcon
-} from '@vicons/material'
-
 // 导入提取的逻辑
 import { useActorLab } from '../../toolkit/actorLab/hooks/useActorLab'
 

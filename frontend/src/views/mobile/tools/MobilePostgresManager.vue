@@ -10,16 +10,14 @@
         <n-select
           v-model:value="selectedHostId"
           :options="hostOptions"
-          placeholder="选择数据库实例"
+          :placeholder="placeholder.SELECT_DB_INSTANCE"
           @update:value="handleHostChange"
         />
-        <n-button block type="primary" secondary @click="showHostModal = true">
-          <template #icon><n-icon><ServerIcon /></n-icon></template>
-          管理主机
+        <n-button block :type="buttonTypes.PRIMARY" secondary @click="showHostModal = true">
+          {{ buttonText.MANAGE_HOST }}
         </n-button>
         <n-button block secondary @click="refreshAll" :disabled="!selectedHost" :loading="refreshing">
-          <template #icon><n-icon><RefreshIcon /></n-icon></template>
-          全部刷新
+          {{ buttonText.REFRESH_ALL }}
         </n-button>
       </n-space>
     </n-card>
@@ -55,8 +53,7 @@
 import { ref, onMounted } from 'vue'
 import { NCard, NButton, NSpace, NIcon, NTabs, NTabPane, NSelect, useMessage } from 'naive-ui'
 import { 
-  DnsOutlined as ServerIcon,
-  RefreshOutlined as RefreshIcon
+  DnsOutlined as ServerIcon
 } from '@vicons/material'
 
 import MobilePgsqlTableBrowser from './MobilePgsqlTableBrowser.vue'
@@ -66,8 +63,22 @@ import MobilePgsqlBackupPanel from './MobilePgsqlBackupPanel.vue'
 import MobilePgsqlHostManagerModal from './MobilePgsqlHostManagerModal.vue'
 
 import { usePgsqlHosts } from '@/views/toolkit/pgsql/hooks/usePgsqlHosts'
+import {
+  ButtonTypes,
+  ButtonText,
+} from '../constants'
 
 const message = useMessage()
+
+// 使用常量
+const buttonTypes = ButtonTypes
+const buttonText = ButtonText
+
+// 占位符
+const placeholder = {
+  SELECT_DB_INSTANCE: '选择数据库实例',
+}
+
 const activeTab = ref('data')
 const refreshing = ref(false)
 

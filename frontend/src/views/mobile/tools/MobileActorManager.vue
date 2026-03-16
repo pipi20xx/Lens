@@ -28,7 +28,6 @@
               :loading="embyLoading"
               @click="handleEmbySearch"
             >
-              <template #icon><n-icon><SearchIcon /></n-icon></template>
               搜索
             </n-button>
           </n-space>
@@ -54,8 +53,7 @@
                 </n-space>
               </div>
               <n-button secondary circle size="small" @click.stop="showJson(person)">
-                <template #icon><n-icon><CodeIcon /></n-icon></template>
-              </n-button>
+                </n-button>
             </div>
           </div>
           <n-empty v-else-if="!embyLoading && hasSearched" description="未找到结果" />
@@ -78,7 +76,6 @@
               :loading="nameLoading"
               @click="handleUpdateName"
             >
-              <template #icon><n-icon><SaveIcon /></n-icon></template>
               执行修改
             </n-button>
 
@@ -99,7 +96,6 @@
       </div>
       <template #footer>
         <n-button block type="primary" secondary @click="copyRawJson">
-          <template #icon><n-icon><CopyIcon /></n-icon></template>
           复制数据
         </n-button>
       </template>
@@ -114,13 +110,6 @@ import {
   NTag, NEmpty, NCode, NSelect, NModal, NIcon, NTabs, NTabPane,
   NRadioGroup, NRadioButton, NDivider, NAlert
 } from 'naive-ui'
-import { 
-  TerminalOutlined as CodeIcon,
-  SearchOutlined as SearchIcon,
-  SaveOutlined as SaveIcon,
-  ContentCopyOutlined as CopyIcon
-} from '@vicons/material'
-
 // 导入提取的逻辑
 import { useActorSearch } from '../../toolkit/actor/hooks/useActorSearch'
 import { useActorSync } from '../../toolkit/actor/hooks/useActorSync'

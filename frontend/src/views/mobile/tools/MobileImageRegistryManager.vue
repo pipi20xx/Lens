@@ -4,7 +4,6 @@
       <n-tab-pane name="registries" tab="仓库配置">
         <n-space vertical>
           <n-button type="primary" size="small" @click="openRegistryModal">
-            <template #icon><n-icon><AddIcon /></n-icon></template>
             添加仓库
           </n-button>
 
@@ -18,18 +17,15 @@
                 <div class="registry-name">{{ registry.name }}</div>
                 <n-space>
                   <n-button size="tiny" secondary type="info" @click="testRegistry(registry)" :loading="testingId === registry.id">
-                    <template #icon><n-icon><TestIcon /></n-icon></template>
                     测试
                   </n-button>
                   <n-button size="tiny" secondary @click="openRegistryModal(registry)">
-                    <template #icon><n-icon><EditIcon /></n-icon></template>
                     编辑
                   </n-button>
                   <n-popconfirm @positive-click="() => deleteRegistry(registry.id)" positive-text="确认" negative-text="取消">
                     <template #trigger>
                       <n-button size="tiny" secondary type="error">
-                        <template #icon><n-icon><DeleteIcon /></n-icon></template>
-                      </n-button>
+                        </n-button>
                     </template>
                     确认删除？
                   </n-popconfirm>
@@ -54,7 +50,6 @@
       <n-tab-pane name="credentials" tab="凭据管理">
         <n-space vertical>
           <n-button type="primary" size="small" @click="openCredModal">
-            <template #icon><n-icon><AddIcon /></n-icon></template>
             添加凭据
           </n-button>
 
@@ -68,14 +63,12 @@
                 <div class="credential-name">{{ cred.name }}</div>
                 <n-space>
                   <n-button size="tiny" secondary @click="openCredModal(cred)">
-                    <template #icon><n-icon><EditIcon /></n-icon></template>
                     编辑
                   </n-button>
                   <n-popconfirm @positive-click="() => deleteCredential(cred.id)" positive-text="确认" negative-text="取消">
                     <template #trigger>
                       <n-button size="tiny" secondary type="error">
-                        <template #icon><n-icon><DeleteIcon /></n-icon></template>
-                      </n-button>
+                        </n-button>
                     </template>
                     确认删除？
                   </n-popconfirm>
@@ -146,13 +139,8 @@ import {
   NInput, NSelect, NSwitch, NIcon, NEmpty, NPopconfirm, useMessage, useDialog 
 } from 'naive-ui'
 import {
-  AddOutlined as AddIcon,
-  EditOutlined as EditIcon,
-  DeleteOutlined as DeleteIcon,
   SensorsOutlined as TestIcon,
-  LinkOutlined as UrlIcon,
-  VpnKeyOutlined as CredIcon,
-  PersonOutlined as UserIcon
+  Vpn
 } from '@vicons/material'
 import axios from 'axios'
 

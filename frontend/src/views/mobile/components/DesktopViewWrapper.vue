@@ -2,7 +2,6 @@
 import { useRouter } from 'vue-router'
 import { NIcon } from 'naive-ui'
 import { ArrowBackOutlined as BackIcon } from '@vicons/material'
-import '../styles/index.css'
 
 const router = useRouter()
 
@@ -113,5 +112,16 @@ const goBack = () => {
 /* 修复 aria-hidden 警告 */
 .desktop-content :deep([aria-hidden="true"]) {
   display: none !important;
+}
+</style>
+
+<style>
+/* 全局 Switch 样式 - 非 scoped 确保覆盖 naive-ui */
+.mobile-switch .n-switch__rail {
+  background-color: #9ca3af !important;
+}
+
+.mobile-switch.n-switch--active .n-switch__rail {
+  background-color: var(--primary-color) !important;
 }
 </style>

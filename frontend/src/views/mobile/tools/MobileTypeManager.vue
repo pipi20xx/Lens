@@ -43,7 +43,6 @@
             @click="runMapper"
             style="margin-top: 12px"
           >
-            <template #icon><n-icon><MapIcon /></n-icon></template>
             执行映射
           </n-button>
         </n-card>
@@ -60,7 +59,6 @@
             @click="runRemover"
             style="margin-top: 12px"
           >
-            <template #icon><n-icon><DeleteIcon /></n-icon></template>
             执行移除
           </n-button>
         </n-card>
@@ -80,7 +78,6 @@
             @click="runAdder"
             style="margin-top: 12px"
           >
-            <template #icon><n-icon><AddIcon /></n-icon></template>
             执行新增
           </n-button>
         </n-card>
@@ -97,7 +94,6 @@ import {
 } from 'naive-ui'
 import {
   SyncAltOutlined as MapIcon,
-  DeleteSweepOutlined as DeleteIcon,
   AddCircleOutlineOutlined as AddIcon
 } from '@vicons/material'
 import axios from 'axios'

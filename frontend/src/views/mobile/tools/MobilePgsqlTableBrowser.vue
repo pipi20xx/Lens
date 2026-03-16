@@ -9,7 +9,6 @@
           @update:value="handleDbChange"
         />
         <n-button block size="small" secondary style="margin-top: 8px" @click="fetchTables">
-          <template #icon><n-icon><RefreshIcon /></n-icon></template>
           刷新表列表
         </n-button>
       </n-card>
@@ -37,7 +36,6 @@
               <n-text strong style="font-size: 15px">{{ selectedTable }}</n-text>
             </n-space>
             <n-button size="small" secondary @click="fetchTableData" :loading="loading">
-              <template #icon><n-icon><RefreshIcon /></n-icon></template>
               刷新
             </n-button>
           </n-space>
@@ -85,10 +83,6 @@
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from 'vue'
 import { NCard, NSpace, NSelect, NButton, NIcon, NText, NEmpty, NPagination, useMessage } from 'naive-ui'
-import { 
-  TableChartOutlined as TableIcon, 
-  RefreshOutlined as RefreshIcon
-} from '@vicons/material'
 import axios from 'axios'
 
 const props = defineProps<{ host: any }>()

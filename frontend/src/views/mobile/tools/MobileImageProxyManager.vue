@@ -3,7 +3,6 @@
     <n-space vertical>
       <n-space justify="space-between" align="center">
         <n-button type="primary" size="small" @click="openModal">
-          <template #icon><n-icon><AddIcon /></n-icon></template>
           添加代理
         </n-button>
         <n-text depth="3" style="font-size: 12px">
@@ -21,14 +20,12 @@
             <div class="proxy-name">{{ proxy.name }}</div>
             <n-space>
               <n-button size="tiny" secondary @click="openModal(proxy)">
-                <template #icon><n-icon><EditIcon /></n-icon></template>
                 编辑
               </n-button>
               <n-popconfirm @positive-click="() => deleteProxy(proxy.id)" positive-text="确认" negative-text="取消">
                 <template #trigger>
                   <n-button size="tiny" secondary type="error">
-                    <template #icon><n-icon><DeleteIcon /></n-icon></template>
-                  </n-button>
+                    </n-button>
                 </template>
                 确认删除？
               </n-popconfirm>
@@ -80,13 +77,6 @@ import {
   NSpace, NButton, NModal, NForm, NFormItem, 
   NInput, NIcon, NEmpty, NText, NPopconfirm, useMessage, useDialog 
 } from 'naive-ui'
-import {
-  AddOutlined as AddIcon,
-  EditOutlined as EditIcon,
-  DeleteOutlined as DeleteIcon,
-  LinkOutlined as UrlIcon,
-  PersonOutlined as UserIcon
-} from '@vicons/material'
 import axios from 'axios'
 
 const message = useMessage()

@@ -1,49 +1,46 @@
 <template>
   <div class="mobile-backup-manager">
     <n-button 
-      size="small" 
+      :size="buttonSizes.MEDIUM" 
       strong
       secondary 
-      type="info"
+      :type="buttonTypes.INFO"
       block
       @click="showModal = true"
     >
-      <template #icon><n-icon><HistoryIcon /></n-icon></template>
-      配置备份管理
+      {{ buttonText.CONFIG_BACKUP_MANAGE }}
     </n-button>
 
-    <n-modal v-model:show="showModal" preset="card" title="配置备份历史" style="width: 95vw; max-width: 500px" :bordered="false">
+    <n-modal v-model:show="showModal" preset="card" :title="modalTitle.CONFIG_BACKUP_HISTORY" style="width: 95vw; max-width: 500px" :bordered="false">
       <template #header-extra>
         <n-space vertical :size="8">
-          <n-popconfirm @positive-click="handleRestoreAll" positive-text="确定还原" negative-text="取消">
+          <n-popconfirm @positive-click="handleRestoreAll" :positive-text="confirmText.CONFIRM_RESTORE" :negative-text="confirmText.CANCEL">
             <template #trigger>
               <n-button 
-                size="tiny" 
-                type="warning" 
+                :size="buttonSizes.MEDIUM" 
+                :type="buttonTypes.WARNING" 
                 strong
                 secondary 
                 :disabled="backups.length === 0" 
                 :loading="restoringAll"
                 block
               >
-                <template #icon><n-icon><RestoreIcon /></n-icon></template>
-                一键还原最新备份
+                {{ buttonText.RESTORE_LATEST_BACKUP }}
               </n-button>
             </template>
             确定要将所有配置还原吗？
           </n-popconfirm>
-          <n-popconfirm @positive-click="handleClearAll" positive-text="确定清空" negative-text="取消">
+          <n-popconfirm @positive-click="handleClearAll" :positive-text="confirmText.CONFIRM_CLEAR" :negative-text="confirmText.CANCEL">
             <template #trigger>
               <n-button 
-                size="tiny" 
-                type="error" 
+                :size="buttonSizes.MEDIUM" 
+                :type="buttonTypes.ERROR" 
                 strong
                 secondary
                 :disabled="backups.length === 0"
                 block
               >
-                <template #icon><n-icon><ClearIcon /></n-icon></template>
-                清空所有备份
+                {{ buttonText.CLEAR_ALL_BACKUP }}
               </n-button>
             </template>
             确定要删除所有备份文件吗？
@@ -52,12 +49,12 @@
       </template>
       
       <n-space vertical size="large">
-        <n-alert type="info" size="small">
+        <n-alert :type="tagTypes.INFO" size="small">
           备份将保存当前选定对象的完整原始 JSON 配置。还原操作将直接覆盖服务器上的现有设置，请谨慎操作。
         </n-alert>
         
         <div v-if="backups.length === 0" class="empty-state">
-          <n-empty description="暂无备份" />
+          <n-empty :description="emptyText.NO_BACKUP" />
         </div>
         <div v-else class="backup-list">
           <div v-for="backup in backups" :key="backup.filename" class="backup-item">
@@ -66,20 +63,18 @@
               <div class="backup-time">{{ new Date(backup.mtime * 1000).toLocaleString() }}</div>
             </div>
             <div class="backup-actions">
-              <n-popconfirm @positive-click="handleRestore(backup.filename)" positive-text="确认还原" negative-text="取消">
+              <n-popconfirm @positive-click="handleRestore(backup.filename)" :positive-text="confirmText.CONFIRM_RESTORE" :negative-text="confirmText.CANCEL">
                 <template #trigger>
-                  <n-button size="small" secondary type="warning">
-                    <template #icon><n-icon><RestoreIcon /></n-icon></template>
-                    还原
+                  <n-button :size="buttonSizes.MEDIUM" secondary :type="buttonTypes.WARNING">
+                    {{ buttonText.RESTORE }}
                   </n-button>
                 </template>
                 确定要将此配置还原到服务器吗？
               </n-popconfirm>
-              <n-popconfirm @positive-click="handleDelete(backup.filename)" positive-text="删除" negative-text="取消">
+              <n-popconfirm @positive-click="handleDelete(backup.filename)" :positive-text="confirmText.DELETE" :negative-text="confirmText.CANCEL">
                 <template #trigger>
-                  <n-button size="small" secondary type="error">
-                    <template #icon><n-icon><DeleteIcon /></n-icon></template>
-                    删除
+                  <n-button :size="buttonSizes.MEDIUM" secondary :type="buttonTypes.ERROR">
+                    {{ buttonText.DELETE }}
                   </n-button>
                 </template>
                 确定删除此备份文件吗？
@@ -96,12 +91,16 @@
 import { ref, watch } from 'vue'
 import { NButton, NSpace, NPopconfirm, useMessage, NIcon, NModal, NAlert, NEmpty } from 'naive-ui'
 import { listEmbyBackups, restoreEmbyBackup, deleteEmbyBackup, clearEmbyBackups, restoreAllEmbyBackups } from '@/api/embyBackup'
-import { 
-  RestoreOutlined as RestoreIcon,
-  DeleteOutlined as DeleteIcon,
-  CleaningServicesOutlined as ClearIcon,
-  HistoryOutlined as HistoryIcon 
+import {
+  CleaningServicesOutlined as ClearIcon 
 } from '@vicons/material'
+import {
+  ButtonTypes,
+  ButtonSizes,
+  ButtonText,
+  TagTypes,
+  MessageText,
+} from '../constants'
 
 const props = defineProps<{
   category: 'users' | 'libraries'
@@ -110,6 +109,30 @@ const props = defineProps<{
 
 const emit = defineEmits(['restored'])
 const message = useMessage()
+
+// 使用常量
+const buttonTypes = ButtonTypes
+const buttonSizes = ButtonSizes
+const buttonText = ButtonText
+const tagTypes = TagTypes
+const messageText = MessageText
+
+// 额外的文本常量
+const modalTitle = {
+  CONFIG_BACKUP_HISTORY: '配置备份历史',
+}
+
+const emptyText = {
+  NO_BACKUP: '暂无备份',
+}
+
+const confirmText = {
+  CONFIRM_RESTORE: '确定还原',
+  CONFIRM_CLEAR: '确定清空',
+  DELETE: '删除',
+  CANCEL: '取消',
+}
+
 const showModal = ref(false)
 const restoringAll = ref(false)
 const backups = ref<any[]>([])
@@ -126,7 +149,7 @@ const loadBackups = async () => {
 const handleRestore = async (filename: string) => {
   try {
     await restoreEmbyBackup(props.category, filename, props.serverId)
-    message.success('配置还原成功')
+    message.success(messageText.RESTORE_SUCCESS)
     emit('restored')
     showModal.value = false
   } catch (e) {
@@ -137,7 +160,7 @@ const handleRestore = async (filename: string) => {
 const handleDelete = async (filename: string) => {
   try {
     await deleteEmbyBackup(props.category, filename)
-    message.success('备份已删除')
+    message.success(messageText.DELETE_SUCCESS)
     loadBackups()
   } catch (e) {
     console.error(e)
@@ -147,7 +170,7 @@ const handleDelete = async (filename: string) => {
 const handleClearAll = async () => {
   try {
     await clearEmbyBackups(props.category)
-    message.success('所有备份已清空')
+    message.success(messageText.CLEAR_ALL_SUCCESS)
     loadBackups()
   } catch (e) {
     console.error(e)
@@ -196,23 +219,5 @@ watch(showModal, (val) => {
 
 .backup-info {
   margin-bottom: 8px;
-}
-
-.backup-name {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-color);
-  margin-bottom: 4px;
-}
-
-.backup-time {
-  font-size: 12px;
-  color: var(--text-color);
-  opacity: 0.6;
-}
-
-.backup-actions {
-  display: flex;
-  gap: 8px;
 }
 </style>

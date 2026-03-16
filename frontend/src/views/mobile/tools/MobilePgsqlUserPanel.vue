@@ -3,11 +3,9 @@
     <n-space vertical>
       <n-space justify="space-between" align="center">
         <n-button type="primary" size="small" @click="showCreateModal = true">
-          <template #icon><n-icon><AddIcon /></n-icon></template>
           创建用户
         </n-button>
         <n-button size="small" secondary @click="fetchUsers" :loading="loading">
-          <template #icon><n-icon><RefreshIcon /></n-icon></template>
           刷新
         </n-button>
       </n-space>
@@ -22,13 +20,11 @@
             <div class="user-name">{{ user.username }}</div>
             <n-space>
               <n-button size="tiny" secondary type="info" @click="openEditModal(user)">
-                <template #icon><n-icon><EditIcon /></n-icon></template>
-              </n-button>
+                </n-button>
               <n-popconfirm @positive-click="() => handleDrop(user.username)" positive-text="确认" negative-text="取消">
                 <template #trigger>
                   <n-button size="tiny" secondary type="error">
-                    <template #icon><n-icon><DeleteIcon /></n-icon></template>
-                  </n-button>
+                    </n-button>
                 </template>
                 确认删除？
               </n-popconfirm>
@@ -118,15 +114,6 @@
 <script setup lang="ts">
 import { ref, watch, reactive } from 'vue'
 import { NSpace, NButton, NModal, NForm, NFormItem, NInput, NCheckbox, NIcon, NDatePicker, NInputNumber, NDivider, NEmpty, NPopconfirm, useMessage, useDialog } from 'naive-ui'
-import {
-  AddOutlined as AddIcon,
-  RefreshOutlined as RefreshIcon,
-  EditOutlined as EditIcon,
-  DeleteOutlined as DeleteIcon,
-  CheckCircleOutlined as LoginIcon,
-  StarOutlined as SuperIcon,
-  StorageOutlined as DbIcon
-} from '@vicons/material'
 import axios from 'axios'
 
 const props = defineProps<{ host: any }>()

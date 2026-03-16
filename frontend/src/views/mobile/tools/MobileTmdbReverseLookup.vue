@@ -20,7 +20,6 @@
           :loading="loading"
           @click="handleLookup"
         >
-          <template #icon><n-icon><SearchIcon /></n-icon></template>
           执行反查
         </n-button>
       </n-space>
@@ -52,7 +51,6 @@
       </div>
 
       <n-button block secondary @click="copyTmdb">
-        <template #icon><n-icon><CopyIcon /></n-icon></template>
         复制 TMDB ID
       </n-button>
     </n-card>
@@ -79,10 +77,6 @@ import {
   useMessage, NCard, NInput, NButton, NTag, 
   NEmpty, NAlert, NIcon, NSpace
 } from 'naive-ui'
-import { 
-  SearchOutlined as SearchIcon,
-  ContentCopyOutlined as CopyIcon
-} from '@vicons/material'
 import axios from 'axios'
 
 const message = useMessage()

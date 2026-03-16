@@ -17,7 +17,6 @@
           </template>
         </n-input>
         <n-button type="primary" block @click="loadItems" :loading="loading">
-          <template #icon><n-icon><SearchIcon /></n-icon></template>
           执行搜索
         </n-button>
         <n-checkbox v-model:checked="showOnlyDuplicates" @update:checked="toggleDuplicateMode">
@@ -29,15 +28,12 @@
     <n-card class="action-card" :bordered="false">
       <n-space vertical>
         <n-button type="warning" block secondary @click="handleAutoSelect" :loading="loading">
-          <template #icon><n-icon><AutoIcon /></n-icon></template>
           执行分析
         </n-button>
         <n-button type="primary" block secondary @click="showConfig = true">
-          <template #icon><n-icon><SettingsIcon /></n-icon></template>
           规则设置
         </n-button>
         <n-button type="primary" block secondary :loading="syncing" @click="syncMedia">
-          <template #icon><n-icon><SyncIcon /></n-icon></template>
           执行同步
         </n-button>
         <n-button 
@@ -47,7 +43,6 @@
           secondary 
           @click="showConfirm = true"
         >
-          <template #icon><n-icon><DeleteIcon /></n-icon></template>
           执行删除 ({{ selectedIds.length }})
         </n-button>
       </n-space>
@@ -114,11 +109,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { NCard, NButton, NIcon, NInput, NCheckbox, NSpace, NSpin, useMessage } from 'naive-ui'
 import { 
-  SearchOutlined as SearchIcon, 
-  SettingsOutlined as SettingsIcon, 
   AutoFixHighOutlined as AutoIcon,
-  SyncOutlined as SyncIcon,
-  DeleteOutlined as DeleteIcon,
   ChevronRightOutlined as ChevronRightIcon
 } from '@vicons/material'
 

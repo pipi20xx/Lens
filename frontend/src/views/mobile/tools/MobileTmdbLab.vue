@@ -11,29 +11,28 @@
       <n-tabs v-model:value="activeTab" type="segment" animated>
         <n-tab-pane name="search" tab="关键词搜索">
           <n-form label-placement="top" class="mobile-form">
-            <n-form-item label="名称">
+            <n-form-item :label="formLabel.NAME">
               <n-input 
                 v-model:value="searchForm.query" 
-                placeholder="电影或剧集名称..." 
+                :placeholder="placeholder.MOVIE_OR_SERIES_NAME" 
                 @keyup.enter="handleSearch"
                 size="large"
               />
             </n-form-item>
-            <n-form-item label="类型">
+            <n-form-item :label="formLabel.TYPE">
               <n-select v-model:value="searchForm.media_type" :options="mediaTypeOptions" size="large" />
             </n-form-item>
-            <n-form-item label="语言">
+            <n-form-item :label="formLabel.LANGUAGE">
               <n-select v-model:value="searchForm.language" :options="languageOptions" filterable tag size="large" />
             </n-form-item>
             <n-button 
               block 
-              type="primary" 
+              :type="buttonTypes.PRIMARY" 
               size="large"
               :loading="searchLoading" 
               @click="handleSearch"
             >
-              <template #icon><n-icon><SearchIcon /></n-icon></template>
-              执行搜索
+              {{ buttonText.EXECUTE_SEARCH }}
             </n-button>
           </n-form>
 
@@ -49,8 +48,8 @@
               >
                 <div class="result-title">{{ item.title || item.name }}</div>
                 <div class="result-meta">
-                  <n-tag size="tiny" type="info">ID: {{ item.id }}</n-tag>
-                  <n-tag size="tiny" type="success">{{ item.release_date || item.first_air_date || '未知日期' }}</n-tag>
+                  <n-tag size="tiny" :type="tagTypes.INFO">ID: {{ item.id }}</n-tag>
+                  <n-tag size="tiny" :type="tagTypes.SUCCESS">{{ item.release_date || item.first_air_date || '未知日期' }}</n-tag>
                 </div>
               </div>
             </div>
@@ -60,12 +59,12 @@
         <n-tab-pane name="direct" tab="直接 ID 抓取">
           <n-form label-placement="top" class="mobile-form">
             <n-form-item label="TMDB ID">
-              <n-input v-model:value="detailForm.tmdb_id" placeholder="例如: 550" size="large" />
+              <n-input v-model:value="detailForm.tmdb_id" :placeholder="placeholder.EXAMPLE_TMDB_ID" size="large" />
             </n-form-item>
-            <n-form-item label="类型">
+            <n-form-item :label="formLabel.TYPE">
               <n-select v-model:value="detailForm.media_type" :options="mediaTypeOptions" size="large" />
             </n-form-item>
-            <n-form-item label="语言">
+            <n-form-item :label="formLabel.LANGUAGE">
               <n-select v-model:value="detailForm.language" :options="languageOptions" filterable tag size="large" />
             </n-form-item>
             <n-form-item v-if="detailForm.media_type === 'tv'" label=" ">
@@ -75,13 +74,12 @@
             </n-form-item>
             <n-button 
               block 
-              type="primary" 
+              :type="buttonTypes.PRIMARY" 
               size="large"
               :loading="detailLoading" 
               @click="handleFetchDetail"
             >
-              <template #icon><n-icon><LabIcon /></n-icon></template>
-              执行抓取
+              {{ buttonText.EXECUTE_FETCH }}
             </n-button>
           </n-form>
         </n-tab-pane>
@@ -95,8 +93,8 @@
           <div class="result-header">
             <h3 class="result-name">{{ detailResult.title || detailResult.name }}</h3>
             <n-space size="small">
-              <n-tag size="small" type="primary">{{ detailResult.media_type === 'movie' ? '电影' : '剧集' }}</n-tag>
-              <n-tag size="small" type="info">ID: {{ detailResult.id }}</n-tag>
+              <n-tag size="small" :type="tagTypes.PRIMARY">{{ detailResult.media_type === 'movie' ? '电影' : '剧集' }}</n-tag>
+              <n-tag size="small" :type="tagTypes.INFO">ID: {{ detailResult.id }}</n-tag>
             </n-space>
           </div>
         </template>
@@ -151,9 +149,8 @@
 
         <!-- 操作按钮 -->
         <div class="action-section">
-          <n-button block secondary type="primary" @click="showJson(detailResult, 'main')">
-            <template #icon><n-icon><CodeIcon /></n-icon></template>
-            查看完整 JSON
+          <n-button block secondary :type="buttonTypes.PRIMARY" @click="showJson(detailResult, 'main')">
+            {{ buttonText.VIEW_FULL_JSON }}
           </n-button>
         </div>
 
@@ -170,11 +167,9 @@
                   <span class="season-title">{{ season.name }} ({{ season.episodes?.length || 0 }} 集)</span>
                   <n-space size="small">
                     <n-button secondary circle size="tiny" @click.stop="showJson(season, 'season', false)">
-                      <template #icon><n-icon><CodeIcon /></n-icon></template>
-                    </n-button>
-                    <n-button secondary circle size="tiny" type="info" @click.stop="showJson(season, 'season', true)">
-                      <template #icon><n-icon><LabIcon /></n-icon></template>
-                    </n-button>
+                      </n-button>
+                    <n-button secondary circle size="tiny" :type="buttonTypes.INFO" @click.stop="showJson(season, 'season', true)">
+                      </n-button>
                   </n-space>
                 </div>
               </template>
@@ -184,16 +179,14 @@
                     <div class="episode-title">EP {{ ep.episode_number }} - {{ ep.name }}</div>
                     <n-space size="small">
                       <n-button secondary circle size="tiny" @click.stop="showJson(ep, 'episode', false)">
-                        <template #icon><n-icon><CodeIcon /></n-icon></template>
-                      </n-button>
-                      <n-button secondary circle size="tiny" type="primary" @click.stop="showJson(ep, 'episode', true)">
-                        <template #icon><n-icon><LabIcon /></n-icon></template>
-                      </n-button>
+                        </n-button>
+                      <n-button secondary circle size="tiny" :type="buttonTypes.PRIMARY" @click.stop="showJson(ep, 'episode', true)">
+                        </n-button>
                     </n-space>
                   </div>
                   <div class="episode-meta">
-                    <n-tag v-if="ep.air_date" size="tiny" type="info">{{ ep.air_date }}</n-tag>
-                    <n-tag v-if="ep.vote_average" size="tiny" type="warning">⭐ {{ ep.vote_average }}</n-tag>
+                    <n-tag v-if="ep.air_date" size="tiny" :type="tagTypes.INFO">{{ ep.air_date }}</n-tag>
+                    <n-tag v-if="ep.vote_average" size="tiny" :type="tagTypes.WARNING">⭐ {{ ep.vote_average }}</n-tag>
                     <n-tag v-if="ep.runtime" size="tiny">{{ ep.runtime }} min</n-tag>
                   </div>
                   <p v-if="ep.overview" class="episode-overview">{{ ep.overview }}</p>
@@ -203,14 +196,14 @@
           </n-collapse>
         </div>
         <div v-else-if="detailForm.media_type === 'tv' && !detailForm.recursive" class="hint-section">
-          <n-alert type="info" size="small">仅获取了剧集概况，如需查看季、集详情，请开启"递归抓取所有季与集"后重新执行。</n-alert>
+          <n-alert :type="tagTypes.INFO" size="small">仅获取了剧集概况，如需查看季、集详情，请开启"递归抓取所有季与集"后重新执行。</n-alert>
         </div>
       </n-card>
     </div>
 
     <!-- 空状态 -->
     <div v-else-if="!detailLoading" class="empty-state">
-      <n-empty description="等待抓取指令..." />
+      <n-empty :description="emptyText.WAITING_FETCH_COMMAND" />
     </div>
 
     <!-- JSON 弹窗 -->
@@ -224,9 +217,8 @@
         <n-code :code="JSON.stringify(jsonModal.data, null, 2)" language="json" word-wrap />
       </div>
       <template #footer>
-        <n-button block type="primary" secondary @click="copyRawJson">
-          <template #icon><n-icon><CopyIcon /></n-icon></template>
-          复制 JSON 数据
+        <n-button block :type="buttonTypes.PRIMARY" secondary @click="copyRawJson">
+          {{ buttonText.COPY_JSON_DATA }}
         </n-button>
       </template>
     </n-modal>
@@ -241,21 +233,42 @@ import {
   NSelect, NDivider, NTabs, NTabPane,
   NCheckbox, NAlert, NCollapse, NCollapseItem, NIcon, NModal, NProgress
 } from 'naive-ui'
-import { 
-  TerminalOutlined as CodeIcon,
-  SearchOutlined as SearchIcon,
-  ScienceOutlined as LabIcon,
-  ContentCopyOutlined as CopyIcon
-} from '@vicons/material'
-
 // 导入提取的逻辑
 import { useTmdbSearch } from '../../toolkit/tmdb/hooks/useTmdbSearch'
 import { useTmdbFetch } from '../../toolkit/tmdb/hooks/useTmdbFetch'
 import { useTmdbJson } from '../../toolkit/tmdb/hooks/useTmdbJson'
 import { copyElementContent } from '@/utils/clipboard'
+import {
+  ButtonTypes,
+  ButtonText,
+  TagTypes,
+  MessageText,
+} from '../constants'
 
 const message = useMessage()
 const activeTab = ref('search')
+
+// 使用常量
+const buttonTypes = ButtonTypes
+const buttonText = ButtonText
+const tagTypes = TagTypes
+const messageText = MessageText
+
+// 额外的文本常量
+const formLabel = {
+  NAME: '名称',
+  TYPE: '类型',
+  LANGUAGE: '语言',
+}
+
+const placeholder = {
+  MOVIE_OR_SERIES_NAME: '电影或剧集名称...',
+  EXAMPLE_TMDB_ID: '例如: 550',
+}
+
+const emptyText = {
+  WAITING_FETCH_COMMAND: '等待抓取指令...',
+}
 
 // 选项配置
 const mediaTypeOptions = [
@@ -289,15 +302,15 @@ const fillDetail = (item: any) => {
   detailForm.language = searchForm.language
   detailForm.recursive = (searchForm.media_type === 'tv')
   activeTab.value = 'direct'
-  message.info('已填入 ID，请确认配置后启动抓取')
+  message.info(messageText.ID_FILLED_CHECK_CONFIG)
 }
 
 const copyRawJson = () => {
   const selector = '.json-wrapper pre'
   if (copyElementContent(selector)) {
-    message.success('已复制到剪贴板')
+    message.success(messageText.COPY_SUCCESS)
   } else {
-    message.error('复制失败')
+    message.error(messageText.COPY_FAILED)
   }
 }
 </script>

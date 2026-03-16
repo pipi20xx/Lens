@@ -6,7 +6,7 @@
     </div>
 
     <n-card class="search-card" :bordered="false">
-      <n-input v-model:value="searchQuery" placeholder="搜索书签..." clearable>
+      <n-input v-model:value="searchQuery" :placeholder="placeholder.SEARCH_BOOKMARK" clearable>
         <template #prefix>
           <n-icon><SearchIcon /></n-icon>
         </template>
@@ -16,21 +16,17 @@
     <n-card class="bookmarks-card" :bordered="false" title="书签列表">
       <n-space vertical>
         <n-space vertical>
-          <n-button block type="primary" @click="showAddBookmarkModal = true">
-            <template #icon><n-icon><AddIcon /></n-icon></template>
-            添加书签
+          <n-button block :type="buttonTypes.PRIMARY" @click="showAddBookmarkModal = true">
+            {{ buttonText.ADD_BOOKMARK }}
           </n-button>
-          <n-button block secondary type="primary" @click="handleAIAnalyze">
-            <template #icon><n-icon><LabIcon /></n-icon></template>
-            AI 智能整理
+          <n-button block secondary :type="buttonTypes.PRIMARY" @click="handleAIAnalyze">
+            {{ buttonText.AI_ANALYZE }}
           </n-button>
           <n-button block secondary @click="showHealthModal = true">
-            <template #icon><n-icon><HealthIcon /></n-icon></template>
-            体检中心
+            {{ buttonText.HEALTH_CENTER }}
           </n-button>
           <n-button block secondary @click="triggerFileInput">
-            <template #icon><n-icon><ImportIcon /></n-icon></template>
-            导入书签
+            {{ buttonText.IMPORT_BOOKMARKS }}
             <input 
               type="file" 
               ref="fileInputRef" 
@@ -40,16 +36,14 @@
             />
           </n-button>
           <n-button block secondary @click="handleExport">
-            <template #icon><n-icon><ExportIcon /></n-icon></template>
-            导出书签
+            {{ buttonText.EXPORT_BOOKMARKS }}
           </n-button>
-          <n-button block secondary type="error" @click="handleClearAll">
-            <template #icon><n-icon><ClearIcon /></n-icon></template>
-            清空所有书签
+          <n-button block secondary :type="buttonTypes.ERROR" @click="handleClearAll">
+            {{ buttonText.CLEAR_ALL_BOOKMARKS }}
           </n-button>
         </n-space>
         <div v-if="filteredBookmarks.length === 0" class="empty-state">
-          <n-empty description="暂无书签" />
+          <n-empty :description="emptyText.NO_BOOKMARKS" />
         </div>
         <div v-else class="bookmark-list">
           <div v-for="bookmark in filteredBookmarks" :key="bookmark.id" class="bookmark-item" @click="openBookmark(bookmark)">
@@ -57,17 +51,17 @@
               <div class="bookmark-title">{{ bookmark.title }}</div>
               <div class="bookmark-url">{{ bookmark.url }}</div>
               <div v-if="bookmark.folder" class="bookmark-folder">
-                <n-tag size="small" type="info">{{ bookmark.folder }}</n-tag>
+                <n-tag :size="buttonSizes.SMALL" :type="tagTypes.INFO">{{ bookmark.folder }}</n-tag>
               </div>
             </div>
             <div class="bookmark-actions">
-              <n-button size="small" secondary type="warning" @click.stop="editBookmark(bookmark)">
-                编辑
+              <n-button :size="buttonSizes.MEDIUM" secondary :type="buttonTypes.WARNING" @click.stop="editBookmark(bookmark)">
+                {{ buttonText.EDIT }}
               </n-button>
-              <n-popconfirm @positive-click="handleDeleteBookmark(bookmark.id)" positive-text="确认删除" negative-text="取消">
+              <n-popconfirm @positive-click="handleDeleteBookmark(bookmark.id)" :positive-text="confirmText.CONFIRM_DELETE" :negative-text="confirmText.CANCEL">
                 <template #trigger>
-                  <n-button size="small" secondary type="error" @click.stop>
-                    删除
+                  <n-button :size="buttonSizes.MEDIUM" secondary :type="buttonTypes.ERROR" @click.stop>
+                    {{ buttonText.DELETE }}
                   </n-button>
                 </template>
                 确定删除此书签？
@@ -80,12 +74,11 @@
 
     <n-card class="folders-card" :bordered="false" title="文件夹">
       <n-space vertical>
-        <n-button block type="primary" secondary @click="showAddFolderModal = true">
-          <template #icon><n-icon><FolderAddIcon /></n-icon></template>
-          新建文件夹
+        <n-button block :type="buttonTypes.PRIMARY" secondary @click="showAddFolderModal = true">
+          {{ buttonText.CREATE_FOLDER }}
         </n-button>
         <div v-if="folders.length === 0" class="empty-state">
-          <n-empty description="暂无文件夹" />
+          <n-empty :description="emptyText.NO_FOLDERS" />
         </div>
         <div v-else class="folder-list">
           <div v-for="folder in folders" :key="folder.id" class="folder-item">
@@ -93,10 +86,10 @@
               <div class="folder-name">{{ folder.name }}</div>
               <div class="folder-count">{{ folder.count }} 个书签</div>
             </div>
-            <n-popconfirm @positive-click="handleDeleteFolder(folder.id)" positive-text="确认删除" negative-text="取消">
+            <n-popconfirm @positive-click="handleDeleteFolder(folder.id)" :positive-text="confirmText.CONFIRM_DELETE" :negative-text="confirmText.CANCEL">
                 <template #trigger>
-                  <n-button size="small" secondary type="error">
-                    删除
+                  <n-button :size="buttonSizes.MEDIUM" secondary :type="buttonTypes.ERROR">
+                    {{ buttonText.DELETE }}
                   </n-button>
                 </template>
                 确定删除此文件夹？其中的书签也会被删除。
@@ -106,47 +99,46 @@
       </n-space>
     </n-card>
 
-    <n-modal v-model:show="showAddBookmarkModal" preset="card" :title="editingBookmark.id ? '编辑书签' : '添加书签'" style="width: 90vw; max-width: 400px">
-      <n-form label-placement="top" size="small">
-        <n-form-item label="标题">
-          <n-input v-model:value="editingBookmark.title" placeholder="书签标题" />
+    <n-modal v-model:show="showAddBookmarkModal" preset="card" :title="editingBookmark.id ? modalTitle.EDIT_BOOKMARK : modalTitle.ADD_BOOKMARK" style="width: 90vw; max-width: 400px">
+      <n-form label-placement="top" :size="buttonSizes.SMALL">
+        <n-form-item :label="formLabel.TITLE">
+          <n-input v-model:value="editingBookmark.title" :placeholder="placeholder.BOOKMARK_TITLE" />
         </n-form-item>
-        <n-form-item label="URL">
-          <n-input v-model:value="editingBookmark.url" placeholder="https://example.com" />
+        <n-form-item :label="formLabel.URL">
+          <n-input v-model:value="editingBookmark.url" :placeholder="placeholder.BOOKMARK_URL" />
         </n-form-item>
-        <n-form-item label="文件夹">
+        <n-form-item :label="formLabel.FOLDER">
           <n-select v-model:value="editingBookmark.folder" :options="folderOptions" clearable />
         </n-form-item>
       </n-form>
       <template #action>
         <n-space justify="end">
-          <n-button secondary @click="showAddBookmarkModal = false">取消</n-button>
-          <n-button type="primary" @click="saveBookmark" :loading="saving">保存</n-button>
+          <n-button secondary @click="showAddBookmarkModal = false">{{ buttonText.CANCEL }}</n-button>
+          <n-button :type="buttonTypes.PRIMARY" @click="saveBookmark" :loading="saving">{{ buttonText.SAVE }}</n-button>
         </n-space>
       </template>
     </n-modal>
 
-    <n-modal v-model:show="showAddFolderModal" preset="card" title="新建文件夹" style="width: 90vw; max-width: 400px">
-      <n-form label-placement="top" size="small">
-        <n-form-item label="文件夹名称">
-          <n-input v-model:value="newFolder.name" placeholder="文件夹名称" />
+    <n-modal v-model:show="showAddFolderModal" preset="card" :title="modalTitle.CREATE_FOLDER" style="width: 90vw; max-width: 400px">
+      <n-form label-placement="top" :size="buttonSizes.SMALL">
+        <n-form-item :label="formLabel.FOLDER_NAME">
+          <n-input v-model:value="newFolder.name" :placeholder="placeholder.FOLDER_NAME" />
         </n-form-item>
       </n-form>
       <template #action>
         <n-space justify="end">
-          <n-button secondary @click="showAddFolderModal = false">取消</n-button>
-          <n-button type="primary" @click="saveFolder" :loading="saving">保存</n-button>
+          <n-button secondary @click="showAddFolderModal = false">{{ buttonText.CANCEL }}</n-button>
+          <n-button :type="buttonTypes.PRIMARY" @click="saveFolder" :loading="saving">{{ buttonText.SAVE }}</n-button>
         </n-space>
       </template>
     </n-modal>
 
-    <n-modal v-model:show="showHealthModal" preset="card" title="体检中心" style="width: 90vw; max-width: 500px">
+    <n-modal v-model:show="showHealthModal" preset="card" :title="modalTitle.HEALTH_CENTER" style="width: 90vw; max-width: 500px">
       <n-tabs v-model:value="healthActiveTab" type="line" animated>
-        <n-tab-pane name="duplicates" tab="重复项检测">
+        <n-tab-pane name="duplicates" :tab="tabText.DUPLICATE_CHECK">
           <n-space vertical>
-            <n-button block type="primary" @click="scanDuplicates" :loading="loadingDuplicates">
-              <template #icon><n-icon><SearchIcon /></n-icon></template>
-              扫描重复项
+            <n-button block :type="buttonTypes.PRIMARY" @click="scanDuplicates" :loading="loadingDuplicates">
+              {{ buttonText.SCAN_DUPLICATES }}
             </n-button>
             <div v-if="duplicates.length > 0" class="duplicates-list">
               <n-divider>重复项 ({{ duplicates.length }} 组)</n-divider>
@@ -158,28 +150,27 @@
                   </div>
                 </div>
                 <n-space :size="8">
-                  <n-button size="small" type="primary" @click="handleMergeDuplicate(group)">
-                    合并
+                  <n-button :size="buttonSizes.MEDIUM" :type="buttonTypes.PRIMARY" @click="handleMergeDuplicate(group)">
+                    {{ buttonText.MERGE }}
                   </n-button>
-                  <n-button size="small" type="error" @click="handleDeleteAllInGroup(group)">
-                    删除全部
+                  <n-button :size="buttonSizes.MEDIUM" :type="buttonTypes.ERROR" @click="handleDeleteAllInGroup(group)">
+                    {{ buttonText.DELETE_ALL }}
                   </n-button>
                 </n-space>
               </div>
             </div>
             <div v-else-if="!loadingDuplicates" class="empty-state">
-              <n-empty description="暂无重复项" />
+              <n-empty :description="emptyText.NO_DUPLICATES" />
             </div>
           </n-space>
         </n-tab-pane>
-        <n-tab-pane name="health" tab="死链检测">
+        <n-tab-pane name="health" :tab="tabText.DEAD_LINK_CHECK">
           <n-space vertical>
-            <n-button block type="primary" @click="scanHealth" :disabled="isScanningHealth">
-              <template #icon><n-icon><SearchIcon /></n-icon></template>
-              开始检测
+            <n-button block :type="buttonTypes.PRIMARY" @click="scanHealth" :disabled="isScanningHealth">
+              {{ buttonText.START_SCAN }}
             </n-button>
             <n-button v-if="isScanningHealth" block secondary @click="stopScanHealth">
-              停止检测
+              {{ buttonText.STOP_SCAN }}
             </n-button>
             <div v-if="isScanningHealth">
               <n-progress type="line" :percentage="healthProgress" />
@@ -190,16 +181,16 @@
               <div v-for="result in healthResults" :key="result.bookmark.id" class="health-item">
                 <div class="health-title">{{ result.bookmark.title }}</div>
                 <div class="health-url">{{ result.bookmark.url }}</div>
-                <n-button size="small" type="error" @click="handleDeleteDead(result)">
-                  删除
+                <n-button :size="buttonSizes.MEDIUM" :type="buttonTypes.ERROR" @click="handleDeleteDead(result)">
+                  {{ buttonText.DELETE }}
                 </n-button>
               </div>
-              <n-button block type="error" @click="handleDeleteBatchDead">
-                批量删除失效链接
+              <n-button block :type="buttonTypes.ERROR" @click="handleDeleteBatchDead">
+                {{ buttonText.BATCH_DELETE_DEAD }}
               </n-button>
             </div>
             <div v-else-if="!isScanningHealth" class="empty-state">
-              <n-empty description="暂无失效链接" />
+              <n-empty :description="emptyText.NO_DEAD_LINKS" />
             </div>
           </n-space>
         </n-tab-pane>
@@ -207,27 +198,27 @@
     </n-modal>
 
     <!-- AI 智能整理弹窗 -->
-    <n-modal v-model:show="showAiModal" preset="card" title="AI 智能整理建议" style="width: 95vw; max-width: 500px">
+    <n-modal v-model:show="showAiModal" preset="card" :title="modalTitle.AI_SUGGESTIONS" style="width: 95vw; max-width: 500px">
       <n-space vertical>
         <n-alert type="info" :show-icon="false">
           AI 分析发现 {{ aiSuggestions.length }} 条整理建议
         </n-alert>
         <div v-for="(suggestion, index) in aiSuggestions" :key="index" class="ai-suggestion-item">
           <div class="suggestion-header">
-            <n-tag type="warning" size="small">{{ suggestion.action }}</n-tag>
+            <n-tag :type="tagTypes.WARNING" :size="buttonSizes.SMALL">{{ suggestion.action }}</n-tag>
           </div>
           <div class="suggestion-detail">
             <div v-if="suggestion.bookmark_title">书签: {{ suggestion.bookmark_title }}</div>
             <div v-if="suggestion.folder_name">目标文件夹: {{ suggestion.folder_name }}</div>
             <div v-if="suggestion.reason" class="suggestion-reason">{{ suggestion.reason }}</div>
           </div>
-          <n-button size="small" type="primary" @click="applyAiSuggestion(suggestion)">
-            应用
+          <n-button :size="buttonSizes.MEDIUM" :type="buttonTypes.PRIMARY" @click="applyAiSuggestion(suggestion)">
+            {{ buttonText.APPLY }}
           </n-button>
         </div>
         <n-space justify="end" style="margin-top: 16px;">
-          <n-button secondary @click="showAiModal = false">关闭</n-button>
-          <n-button type="primary" @click="applyAllSuggestions">全部应用</n-button>
+          <n-button secondary @click="showAiModal = false">{{ buttonText.CLOSE }}</n-button>
+          <n-button :type="buttonTypes.PRIMARY" @click="applyAllSuggestions">{{ buttonText.APPLY_ALL }}</n-button>
         </n-space>
       </n-space>
     </n-modal>
@@ -237,9 +228,21 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { NCard, NButton, NSpace, NEmpty, NModal, NForm, NFormItem, NInput, NSelect, NTag, NPopconfirm, NIcon, NTabs, NTabPane, NProgress, NAlert, NDivider } from 'naive-ui'
-import { AddOutlined as AddIcon, SearchOutlined as SearchIcon, CreateNewFolderOutlined as FolderAddIcon, ScienceOutlined as LabIcon, MedicalServicesOutlined as HealthIcon, FileDownloadOutlined as ImportIcon, FileUploadOutlined as ExportIcon, DeleteSweepOutlined as ClearIcon } from '@vicons/material'
 import { useMessage } from 'naive-ui'
 import { useBookmark } from '../../toolkit/sitenav/useBookmark'
+import {
+  ButtonTypes,
+  ButtonSizes,
+  ButtonText,
+  TagTypes,
+  MessageText,
+  EmptyText,
+  ConfirmText,
+  ModalTitle,
+  FormLabel,
+  Placeholder,
+  TabText,
+} from '../constants'
 
 const message = useMessage()
 const { 
@@ -254,6 +257,19 @@ const {
   aiAnalyze,
   aiApply
 } = useBookmark()
+
+// 使用常量
+const buttonTypes = ButtonTypes
+const buttonSizes = ButtonSizes
+const buttonText = ButtonText
+const tagTypes = TagTypes
+const messageText = MessageText
+const emptyText = EmptyText
+const confirmText = ConfirmText
+const modalTitle = ModalTitle
+const formLabel = FormLabel
+const placeholder = Placeholder
+const tabText = TabText
 
 const searchQuery = ref('')
 const showAddBookmarkModal = ref(false)
@@ -361,7 +377,7 @@ const editBookmark = (bookmark: any) => {
 
 const saveBookmark = async () => {
   if (!editingBookmark.value.title || !editingBookmark.value.url) {
-    message.warning('请填写完整的书签信息')
+    message.warning(messageText.FILL_BOOKMARK_INFO)
     return
   }
   saving.value = true
@@ -372,7 +388,7 @@ const saveBookmark = async () => {
         url: editingBookmark.value.url,
         parent_id: editingBookmark.value.parent_id || undefined
       })
-      message.success('书签更新成功')
+      message.success(messageText.UPDATE_BOOKMARK_SUCCESS)
     } else {
       await addBookmark({
         title: editingBookmark.value.title,
@@ -380,13 +396,13 @@ const saveBookmark = async () => {
         type: 'file',
         parent_id: editingBookmark.value.parent_id || undefined
       })
-      message.success('书签添加成功')
+      message.success(messageText.ADD_BOOKMARK_SUCCESS)
     }
     showAddBookmarkModal.value = false
     editingBookmark.value = { id: null, title: '', url: '', parent_id: null }
     await fetchBookmarks(true)
   } catch (e: any) {
-    message.error('保存失败: ' + (e.message || '未知错误'))
+    message.error(messageText.SAVE_BOOKMARK_FAILED + ': ' + (e.message || '未知错误'))
   } finally {
     saving.value = false
   }
@@ -395,16 +411,16 @@ const saveBookmark = async () => {
 const handleDeleteBookmark = async (id: string) => {
   try {
     await deleteBookmarkApi(id)
-    message.success('书签已删除')
+    message.success(messageText.DELETE_BOOKMARK_SUCCESS)
     await fetchBookmarks(true)
   } catch (e: any) {
-    message.error('删除失败: ' + (e.message || '未知错误'))
+    message.error(messageText.DELETE_BOOKMARK_FAILED + ': ' + (e.message || '未知错误'))
   }
 }
 
 const saveFolder = async () => {
   if (!newFolder.value.name) {
-    message.warning('请填写文件夹名称')
+    message.warning(messageText.FILL_FOLDER_NAME)
     return
   }
   saving.value = true
@@ -413,12 +429,12 @@ const saveFolder = async () => {
       title: newFolder.value.name,
       type: 'folder'
     })
-    message.success('文件夹创建成功')
+    message.success(messageText.CREATE_FOLDER_SUCCESS)
     showAddFolderModal.value = false
     newFolder.value = { name: '' }
     await fetchBookmarks(true)
   } catch (e: any) {
-    message.error('创建失败: ' + (e.message || '未知错误'))
+    message.error(messageText.CREATE_FOLDER_FAILED + ': ' + (e.message || '未知错误'))
   } finally {
     saving.value = false
   }
@@ -427,10 +443,10 @@ const saveFolder = async () => {
 const handleDeleteFolder = async (id: string) => {
   try {
     await deleteBookmarkApi(id)
-    message.success('文件夹已删除')
+    message.success(messageText.DELETE_FOLDER_SUCCESS)
     await fetchBookmarks(true)
   } catch (e: any) {
-    message.error('删除失败: ' + (e.message || '未知错误'))
+    message.error(messageText.DELETE_FOLDER_FAILED + ': ' + (e.message || '未知错误'))
   }
 }
 
@@ -441,10 +457,10 @@ const handleExport = () => {
 const handleClearAll = async () => {
   try {
     await clearBookmarks()
-    message.success('所有书签已清空')
+    message.success(messageText.CLEAR_BOOKMARKS_SUCCESS)
     await fetchBookmarks(true)
   } catch (e: any) {
-    message.error('清空失败: ' + (e.message || '未知错误'))
+    message.error(messageText.CLEAR_BOOKMARKS_FAILED + ': ' + (e.message || '未知错误'))
   }
 }
 
@@ -476,10 +492,10 @@ const onFileChange = async (e: Event) => {
       }
     }
     
-    message.success(`成功导入 ${count} 个书签`)
+    message.success(messageText.IMPORT_BOOKMARKS_SUCCESS.replace('{count}', count.toString()))
     await fetchBookmarks(true)
   } catch (e: any) {
-    message.error('导入失败: ' + (e.message || '未知错误'))
+    message.error(messageText.IMPORT_BOOKMARKS_FAILED + ': ' + (e.message || '未知错误'))
   }
 }
 
@@ -495,10 +511,10 @@ const handleAIAnalyze = async () => {
       aiSuggestions.value = result.suggestions
       showAiModal.value = true
     } else {
-      message.info('AI分析完成，暂无整理建议')
+      message.info(messageText.AI_ANALYZE_NO_SUGGESTIONS)
     }
   } catch (e: any) {
-    message.error('AI分析失败: ' + (e.message || '未知错误'))
+    message.error(messageText.AI_ANALYZE_FAILED + ': ' + (e.message || '未知错误'))
   } finally {
     aiLoading.value = false
   }
@@ -507,7 +523,7 @@ const handleAIAnalyze = async () => {
 const applyAiSuggestion = async (suggestion: any) => {
   try {
     await aiApply([suggestion])
-    message.success('已应用整理建议')
+    message.success(messageText.APPLY_SUGGESTION_SUCCESS)
     await fetchBookmarks(true)
     // 从列表中移除已应用的建议
     aiSuggestions.value = aiSuggestions.value.filter(s => s !== suggestion)
@@ -515,19 +531,19 @@ const applyAiSuggestion = async (suggestion: any) => {
       showAiModal.value = false
     }
   } catch (e: any) {
-    message.error('应用失败: ' + (e.message || '未知错误'))
+    message.error(messageText.APPLY_SUGGESTION_FAILED + ': ' + (e.message || '未知错误'))
   }
 }
 
 const applyAllSuggestions = async () => {
   try {
     await aiApply(aiSuggestions.value)
-    message.success('已应用所有整理建议')
+    message.success(messageText.APPLY_ALL_SUGGESTIONS_SUCCESS)
     await fetchBookmarks(true)
     showAiModal.value = false
     aiSuggestions.value = []
   } catch (e: any) {
-    message.error('批量应用失败: ' + (e.message || '未知错误'))
+    message.error(messageText.APPLY_ALL_SUGGESTIONS_FAILED + ': ' + (e.message || '未知错误'))
   }
 }
 
@@ -557,7 +573,7 @@ const scanDuplicates = () => {
   })
   
   loadingDuplicates.value = false
-  message.info(`发现 ${duplicates.value.length} 组重复书签`)
+  message.info(messageText.DUPLICATES_FOUND.replace('{count}', duplicates.value.length.toString()))
 }
 
 const scanHealth = async () => {
@@ -589,21 +605,21 @@ const scanHealth = async () => {
   
   healthResults.value = deadLinks
   isScanningHealth.value = false
-  message.info(`发现 ${deadLinks.length} 个失效链接`)
+  message.info(messageText.DEAD_LINKS_FOUND.replace('{count}', deadLinks.length.toString()))
 }
 
 const stopScanHealth = () => {
   isScanningHealth.value = false
-  message.info('扫描已停止')
+  message.info(messageText.SCAN_STOPPED)
 }
 
 const handleDeleteDead = async (result: any) => {
   try {
     await deleteBookmarkApi(result.bookmark.id)
-    message.success('书签已删除')
+    message.success(messageText.DELETE_BOOKMARK_SUCCESS)
     await fetchBookmarks(true)
   } catch (e: any) {
-    message.error('删除失败: ' + (e.message || '未知错误'))
+    message.error(messageText.DELETE_BOOKMARK_FAILED + ': ' + (e.message || '未知错误'))
   }
 }
 
@@ -612,11 +628,11 @@ const handleDeleteBatchDead = async () => {
     for (const result of healthResults.value) {
       await deleteBookmarkApi(result.bookmark.id)
     }
-    message.success(`已删除 ${healthResults.value.length} 个失效书签`)
+    message.success(messageText.BATCH_DELETE_SUCCESS.replace('{count}', healthResults.value.length.toString()))
     healthResults.value = []
     await fetchBookmarks(true)
   } catch (e: any) {
-    message.error('批量删除失败: ' + (e.message || '未知错误'))
+    message.error(messageText.BATCH_DELETE_FAILED + ': ' + (e.message || '未知错误'))
   }
 }
 
@@ -626,27 +642,11 @@ const handleMergeDuplicate = async (group: any) => {
     for (let i = 1; i < group.items.length; i++) {
       await deleteBookmarkApi(group.items[i].id)
     }
-    message.success('重复书签已合并')
+    message.success(messageText.MERGE_DUPLICATES_SUCCESS)
     await fetchBookmarks(true)
     scanDuplicates()
   } catch (e: any) {
-    message.error('合并失败: ' + (e.message || '未知错误'))
-  }
-}
-
-const handleMergeAllDuplicates = async () => {
-  try {
-    for (const group of duplicates.value) {
-      const keep = group.items[0]
-      for (let i = 1; i < group.items.length; i++) {
-        await deleteBookmarkApi(group.items[i].id)
-      }
-    }
-    message.success('所有重复书签已合并')
-    await fetchBookmarks(true)
-    scanDuplicates()
-  } catch (e: any) {
-    message.error('批量合并失败: ' + (e.message || '未知错误'))
+    message.error(messageText.MERGE_DUPLICATES_FAILED + ': ' + (e.message || '未知错误'))
   }
 }
 
@@ -655,11 +655,11 @@ const handleDeleteAllInGroup = async (group: any) => {
     for (const item of group.items) {
       await deleteBookmarkApi(item.id)
     }
-    message.success('书签组已删除')
+    message.success(messageText.DELETE_GROUP_SUCCESS)
     await fetchBookmarks(true)
     scanDuplicates()
   } catch (e: any) {
-    message.error('删除失败: ' + (e.message || '未知错误'))
+    message.error(messageText.DELETE_GROUP_FAILED + ': ' + (e.message || '未知错误'))
   }
 }
 
@@ -795,35 +795,5 @@ onMounted(() => {
   font-size: 14px;
   color: var(--text-color);
   margin-top: 8px;
-}
-
-.ai-suggestion-item {
-  background: var(--app-bg-color);
-  border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 12px;
-}
-
-.suggestion-header {
-  margin-bottom: 8px;
-}
-
-.suggestion-detail {
-  font-size: 14px;
-  color: var(--text-color);
-  margin-bottom: 8px;
-}
-
-.suggestion-detail > div {
-  margin-bottom: 4px;
-}
-
-.suggestion-reason {
-  font-size: 12px;
-  color: var(--text-color);
-  opacity: 0.7;
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px solid var(--border-color);
 }
 </style>

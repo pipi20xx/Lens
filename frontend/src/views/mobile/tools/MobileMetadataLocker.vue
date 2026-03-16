@@ -56,7 +56,6 @@
             :loading="loading"
             @click="handleAction('metadata_field_unlocker')"
           >
-            <template #icon><n-icon><UnlockIcon /></n-icon></template>
             执行字段解锁
           </n-button>
         </n-card>
@@ -75,7 +74,6 @@
             :loading="loading"
             @click="handleAction('item_locker')"
           >
-            <template #icon><n-icon><LockIcon /></n-icon></template>
             执行全局锁定
           </n-button>
         </n-card>
@@ -94,7 +92,6 @@
             :loading="loading"
             @click="handleAction('item_unlocker')"
           >
-            <template #icon><n-icon><ResetIcon /></n-icon></template>
             执行深度解锁
           </n-button>
         </n-card>
@@ -122,8 +119,6 @@ import {
   NRadioGroup, NRadioButton, NIcon, NSpace, NTag, NAlert
 } from 'naive-ui'
 import {
-  LockOpenOutlined as UnlockIcon,
-  LockOutlined as LockIcon,
   LockResetOutlined as ResetIcon
 } from '@vicons/material'
 import axios from 'axios'

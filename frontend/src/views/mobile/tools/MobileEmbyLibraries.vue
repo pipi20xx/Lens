@@ -7,58 +7,52 @@
     </div>
 
     <!-- 高危警告 -->
-    <n-alert title="高危操作警告" type="error" :bordered="false" class="warning-alert">
+    <n-alert :title="alertText.HIGH_RISK_WARNING" :type="tagTypes.ERROR" :bordered="false" class="warning-alert">
       本模块主要用于<strong>新服务器的媒体库极速初始化</strong>。生产环境操作具有极高风险！
     </n-alert>
 
     <!-- 操作按钮 -->
     <n-card class="action-card" :bordered="false">
       <n-space vertical>
-        <n-button block type="primary" secondary :loading="loading" @click="loadLibraries">
-          <template #icon><n-icon><RefreshIcon /></n-icon></template>
-          刷新媒体库列表
+        <n-button block :type="buttonTypes.PRIMARY" secondary :loading="loading" @click="loadLibraries">
+          {{ buttonText.REFRESH_LIBRARY_LIST }}
         </n-button>
-        <n-button block type="warning" secondary :loading="backingUpAll" @click="handleBackupAll">
-          <template #icon><n-icon><BackupIcon /></n-icon></template>
-          一键备份所有媒体库
+        <n-button block :type="buttonTypes.WARNING" secondary :loading="backingUpAll" @click="handleBackupAll">
+          {{ buttonText.BACKUP_ALL_LIBRARIES }}
         </n-button>
         <MobileEmbyConfigBackupManager category="libraries" :server-id="activeServerId" @restored="loadLibraries" />
-        <n-button block type="primary" @click="showAddModal = true">
-          <template #icon><n-icon><LibAddIcon /></n-icon></template>
-          新增媒体库
+        <n-button block :type="buttonTypes.PRIMARY" @click="showAddModal = true">
+          {{ buttonText.ADD_LIBRARY }}
         </n-button>
       </n-space>
     </n-card>
 
     <!-- 媒体库列表 -->
-    <n-card class="libraries-card" :bordered="false" title="媒体库列表">
+    <n-card class="libraries-card" :bordered="false" :title="cardTitle.LIBRARY_LIST">
       <div v-if="libraries.length === 0" class="empty-state">
-        <n-empty description="暂无媒体库" />
+        <n-empty :description="emptyText.NO_LIBRARY" />
       </div>
       <div v-else class="library-list">
         <div v-for="lib in libraries" :key="lib.Id" class="library-item">
           <div class="library-info">
             <div class="library-name">{{ lib.Name }}</div>
             <div class="library-meta">
-              <n-tag type="info" size="tiny" round>{{ lib.CollectionType || '未知' }}</n-tag>
+              <n-tag :type="tagTypes.INFO" size="tiny" round>{{ lib.CollectionType || '未知' }}</n-tag>
               <code class="library-id">{{ lib.Id?.slice(0, 8) }}...</code>
             </div>
             <div v-if="lib.Path" class="library-path">{{ lib.Path }}</div>
           </div>
           <div class="library-actions">
-            <n-button size="small" secondary type="info" @click="openEdit(lib)">
-              <template #icon><n-icon><EditIcon /></n-icon></template>
-              设置
+            <n-button :size="buttonSizes.MEDIUM" secondary :type="buttonTypes.INFO" @click="openEdit(lib)">
+              {{ buttonText.SETTINGS }}
             </n-button>
-            <n-button size="small" secondary type="warning" @click="handleDirectBackup(lib)">
-              <template #icon><n-icon><BackupIcon /></n-icon></template>
-              备份
+            <n-button :size="buttonSizes.MEDIUM" secondary :type="buttonTypes.WARNING" @click="handleDirectBackup(lib)">
+              {{ buttonText.BACKUP }}
             </n-button>
-            <n-popconfirm @positive-click="handleRemoveLibrary(lib.Name, lib.Id)" positive-text="确认移除" negative-text="取消">
+            <n-popconfirm @positive-click="handleRemoveLibrary(lib.Name, lib.Id)" :positive-text="confirmText.CONFIRM_REMOVE" :negative-text="confirmText.CANCEL">
               <template #trigger>
-                <n-button size="small" secondary type="error">
-                  <template #icon><n-icon><DeleteIcon /></n-icon></template>
-                  移除
+                <n-button :size="buttonSizes.MEDIUM" secondary :type="buttonTypes.ERROR">
+                  {{ buttonText.REMOVE }}
                 </n-button>
               </template>
               确定移除媒体库 {{ lib.Name }}？
@@ -69,23 +63,23 @@
     </n-card>
 
     <!-- 新增媒体库模态框 -->
-    <n-modal v-model:show="showAddModal" preset="card" title="新增媒体库" style="width: 90vw; max-width: 400px">
+    <n-modal v-model:show="showAddModal" preset="card" :title="modalTitle.ADD_LIBRARY" style="width: 90vw; max-width: 400px">
       <n-space vertical>
-        <n-form-item label="显示名称">
-          <n-input v-model:value="newLib.name" placeholder="例如：电影" />
+        <n-form-item :label="formLabel.DISPLAY_NAME">
+          <n-input v-model:value="newLib.name" :placeholder="placeholder.EXAMPLE_MOVIE" />
         </n-form-item>
-        <n-form-item label="内容类型">
+        <n-form-item :label="formLabel.CONTENT_TYPE">
           <n-select v-model:value="newLib.type" :options="collectionTypeOptions" />
         </n-form-item>
-        <n-form-item label="文件夹路径">
-          <n-input v-model:value="newLib.path" placeholder="服务器绝对路径" />
+        <n-form-item :label="formLabel.FOLDER_PATH">
+          <n-input v-model:value="newLib.path" :placeholder="placeholder.SERVER_ABSOLUTE_PATH" />
         </n-form-item>
       </n-space>
       <template #action>
         <n-space justify="end">
-          <n-button strong secondary @click="showAddModal = false">取消</n-button>
-          <n-button type="primary" strong secondary :loading="adding" @click="handleAddLibrary">
-            创建媒体库
+          <n-button strong secondary @click="showAddModal = false">{{ buttonText.CANCEL }}</n-button>
+          <n-button :type="buttonTypes.PRIMARY" strong secondary :loading="adding" @click="handleAddLibrary">
+            {{ buttonText.CREATE_LIBRARY }}
           </n-button>
         </n-space>
       </template>
@@ -117,15 +111,60 @@ import { createEmbyBackup, createAllEmbyBackups } from '@/api/embyBackup'
 import { servers, activeServerId, fetchServers } from '@/store/serverStore'
 import MobileLibraryEditModal from './MobileLibraryEditModal.vue'
 import MobileEmbyConfigBackupManager from './MobileEmbyConfigBackupManager.vue'
-import { 
-  RefreshOutlined as RefreshIcon,
+import {
   BackupOutlined as BackupIcon,
-  SettingsOutlined as EditIcon,
-  DeleteOutlined as DeleteIcon,
-  LibraryAddOutlined as LibAddIcon
+  Library
 } from '@vicons/material'
+import {
+  ButtonTypes,
+  ButtonSizes,
+  ButtonText,
+  TagTypes,
+  MessageText,
+} from '../constants'
 
 const message = useMessage()
+
+// 使用常量
+const buttonTypes = ButtonTypes
+const buttonSizes = ButtonSizes
+const buttonText = ButtonText
+const tagTypes = TagTypes
+const messageText = MessageText
+
+// 额外的文本常量
+const alertText = {
+  HIGH_RISK_WARNING: '高危操作警告',
+}
+
+const cardTitle = {
+  LIBRARY_LIST: '媒体库列表',
+}
+
+const emptyText = {
+  NO_LIBRARY: '暂无媒体库',
+}
+
+const modalTitle = {
+  ADD_LIBRARY: '新增媒体库',
+}
+
+const formLabel = {
+  DISPLAY_NAME: '显示名称',
+  CONTENT_TYPE: '内容类型',
+  FOLDER_PATH: '文件夹路径',
+}
+
+const placeholder = {
+  EXAMPLE_MOVIE: '例如：电影',
+  SERVER_ABSOLUTE_PATH: '服务器绝对路径',
+}
+
+const confirmText = {
+  CONFIRM_REMOVE: '确认移除',
+  CANCEL: '取消',
+}
+
 const loading = ref(false)
 const adding = ref(false)
 const backingUpAll = ref(false)
@@ -153,7 +192,7 @@ const loadLibraries = async () => {
     await fetchServers()
   }
   if (!activeServerId.value) {
-    message.error('请先配置 Emby 服务器')
+    message.error(messageText.CONFIG_SERVER_FIRST)
     return
   }
   loading.value = true
@@ -161,7 +200,7 @@ const loadLibraries = async () => {
     const res = await listEmbyLibraries(activeServerId.value)
     libraries.value = res as any || []
   } catch (e: any) {
-    message.error(e.response?.data?.detail || '加载媒体库列表失败')
+    message.error(e.response?.data?.detail || messageText.LOAD_LIBRARY_FAILED)
   } finally {
     loading.value = false
   }
@@ -169,19 +208,19 @@ const loadLibraries = async () => {
 
 const handleAddLibrary = async () => {
   if (!newLib.name.trim()) {
-    message.warning('请输入媒体库名称')
+    message.warning(messageText.ENTER_LIBRARY_NAME)
     return
   }
   adding.value = true
   try {
     await addEmbyLibrary(newLib.name.trim(), newLib.type, newLib.path.trim() || undefined, activeServerId.value)
-    message.success('媒体库创建成功')
+    message.success(messageText.CREATE_LIBRARY_SUCCESS)
     newLib.name = ''
     newLib.path = ''
     showAddModal.value = false
     await loadLibraries()
   } catch (e: any) {
-    message.error(e.response?.data?.detail || '创建媒体库失败')
+    message.error(e.response?.data?.detail || messageText.CREATE_LIBRARY_FAILED)
   } finally {
     adding.value = false
   }
@@ -195,10 +234,10 @@ const openEdit = (lib: any) => {
 const handleRemoveLibrary = async (name: string, id: string) => {
   try {
     await removeEmbyLibrary(name, id, activeServerId.value)
-    message.success('媒体库已移除')
+    message.success(messageText.REMOVE_LIBRARY_SUCCESS)
     await loadLibraries()
   } catch (e: any) {
-    message.error(e.response?.data?.detail || '移除媒体库失败')
+    message.error(e.response?.data?.detail || messageText.REMOVE_LIBRARY_FAILED)
   }
 }
 
@@ -207,7 +246,7 @@ const handleDirectBackup = async (lib: any) => {
     await createEmbyBackup('libraries', lib.Id, activeServerId.value)
     message.success(`媒体库 ${lib.Name} 已备份`)
   } catch (e: any) {
-    message.error(e.response?.data?.detail || '备份失败')
+    message.error(e.response?.data?.detail || messageText.BACKUP_FAILED)
   }
 }
 
@@ -215,9 +254,9 @@ const handleBackupAll = async () => {
   backingUpAll.value = true
   try {
     await createAllEmbyBackups('libraries', activeServerId.value)
-    message.success('所有媒体库已备份')
+    message.success(messageText.BACKUP_ALL_SUCCESS)
   } catch (e: any) {
-    message.error(e.response?.data?.detail || '备份失败')
+    message.error(e.response?.data?.detail || messageText.BACKUP_FAILED)
   } finally {
     backingUpAll.value = false
   }

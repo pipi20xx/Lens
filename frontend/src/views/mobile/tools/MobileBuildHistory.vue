@@ -20,11 +20,9 @@
         
         <div class="history-actions">
           <n-button size="tiny" secondary @click="viewLog(task.id)">
-            <template #icon><n-icon><LogIcon /></n-icon></template>
             日志
           </n-button>
           <n-button size="tiny" secondary type="error" @click="deleteLog(task.id)">
-            <template #icon><n-icon><DeleteIcon /></n-icon></template>
             删除
           </n-button>
         </div>
@@ -38,7 +36,6 @@
       <template #footer>
         <n-space justify="end">
           <n-button type="primary" @click="showLog = false">
-            <template #icon><n-icon><CloseIcon /></n-icon></template>
             关闭
           </n-button>
         </n-space>
@@ -50,12 +47,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { NModal, NTag, NButton, NSpace, NIcon, NEmpty, useMessage, useDialog } from 'naive-ui'
-import {
-  TerminalOutlined as LogIcon,
-  DeleteOutlined as DeleteIcon,
-  CloseOutlined as CloseIcon,
-  ScheduleOutlined as TimeIcon
-} from '@vicons/material'
 import axios from 'axios'
 
 const props = defineProps<{

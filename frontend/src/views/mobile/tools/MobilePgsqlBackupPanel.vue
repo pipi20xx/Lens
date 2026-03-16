@@ -3,11 +3,9 @@
     <n-space vertical>
       <n-space justify="space-between" align="center">
         <n-button type="primary" size="small" @click="openCreateModal">
-          <template #icon><n-icon><BackupIcon /></n-icon></template>
           创建备份
         </n-button>
         <n-button size="small" secondary @click="fetchBackups" :loading="loading">
-          <template #icon><n-icon><RefreshIcon /></n-icon></template>
           刷新
         </n-button>
       </n-space>
@@ -26,13 +24,11 @@
             <div class="backup-filename">{{ backup.filename }}</div>
             <n-space>
               <n-button size="tiny" secondary type="warning" @click="openRestoreModal(backup)">
-                <template #icon><n-icon><RestoreIcon /></n-icon></template>
-              </n-button>
+                </n-button>
               <n-popconfirm @positive-click="() => handleDelete(backup.filename)" positive-text="确认" negative-text="取消">
                 <template #trigger>
                   <n-button size="tiny" secondary type="error">
-                    <template #icon><n-icon><DeleteIcon /></n-icon></template>
-                  </n-button>
+                    </n-button>
                 </template>
                 确认删除？
               </n-popconfirm>
@@ -111,13 +107,7 @@ import {
   NIcon, NAlert, NText, NEmpty, NPopconfirm, useMessage, useDialog 
 } from 'naive-ui'
 import {
-  BackupOutlined as BackupIcon,
-  RefreshOutlined as RefreshIcon,
-  RestoreOutlined as RestoreIcon,
-  DeleteOutlined as DeleteIcon,
-  StorageOutlined as SizeIcon,
-  AccessTimeOutlined as TimeIcon,
-  StorageOutlined as DbIcon
+  BackupOutlined as BackupIcon
 } from '@vicons/material'
 import axios from 'axios'
 

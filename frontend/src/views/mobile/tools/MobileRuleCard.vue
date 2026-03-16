@@ -20,8 +20,7 @@
       <n-popconfirm @positive-click.stop="$emit('delete')">
         <template #trigger>
           <n-button quaternary circle size="tiny" type="error" @click.stop>
-            <template #icon><n-icon><DeleteIcon /></n-icon></template>
-          </n-button>
+            </n-button>
         </template>
         确认删除？
       </n-popconfirm>

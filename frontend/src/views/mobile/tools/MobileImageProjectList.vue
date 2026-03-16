@@ -3,16 +3,13 @@
     <n-space vertical>
       <n-space justify="space-between" align="center">
         <n-button type="primary" size="small" @click="openCreateModal">
-          <template #icon><n-icon><AddIcon /></n-icon></template>
           新建项目
         </n-button>
         <n-space>
           <n-button size="small" secondary @click="fetchProjects">
-            <template #icon><n-icon><RefreshIcon /></n-icon></template>
             刷新
           </n-button>
           <n-button size="small" secondary type="error" @click="handleClearAllLogs">
-            <template #icon><n-icon><ClearIcon /></n-icon></template>
             清空记录
           </n-button>
         </n-space>
@@ -28,18 +25,15 @@
             <div class="project-name">{{ project.name }}</div>
             <n-space>
               <n-button size="tiny" secondary type="info" @click="openHistory(project)">
-                <template #icon><n-icon><HistoryIcon /></n-icon></template>
                 历史
               </n-button>
               <n-button size="tiny" secondary @click="openEditModal(project)">
-                <template #icon><n-icon><EditIcon /></n-icon></template>
                 编辑
               </n-button>
               <n-popconfirm @positive-click="() => deleteProject(project)" positive-text="确认" negative-text="取消">
                 <template #trigger>
                   <n-button size="tiny" secondary type="error">
-                    <template #icon><n-icon><DeleteIcon /></n-icon></template>
-                  </n-button>
+                    </n-button>
                 </template>
                 确认删除？
               </n-popconfirm>
@@ -97,7 +91,6 @@
                 @click="startBuild(project)"
                 :loading="buildingProjectId === project.id"
               >
-                <template #icon><n-icon><BuildIcon /></n-icon></template>
                 构建
               </n-button>
             </n-input-group>
@@ -177,21 +170,10 @@ import {
   NSpace, NButton, NModal, NForm, NFormItem, NInput, NSelect,
   NCheckbox, NInputGroup, NIcon, NTag, NCheckboxGroup, NEmpty, NPopconfirm, useMessage, useDialog 
 } from 'naive-ui'
-import { 
-  AddOutlined as AddIcon,
-  RefreshOutlined as RefreshIcon,
-  DeleteSweepOutlined as ClearIcon,
-  PlayArrowOutlined as BuildIcon,
-  HistoryOutlined as HistoryIcon,
-  EditOutlined as EditIcon,
-  DeleteOutlined as DeleteIcon,
+import {
   DnsOutlined as ServerIcon,
-  ImageOutlined as ImageIcon,
-  CloudUploadOutlined as CloudIcon,
-  StorageOutlined as RegistryIcon,
-  VpnLockOutlined as ProxyIcon,
-  FolderOutlined as FolderIcon,
-  DescriptionOutlined as FileIcon
+  Cloud,
+  Vpn
 } from '@vicons/material'
 import { imageBuilderApi } from '@/api/imageBuilder'
 import MobileBuildHistory from './MobileBuildHistory.vue'

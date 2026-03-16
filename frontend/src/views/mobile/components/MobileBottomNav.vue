@@ -7,14 +7,16 @@ import {
   AppsOutlined as AppsIcon,
   PersonOutlined as PersonIcon
 } from '@vicons/material'
+import { BottomNavItems } from '../constants'
 
 const route = useRoute()
 const router = useRouter()
 
+// 使用常量并添加图标
 const navItems = [
-  { name: '首页', path: '/mobile/home', icon: HomeIcon },
-  { name: '工具', path: '/mobile/tools', icon: AppsIcon },
-  { name: '我的', path: '/mobile/profile', icon: PersonIcon },
+  { name: BottomNavItems[0].name, path: BottomNavItems[0].path, icon: HomeIcon },
+  { name: BottomNavItems[1].name, path: BottomNavItems[1].path, icon: AppsIcon },
+  { name: BottomNavItems[2].name, path: BottomNavItems[2].path, icon: PersonIcon },
 ]
 
 const activePath = computed(() => route.path)

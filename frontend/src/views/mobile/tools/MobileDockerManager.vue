@@ -1,15 +1,27 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { NSpace, NCard, NText, NSelect, NButton, NTabs, NTabPane, NIcon, useMessage } from 'naive-ui'
-import { DnsOutlined as ServerIcon, RefreshOutlined as RefreshIcon } from '@vicons/material'
+import { DnsOutlined as ServerIcon } from '@vicons/material'
 import MobileDockerContainerList from './MobileDockerContainerList.vue'
 import MobileDockerComposeList from './MobileDockerComposeList.vue'
 import MobileDockerSystemInfo from './MobileDockerSystemInfo.vue'
 import MobileDockerMaintenancePanel from './MobileDockerMaintenancePanel.vue'
 import MobileDockerHostManager from './MobileDockerHostManager.vue'
 import { dockerApi } from '@/api/docker'
+import {
+  ButtonTypes,
+  ButtonSizes,
+  ButtonText,
+  MessageText,
+} from '../constants'
 
 const message = useMessage()
+
+// 使用常量
+const buttonTypes = ButtonTypes
+const buttonSizes = ButtonSizes
+const buttonText = ButtonText
+const messageText = MessageText
 
 const loading = ref(false)
 const selectedHostId = ref<string | null>(null)
@@ -33,7 +45,7 @@ const loadHosts = async () => {
       selectedHostId.value = hosts.value[0].id
     }
   } catch (e) {
-    message.error('加载主机列表失败')
+    message.error(messageText.LOAD_FAILED)
   }
 }
 
@@ -41,9 +53,9 @@ const refreshAll = async () => {
   loading.value = true
   try {
     await loadHosts()
-    message.success('刷新成功')
+    message.success(messageText.REFRESH_SUCCESS)
   } catch (e) {
-    message.error('刷新失败')
+    message.error(messageText.REFRESH_FAILED)
   } finally {
     loading.value = false
   }
@@ -66,28 +78,28 @@ onMounted(() => {
         <n-select 
           v-model:value="selectedHostId" 
           :options="hostOptions" 
-          placeholder="选择主机"
-          size="medium"
+          :placeholder="placeholder.SELECT_HOST"
+          :size="buttonSizes.MEDIUM"
         />
         <n-space justify="space-between">
-          <n-button type="primary" secondary @click="showHostManager = true" size="small">
+          <n-button :type="buttonTypes.PRIMARY" secondary @click="showHostManager = true" :size="buttonSizes.MEDIUM">
             <template #icon>
               <n-icon><ServerIcon /></n-icon>
             </template>
-            管理主机
+            {{ buttonText.MANAGE_HOST }}
           </n-button>
-          <n-button type="info" secondary @click="refreshAll" :loading="loading" size="small">
+          <n-button :type="buttonTypes.INFO" secondary @click="refreshAll" :loading="loading" :size="buttonSizes.MEDIUM">
             <template #icon>
               <n-icon><RefreshIcon /></n-icon>
             </template>
-            刷新
+            {{ buttonText.REFRESH }}
           </n-button>
         </n-space>
       </n-space>
     </n-card>
 
     <n-card class="content-card" :bordered="false">
-      <n-tabs v-model:value="activeTab" type="segment" size="medium">
+      <n-tabs v-model:value="activeTab" type="segment" :size="buttonSizes.MEDIUM">
         <n-tab-pane name="containers" tab="容器">
           <MobileDockerContainerList :host-id="selectedHostId" />
         </n-tab-pane>

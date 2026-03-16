@@ -6,59 +6,58 @@
     </div>
 
     <n-card class="switch-card" :bordered="false" title="全局设置">
-      <div class="switch-row">
-        <span class="switch-label">启用通知</span>
-        <n-switch v-model:value="settings.enabled" @update:value="saveSettings" size="medium" class="mobile-switch" />
+      <div class="setting-item">
+        <span class="setting-label">启用通知</span>
+        <MobileSwitch v-model="settings.enabled" @update:model-value="saveSettings" />
       </div>
     </n-card>
 
     <n-card class="bots-card" :bordered="false" title="推送通道">
       <n-space vertical>
-        <n-button block type="primary" @click="showAddBotModal = true">
-          <template #icon><n-icon><AddIcon /></n-icon></template>
-          添加机器人
+        <n-button block :type="buttonTypes.PRIMARY" @click="showAddBotModal = true">
+          {{ buttonText.ADD }}机器人
         </n-button>
         <div v-if="settings.bots.length === 0" class="empty-state">
-          <n-empty description="暂无推送通道" />
+          <n-empty :description="messageText.EMPTY_DATA" />
         </div>
         <div v-else class="bot-list">
           <div v-for="bot in settings.bots" :key="bot.id" class="bot-item">
             <div class="bot-header">
               <div class="bot-name">
                 <n-text strong>{{ bot.name }}</n-text>
-                <n-tag :type="bot.enabled ? 'success' : 'default'" size="tiny" round>
-                  {{ bot.enabled ? '运行中' : '已停用' }}
+                <n-tag :type="bot.enabled ? tagTypes.SUCCESS : tagTypes.DEFAULT" :size="buttonSizes.TINY" round>
+                  {{ bot.enabled ? statusText.RUNNING : statusText.DISABLED }}
                 </n-tag>
               </div>
-              <n-switch v-model:value="bot.enabled" @update:value="saveSettings" size="small" class="mobile-switch" />
+              <MobileSwitch v-model="bot.enabled" @update:model-value="saveSettings" />
             </div>
             
             <div class="bot-info">
               <div class="bot-type">{{ bot.type }}</div>
               <div v-if="bot.is_interactive" class="bot-interactive">
-                <n-tag type="warning" size="tiny">交互模式</n-tag>
+                <n-tag :type="tagTypes.WARNING" :size="buttonSizes.TINY">交互模式</n-tag>
               </div>
               <div class="bot-events">
-                <n-tag v-for="event in bot.subscribed_events" :key="event" size="small" type="info">
+                <n-tag v-for="event in bot.subscribed_events" :key="event" :size="buttonSizes.SMALL" :type="tagTypes.INFO">
                   {{ event }}
                 </n-tag>
               </div>
             </div>
             
             <div class="bot-actions">
-              <n-button size="tiny" secondary type="info" @click="testBot(bot.id)">
-                测试
+              <n-button :size="buttonSizes.MEDIUM" secondary :type="buttonTypes.INFO" @click="testBot(bot.id)">
+                {{ buttonText.TEST }}
               </n-button>
-              <n-button size="tiny" secondary @click="editBot(bot)">
-                编辑
+              <n-button :size="buttonSizes.MEDIUM" secondary @click="editBot(bot)">
+                {{ buttonText.EDIT }}
               </n-button>
-              <n-popconfirm @positive-click="() => deleteBot(bot.id)" positive-text="确认删除" negative-text="取消">
+              <n-popconfirm @positive-click="() => deleteBot(bot.id)" :positive-text="buttonText.CONFIRM_DELETE" :negative-text="buttonText.CANCEL">
                 <template #trigger>
-                  <n-button size="tiny" secondary type="error">
-                    删除
+                  <n-button :size="buttonSizes.MEDIUM" secondary :type="buttonTypes.ERROR">
+                    {{ buttonText.DELETE }}
                   </n-button>
                 </template>
-                确定删除此通道？
+                {{ messageText.DELETE_CONFIRM }}
               </n-popconfirm>
             </div>
           </div>
@@ -66,12 +65,12 @@
       </n-space>
     </n-card>
 
-    <n-modal v-model:show="showAddBotModal" preset="card" :title="editingBot.id ? '编辑机器人' : '添加机器人'" style="width: 90vw; max-width: 500px">
-      <n-form label-placement="top" size="small">
-        <n-form-item label="名称">
-          <n-input v-model:value="editingBot.name" placeholder="例如：Lens 备份助手" />
+    <n-modal v-model:show="showAddBotModal" preset="card" :title="editingBot.id ? buttonText.EDIT + '机器人' : buttonText.ADD + '机器人'" style="width: 90vw; max-width: 500px">
+      <n-form label-placement="top" :size="formSizes.SMALL">
+        <n-form-item :label="formLabel.NAME">
+          <n-input v-model:value="editingBot.name" :placeholder="placeholder.BOT_NAME" />
         </n-form-item>
-        <n-form-item label="类型">
+        <n-form-item :label="formLabel.TYPE">
           <n-select v-model:value="editingBot.type" :options="typeOptions" />
         </n-form-item>
         <n-form-item label="Bot Token">
@@ -85,8 +84,8 @@
         </n-form-item>
         <n-form-item label="开启交互">
           <n-space vertical style="width: 100%">
-            <n-switch v-model:value="editingBot.is_interactive" class="mobile-switch" />
-            <n-alert v-if="editingBot.is_interactive" type="warning" size="tiny">
+            <MobileSwitch v-model="editingBot.is_interactive" />
+            <n-alert v-if="editingBot.is_interactive" :type="buttonTypes.WARNING" :size="buttonSizes.TINY">
               开启后，你可以通过 Telegram 直接操控 Docker。请务必配置下方的授权用户 ID。
             </n-alert>
           </n-space>
@@ -101,18 +100,18 @@
           />
         </n-form-item>
         <n-form-item label="是否启用">
-          <n-switch v-model:value="editingBot.enabled" class="mobile-switch" />
+          <MobileSwitch v-model="editingBot.enabled" />
         </n-form-item>
       </n-form>
       <template #action>
         <n-space justify="end">
-          <n-button secondary @click="showAddBotModal = false">取消</n-button>
-          <n-button type="primary" @click="saveBot" :loading="saving">保存</n-button>
+          <n-button secondary @click="showAddBotModal = false">{{ buttonText.CANCEL }}</n-button>
+          <n-button :type="buttonTypes.PRIMARY" @click="saveBot" :loading="saving">{{ buttonText.SAVE }}</n-button>
         </n-space>
       </template>
     </n-modal>
 
-    <n-modal v-model:show="showTestModal" preset="dialog" title="发送测试消息" positive-text="发送" negative-text="取消" @positive-click="sendTestMessage">
+    <n-modal v-model:show="showTestModal" preset="dialog" title="发送测试消息" :positive-text="buttonText.SEND" :negative-text="buttonText.CANCEL" @positive-click="sendTestMessage">
       <n-input v-model:value="testMessage" type="textarea" placeholder="输入测试内容..." />
     </n-modal>
   </div>
@@ -120,10 +119,41 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { NCard, NButton, NSpace, NSwitch, NEmpty, NModal, NForm, NFormItem, NInput, NSelect, NTag, NPopconfirm, NText, NAlert, useMessage } from 'naive-ui'
+import { NCard, NButton, NSpace, NEmpty, NModal, NForm, NFormItem, NInput, NSelect, NTag, NPopconfirm, NText, NAlert, useMessage } from 'naive-ui'
 import { notificationApi } from '@/api/notification'
+import MobileSwitch from '../components/MobileSwitch.vue'
+import {
+  ButtonTypes,
+  ButtonSizes,
+  TagTypes,
+  FormSizes,
+  ButtonText,
+  StatusText,
+  MessageText,
+} from '../constants'
 
 const message = useMessage()
+
+// 使用常量
+const buttonTypes = ButtonTypes
+const buttonSizes = ButtonSizes
+const tagTypes = TagTypes
+const formSizes = FormSizes
+const buttonText = ButtonText
+const statusText = StatusText
+const messageText = MessageText
+
+// 表单标签
+const formLabel = {
+  NAME: '名称',
+  TYPE: '类型',
+}
+
+// 占位符
+const placeholder = {
+  BOT_NAME: '例如：Lens 备份助手',
+}
+
 const settings = ref({
   enabled: true,
   bots: []
@@ -162,36 +192,36 @@ const loadSettings = async () => {
     const res = await notificationApi.getSettings()
     settings.value = res as any || { enabled: true, bots: [] }
   } catch (e) {
-    message.error('加载设置失败')
+    message.error(messageText.OPERATION_FAILED)
   }
 }
 
 const saveSettings = async () => {
   try {
     await notificationApi.saveSettings(settings.value)
-    message.success('设置已保存')
+    message.success(messageText.SETTINGS_SAVED)
   } catch (e) {
-    message.error('保存设置失败')
+    message.error(messageText.SAVE_FAILED)
   }
 }
 
 const saveBot = async () => {
-  if (!editingBot.name || !editingBot.token) {
+  if (!editingBot.value.name || !editingBot.value.token) {
     message.warning('请填写完整的机器人信息')
     return
   }
   saving.value = true
   try {
-    if (editingBot.id) {
-      await notificationApi.updateBot(editingBot.id, editingBot)
+    if (editingBot.value.id) {
+      await notificationApi.updateBot(editingBot.value.id, editingBot.value)
     } else {
-      await notificationApi.addBot(editingBot)
+      await notificationApi.addBot(editingBot.value)
     }
     await saveSettings()
     showAddBotModal.value = false
-    editingBot.value = { id: null, name: '', type: 'telegram', token: '', chat_id: '', subscribed_events: [] }
+    editingBot.value = { id: null, name: '', type: 'telegram', token: '', chat_id: '', subscribed_events: [], is_interactive: false, allowed_user_ids: [], enabled: true }
   } catch (e) {
-    message.error('保存机器人失败')
+    message.error(messageText.ADD_FAILED)
   } finally {
     saving.value = false
   }
@@ -207,7 +237,7 @@ const deleteBot = async (id: number) => {
     await notificationApi.deleteBot(String(id))
     await saveSettings()
   } catch (e) {
-    message.error('删除机器人失败')
+    message.error(messageText.DELETE_FAILED)
   }
 }
 
@@ -219,10 +249,10 @@ const testBot = async (id: string) => {
 const sendTestMessage = async () => {
   try {
     await notificationApi.sendTestMessage(testMessage.value)
-    message.success('测试消息已发送')
+    message.success(messageText.SEND_SUCCESS)
     showTestModal.value = false
   } catch (e) {
-    message.error('发送测试消息失败')
+    message.error(messageText.SEND_FAILED)
   }
 }
 
@@ -259,14 +289,15 @@ onMounted(() => {
   margin-bottom: 12px;
 }
 
-.switch-row {
+.setting-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 8px 0;
+  border-bottom: 1px solid var(--border-color);
 }
 
-.switch-label {
+.setting-label {
   font-size: 15px;
   color: var(--text-color);
   font-weight: 500;
@@ -328,12 +359,5 @@ onMounted(() => {
 .bot-actions {
   display: flex;
   gap: 8px;
-}
-
-/* Switch 开关样式 - 使用 CSS 变量覆盖 naive-ui 默认样式 */
-.mobile-switch {
-  --n-rail-color: var(--border-color) !important;
-  --n-rail-color-active: var(--primary-color) !important;
-  --n-button-color: #ffffff !important;
 }
 </style>

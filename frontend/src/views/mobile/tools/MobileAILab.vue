@@ -15,12 +15,12 @@
         </div>
       </template>
       <n-form label-placement="top" class="mobile-form">
-        <n-form-item label="服务商">
+        <n-form-item :label="formLabel.PROVIDER">
           <n-select
             v-model:value="config.provider"
             :options="providerOptions"
             @update:value="handleProviderChange"
-            size="large"
+            :size="buttonSizes.LARGE"
           />
         </n-form-item>
         <n-form-item label="API Key" v-if="config.provider === 'openai'">
@@ -29,21 +29,21 @@
             v-model:value="config.api_key"
             placeholder="sk-..."
             show-password-on="click"
-            size="large"
+            :size="buttonSizes.LARGE"
           />
         </n-form-item>
         <n-form-item label="Base URL">
           <n-input
             v-model:value="config.base_url"
             placeholder="https://api.openai.com/v1"
-            size="large"
+            :size="buttonSizes.LARGE"
           />
         </n-form-item>
         <n-form-item label="Model Name">
           <n-input
             v-model:value="config.model"
             placeholder="gpt-3.5-turbo"
-            size="large"
+            :size="buttonSizes.LARGE"
           />
         </n-form-item>
         <n-form-item>
@@ -52,9 +52,8 @@
             <span class="switch-label">使用系统内置 HTTP 代理</span>
           </n-space>
         </n-form-item>
-        <n-button type="primary" @click="saveConfig" :loading="saving" block size="large">
-          <template #icon><n-icon><SaveIcon /></n-icon></template>
-          保存配置
+        <n-button :type="buttonTypes.PRIMARY" @click="saveConfig" :loading="saving" block :size="buttonSizes.LARGE">
+          {{ buttonText.SAVE }}{{ formLabel.CONFIG }}
         </n-button>
       </n-form>
     </n-card>
@@ -67,13 +66,13 @@
           <span>AI 对话</span>
           <n-button
             v-if="messages.length > 0"
-            size="small"
+            :size="buttonSizes.SMALL"
             secondary
-            type="error"
+            :type="buttonTypes.ERROR"
             @click="clearHistory"
             class="clear-btn"
           >
-            清空
+            {{ buttonText.CLEAR }}
           </n-button>
         </div>
       </template>
@@ -81,7 +80,7 @@
       <!-- 消息列表 -->
       <div class="chat-window" ref="chatWindow">
         <div v-if="messages.length === 0" class="empty-state">
-          <n-empty description="开始一次新的对话吧" />
+          <n-empty :description="placeholder.START_CHAT" />
         </div>
 
         <div
@@ -90,8 +89,8 @@
           :class="['message-bubble', msg.role]"
         >
           <div class="message-avatar">
-            <n-avatar v-if="msg.role === 'assistant'" size="small" color="#705df2">AI</n-avatar>
-            <n-avatar v-else size="small" color="#10b981">我</n-avatar>
+            <n-avatar v-if="msg.role === 'assistant'" :size="buttonSizes.SMALL" color="#705df2">AI</n-avatar>
+            <n-avatar v-else :size="buttonSizes.SMALL" color="#10b981">我</n-avatar>
           </div>
           <div class="message-content">
             <div class="text" v-html="formatMessage(msg.content)"></div>
@@ -100,7 +99,7 @@
 
         <div v-if="loading" class="message-bubble assistant">
           <div class="message-avatar">
-            <n-avatar size="small" color="#705df2">AI</n-avatar>
+            <n-avatar :size="buttonSizes.SMALL" color="#705df2">AI</n-avatar>
           </div>
           <div class="typing-indicator">
             <span></span><span></span><span></span>
@@ -114,21 +113,20 @@
           type="textarea"
           v-model:value="userInput"
           :autosize="{ minRows: 2, maxRows: 4 }"
-          placeholder="输入你的问题..."
+          :placeholder="placeholder.INPUT_QUESTION"
           @keydown.enter.prevent="sendMessage"
           :disabled="loading"
           class="chat-input"
         />
         <n-button
-          type="primary"
+          :type="buttonTypes.PRIMARY"
           circle
-          size="large"
+          :size="buttonSizes.LARGE"
           @click="sendMessage"
           :loading="loading"
           class="send-btn"
         >
-          <template #icon><n-icon><SendIcon /></n-icon></template>
-        </n-button>
+          </n-button>
       </div>
     </n-card>
 
@@ -161,15 +159,35 @@ import {
   NForm, NFormItem, NSelect, NSwitch, NAvatar
 } from 'naive-ui'
 import {
-  SendOutlined as SendIcon,
-  SaveOutlined as SaveIcon,
-  SettingsOutlined as SettingsIcon,
-  ChatBubbleOutlined as ChatIcon,
-  InfoOutlined as InfoIcon
+  ChatBubbleOutlined as ChatIcon
 } from '@vicons/material'
 import { aiApi } from '@/api/ai'
+import {
+  ButtonTypes,
+  ButtonSizes,
+  ButtonText,
+  MessageText,
+} from '../constants'
 
 const message = useMessage()
+
+// 使用常量
+const buttonTypes = ButtonTypes
+const buttonSizes = ButtonSizes
+const buttonText = ButtonText
+const messageText = MessageText
+
+// 表单标签
+const formLabel = {
+  PROVIDER: '服务商',
+  CONFIG: '配置',
+}
+
+// 占位符
+const placeholder = {
+  START_CHAT: '开始一次新的对话吧',
+  INPUT_QUESTION: '输入你的问题...',
+}
 
 // 配置
 const config = ref({
@@ -212,9 +230,9 @@ const saveConfig = async () => {
   saving.value = true
   try {
     await aiApi.saveConfig(config.value)
-    message.success('配置已保存')
+    message.success(messageText.SAVE_SUCCESS)
   } catch (e) {
-    message.error('保存失败')
+    message.error(messageText.SAVE_FAILED)
   } finally {
     saving.value = false
   }
@@ -274,7 +292,7 @@ const sendMessage = async () => {
       content: data.content || '无响应内容'
     })
   } catch (error) {
-    message.error('发送失败，请检查配置')
+    message.error(messageText.OPERATION_FAILED + '，请检查配置')
     messages.value.push({
       role: 'assistant',
       content: '抱歉，请求处理失败。请检查 AI 配置是否正确。'

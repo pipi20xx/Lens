@@ -7,32 +7,29 @@
     </div>
 
     <!-- 高危警告 -->
-    <n-alert title="高危操作警告" type="error" :bordered="false" class="warning-alert">
+    <n-alert :title="messageText.HIGH_RISK_WARNING" :type="tagTypes.ERROR" :bordered="false" class="warning-alert">
       本模块功能涉及 Emby 数据库底层权限策略的强制写入。<strong>非必要请勿使用！</strong>
     </n-alert>
 
     <!-- 操作按钮 -->
     <n-card class="action-card" :bordered="false">
       <n-space vertical>
-        <n-button block type="primary" secondary :loading="loading" @click="loadUsers">
-          <template #icon><n-icon><RefreshIcon /></n-icon></template>
-          刷新用户列表
+        <n-button block :type="buttonTypes.PRIMARY" secondary :loading="loading" @click="loadUsers">
+          {{ buttonText.REFRESH }}用户列表
         </n-button>
-        <n-button block type="warning" secondary :loading="backingUpAll" @click="handleBackupAll">
-          <template #icon><n-icon><BackupIcon /></n-icon></template>
-          一键备份所有用户
+        <n-button block :type="buttonTypes.WARNING" secondary :loading="backingUpAll" @click="handleBackupAll">
+          一键{{ buttonText.BACKUP }}所有用户
         </n-button>
         <MobileEmbyConfigBackupManager category="users" :server-id="activeServerId" @restored="loadUsers" />
       </n-space>
     </n-card>
 
     <!-- 新增用户 -->
-    <n-card class="add-card" :bordered="false" title="新增用户">
+    <n-card class="add-card" :bordered="false" :title="buttonText.CREATE + '用户'">
       <n-space>
-        <n-input v-model:value="newUserName" placeholder="新用户名" @keyup.enter="handleCreateUser" />
-        <n-button type="primary" :loading="creating" @click="handleCreateUser">
-          <template #icon><n-icon><UserAddIcon /></n-icon></template>
-          创建
+        <n-input v-model:value="newUserName" :placeholder="placeholder.USERNAME" @keyup.enter="handleCreateUser" />
+        <n-button :type="buttonTypes.PRIMARY" :loading="creating" @click="handleCreateUser">
+          {{ buttonText.CREATE }}
         </n-button>
       </n-space>
     </n-card>
@@ -40,36 +37,33 @@
     <!-- 用户列表 -->
     <n-card class="users-card" :bordered="false" title="用户列表">
       <div v-if="users.length === 0" class="empty-state">
-        <n-empty description="暂无用户" />
+        <n-empty :description="messageText.EMPTY_DATA" />
       </div>
       <div v-else class="user-list">
         <div v-for="user in users" :key="user.Id" class="user-item">
           <div class="user-info">
             <div class="user-name">{{ user.Name }}</div>
             <div class="user-tags">
-              <n-tag v-if="user.Policy?.IsDisabled" type="error" size="tiny" round>禁用</n-tag>
-              <n-tag v-if="user.Policy?.IsAdministrator" type="warning" size="tiny" round>管理员</n-tag>
-              <n-tag v-if="user.Policy?.IsHidden" type="default" size="tiny" round>隐藏</n-tag>
-              <n-tag v-if="!user.Policy?.IsDisabled && !user.Policy?.IsAdministrator" type="success" size="tiny" round>正常</n-tag>
+              <n-tag v-if="user.Policy?.IsDisabled" :type="tagTypes.ERROR" :size="buttonSizes.TINY" round>{{ statusText.DISABLED }}</n-tag>
+              <n-tag v-if="user.Policy?.IsAdministrator" :type="tagTypes.WARNING" :size="buttonSizes.TINY" round>管理员</n-tag>
+              <n-tag v-if="user.Policy?.IsHidden" :type="tagTypes.DEFAULT" :size="buttonSizes.TINY" round>隐藏</n-tag>
+              <n-tag v-if="!user.Policy?.IsDisabled && !user.Policy?.IsAdministrator" :type="tagTypes.SUCCESS" :size="buttonSizes.TINY" round>{{ statusText.NORMAL }}</n-tag>
             </div>
           </div>
           <div class="user-actions">
-            <n-button size="small" secondary type="info" @click="openEdit(user)">
-              <template #icon><n-icon><EditIcon /></n-icon></template>
-              设置
+            <n-button :size="buttonSizes.MEDIUM" secondary :type="buttonTypes.INFO" @click="openEdit(user)">
+              {{ buttonText.SETTINGS }}
             </n-button>
-            <n-button size="small" secondary type="warning" @click="handleDirectBackup(user)">
-              <template #icon><n-icon><BackupIcon /></n-icon></template>
-              备份
+            <n-button :size="buttonSizes.MEDIUM" secondary :type="buttonTypes.WARNING" @click="handleDirectBackup(user)">
+              {{ buttonText.BACKUP }}
             </n-button>
-            <n-popconfirm @positive-click="handleDeleteUser(user.Id)" positive-text="确认删除" negative-text="取消">
+            <n-popconfirm @positive-click="handleDeleteUser(user.Id)" :positive-text="buttonText.CONFIRM_DELETE" :negative-text="buttonText.CANCEL">
               <template #trigger>
-                <n-button size="small" secondary type="error">
-                  <template #icon><n-icon><DeleteIcon /></n-icon></template>
-                  删除
+                <n-button :size="buttonSizes.MEDIUM" secondary :type="buttonTypes.ERROR">
+                  {{ buttonText.DELETE }}
                 </n-button>
               </template>
-              确定删除用户 {{ user.Name }}？
+              确定{{ buttonText.DELETE }}用户 {{ user.Name }}？
             </n-popconfirm>
           </div>
         </div>
@@ -77,12 +71,12 @@
     </n-card>
 
     <!-- 用户设置模态框 -->
-    <n-modal v-model:show="showEditModal" preset="card" :title="'设置: ' + editingUser?.Name" style="width: 95vw; max-width: 600px">
-      <n-tabs type="segment" size="small">
+    <n-modal v-model:show="showEditModal" preset="card" :title="buttonText.SETTINGS + ': ' + editingUser?.Name" style="width: 95vw; max-width: 600px">
+      <n-tabs type="segment" :size="buttonSizes.SMALL">
         <n-tab-pane name="account" tab="账户">
           <n-space vertical class="settings-section">
             <div class="setting-item">
-              <span class="setting-label">禁用此账户</span>
+              <span class="setting-label">{{ statusText.DISABLE }}此账户</span>
               <n-switch v-model:value="policy.IsDisabled" class="mobile-switch" />
             </div>
             <div class="setting-item">
@@ -103,11 +97,11 @@
             </div>
             <div class="setting-item">
               <span class="setting-label">同时播放限制</span>
-              <n-input-number v-model:value="policy.SimultaneousStreamLimit" :min="0" size="small" style="width: 100px" />
+              <n-input-number v-model:value="policy.SimultaneousStreamLimit" :min="0" :size="buttonSizes.SMALL" style="width: 100px" />
             </div>
             <div class="setting-item">
               <span class="setting-label">远程客户端比特率限制</span>
-              <n-input-number v-model:value="policy.RemoteClientBitrateLimit" :min="0" :step="1000000" size="small" style="width: 150px" />
+              <n-input-number v-model:value="policy.RemoteClientBitrateLimit" :min="0" :step="1000000" :size="buttonSizes.SMALL" style="width: 150px" />
             </div>
           </n-space>
         </n-tab-pane>
@@ -139,7 +133,7 @@
             </div>
             <div class="setting-item">
               <span class="setting-label">自动远程质量</span>
-              <n-input-number v-model:value="policy.AutoRemoteQuality" :min="0" size="small" style="width: 100px" />
+              <n-input-number v-model:value="policy.AutoRemoteQuality" :min="0" :size="buttonSizes.SMALL" style="width: 100px" />
             </div>
           </n-space>
         </n-tab-pane>
@@ -201,23 +195,22 @@
         </n-tab-pane>
         <n-tab-pane name="password" tab="密码">
           <n-space vertical class="settings-section">
-            <n-input v-model:value="newPassword" type="password" show-password-on="click" placeholder="输入新密码" />
-            <n-button type="warning" secondary block :disabled="!newPassword" @click="handleUpdatePassword">
-              <template #icon><n-icon><EditIcon /></n-icon></template>
-              更新密码
+            <n-input v-model:value="newPassword" type="password" show-password-on="click" :placeholder="placeholder.NEW_PASSWORD" />
+            <n-button :type="buttonTypes.WARNING" secondary block :disabled="!newPassword" @click="handleUpdatePassword">
+              {{ buttonText.UPDATE }}密码
             </n-button>
           </n-space>
         </n-tab-pane>
         <n-tab-pane name="json" tab="JSON">
           <n-space vertical>
-            <n-alert type="info" size="small">
+            <n-alert :type="tagTypes.INFO" :size="buttonSizes.SMALL">
               高级操作：您可以直接编辑下方的原始 JSON 数据。请确保格式正确，非法 JSON 将无法保存。
             </n-alert>
             <n-input
               v-model:value="jsonRaw"
               type="textarea"
               :autosize="{ minRows: 10, maxRows: 20 }"
-              placeholder="请输入有效的 Policy JSON"
+              :placeholder="placeholder.JSON_INPUT"
               style="font-family: monospace; font-size: 12px"
               @update:value="handleJsonInput"
             />
@@ -227,14 +220,12 @@
       <template #action>
         <n-space vertical style="width: 100%">
           <n-space justify="end">
-            <n-button strong secondary @click="showEditModal = false">取消</n-button>
-            <n-button type="warning" secondary strong @click="handleBackup" :loading="backingUp">
-              <template #icon><n-icon><BackupIcon /></n-icon></template>
-              备份当前配置
+            <n-button strong secondary @click="showEditModal = false">{{ buttonText.CANCEL }}</n-button>
+            <n-button :type="buttonTypes.WARNING" secondary strong @click="handleBackup" :loading="backingUp">
+              {{ buttonText.BACKUP }}当前配置
             </n-button>
-            <n-button type="primary" strong secondary :loading="savingPolicy" @click="handleSavePolicy">
-              <template #icon><n-icon><SaveIcon /></n-icon></template>
-              保存设置
+            <n-button :type="buttonTypes.PRIMARY" strong secondary :loading="savingPolicy" @click="handleSavePolicy">
+              {{ buttonText.SAVE }}设置
             </n-button>
           </n-space>
         </n-space>
@@ -261,16 +252,36 @@ import {
 import { createEmbyBackup, createAllEmbyBackups } from '@/api/embyBackup'
 import { servers, activeServerId, fetchServers } from '@/store/serverStore'
 import MobileEmbyConfigBackupManager from './MobileEmbyConfigBackupManager.vue'
-import { 
-  RefreshOutlined as RefreshIcon,
+import {
   BackupOutlined as BackupIcon,
-  SettingsOutlined as EditIcon,
-  DeleteOutlined as DeleteIcon,
-  PersonAddOutlined as UserAddIcon,
-  SaveOutlined as SaveIcon
+  Person
 } from '@vicons/material'
+import {
+  ButtonTypes,
+  ButtonSizes,
+  TagTypes,
+  ButtonText,
+  StatusText,
+  MessageText,
+} from '../constants'
 
 const message = useMessage()
+
+// 使用常量
+const buttonTypes = ButtonTypes
+const buttonSizes = ButtonSizes
+const tagTypes = TagTypes
+const buttonText = ButtonText
+const statusText = StatusText
+const messageText = MessageText
+
+// 占位符
+const placeholder = {
+  USERNAME: '新用户名',
+  NEW_PASSWORD: '输入新密码',
+  JSON_INPUT: '请输入有效的 Policy JSON',
+}
+
 const loading = ref(false)
 const creating = ref(false)
 const backingUp = ref(false)
@@ -298,7 +309,7 @@ const loadUsers = async () => {
     const res = await listEmbyUsers(activeServerId.value)
     users.value = res as any || []
   } catch (e: any) {
-    message.error(e.response?.data?.detail || '加载用户列表失败')
+    message.error(e.response?.data?.detail || messageText.LOAD_FAILED)
   } finally {
     loading.value = false
   }
@@ -312,11 +323,11 @@ const handleCreateUser = async () => {
   creating.value = true
   try {
     await createEmbyUser(newUserName.value.trim(), activeServerId.value)
-    message.success('用户创建成功')
+    message.success(messageText.CREATE_SUCCESS)
     newUserName.value = ''
     await loadUsers()
   } catch (e: any) {
-    message.error(e.response?.data?.detail || '创建用户失败')
+    message.error(e.response?.data?.detail || messageText.CREATE_FAILED)
   } finally {
     creating.value = false
   }
@@ -325,10 +336,10 @@ const handleCreateUser = async () => {
 const handleDeleteUser = async (userId: string) => {
   try {
     await deleteEmbyUser(userId, activeServerId.value)
-    message.success('用户已删除')
+    message.success(messageText.DELETE_SUCCESS)
     await loadUsers()
   } catch (e: any) {
-    message.error(e.response?.data?.detail || '删除用户失败')
+    message.error(e.response?.data?.detail || messageText.DELETE_FAILED)
   }
 }
 
@@ -341,7 +352,7 @@ const openEdit = async (user: any) => {
     jsonRaw.value = JSON.stringify(policy.value, null, 2)
     showEditModal.value = true
   } catch (e: any) {
-    message.error(e.response?.data?.detail || '获取用户信息失败')
+    message.error(e.response?.data?.detail || messageText.LOAD_FAILED)
   }
 }
 
@@ -363,11 +374,11 @@ const handleSavePolicy = async () => {
   savingPolicy.value = true
   try {
     await updateEmbyUserPolicy(editingUser.value.Id, policy.value, activeServerId.value)
-    message.success('用户策略已更新')
+    message.success(messageText.UPDATE_SUCCESS)
     await loadUsers()
     showEditModal.value = false
   } catch (e: any) {
-    message.error(e.response?.data?.detail || '更新策略失败')
+    message.error(e.response?.data?.detail || messageText.UPDATE_FAILED)
   } finally {
     savingPolicy.value = false
   }
@@ -377,10 +388,10 @@ const handleUpdatePassword = async () => {
   if (!editingUser.value || !newPassword.value) return
   try {
     await updateEmbyUserPassword(editingUser.value.Id, newPassword.value, activeServerId.value)
-    message.success('密码已更新')
+    message.success(messageText.UPDATE_SUCCESS)
     newPassword.value = ''
   } catch (e: any) {
-    message.error(e.response?.data?.detail || '更新密码失败')
+    message.error(e.response?.data?.detail || messageText.UPDATE_FAILED)
   }
 }
 
@@ -388,9 +399,9 @@ const handleDirectBackup = async (user: any) => {
   backingUp.value = true
   try {
     await createEmbyBackup('users', user.Id, activeServerId.value)
-    message.success(`用户 ${user.Name} 已备份`)
+    message.success(`用户 ${user.Name} 已${buttonText.BACKUP}`)
   } catch (e: any) {
-    message.error(e.response?.data?.detail || '备份失败')
+    message.error(e.response?.data?.detail || messageText.OPERATION_FAILED)
   } finally {
     backingUp.value = false
   }
@@ -401,9 +412,9 @@ const handleBackup = async () => {
   backingUp.value = true
   try {
     await createEmbyBackup('users', editingUser.value.Id, activeServerId.value)
-    message.success('当前配置已备份')
+    message.success(`当前配置已${buttonText.BACKUP}`)
   } catch (e: any) {
-    message.error(e.response?.data?.detail || '备份失败')
+    message.error(e.response?.data?.detail || messageText.OPERATION_FAILED)
   } finally {
     backingUp.value = false
   }
@@ -413,9 +424,9 @@ const handleBackupAll = async () => {
   backingUpAll.value = true
   try {
     await createAllEmbyBackups('users', activeServerId.value)
-    message.success('所有用户已备份')
+    message.success(`所有用户已${buttonText.BACKUP}`)
   } catch (e: any) {
-    message.error(e.response?.data?.detail || '备份失败')
+    message.error(e.response?.data?.detail || messageText.OPERATION_FAILED)
   } finally {
     backingUpAll.value = false
   }

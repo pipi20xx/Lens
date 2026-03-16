@@ -1,14 +1,13 @@
 <template>
-  <n-modal :show="show" @update:show="emit('update:show', $event)" preset="card" title="主机管理" style="width: 90vw; max-width: 600px">
+  <n-modal :show="show" @update:show="emit('update:show', $event)" preset="card" :title="modalTitle.HOST_MANAGE" style="width: 90vw; max-width: 600px">
     <div class="mobile-docker-host-manager">
       <n-space vertical>
-        <n-button type="primary" size="small" @click="handleAddHost">
-          <template #icon><n-icon><AddIcon /></n-icon></template>
-          添加主机
+        <n-button :type="buttonTypes.PRIMARY" :size="buttonSizes.MEDIUM" @click="handleAddHost">
+          {{ buttonText.ADD_HOST }}
         </n-button>
 
         <div v-if="hosts.length === 0" class="empty-state">
-          <n-empty description="暂无主机" size="small" />
+          <n-empty :description="emptyText.NO_HOST" :size="buttonSizes.SMALL" />
         </div>
 
         <div v-else class="host-list">
@@ -16,25 +15,23 @@
             <div class="host-header">
               <div class="host-name">
                 <n-text strong>{{ host.name }}</n-text>
-                <n-tag size="tiny" type="warning">SSH</n-tag>
-                <n-tag v-if="host.is_local" size="tiny" type="success">宿主机</n-tag>
+                <n-tag :size="buttonSizes.TINY" :type="tagTypes.WARNING">SSH</n-tag>
+                <n-tag v-if="host.is_local" :size="buttonSizes.TINY" :type="tagTypes.SUCCESS">{{ tagText.HOST }}</n-tag>
               </div>
               <n-space>
-                <n-button size="tiny" secondary @click="testConnection(host.id)" :loading="testingId === host.id">
-                  <template #icon><n-icon><TestIcon /></n-icon></template>
-                  测试
+                <n-button :size="buttonSizes.MEDIUM" secondary @click="testConnection(host.id)" :loading="testingId === host.id">
+                  {{ buttonText.TEST }}
                 </n-button>
-                <n-button size="tiny" secondary @click="handleEditHost(host)">
-                  <template #icon><n-icon><EditIcon /></n-icon></template>
-                  编辑
+                <n-button :size="buttonSizes.MEDIUM" secondary @click="handleEditHost(host)">
+                  {{ buttonText.EDIT }}
                 </n-button>
-                <n-popconfirm @positive-click="() => deleteHost(host.id)" positive-text="确认" negative-text="取消">
+                <n-popconfirm @positive-click="() => deleteHost(host.id)" :positive-text="confirmText.CONFIRM" :negative-text="confirmText.CANCEL">
                   <template #trigger>
-                    <n-button size="tiny" secondary type="error">
-                      <template #icon><n-icon><DeleteIcon /></n-icon></template>
+                    <n-button :size="buttonSizes.MEDIUM" secondary :type="buttonTypes.ERROR">
+                      {{ buttonText.DELETE }}
                     </n-button>
                   </template>
-                  确认删除？
+                  {{ confirmText.DELETE_CONFIRM }}
                 </n-popconfirm>
               </n-space>
             </div>
@@ -58,42 +55,42 @@
       </n-space>
     </div>
 
-    <n-modal v-model:show="showEditModal" preset="card" :title="editHostForm.id ? '编辑主机' : '添加主机'" style="width: 90vw; max-width: 500px">
-      <n-form label-placement="top" size="small">
-        <n-form-item label="名称" required>
-          <n-input v-model:value="editHostForm.name" placeholder="例如: 生产服务器" />
+    <n-modal v-model:show="showEditModal" preset="card" :title="editHostForm.id ? modalTitle.EDIT_HOST : modalTitle.ADD_HOST" style="width: 90vw; max-width: 500px">
+      <n-form label-placement="top" :size="buttonSizes.SMALL">
+        <n-form-item :label="formLabel.NAME" required>
+          <n-input v-model:value="editHostForm.name" :placeholder="placeholder.HOST_NAME_EXAMPLE" />
         </n-form-item>
-        <n-form-item label="SSH 地址" required>
-          <n-input v-model:value="editHostForm.ssh_host" placeholder="127.0.0.1" />
+        <n-form-item :label="formLabel.SSH_ADDRESS" required>
+          <n-input v-model:value="editHostForm.ssh_host" :placeholder="placeholder.SSH_HOST" />
         </n-form-item>
-        <n-form-item label="SSH 端口" required>
+        <n-form-item :label="formLabel.SSH_PORT" required>
           <n-input-number v-model:value="editHostForm.ssh_port" :min="1" :max="65535" style="width: 100%" />
         </n-form-item>
-        <n-form-item label="SSH 用户" required>
-          <n-input v-model:value="editHostForm.ssh_user" placeholder="root" />
+        <n-form-item :label="formLabel.SSH_USER" required>
+          <n-input v-model:value="editHostForm.ssh_user" :placeholder="placeholder.SSH_USER" />
         </n-form-item>
-        <n-form-item label="SSH 密码" required>
+        <n-form-item :label="formLabel.SSH_PASSWORD" required>
           <n-input v-model:value="editHostForm.ssh_pass" type="password" show-password-on="click" />
         </n-form-item>
-        <n-form-item label="宿主机标记">
+        <n-form-item :label="formLabel.HOST_MARK">
           <n-space align="center">
             <n-switch v-model:value="editHostForm.is_local" class="mobile-switch" />
-            <n-text depth="3" style="font-size: 12px">标记为此 Lens 容器所在的物理宿主机</n-text>
+            <n-text depth="3" style="font-size: 12px">{{ formLabel.HOST_MARK_TIP }}</n-text>
           </n-space>
         </n-form-item>
-        <n-form-item label="扫描路径">
+        <n-form-item :label="formLabel.SCAN_PATHS">
           <n-input 
             v-model:value="editHostForm.compose_scan_paths" 
             type="textarea" 
-            placeholder="逗号分隔，例如: /opt/docker-compose,/root/projects"
+            :placeholder="placeholder.SCAN_PATHS_EXAMPLE"
             :autosize="{ minRows: 2, maxRows: 4 }"
           />
         </n-form-item>
       </n-form>
       <template #action>
         <n-space justify="end">
-          <n-button secondary @click="showEditModal = false">取消</n-button>
-          <n-button type="primary" @click="saveHost" :loading="saving">保存</n-button>
+          <n-button secondary @click="showEditModal = false">{{ buttonText.CANCEL }}</n-button>
+          <n-button :type="buttonTypes.PRIMARY" @click="saveHost" :loading="saving">{{ buttonText.SAVE }}</n-button>
         </n-space>
       </template>
     </n-modal>
@@ -107,15 +104,23 @@ import {
   NInput, NInputNumber, NSwitch, NEmpty, NPopconfirm, useMessage 
 } from 'naive-ui'
 import {
-  AddOutlined as AddIcon,
   SensorsOutlined as TestIcon,
-  EditOutlined as EditIcon,
-  DeleteOutlined as DeleteIcon,
-  DnsOutlined as ServerIcon,
-  PersonOutlined as UserIcon,
-  FolderOutlined as FolderIcon
+  DnsOutlined as ServerIcon
 } from '@vicons/material'
 import axios from 'axios'
+import {
+  ButtonTypes,
+  ButtonSizes,
+  ButtonText,
+  TagTypes,
+  TagText,
+  MessageText,
+  ModalTitle,
+  FormLabel,
+  Placeholder,
+  ConfirmText,
+  EmptyText,
+} from '../constants'
 
 const props = defineProps<{
   hosts: any[]
@@ -125,6 +130,20 @@ const props = defineProps<{
 const emit = defineEmits(['refresh', 'update:show'])
 
 const message = useMessage()
+
+// 使用常量
+const buttonTypes = ButtonTypes
+const buttonSizes = ButtonSizes
+const buttonText = ButtonText
+const tagTypes = TagTypes
+const tagText = TagText
+const messageText = MessageText
+const modalTitle = ModalTitle
+const formLabel = FormLabel
+const placeholder = Placeholder
+const confirmText = ConfirmText
+const emptyText = EmptyText
+
 const showEditModal = ref(false)
 const editHostForm = ref<any>({})
 const testingId = ref('')
@@ -147,22 +166,22 @@ const handleEditHost = (h: any) => {
 
 const saveHost = async () => {
   if (!editHostForm.value.name || !editHostForm.value.ssh_host || !editHostForm.value.ssh_user || !editHostForm.value.ssh_pass) {
-    message.warning('请填写完整的主机信息')
+    message.warning(messageText.COMPLETE_HOST_INFO)
     return
   }
   saving.value = true
   try {
     if (editHostForm.value.id) {
       await axios.put(`/api/docker/hosts/${editHostForm.value.id}`, editHostForm.value)
-      message.success('主机配置已更新')
+      message.success(messageText.HOST_CONFIG_UPDATED)
     } else {
       await axios.post('/api/docker/hosts', editHostForm.value)
-      message.success('新主机已添加')
+      message.success(messageText.NEW_HOST_ADDED)
     }
     showEditModal.value = false
     emit('refresh')
   } catch (e: any) {
-    message.error('保存失败: ' + (e.response?.data?.detail || '未知错误'))
+    message.error(messageText.SAVE_FAILED + ': ' + (e.response?.data?.detail || messageText.UNKNOWN_ERROR))
   } finally {
     saving.value = false
   }
@@ -171,10 +190,10 @@ const saveHost = async () => {
 const deleteHost = async (id: string) => {
   try {
     await axios.delete(`/api/docker/hosts/${id}`)
-    message.success('主机已删除')
+    message.success(messageText.HOST_DELETED)
     emit('refresh')
   } catch (e: any) {
-    message.error('删除失败: ' + (e.response?.data?.detail || '未知错误'))
+    message.error(messageText.DELETE_FAILED + ': ' + (e.response?.data?.detail || messageText.UNKNOWN_ERROR))
   }
 }
 
@@ -183,12 +202,12 @@ const testConnection = async (id: string) => {
   try {
     const res = await axios.post(`/api/docker/${id}/test`)
     if (res.data.status === 'ok') {
-      message.success('连接正常')
+      message.success(messageText.CONNECTION_NORMAL)
     } else {
-      message.error('连接失败')
+      message.error(messageText.CONNECTION_FAILED)
     }
   } catch (e: any) {
-    message.error('测试失败: ' + (e.response?.data?.detail || '未知错误'))
+    message.error(messageText.TEST_FAILED + ': ' + (e.response?.data?.detail || messageText.UNKNOWN_ERROR))
   } finally {
     testingId.value = ''
   }

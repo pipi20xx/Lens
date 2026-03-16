@@ -1,80 +1,80 @@
 <template>
-  <n-modal 
-    :show="show" 
-    @update:show="$emit('update:show', $event)" 
-    preset="card" 
-    :title="task.id ? '编辑备份任务' : '新增备份任务'" 
+  <n-modal
+    :show="show"
+    @update:show="$emit('update:show', $event)"
+    preset="card"
+    :title="task.id ? modalTitle.EDIT_BACKUP_TASK : modalTitle.ADD_BACKUP_TASK"
     style="width: 95vw; max-width: 500px"
   >
-    <n-form :model="task" label-placement="top" size="small">
-      <n-form-item label="任务名称">
-        <n-input v-model:value="task.name" placeholder="例如：数据库每日备份" />
+    <n-form :model="task" label-placement="top" :size="buttonSizes.SMALL">
+      <n-form-item :label="formLabel.TASK_NAME">
+        <n-input v-model:value="task.name" :placeholder="placeholder.TASK_NAME_EXAMPLE" />
       </n-form-item>
-      
-      <n-form-item label="备份模式">
+
+      <n-form-item :label="formLabel.BACKUP_MODE">
         <n-select v-model:value="task.mode" :options="modeOptions" />
       </n-form-item>
-      
-      <n-form-item label="存储介质" v-if="task.mode !== 'pgsql'">
+
+      <n-form-item :label="formLabel.STORAGE_MEDIUM" v-if="task.mode !== 'pgsql'">
         <n-select v-model:value="task.storage_type" :options="storageOptions" />
       </n-form-item>
-      
-      <n-form-item label="同步策略" v-if="task.mode === 'sync'">
+
+      <n-form-item :label="formLabel.SYNC_STRATEGY" v-if="task.mode === 'sync'">
         <n-select v-model:value="task.sync_strategy" :options="syncOptions" />
       </n-form-item>
-      
-      <n-form-item label="源路径" v-if="task.mode !== 'pgsql'">
-        <n-input v-model:value="task.src_path" placeholder="/app/data" />
+
+      <n-form-item :label="formLabel.SOURCE_PATH" v-if="task.mode !== 'pgsql'">
+        <n-input v-model:value="task.src_path" :placeholder="placeholder.SOURCE_PATH" />
       </n-form-item>
-      
-      <n-form-item label="目标目录">
-        <n-input v-model:value="task.dst_path" placeholder="/backup" />
+
+      <n-form-item :label="formLabel.DESTINATION_DIR">
+        <n-input v-model:value="task.dst_path" :placeholder="placeholder.DESTINATION_DIR" />
       </n-form-item>
-      
-      <n-form-item label="压缩强度" v-if="task.mode === '7z'">
+
+      <n-form-item :label="formLabel.COMPRESSION_LEVEL" v-if="task.mode === '7z'">
         <n-slider v-model:value="task.compression_level" :min="1" :max="9" :step="1" />
-        <n-text depth="3" style="margin-left: 12px">等级 {{ task.compression_level }}</n-text>
+        <n-text depth="3" style="margin-left: 12px">{{ label.LEVEL }} {{ task.compression_level }}</n-text>
       </n-form-item>
-      
-      <n-form-item label="加密密码" v-if="task.mode === '7z'">
-        <n-input v-model:value="task.password" type="password" show-password-on="click" placeholder="可选" />
+
+      <n-form-item :label="formLabel.ENCRYPTION_PASSWORD" v-if="task.mode === '7z'">
+        <n-input v-model:value="task.password" type="password" show-password-on="click" :placeholder="placeholder.OPTIONAL" />
       </n-form-item>
-      
-      <n-divider title-placement="left">自动化运行计划</n-divider>
-      
-      <n-form-item label="启用定时备份">
+
+      <n-divider title-placement="left">{{ label.AUTO_SCHEDULE }}</n-divider>
+
+      <n-form-item :label="formLabel.ENABLE_SCHEDULE">
         <n-switch v-model:value="task.enabled" class="mobile-switch" />
       </n-form-item>
-      
+
       <template v-if="task.enabled">
-        <n-form-item label="运行频率">
+        <n-form-item :label="formLabel.RUN_FREQUENCY">
           <n-select v-model:value="simpleScheduleMode" :options="scheduleOptions" />
         </n-form-item>
-        
-        <n-form-item label="执行时间" v-if="simpleScheduleMode === 'daily'">
+
+        <n-form-item :label="formLabel.EXECUTION_TIME" v-if="simpleScheduleMode === 'daily'">
           <n-time-picker v-model:formatted-value="dailyTime" format="HH:mm" />
         </n-form-item>
-        
-        <n-form-item label="间隔时间" v-if="simpleScheduleMode === 'interval'">
+
+        <n-form-item :label="formLabel.INTERVAL_TIME" v-if="simpleScheduleMode === 'interval'">
           <n-input-number v-model:value="intervalValue" :min="1" style="width: 120px" />
           <n-select v-model:value="intervalUnit" :options="unitOptions" style="width: 100px; margin-left: 8px" />
         </n-form-item>
-        
-        <n-form-item label="Cron 表达式" v-if="simpleScheduleMode === 'cron'">
-          <n-input v-model:value="task.schedule_value" placeholder="0 3 * * *" />
+
+        <n-form-item :label="formLabel.CRON_EXPRESSION" v-if="simpleScheduleMode === 'cron'">
+          <n-input v-model:value="task.schedule_value" :placeholder="placeholder.CRON_EXAMPLE" />
         </n-form-item>
       </template>
-      
-      <n-form-item label="忽略模式" v-if="task.mode !== 'pgsql'">
+
+      <n-form-item :label="formLabel.IGNORE_PATTERN" v-if="task.mode !== 'pgsql'">
         <n-space vertical :size="8" style="width: 100%">
           <n-space :size="4">
-            <n-text depth="3" style="font-size: 12px; margin-right: 4px">常用预设:</n-text>
-            <n-tag 
-              v-for="p in presetPatterns" 
-              :key="p" 
-              size="small" 
-              round 
-              checkable 
+            <n-text depth="3" style="font-size: 12px; margin-right: 4px">{{ label.COMMON_PRESETS }}:</n-text>
+            <n-tag
+              v-for="p in presetPatterns"
+              :key="p"
+              :size="buttonSizes.SMALL"
+              round
+              checkable
               :checked="task.ignore_patterns.includes(p)"
               @update:checked="(val) => handleTogglePattern(p, val)"
               style="cursor: pointer"
@@ -82,19 +82,19 @@
               {{ p }}
             </n-tag>
           </n-space>
-          <n-dynamic-input v-model:value="task.ignore_patterns" placeholder="例如：*.log" />
+          <n-dynamic-input v-model:value="task.ignore_patterns" :placeholder="placeholder.IGNORE_PATTERN_EXAMPLE" />
         </n-space>
       </n-form-item>
     </n-form>
-    
+
     <template #footer>
       <n-space vertical style="width: 100%">
         <n-space justify="end">
           <n-button @click="$emit('update:show', false)">
-            取消
+            {{ buttonText.CANCEL }}
           </n-button>
-          <n-button type="primary" @click="handleSave">
-            保存
+          <n-button :type="buttonTypes.PRIMARY" @click="handleSave">
+            {{ buttonText.SAVE }}
           </n-button>
         </n-space>
       </n-space>
@@ -103,12 +103,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import { 
-  NModal, NForm, NFormItem, NInput, NSelect, NSlider, 
-  NText, NDynamicInput, NSpace, NDivider, NSwitch, 
-  NTimePicker, NInputNumber, NTag 
+import {
+  NModal, NForm, NFormItem, NInput, NSelect, NSlider,
+  NText, NDynamicInput, NSpace, NDivider, NSwitch,
+  NTimePicker, NInputNumber, NTag
 } from 'naive-ui'
+import {
+  ButtonTypes,
+  ButtonSizes,
+  ButtonText,
+  ModalTitle,
+  FormLabel,
+  Placeholder,
+  Label,
+} from '../constants'
 
 const props = defineProps<{
   show: boolean
@@ -116,6 +124,15 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits(['update:show', 'save'])
+
+// 使用常量
+const buttonTypes = ButtonTypes
+const buttonSizes = ButtonSizes
+const buttonText = ButtonText
+const modalTitle = ModalTitle
+const formLabel = FormLabel
+const placeholder = Placeholder
+const label = Label
 
 const simpleScheduleMode = ref('daily')
 const dailyTime = ref('03:00')
@@ -153,7 +170,7 @@ const unitOptions = [
 ]
 
 const presetPatterns = [
-  '__pycache__', '*.pyc', '.git', 'node_modules', 'target', 
+  '__pycache__', '*.pyc', '.git', 'node_modules', 'target',
   '.vscode', '.idea', 'dist', 'build', '*.log', '.DS_Store'
 ]
 

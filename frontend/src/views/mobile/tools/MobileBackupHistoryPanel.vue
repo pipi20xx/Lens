@@ -1,36 +1,35 @@
 <template>
-  <n-card size="small" :bordered="false" title="执行历史">
+  <n-card :size="buttonSizes.SMALL" :bordered="false" :title="cardTitle.EXECUTION_HISTORY">
     <n-space vertical>
       <n-space justify="space-between">
-        <n-text type="primary" style="font-weight: 600">历史记录</n-text>
-        <n-button size="small" secondary @click="fetchHistory">
-          <template #icon><n-icon><RefreshIcon /></n-icon></template>
-          刷新
+        <n-text :type="tagTypes.PRIMARY" style="font-weight: 600">{{ label.HISTORY_RECORD }}</n-text>
+        <n-button :size="buttonSizes.MEDIUM" secondary @click="fetchHistory">
+          {{ buttonText.REFRESH }}
         </n-button>
       </n-space>
-      
+
       <div v-if="loading" class="loading-state">
-        <n-spin size="medium" />
+        <n-spin :size="buttonSizes.MEDIUM" />
       </div>
-      
+
       <div v-else-if="history.length === 0" class="empty-state">
-        <n-empty description="暂无执行历史" />
+        <n-empty :description="emptyText.NO_BACKUP_HISTORY" />
       </div>
-      
+
       <div v-else class="history-list">
         <div v-for="item in history" :key="item.id" class="history-item">
           <div class="history-header">
             <div class="task-name">{{ item.task_name }}</div>
-            <n-tag 
-              :type="getStatusType(item.status)" 
-              size="small" 
+            <n-tag
+              :type="getStatusType(item.status)"
+              :size="buttonSizes.SMALL"
               round
               :bordered="false"
             >
               {{ getStatusLabel(item.status) }}
             </n-tag>
           </div>
-          
+
           <div class="history-info">
             <div class="info-row">
               <n-icon size="14"><TimeIcon /></n-icon>
@@ -41,21 +40,19 @@
               <span>{{ formatSize(item.size) }}</span>
             </div>
           </div>
-          
+
           <div v-if="item.message" class="history-message">
             <n-text depth="3" style="font-size: 12px">
               {{ item.message }}
             </n-text>
           </div>
-          
+
           <div v-if="item.status === 'success'" class="history-actions">
-            <n-button size="small" secondary type="info" @click="handleDownload(item)">
-              <template #icon><n-icon><DownloadIcon /></n-icon></template>
-              下载
+            <n-button :size="buttonSizes.MEDIUM" secondary :type="buttonTypes.INFO" @click="handleDownload(item)">
+              {{ buttonText.DOWNLOAD }}
             </n-button>
-            <n-button size="small" secondary type="warning" @click="handleRestore(item)">
-              <template #icon><n-icon><RestoreIcon /></n-icon></template>
-              恢复
+            <n-button :size="buttonSizes.MEDIUM" secondary :type="buttonTypes.WARNING" @click="handleRestore(item)">
+              {{ buttonText.RESTORE }}
             </n-button>
           </div>
         </div>
@@ -67,27 +64,41 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { NCard, NSpace, NButton, NTag, NIcon, NEmpty, NSpin, NText, useMessage } from 'naive-ui'
-import { 
-  RefreshOutlined as RefreshIcon,
-  AccessTimeOutlined as TimeIcon,
-  StorageOutlined as SizeIcon,
-  DownloadOutlined as DownloadIcon,
-  RestoreOutlined as RestoreIcon
-} from '@vicons/material'
 import axios from 'axios'
+import {
+  ButtonTypes,
+  ButtonSizes,
+  ButtonText,
+  TagTypes,
+  MessageText,
+  CardTitle,
+  Label,
+  EmptyText,
+} from '../constants'
 
 const message = useMessage()
+
+// 使用常量
+const buttonTypes = ButtonTypes
+const buttonSizes = ButtonSizes
+const buttonText = ButtonText
+const tagTypes = TagTypes
+const messageText = MessageText
+const cardTitle = CardTitle
+const label = Label
+const emptyText = EmptyText
+
 const history = ref([])
 const loading = ref(false)
 let timer: any = null
 
 const getStatusType = (status: string) => {
   const types: Record<string, any> = {
-    'success': 'success',
-    'running': 'info',
-    'failed': 'error'
+    'success': tagTypes.SUCCESS,
+    'running': tagTypes.INFO,
+    'failed': tagTypes.ERROR
   }
-  return types[status] || 'default'
+  return types[status] || tagTypes.DEFAULT
 }
 
 const getStatusLabel = (status: string) => {
@@ -121,7 +132,7 @@ const fetchHistory = async (silent = false) => {
   try {
     const res = await axios.get('/api/backup/history')
     history.value = res.data
-    
+
     const hasRunning = res.data.some((item: any) => item.status === 'running')
     if (hasRunning) {
       startPolling()
@@ -129,7 +140,7 @@ const fetchHistory = async (silent = false) => {
       stopPolling()
     }
   } catch (e) {
-    message.error('加载历史记录失败')
+    message.error(messageText.LOAD_HISTORY_FAILED)
   } finally {
     loading.value = false
   }
@@ -157,11 +168,11 @@ const handleDownload = (item: any) => {
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
-  message.success('开始下载')
+  message.success(messageText.START_DOWNLOAD)
 }
 
 const handleRestore = (item: any) => {
-  message.info('恢复功能开发中')
+  message.info(messageText.RESTORE_DEVELOPING)
 }
 
 defineExpose({ fetchHistory })

@@ -26,7 +26,6 @@
           :loading="loading"
           @click="handleSearch"
         >
-          <template #icon><n-icon><SearchIcon /></n-icon></template>
           执行搜索
         </n-button>
       </n-space>
@@ -69,8 +68,7 @@
                     <div class="season-header">
                       <span>{{ season.Name }}</span>
                       <n-button secondary circle size="tiny" @click.stop="showJson(season)">
-                        <template #icon><n-icon><CodeIcon /></n-icon></template>
-                      </n-button>
+                        </n-button>
                     </div>
                   </template>
                   <div class="episodes-list">
@@ -78,8 +76,7 @@
                       <div class="episode-header">
                         <span class="episode-name">EP {{ ep.IndexNumber }} - {{ ep.Name }}</span>
                         <n-button secondary circle size="tiny" @click.stop="showJson(ep)">
-                          <template #icon><n-icon><CodeIcon /></n-icon></template>
-                        </n-button>
+                          </n-button>
                       </div>
                       <div class="episode-meta">
                         <n-tag v-if="ep.PremiereDate" size="tiny">{{ ep.PremiereDate?.split('T')[0] }}</n-tag>
@@ -92,7 +89,6 @@
             </div>
 
             <n-button block secondary type="primary" @click="showJson(item)" style="margin-top: 12px">
-              <template #icon><n-icon><CodeIcon /></n-icon></template>
               查看 JSON
             </n-button>
           </n-card>
@@ -109,7 +105,6 @@
       </div>
       <template #footer>
         <n-button block type="primary" secondary @click="copyRawJson">
-          <template #icon><n-icon><CopyIcon /></n-icon></template>
           复制数据
         </n-button>
       </template>
@@ -123,11 +118,6 @@ import {
   useMessage, NCard, NInput, NButton, NCheckboxGroup, NCheckbox, 
   NTag, NEmpty, NCollapse, NCollapseItem, NDivider, NCode, NModal, NIcon, NSpace
 } from 'naive-ui'
-import { 
-  TerminalOutlined as CodeIcon,
-  SearchOutlined as SearchIcon,
-  ContentCopyOutlined as CopyIcon
-} from '@vicons/material'
 import axios from 'axios'
 
 const message = useMessage()

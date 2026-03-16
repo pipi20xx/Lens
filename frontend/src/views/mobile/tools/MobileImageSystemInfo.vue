@@ -18,7 +18,6 @@
               基础 Docker 就绪
             </n-text>
             <n-button size="tiny" secondary @click="fetchInfo" :loading="loading">
-              <template #icon><n-icon><RefreshIcon /></n-icon></template>
               刷新
             </n-button>
           </n-space>
@@ -79,7 +78,6 @@
             :loading="fixing"
             size="small"
           >
-            <template #icon><n-icon><RepairIcon /></n-icon></template>
             初始化/修复构建环境
           </n-button>
         </n-space>
@@ -95,9 +93,7 @@ import {
   NEmpty, NSelect, NTag, NIcon, NFormItem, useMessage, useDialog
 } from 'naive-ui'
 import {
-  CheckCircleOutlined as CheckIcon,
-  BuildCircleOutlined as RepairIcon,
-  RefreshOutlined as RefreshIcon
+  BuildCircleOutlined as RepairIcon
 } from '@vicons/material'
 import axios from 'axios'
 

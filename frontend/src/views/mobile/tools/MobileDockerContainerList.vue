@@ -3,28 +3,28 @@
     <n-space vertical>
       <n-space justify="space-between" align="center">
         <n-space>
-          <n-button type="primary" size="small" @click="fetchContainers(true)" :loading="loading">
-            刷新
+          <n-button :type="buttonTypes.PRIMARY" :size="buttonSizes.MEDIUM" @click="fetchContainers(true)" :loading="loading">
+            {{ buttonText.REFRESH }}
           </n-button>
-          <n-button size="small" secondary type="error" @click="handlePruneContainers" :loading="loadingPrune">
-            清理
+          <n-button :size="buttonSizes.MEDIUM" secondary :type="buttonTypes.ERROR" @click="handlePruneContainers" :loading="loadingPrune">
+            {{ buttonText.CLEAR }}
           </n-button>
         </n-space>
-        <n-space align="center">
-          <n-text depth="3" style="font-size: 12px">增强监控</n-text>
-          <n-switch v-model:value="enhancedMode" size="small" class="mobile-switch" />
-        </n-space>
+        <div class="setting-item">
+          <span class="setting-label">增强监控</span>
+          <MobileSwitch v-model="enhancedMode" />
+        </div>
       </n-space>
 
       <n-input
         v-model:value="searchQuery"
-        placeholder="搜索容器名称或镜像..."
+        :placeholder="placeholder.SEARCH_CONTAINER"
         clearable
-        size="small"
+        :size="buttonSizes.SMALL"
       />
 
       <div v-if="filteredContainers.length === 0" class="empty-state">
-        <n-empty description="暂无容器" size="small" />
+        <n-empty :description="messageText.EMPTY_DATA" :size="buttonSizes.SMALL" />
       </div>
 
       <div v-else class="container-list">
@@ -32,11 +32,11 @@
           <div class="container-header">
             <div class="container-name">
               <n-text strong>{{ container.name }}</n-text>
-              <n-tag v-if="containerSettings[container.name]?.auto_update" type="success" size="tiny" round>
+              <n-tag v-if="containerSettings[container.name]?.auto_update" :type="tagTypes.SUCCESS" :size="buttonSizes.TINY" round>
                 自动更新
               </n-tag>
             </div>
-            <n-tag :type="container.status === 'running' ? 'success' : 'error'" size="small" round>
+            <n-tag :type="container.status === 'running' ? tagTypes.SUCCESS : tagTypes.ERROR" :size="buttonSizes.SMALL" round>
               {{ getStatusText(container.status) }}
             </n-tag>
           </div>
@@ -66,7 +66,7 @@
             <n-button
               v-for="port in getPortButtons(container)"
               :key="port.label"
-              size="tiny"
+              :size="buttonSizes.MEDIUM"
               :type="port.type"
               secondary
               @click="port.action"
@@ -76,51 +76,51 @@
           </div>
 
           <div class="container-actions">
-            <n-button size="tiny" :type="container.status === 'running' ? 'error' : 'primary'" secondary @click="handleAction(container.id, container.status === 'running' ? 'stop' : 'start')" :loading="loadingActions[container.id]">
-              {{ container.status === 'running' ? '停止' : '启动' }}
+            <n-button :size="buttonSizes.MEDIUM" :type="container.status === 'running' ? buttonTypes.ERROR : buttonTypes.PRIMARY" secondary @click="handleAction(container.id, container.status === 'running' ? 'stop' : 'start')" :loading="loadingActions[container.id]">
+              {{ container.status === 'running' ? buttonText.STOP : buttonText.START }}
             </n-button>
-            <n-button size="tiny" type="warning" secondary @click="handleAction(container.id, 'recreate')" :loading="loadingActions[container.id]">
-              更新
+            <n-button :size="buttonSizes.MEDIUM" :type="buttonTypes.WARNING" secondary @click="handleAction(container.id, 'recreate')" :loading="loadingActions[container.id]">
+              {{ buttonText.UPDATE }}
             </n-button>
-            <n-button size="tiny" secondary @click="showLogs(container.id, container.name)">
-              日志
+            <n-button :size="buttonSizes.MEDIUM" secondary @click="showLogs(container.id, container.name)">
+              {{ buttonText.LOGS }}
             </n-button>
-            <n-button size="tiny" secondary @click="openTerminal(container)" :disabled="container.status !== 'running'">
-              终端
+            <n-button :size="buttonSizes.MEDIUM" secondary @click="openTerminal(container)" :disabled="container.status !== 'running'">
+              {{ buttonText.TERMINAL }}
             </n-button>
-            <n-button size="tiny" secondary @click="openSettingsModal(container.name)">
-              设置
+            <n-button :size="buttonSizes.MEDIUM" secondary @click="openSettingsModal(container.name)">
+              {{ buttonText.SETTINGS }}
             </n-button>
-            <n-popconfirm @positive-click="() => handleDelete(container)" positive-text="确认" negative-text="取消">
+            <n-popconfirm @positive-click="() => handleDelete(container)" :positive-text="buttonText.CONFIRM_DELETE" :negative-text="buttonText.CANCEL">
               <template #trigger>
-                <n-button size="tiny" secondary type="error">
-                  删除
+                <n-button :size="buttonSizes.MEDIUM" secondary :type="buttonTypes.ERROR">
+                  {{ buttonText.DELETE }}
                 </n-button>
               </template>
-              确认删除？
+              {{ messageText.DELETE_CONFIRM }}
             </n-popconfirm>
           </div>
         </div>
       </div>
     </n-space>
 
-    <n-modal v-model:show="showLogsModal" preset="card" title="查看日志" style="width: 90vw; max-width: 600px">
+    <n-modal v-model:show="showLogsModal" preset="card" :title="buttonText.LOGS" style="width: 90vw; max-width: 600px">
       <pre class="logs-container">{{ containerLogs }}</pre>
     </n-modal>
 
-    <n-modal v-model:show="showSettingsModal" preset="card" title="容器设置" style="width: 90vw; max-width: 400px">
-      <n-form label-placement="top" size="small">
-        <n-form-item label="自定义访问端口">
-          <n-input v-model:value="settingsForm.custom_port" placeholder="Host 模式或未识别端口跳转" />
+    <n-modal v-model:show="showSettingsModal" preset="card" :title="buttonText.SETTINGS" style="width: 90vw; max-width: 400px">
+      <n-form label-placement="top" :size="buttonSizes.SMALL">
+        <n-form-item :label="formLabel.CUSTOM_PORT">
+          <n-input v-model:value="settingsForm.custom_port" :placeholder="placeholder.CUSTOM_PORT" />
         </n-form-item>
-        <n-form-item label="自动更新镜像">
+        <n-form-item :label="formLabel.AUTO_UPDATE">
           <n-switch v-model:value="settingsForm.auto_update" class="mobile-switch" />
         </n-form-item>
       </n-form>
       <template #action>
         <n-space justify="end">
-          <n-button secondary @click="showSettingsModal = false">取消</n-button>
-          <n-button type="primary" @click="saveSettings">保存</n-button>
+          <n-button secondary @click="showSettingsModal = false">{{ buttonText.CANCEL }}</n-button>
+          <n-button :type="buttonTypes.PRIMARY" @click="saveSettings">{{ buttonText.SAVE }}</n-button>
         </n-space>
       </template>
     </n-modal>
@@ -131,10 +131,18 @@
 import { ref, watch, computed, onUnmounted } from 'vue'
 import { 
   NSpace, NButton, NTag, NText, NModal, NForm, NFormItem, 
-  NInput, NSwitch, NEmpty, NPopconfirm, useMessage, useDialog 
+  NInput, NEmpty, NPopconfirm, useMessage, useDialog 
 } from 'naive-ui'
 import axios from 'axios'
 import { useDockerStore } from '@/store/dockerStore'
+import MobileSwitch from '../components/MobileSwitch.vue'
+import {
+  ButtonTypes,
+  ButtonSizes,
+  TagTypes,
+  ButtonText,
+  MessageText,
+} from '../constants'
 
 const props = defineProps<{
   hostId: string | null
@@ -143,6 +151,25 @@ const props = defineProps<{
 const message = useMessage()
 const dialog = useDialog()
 const dockerStore = useDockerStore()
+
+// 使用常量
+const buttonTypes = ButtonTypes
+const buttonSizes = ButtonSizes
+const tagTypes = TagTypes
+const buttonText = ButtonText
+const messageText = MessageText
+
+// 表单标签
+const formLabel = {
+  CUSTOM_PORT: '自定义访问端口',
+  AUTO_UPDATE: '自动更新镜像',
+}
+
+// 占位符
+const placeholder = {
+  SEARCH_CONTAINER: '搜索容器名称或镜像...',
+  CUSTOM_PORT: 'Host 模式或未识别端口跳转',
+}
 
 const containers = computed(() => dockerStore.containers[props.hostId || ''] || [])
 const containerStats = computed(() => dockerStore.containerStats[props.hostId || ''] || {})
@@ -243,8 +270,8 @@ const handleAction = async (id: string, action: string) => {
     }
     setTimeout(() => fetchContainers(true), 2000)
   } catch (e: any) {
-    const errorMsg = e.response?.data?.detail || e.message || '操作失败'
-    message.error(`操作失败: ${errorMsg}`)
+    const errorMsg = e.response?.data?.detail || e.message || messageText.OPERATION_FAILED
+    message.error(`${messageText.OPERATION_FAILED}: ${errorMsg}`)
   } finally {
     loadingActions.value[id] = false
   }
@@ -254,8 +281,8 @@ const handleDelete = (row: any) => {
   dialog.error({
     title: '确认删除容器',
     content: `确定要彻底删除容器 "${row.name}" 吗？此操作不可撤销。`,
-    positiveText: '确认删除',
-    negativeText: '取消',
+    positiveText: buttonText.CONFIRM_DELETE,
+    negativeText: buttonText.CANCEL,
     onPositiveClick: () => handleAction(row.id, 'remove')
   })
 }
@@ -265,8 +292,8 @@ const handlePruneContainers = async () => {
   dialog.warning({
     title: '确认清理容器',
     content: '此操作将永久删除所有处于停止状态的容器。',
-    positiveText: '确认',
-    negativeText: '取消',
+    positiveText: buttonText.CONFIRM,
+    negativeText: buttonText.CANCEL,
     onPositiveClick: async () => {
       loadingPrune.value = true
       try {
@@ -274,7 +301,7 @@ const handlePruneContainers = async () => {
         message.success(res.data.message || '容器清理任务已启动')
         setTimeout(() => fetchContainers(true), 3000)
       } catch (e) {
-        message.error('请求失败')
+        message.error(messageText.OPERATION_FAILED)
       } finally {
         loadingPrune.value = false
       }
@@ -312,7 +339,7 @@ const saveSettings = async () => {
     auto_update: settingsForm.value.auto_update,
     host_id: props.hostId
   })
-  message.success('设置已保存')
+  message.success(messageText.SETTINGS_SAVED)
   showSettingsModal.value = false
   fetchContainers(true)
 }
@@ -329,7 +356,7 @@ const getPortButtons = (container: any) => {
           if (hostPort) {
             buttons.push({
               label: `${hostPort}->${containerPort}`,
-              type: 'primary',
+              type: buttonTypes.PRIMARY,
               action: () => window.open(`http://${window.location.hostname}:${hostPort}`, '_blank')
             })
           }
@@ -341,7 +368,7 @@ const getPortButtons = (container: any) => {
   if (customPort) {
     buttons.push({
       label: `${customPort} (自定)`,
-      type: 'warning',
+      type: buttonTypes.WARNING,
       action: () => window.open(`http://${window.location.hostname}:${customPort}`, '_blank')
     })
   }
@@ -387,6 +414,27 @@ defineExpose({ refresh: fetchContainers })
   justify-content: space-between;
   align-items: center;
   margin-bottom: 8px;
+}
+
+.switch-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+}
+
+.setting-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.setting-label {
+  font-size: 14px;
+  color: var(--text-color);
+  font-weight: 500;
 }
 
 .container-name {

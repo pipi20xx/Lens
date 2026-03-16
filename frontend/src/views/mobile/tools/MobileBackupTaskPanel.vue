@@ -1,26 +1,24 @@
 <template>
-  <n-card size="small" :bordered="false" title="备份任务">
+  <n-card :size="buttonSizes.SMALL" :bordered="false" title="备份任务">
     <n-space vertical>
       <n-space justify="space-between">
-        <n-text type="primary" style="font-weight: 600">任务列表</n-text>
+        <n-text :type="tagTypes.PRIMARY" style="font-weight: 600">任务列表</n-text>
         <n-space>
-          <n-button size="small" secondary @click="fetchTasks">
-            <template #icon><n-icon><RefreshIcon /></n-icon></template>
-            刷新
+          <n-button :size="buttonSizes.MEDIUM" secondary @click="fetchTasks">
+            {{ buttonText.REFRESH }}
           </n-button>
-          <n-button size="small" type="primary" @click="$emit('add')">
-            <template #icon><n-icon><AddIcon /></n-icon></template>
-            新增
+          <n-button :size="buttonSizes.MEDIUM" :type="buttonTypes.PRIMARY" @click="$emit('add')">
+            {{ buttonText.ADD }}
           </n-button>
         </n-space>
       </n-space>
       
       <div v-if="loading" class="loading-state">
-        <n-spin size="medium" />
+        <n-spin :size="buttonSizes.MEDIUM" />
       </div>
       
       <div v-else-if="tasks.length === 0" class="empty-state">
-        <n-empty description="暂无备份任务" />
+        <n-empty :description="messageText.EMPTY_DATA" />
       </div>
       
       <div v-else class="task-list">
@@ -28,53 +26,49 @@
           <div class="task-header">
             <div class="task-name">
               {{ task.name }}
-              <n-tag v-if="task.host_id && task.host_id !== 'local'" size="tiny" type="warning" round>
+              <n-tag v-if="task.host_id && task.host_id !== 'local'" :size="buttonSizes.TINY" :type="tagTypes.WARNING" round>
                 远程
               </n-tag>
             </div>
             <n-switch
               :value="task.enabled"
               @update:value="(val) => handleToggleEnable(task, val)"
-              size="small"
+              :size="buttonSizes.SMALL"
               class="mobile-switch"
             />
           </div>
           
           <div class="task-info">
             <div class="info-row">
-              <n-icon size="14"><ModeIcon /></n-icon>
+              <n-icon :size="14"><ModeIcon /></n-icon>
               <span>{{ getModeLabel(task.mode) }}</span>
             </div>
             <div class="info-row">
-              <n-icon size="14"><StorageIcon /></n-icon>
+              <n-icon :size="14"><StorageIcon /></n-icon>
               <span>{{ getStorageLabel(task.storage_type) }}</span>
             </div>
             <div class="info-row">
-              <n-icon size="14"><ScheduleIcon /></n-icon>
+              <n-icon :size="14"><ScheduleIcon /></n-icon>
               <span>{{ formatSchedule(task) }}</span>
             </div>
           </div>
           
           <div class="task-actions">
-            <n-button size="small" secondary type="primary" @click="$emit('run', task)">
-              <template #icon><n-icon><PlayIcon /></n-icon></template>
-              执行
+            <n-button :size="buttonSizes.MEDIUM" secondary :type="buttonTypes.PRIMARY" @click="$emit('run', task)">
+              {{ buttonText.RUN }}
             </n-button>
-            <n-button size="small" secondary @click="$emit('view-history', task)">
-              <template #icon><n-icon><HistoryIcon /></n-icon></template>
-              历史
+            <n-button :size="buttonSizes.MEDIUM" secondary @click="$emit('view-history', task)">
+              {{ buttonText.HISTORY }}
             </n-button>
-            <n-button size="small" secondary @click="$emit('edit', task)">
-              <template #icon><n-icon><EditIcon /></n-icon></template>
-              编辑
+            <n-button :size="buttonSizes.MEDIUM" secondary @click="$emit('edit', task)">
+              {{ buttonText.EDIT }}
             </n-button>
-            <n-popconfirm @positive-click="() => handleDelete(task)">
+            <n-popconfirm @positive-click="() => handleDelete(task)" :positive-text="buttonText.CONFIRM_DELETE" :negative-text="buttonText.CANCEL">
               <template #trigger>
-                <n-button size="small" secondary type="error">
-                  <template #icon><n-icon><DeleteIcon /></n-icon></template>
-                </n-button>
+                <n-button :size="buttonSizes.MEDIUM" secondary :type="buttonTypes.ERROR">
+                  </n-button>
               </template>
-              确认删除任务？
+              {{ messageText.DELETE_CONFIRM }}
             </n-popconfirm>
           </div>
         </div>
@@ -84,24 +78,29 @@
 </template>
 
 <script setup lang="ts">
-import { ref, h } from 'vue'
-import { NCard, NSpace, NButton, NTag, NIcon, NText, NEmpty, NSwitch, NSpin, NPopconfirm, useMessage, useDialog } from 'naive-ui'
+import { ref } from 'vue'
+import { NCard, NSpace, NButton, NTag, NIcon, NText, NEmpty, NSwitch, NSpin, NPopconfirm, useMessage } from 'naive-ui'
 import {
-  AddOutlined as AddIcon,
-  RefreshOutlined as RefreshIcon,
-  PlayArrowOutlined as PlayIcon,
-  HistoryOutlined as HistoryIcon,
-  EditOutlined as EditIcon,
-  DeleteOutlined as DeleteIcon,
-  BackupOutlined as ModeIcon,
-  StorageOutlined as StorageIcon,
-  ScheduleOutlined as ScheduleIcon
+  BackupOutlined as ModeIcon
 } from '@vicons/material'
 import axios from 'axios'
+import {
+  ButtonTypes,
+  ButtonSizes,
+  TagTypes,
+  ButtonText,
+  MessageText,
+} from '../constants'
 
 const emit = defineEmits(['add', 'edit', 'run', 'view-history'])
 const message = useMessage()
-const dialog = useDialog()
+
+// 使用常量
+const buttonTypes = ButtonTypes
+const buttonSizes = ButtonSizes
+const tagTypes = TagTypes
+const buttonText = ButtonText
+const messageText = MessageText
 
 const tasks = ref([])
 const loading = ref(false)
@@ -154,7 +153,7 @@ const fetchTasks = async () => {
     const res = await axios.get('/api/backup/tasks')
     tasks.value = res.data
   } catch (e) {
-    message.error('加载任务失败')
+    message.error(messageText.LOAD_FAILED)
   } finally {
     loading.value = false
   }
@@ -166,26 +165,18 @@ const handleToggleEnable = async (task: any, enabled: boolean) => {
     message.success(enabled ? '任务已启用' : '任务已禁用')
     await fetchTasks()
   } catch (e) {
-    message.error('操作失败')
+    message.error(messageText.OPERATION_FAILED)
   }
 }
 
-const handleDelete = (task: any) => {
-  dialog.warning({
-    title: '确认删除',
-    content: `确定要删除任务 "${task.name}" 吗？`,
-    positiveText: '确认',
-    negativeText: '取消',
-    onPositiveClick: async () => {
-      try {
-        await axios.delete(`/api/backup/tasks/${task.id}`)
-        message.success('已删除')
-        await fetchTasks()
-      } catch (e) {
-        message.error('删除失败')
-      }
-    }
-  })
+const handleDelete = async (task: any) => {
+  try {
+    await axios.delete(`/api/backup/tasks/${task.id}`)
+    message.success(messageText.DELETE_SUCCESS)
+    await fetchTasks()
+  } catch (e) {
+    message.error(messageText.DELETE_FAILED)
+  }
 }
 
 defineExpose({ fetchTasks })

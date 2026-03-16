@@ -2,21 +2,19 @@
   <div class="mobile-docker-compose-list">
     <n-space vertical>
       <n-space justify="space-between" align="center">
-        <n-button type="primary" size="small" @click="handleCreateProject">
-          <template #icon><n-icon><AddIcon /></n-icon></template>
-          新建项目
+        <n-button :type="buttonTypes.PRIMARY" :size="buttonSizes.MEDIUM" @click="handleCreateProject">
+          {{ buttonText.CREATE_PROJECT }}
         </n-button>
-        <n-button size="small" secondary @click="fetchProjects(true)" :loading="loading">
-          <template #icon><n-icon><RefreshIcon /></n-icon></template>
-          刷新
+        <n-button :size="buttonSizes.MEDIUM" secondary @click="fetchProjects(true)" :loading="loading">
+          {{ buttonText.REFRESH }}
         </n-button>
       </n-space>
 
       <n-input
         v-model:value="searchQuery"
-        placeholder="搜索项目名称或路径..."
+        :placeholder="placeholder.SEARCH_PROJECT"
         clearable
-        size="small"
+        :size="buttonSizes.SMALL"
       >
         <template #prefix>
           <n-icon><SearchIcon /></n-icon>
@@ -24,7 +22,7 @@
       </n-input>
 
       <div v-if="filteredProjects.length === 0" class="empty-state">
-        <n-empty description="暂无项目" size="small" />
+        <n-empty :description="emptyText.NO_PROJECTS" :size="buttonSizes.SMALL" />
       </div>
 
       <div v-else class="project-list">
@@ -32,11 +30,11 @@
           <div class="project-header">
             <div class="project-name">
               <n-text strong>{{ project.name }}</n-text>
-              <n-tag :type="project.type === 'scanned' ? 'info' : 'warning'" size="tiny" ghost>
-                {{ project.type === 'scanned' ? '已记忆' : '探测到' }}
+              <n-tag :type="project.type === 'scanned' ? tagTypes.INFO : tagTypes.WARNING" size="tiny" ghost>
+                {{ project.type === 'scanned' ? tagText.SCANNED : tagText.DETECTED }}
               </n-tag>
             </div>
-            <n-tag :type="project.status?.includes('running') ? 'success' : 'default'" size="small" round>
+            <n-tag :type="project.status?.includes('running') ? tagTypes.SUCCESS : tagTypes.DEFAULT" :size="buttonSizes.SMALL" round>
               {{ formatStatus(project.status) }}
             </n-tag>
           </div>
@@ -49,67 +47,61 @@
           </div>
 
           <div class="project-actions">
-            <n-button size="tiny" type="primary" secondary @click="runComposeAction(project, 'up')" :loading="loadingActions[project.name]">
-              <template #icon><n-icon><StartIcon /></n-icon></template>
-              启动
+            <n-button size="tiny" :type="buttonTypes.PRIMARY" secondary @click="runComposeAction(project, 'up')" :loading="loadingActions[project.name]">
+              {{ buttonText.START }}
             </n-button>
-            <n-button size="tiny" type="warning" secondary @click="runComposeAction(project, 'pull')" :loading="loadingActions[project.name]">
-              <template #icon><n-icon><PullIcon /></n-icon></template>
-              拉取
+            <n-button size="tiny" :type="buttonTypes.WARNING" secondary @click="runComposeAction(project, 'pull')" :loading="loadingActions[project.name]">
+              {{ buttonText.PULL }}
             </n-button>
-            <n-button size="tiny" type="error" secondary @click="runComposeAction(project, 'down')" :loading="loadingActions[project.name]">
-              <template #icon><n-icon><StopIcon /></n-icon></template>
-              停止
+            <n-button size="tiny" :type="buttonTypes.ERROR" secondary @click="runComposeAction(project, 'down')" :loading="loadingActions[project.name]">
+              {{ buttonText.STOP }}
             </n-button>
             <n-button size="tiny" secondary @click="editProject(project)">
-              <template #icon><n-icon><EditIcon /></n-icon></template>
-              编辑
+              {{ buttonText.EDIT }}
             </n-button>
-            <n-button size="tiny" type="info" secondary @click="createBackupTask(project)">
-              <template #icon><n-icon><BackupIcon /></n-icon></template>
-              备份
+            <n-button size="tiny" :type="buttonTypes.INFO" secondary @click="createBackupTask(project)">
+              {{ buttonText.BACKUP }}
             </n-button>
-            <n-popconfirm @positive-click="() => deleteProject(project)" positive-text="确认" negative-text="取消">
+            <n-popconfirm @positive-click="() => deleteProject(project)" :positive-text="confirmText.CONFIRM" :negative-text="confirmText.CANCEL">
               <template #trigger>
-                <n-button size="tiny" secondary type="error">
-                  <template #icon><n-icon><DeleteIcon /></n-icon></template>
+                <n-button size="tiny" secondary :type="buttonTypes.ERROR">
+                  {{ buttonText.DELETE }}
                 </n-button>
               </template>
-              确认删除？
+              {{ confirmText.CONFIRM_DELETE_PROJECT }}
             </n-popconfirm>
           </div>
         </div>
       </div>
     </n-space>
 
-    <n-modal v-model:show="showComposeModal" preset="card" :title="isEditingProject ? '编辑项目' : '新建项目'" style="width: 90vw; max-width: 600px">
-      <n-form label-placement="top" size="small">
-        <n-form-item label="项目名称">
-          <n-input v-model:value="currentProject.name" placeholder="例如: my-awesome-app" :disabled="isEditingProject" />
+    <n-modal v-model:show="showComposeModal" preset="card" :title="isEditingProject ? modalTitle.EDIT_PROJECT : modalTitle.CREATE_PROJECT" style="width: 90vw; max-width: 600px">
+      <n-form label-placement="top" :size="buttonSizes.SMALL">
+        <n-form-item :label="formLabel.PROJECT_NAME">
+          <n-input v-model:value="currentProject.name" :placeholder="placeholder.PROJECT_NAME_EXAMPLE" :disabled="isEditingProject" />
         </n-form-item>
         
         <template v-if="!isEditingProject">
-          <n-form-item label="基础保存路径">
+          <n-form-item :label="formLabel.BASE_SAVE_PATH">
             <n-input-group>
-              <n-input v-model:value="baseSavePath" placeholder="选择存放项目的根目录" />
-              <n-button type="primary" ghost @click="pickBasePath">
-                <template #icon><n-icon><FolderIcon /></n-icon></template>
-                选择
+              <n-input v-model:value="baseSavePath" :placeholder="placeholder.SELECT_ROOT_DIR" />
+              <n-button :type="buttonTypes.PRIMARY" ghost @click="pickBasePath">
+                {{ buttonText.SELECT }}
               </n-button>
             </n-input-group>
           </n-form-item>
-          <n-form-item label="完整保存路径">
+          <n-form-item :label="formLabel.FULL_SAVE_PATH">
             <n-text depth="3" code style="word-break: break-all; font-size: 12px">
               {{ finalSavePath }}
             </n-text>
           </n-form-item>
         </template>
 
-        <n-form-item label="YAML 内容" :feedback="yamlError" :validation-status="yamlError ? 'error' : undefined">
+        <n-form-item :label="formLabel.YAML_CONTENT" :feedback="yamlError" :validation-status="yamlError ? 'error' : undefined">
           <n-input
             v-model:value="currentProject.content"
             type="textarea"
-            placeholder="在此输入 docker-compose.yml 内容"
+            :placeholder="placeholder.YAML_CONTENT"
             :autosize="{ minRows: 12, maxRows: 20 }"
             style="font-family: monospace; font-size: 12px"
             @input="handleYamlInput"
@@ -118,8 +110,8 @@
       </n-form>
       <template #action>
         <n-space justify="end">
-          <n-button secondary @click="showComposeModal = false">取消</n-button>
-          <n-button type="primary" @click="saveProject" :disabled="!!yamlError" :loading="saving">保存</n-button>
+          <n-button secondary @click="showComposeModal = false">{{ buttonText.CANCEL }}</n-button>
+          <n-button :type="buttonTypes.PRIMARY" @click="saveProject" :disabled="!!yamlError" :loading="saving">{{ buttonText.SAVE }}</n-button>
         </n-space>
       </template>
     </n-modal>
@@ -132,22 +124,22 @@ import {
   NSpace, NButton, NTag, NIcon, NText, NModal, NForm, NFormItem, 
   NInput, NInputGroup, NEmpty, NPopconfirm, useMessage, useDialog 
 } from 'naive-ui'
-import { 
-  AddOutlined as AddIcon,
-  EditOutlined as EditIcon,
-  DeleteOutlined as DeleteIcon,
-  PlayCircleOutlined as StartIcon,
-  StopCircleOutlined as StopIcon,
-  CloudDownloadOutlined as PullIcon,
-  SearchOutlined as SearchIcon,
-  BackupTableRound as BackupIcon,
-  AutorenewOutlined as RefreshIcon,
-  FolderOutlined as FolderIcon,
-  DescriptionOutlined as FileIcon
-} from '@vicons/material'
 import axios from 'axios'
 import yaml from 'js-yaml'
 import { useDockerStore } from '@/store/dockerStore'
+import {
+  ButtonTypes,
+  ButtonSizes,
+  ButtonText,
+  TagTypes,
+  TagText,
+  MessageText,
+  EmptyText,
+  ConfirmText,
+  ModalTitle,
+  FormLabel,
+  Placeholder,
+} from '../constants'
 
 const props = defineProps({
   hostId: { type: String, default: null },
@@ -160,6 +152,19 @@ const emit = defineEmits(['refresh-containers', 'refresh-hosts', 'browse-path', 
 const message = useMessage()
 const dialog = useDialog()
 const dockerStore = useDockerStore()
+
+// 使用常量
+const buttonTypes = ButtonTypes
+const buttonSizes = ButtonSizes
+const buttonText = ButtonText
+const tagTypes = TagTypes
+const tagText = TagText
+const messageText = MessageText
+const emptyText = EmptyText
+const confirmText = ConfirmText
+const modalTitle = ModalTitle
+const formLabel = FormLabel
+const placeholder = Placeholder
 
 const projects = computed(() => (dockerStore.projects[props.hostId || ''] || []).sort((a: any, b: any) => a.name.localeCompare(b.name)))
 const loading = computed(() => dockerStore.loading[`projects_${props.hostId}`] || false)
@@ -297,7 +302,7 @@ const editProject = async (p: any) => {
 
 const saveProject = async () => { 
   if (!currentProject.value.name.trim()) {
-    message.error('请输入项目名称')
+    message.error(messageText.ENTER_PROJECT_NAME)
     return
   }
 
@@ -309,7 +314,7 @@ const saveProject = async () => {
       { name: currentProject.value.name, content: currentProject.value.content },
       { params: { path: savePath } }
     )
-    message.success('保存成功')
+    message.success(messageText.SAVE_SUCCESS)
     
     if (!isEditingProject.value) {
       localStorage.setItem(storageKey.value, baseSavePath.value)
@@ -318,7 +323,7 @@ const saveProject = async () => {
     showComposeModal.value = false
     fetchProjects(true) 
   } catch (e: any) {
-    message.error('保存失败: ' + (e.response?.data?.detail || '未知错误'))
+    message.error(messageText.SAVE_FAILED + ': ' + (e.response?.data?.detail || '未知错误'))
   } finally {
     saving.value = false
   }
@@ -326,19 +331,19 @@ const saveProject = async () => {
 
 const deleteProject = (p: any) => {
   dialog.error({
-    title: '移除项目',
+    title: modalTitle.REMOVE_PROJECT,
     content: `确定要从视图中移除项目 ${p.name} 吗？`,
-    positiveText: '确认',
-    negativeText: '取消',
+    positiveText: confirmText.CONFIRM,
+    negativeText: confirmText.CANCEL,
     onPositiveClick: async () => {
       try {
         await axios.delete(`/api/docker/compose/${props.hostId}/projects/${p.name}`, { 
           params: { path: p.config_file || p.path }
         })
-        message.success('项目已从视图移除')
+        message.success(messageText.REMOVE_PROJECT_SUCCESS)
         fetchProjects(true)
       } catch (e: any) {
-        message.error('操作失败: ' + (e.response?.data?.detail || '未知错误'))
+        message.error(messageText.REMOVE_PROJECT_FAILED + ': ' + (e.response?.data?.detail || '未知错误'))
       }
     }
   })
@@ -350,13 +355,13 @@ const runComposeAction = async (p: any, action: string) => {
     const res = await axios.post(`/api/docker/compose/${props.hostId}/projects/${p.name}/action`, { action, path: p.config_file || p.path })
     
     if (res.data.success) {
-      message.success('操作成功')
+      message.success(messageText.OPERATION_SUCCESS)
     } else {
-      message.error('操作异常')
+      message.error(messageText.OPERATION_ABNORMAL)
     }
     emit('refresh-containers')
   } catch (e: any) {
-    message.error('请求失败: ' + (e.response?.data?.detail || '未知错误'))
+    message.error(messageText.REQUEST_FAILED + ': ' + (e.response?.data?.detail || '未知错误'))
   } finally {
     loadingActions.value[p.name] = false
     fetchProjects(true)
@@ -365,18 +370,18 @@ const runComposeAction = async (p: any, action: string) => {
 
 const createBackupTask = (p: any) => {
   dialog.info({
-    title: '创建备份任务',
+    title: modalTitle.CREATE_BACKUP_TASK,
     content: `确定要为项目 ${p.name} 创建一个自动备份任务吗？该任务将定期备份整个项目文件夹并拉取到 Lens 本地服务器。`,
-    positiveText: '确认创建',
-    negativeText: '取消',
+    positiveText: confirmText.CONFIRM_CREATE,
+    negativeText: confirmText.CANCEL,
     onPositiveClick: async () => {
       try {
         await axios.post(`/api/docker/compose/${props.hostId}/projects/${p.name}/create-backup-task`, { 
           path: p.config_file || p.path 
         })
-        message.success('备份任务已创建，可前往"数据备份管理"进行详细配置')
+        message.success(messageText.BACKUP_TASK_CREATED)
       } catch (e: any) {
-        message.error('创建失败: ' + (e.response?.data?.detail || '未知错误'))
+        message.error(messageText.CREATE_BACKUP_TASK_FAILED + ': ' + (e.response?.data?.detail || '未知错误'))
       }
     }
   })

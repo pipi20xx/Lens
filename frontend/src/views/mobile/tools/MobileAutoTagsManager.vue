@@ -14,32 +14,29 @@
         <div v-if="webhookConfig.enabled" class="webhook-url">
           <n-input :value="webhookUrl" readonly>
             <template #suffix>
-              <n-button size="tiny" secondary @click="copyWebhookUrl">
-                复制
+              <n-button :size="buttonSizes.MEDIUM" secondary @click="copyWebhookUrl">
+                {{ buttonText.COPY }}
               </n-button>
             </template>
           </n-input>
         </div>
-        <n-form v-if="webhookConfig.enabled" label-placement="top" size="small">
-          <n-form-item label="安全密钥">
-            <n-input v-model:value="webhookConfig.secret_token" @blur="saveWebhookConfig" placeholder="自定义 Token" />
+        <n-form v-if="webhookConfig.enabled" label-placement="top" :size="formSizes.SMALL">
+          <n-form-item :label="formLabel.SECRET_KEY">
+            <n-input v-model:value="webhookConfig.secret_token" @blur="saveWebhookConfig" :placeholder="placeholder.SECRET_TOKEN" />
           </n-form-item>
-          <n-form-item label="写入模式">
-            <n-select v-model:value="webhookConfig.write_mode" @update:value="saveWebhookConfig" :options="[
-              { label: '合并现有标签', value: 'merge' },
-              { label: '覆盖所有标签', value: 'overwrite' }
-            ]" />
+          <n-form-item :label="formLabel.WRITE_MODE">
+            <n-select v-model:value="webhookConfig.write_mode" @update:value="saveWebhookConfig" :options="writeModeOptions" />
           </n-form-item>
-          <n-form-item label="自动化状态">
+          <n-form-item :label="formLabel.AUTOMATION_STATUS">
             <n-checkbox v-model:checked="webhookConfig.automation_enabled" @update:checked="saveWebhookConfig">
               接收到 item.added 事件时自动执行规则比对
             </n-checkbox>
           </n-form-item>
-          <n-form-item label="处理延迟(秒)">
+          <n-form-item :label="formLabel.DELAY_SECONDS">
             <n-input-number v-model:value="webhookConfig.delay_seconds" @blur="saveWebhookConfig" :min="0" :max="3600" />
           </n-form-item>
         </n-form>
-        <n-alert type="info" :bordered="false">
+        <n-alert :type="tagTypes.INFO" :bordered="false">
           在 Emby 后台添加此 URL，选择 application/json 类型，并勾选"已添加新媒体"事件。
         </n-alert>
       </n-space>
@@ -47,12 +44,11 @@
 
     <n-card class="rules-card" :bordered="false" title="规则列表">
       <n-space vertical>
-        <n-button block type="primary" @click="showAddRuleModal = true">
-          <template #icon><n-icon><AddIcon /></n-icon></template>
-          添加规则
+        <n-button block :type="buttonTypes.PRIMARY" @click="showAddRuleModal = true">
+          {{ buttonText.ADD }}规则
         </n-button>
         <div v-if="rules.length === 0" class="empty-state">
-          <n-empty description="暂无规则" />
+          <n-empty :description="messageText.EMPTY_DATA" />
         </div>
         <div v-else class="rule-list" @dragover.prevent @drop="onDrop">
           <div v-for="(rule, index) in rules" :key="index" class="rule-item-wrapper">
@@ -71,26 +67,22 @@
 
     <n-card class="actions-card" :bordered="false" title="操作">
       <n-space vertical>
-        <n-button block type="info" secondary @click="runAllRules" :loading="running">
-          <template #icon><n-icon><PlayIcon /></n-icon></template>
+        <n-button block :type="buttonTypes.INFO" secondary @click="runAllRules" :loading="running">
           运行所有规则
         </n-button>
-        <n-button block type="warning" secondary @click="testWrite" :loading="testing">
-          <template #icon><n-icon><TestIcon /></n-icon></template>
+        <n-button block :type="buttonTypes.WARNING" secondary @click="testWrite" :loading="testing">
           测试写入
         </n-button>
-        <n-button block type="error" secondary @click="clearAllTags">
-          <template #icon><n-icon><ClearIcon /></n-icon></template>
+        <n-button block :type="buttonTypes.ERROR" secondary @click="clearAllTags">
           清空所有标签
         </n-button>
         <n-button block secondary @click="showClearSpecificModal = true">
-          <template #icon><n-icon><FilterIcon /></n-icon></template>
           清空特定标签
         </n-button>
       </n-space>
     </n-card>
 
-    <n-modal v-model:show="showAddRuleModal" preset="card" :title="editingRule.id !== null ? '编辑规则' : '添加规则'" style="width: 95vw; max-width: 500px">
+    <n-modal v-model:show="showAddRuleModal" preset="card" :title="editingRule.id !== null ? buttonText.EDIT + '规则' : buttonText.ADD + '规则'" style="width: 95vw; max-width: 500px">
       <MobileRuleEditorModal 
         v-model:show="showAddRuleModal"
         :rule="editingRule"
@@ -100,15 +92,15 @@
     </n-modal>
 
     <n-modal v-model:show="showClearSpecificModal" preset="card" title="清空特定标签" style="width: 90vw; max-width: 400px">
-      <n-form label-placement="top" size="small">
-        <n-form-item label="选择标签">
+      <n-form label-placement="top" :size="formSizes.SMALL">
+        <n-form-item :label="formLabel.SELECT_TAGS">
           <n-dynamic-tags v-model:value="clearSpecificTags" />
         </n-form-item>
       </n-form>
       <template #action>
         <n-space justify="end">
-          <n-button secondary @click="showClearSpecificModal = false">取消</n-button>
-          <n-button type="error" @click="handleClearSpecific">清空</n-button>
+          <n-button secondary @click="showClearSpecificModal = false">{{ buttonText.CANCEL }}</n-button>
+          <n-button :type="buttonTypes.ERROR" @click="handleClearSpecific">{{ buttonText.CLEAR }}</n-button>
         </n-space>
       </template>
     </n-modal>
@@ -118,15 +110,51 @@
 <script setup lang="ts">
 import { ref, computed, reactive, onMounted } from 'vue'
 import { NCard, NButton, NSpace, NSwitch, NInput, NAlert, NEmpty, NModal, NIcon, NSelect, NCheckbox, NInputNumber, NDynamicTags, NForm, NFormItem } from 'naive-ui'
-import { AddOutlined as AddIcon, PlayArrowOutlined as PlayIcon, DeleteOutlineOutlined as ClearIcon, ScienceOutlined as TestIcon, FilterListOutlined as FilterIcon } from '@vicons/material'
+import { DeleteOutlineOutlined as ClearIcon, FilterListOutlined as FilterIcon } from '@vicons/material'
 import { useMessage } from 'naive-ui'
 import { useAutoTags } from '../../toolkit/autotags/useAutoTags'
 import MobileRuleEditorModal from './MobileRuleEditorModal.vue'
 import MobileRuleCard from './MobileRuleCard.vue'
 import axios from 'axios'
+import {
+  ButtonTypes,
+  ButtonSizes,
+  TagTypes,
+  FormSizes,
+  ButtonText,
+  MessageText,
+} from '../constants'
 
 const message = useMessage()
 const { rules, fetchRules, saveRules, startTask, clearAll, clearSpecific, testWrite: testWriteApi } = useAutoTags()
+
+// 使用常量
+const buttonTypes = ButtonTypes
+const buttonSizes = ButtonSizes
+const tagTypes = TagTypes
+const formSizes = FormSizes
+const buttonText = ButtonText
+const messageText = MessageText
+
+// 表单标签
+const formLabel = {
+  SECRET_KEY: '安全密钥',
+  WRITE_MODE: '写入模式',
+  AUTOMATION_STATUS: '自动化状态',
+  DELAY_SECONDS: '处理延迟(秒)',
+  SELECT_TAGS: '选择标签',
+}
+
+// 占位符
+const placeholder = {
+  SECRET_TOKEN: '自定义 Token',
+}
+
+// 写入模式选项
+const writeModeOptions = [
+  { label: '合并现有标签', value: 'merge' },
+  { label: '覆盖所有标签', value: 'overwrite' }
+]
 
 const webhookConfig = ref({
   enabled: false,
@@ -161,15 +189,15 @@ const webhookUrl = computed(() => {
 
 const copyWebhookUrl = () => {
   navigator.clipboard.writeText(webhookUrl.value)
-  message.success('URL 已复制到剪贴板')
+  message.success(messageText.COPY_SUCCESS)
 }
 
 const saveWebhookConfig = async () => {
   try {
     await axios.post('/api/autotags/webhook-config', webhookConfig.value)
-    message.success('Webhook 配置已更新')
+    message.success(messageText.SETTINGS_SAVED)
   } catch (e: any) {
-    message.error('保存失败: ' + (e.message || '未知错误'))
+    message.error(messageText.SAVE_FAILED + ': ' + (e.message || '未知错误'))
   }
 }
 
@@ -220,7 +248,7 @@ const saveRule = async () => {
       })
     }
     await saveRules(newRules)
-    message.success('规则保存成功')
+    message.success(messageText.SAVE_SUCCESS)
     showAddRuleModal.value = false
     editingRule.value = { 
       id: null, 
@@ -232,7 +260,7 @@ const saveRule = async () => {
       conditions: { countries: [], genres: [], years_text: '' }
     }
   } catch (e: any) {
-    message.error('保存失败: ' + (e.message || '未知错误'))
+    message.error(messageText.SAVE_FAILED + ': ' + (e.message || '未知错误'))
   } finally {
     saving.value = false
   }
@@ -243,9 +271,9 @@ const deleteRule = async (index: number) => {
     const newRules = [...rules.value]
     newRules.splice(index, 1)
     await saveRules(newRules)
-    message.success('规则已删除')
+    message.success(messageText.DELETE_SUCCESS)
   } catch (e: any) {
-    message.error('删除失败: ' + (e.message || '未知错误'))
+    message.error(messageText.DELETE_FAILED + ': ' + (e.message || '未知错误'))
   }
 }
 
@@ -255,7 +283,7 @@ const runAllRules = async () => {
     await startTask({ all: true })
     message.success('所有规则已执行')
   } catch (e: any) {
-    message.error('执行失败: ' + (e.message || '未知错误'))
+    message.error(messageText.OPERATION_FAILED + ': ' + (e.message || '未知错误'))
   } finally {
     running.value = false
   }
@@ -266,7 +294,7 @@ const clearAllTags = async () => {
     await clearAll()
     message.success('所有标签已清空')
   } catch (e: any) {
-    message.error('清空失败: ' + (e.message || '未知错误'))
+    message.error(messageText.OPERATION_FAILED + ': ' + (e.message || '未知错误'))
   }
 }
 
@@ -293,7 +321,7 @@ const handleClearSpecific = async () => {
     showClearSpecificModal.value = false
     clearSpecificTags.value = []
   } catch (e: any) {
-    message.error('清空失败: ' + (e.message || '未知错误'))
+    message.error(messageText.OPERATION_FAILED + ': ' + (e.message || '未知错误'))
   }
 }
 
@@ -347,61 +375,23 @@ onMounted(() => {
 .webhook-card,
 .rules-card,
 .actions-card {
-  margin-bottom: 16px;
-}
-
-.webhook-card :deep(.n-card__content) {
-  padding: 16px;
-}
-
-.webhook-card :deep(.n-form-item) {
-  margin-bottom: 16px;
-}
-
-.webhook-card :deep(.n-form-item-label) {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-color);
-  margin-bottom: 8px;
-}
-
-.webhook-card :deep(.n-input),
-.webhook-card :deep(.n-input-number),
-.webhook-card :deep(.n-select) {
-  width: 100%;
-}
-
-.webhook-card :deep(.n-checkbox) {
-  font-size: 13px;
+  margin-bottom: 12px;
 }
 
 .switch-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
-  padding: 12px;
-  background: rgba(255, 255, 255, 0.02);
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  padding: 8px 0;
 }
 
 .switch-label {
-  font-size: 15px;
-  font-weight: 500;
+  font-size: 14px;
   color: var(--text-color);
 }
 
 .webhook-url {
-  margin-bottom: 16px;
-}
-
-.webhook-url :deep(.n-input) {
-  font-size: 13px;
-}
-
-.webhook-url :deep(.n-input__input-el) {
-  color: var(--text-color-2);
+  margin: 12px 0;
 }
 
 .empty-state {
@@ -415,16 +405,6 @@ onMounted(() => {
 }
 
 .rule-item-wrapper {
-  transition: all 0.2s ease;
+  cursor: move;
 }
-
-.rule-item-wrapper.is-dragging {
-  opacity: 0.5;
-  transform: scale(0.98);
-}
-
-.rule-item-wrapper.drag-over {
-  border-top: 2px solid var(--n-primary-color);
-}
-
 </style>

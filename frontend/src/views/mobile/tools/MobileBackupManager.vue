@@ -31,8 +31,17 @@ import axios from 'axios'
 import MobileBackupTaskPanel from './MobileBackupTaskPanel.vue'
 import MobileBackupHistoryPanel from './MobileBackupHistoryPanel.vue'
 import MobileBackupTaskEditModal from './MobileBackupTaskEditModal.vue'
+import {
+  ButtonText,
+  MessageText,
+} from '../constants'
 
 const message = useMessage()
+
+// 使用常量
+const buttonText = ButtonText
+const messageText = MessageText
+
 const taskPanelRef = ref()
 const historyPanelRef = ref()
 
@@ -65,21 +74,21 @@ const handleEditTask = (task: any) => {
 const saveTask = async () => {
   try {
     await axios.post('/api/backup/tasks', editTask.value)
-    message.success('任务已保存')
+    message.success(messageText.SAVE_SUCCESS)
     showEditModal.value = false
     await taskPanelRef.value?.fetchTasks()
   } catch (e: any) {
-    message.error('保存失败: ' + (e.response?.data?.detail || e.message))
+    message.error(messageText.SAVE_FAILED + ': ' + (e.response?.data?.detail || e.message))
   }
 }
 
 const handleRunTask = async (task: any) => {
   try {
     await axios.post(`/api/backup/tasks/${task.id}/run`)
-    message.success('任务已启动')
+    message.success(buttonText.RUN + messageText.SUCCESS)
     await historyPanelRef.value?.fetchHistory()
   } catch (e: any) {
-    message.error('启动失败: ' + (e.response?.data?.detail || e.message))
+    message.error(buttonText.RUN + messageText.FAILED + ': ' + (e.response?.data?.detail || e.message))
   }
 }
 

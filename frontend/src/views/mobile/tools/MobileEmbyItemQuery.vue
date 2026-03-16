@@ -20,7 +20,6 @@
           :loading="loading"
           @click="fetchInfo"
         >
-          <template #icon><n-icon><LabIcon /></n-icon></template>
           执行抓取
         </n-button>
       </n-space>
@@ -32,7 +31,6 @@
         <div class="result-header">
           <span class="result-title">抓取结果</span>
           <n-button secondary size="small" @click="copyData">
-            <template #icon><n-icon><CopyIcon /></n-icon></template>
             复制
           </n-button>
         </div>
@@ -64,10 +62,6 @@ import {
   useMessage, NCard, NInput, NButton, NCode, 
   NEmpty, NAlert, NIcon, NSpace
 } from 'naive-ui'
-import { 
-  ScienceOutlined as LabIcon,
-  ContentCopyOutlined as CopyIcon
-} from '@vicons/material'
 import { embyApi } from '@/api/emby'
 
 const message = useMessage()

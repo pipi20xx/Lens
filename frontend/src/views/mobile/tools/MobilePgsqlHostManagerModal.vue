@@ -8,11 +8,9 @@
   >
     <n-space vertical>
       <n-button block type="primary" @click="handleAdd">
-        <template #icon><n-icon><AddIcon /></n-icon></template>
         添加新主机
       </n-button>
       <n-button block secondary @click="fetchHosts">
-        <template #icon><n-icon><RefreshIcon /></n-icon></template>
         刷新
       </n-button>
 
@@ -26,13 +24,11 @@
             <div class="host-name">{{ host.name }}</div>
             <n-space>
               <n-button size="tiny" secondary type="info" @click="handleEdit(host)">
-                <template #icon><n-icon><EditIcon /></n-icon></template>
-              </n-button>
+                </n-button>
               <n-popconfirm @positive-click="() => handleDelete(host.id)" positive-text="确认" negative-text="取消">
                 <template #trigger>
                   <n-button size="tiny" secondary type="error">
-                    <template #icon><n-icon><DeleteIcon /></n-icon></template>
-                  </n-button>
+                    </n-button>
                 </template>
                 确认删除？
               </n-popconfirm>
@@ -85,7 +81,6 @@
       <template #footer>
         <n-space vertical style="width: 100%">
           <n-button block type="warning" @click="handleTest" :loading="testing">
-            <template #icon><n-icon><TestIcon /></n-icon></template>
             测试连接
           </n-button>
           <n-space justify="end">
@@ -104,13 +99,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { NModal, NSpace, NButton, NForm, NFormItem, NInput, NInputNumber, NIcon, NEmpty, NPopconfirm, useMessage, useDialog } from 'naive-ui'
 import {
-  AddOutlined as AddIcon,
-  RefreshOutlined as RefreshIcon,
-  EditOutlined as EditIcon,
-  DeleteOutlined as DeleteIcon,
   DnsOutlined as ServerIcon,
-  PersonOutlineOutlined as UserIcon,
-  StorageOutlined as DbIcon,
   SensorsOutlined as TestIcon
 } from '@vicons/material'
 import request from '@/utils/request'

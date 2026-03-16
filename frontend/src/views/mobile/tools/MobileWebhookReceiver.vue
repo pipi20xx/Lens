@@ -14,7 +14,6 @@
           http://{{ currentHost }}:6565/api/webhook/receive
         </code>
         <n-button block secondary @click="copyWebhookUrl">
-          <template #icon><n-icon><CopyIcon /></n-icon></template>
           复制地址
         </n-button>
       </n-space>
@@ -24,11 +23,9 @@
       <template #header-extra>
         <n-space>
           <n-button secondary type="error" size="small" @click="handleClear">
-            <template #icon><n-icon><DeleteIcon /></n-icon></template>
             清空
           </n-button>
           <n-button secondary size="small" @click="loadLogs" :loading="loading">
-            <template #icon><n-icon><RefreshIcon /></n-icon></template>
             刷新
           </n-button>
         </n-space>
@@ -67,7 +64,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { NCard, NButton, NSpace, NEmpty, NModal, NForm, NFormItem, NInput, NSelect, NTag, NPopconfirm, NIcon, NCode } from 'naive-ui'
-import { RefreshOutlined as RefreshIcon, DeleteOutlined as DeleteIcon, ContentCopyOutlined as CopyIcon, ChevronRightOutlined as ChevronRightIcon } from '@vicons/material'
+import { ChevronRightOutlined as ChevronRightIcon } from '@vicons/material'
 import { webhookApi } from '@/api/webhook'
 import { useMessage, useDialog } from 'naive-ui'
 

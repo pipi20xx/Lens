@@ -4,14 +4,33 @@ import {
   NCard, NButton, NSpace, NEmpty, NModal, NForm, NFormItem, NInput, NInputNumber, NSelect, NIcon, NPopconfirm, useMessage
 } from 'naive-ui'
 import {
-  AddOutlined as AddIcon,
-  TerminalOutlined as TerminalIcon,
-  EditOutlined as EditIcon,
   DeleteOutlineOutlined as DeleteIcon
 } from '@vicons/material'
 import { terminalApi } from '@/api/terminal'
+import {
+  ButtonTypes,
+  ButtonSizes,
+  ButtonText,
+  MessageText,
+  EmptyText,
+  ConfirmText,
+  ModalTitle,
+  FormLabel,
+  Placeholder,
+} from '../constants'
 
 const message = useMessage()
+
+// 使用常量
+const buttonTypes = ButtonTypes
+const buttonSizes = ButtonSizes
+const buttonText = ButtonText
+const messageText = MessageText
+const emptyText = EmptyText
+const confirmText = ConfirmText
+const modalTitle = ModalTitle
+const formLabel = FormLabel
+const placeholder = Placeholder
 
 // 主机列表
 const hosts = ref<any[]>([])
@@ -40,29 +59,29 @@ const loadHosts = async () => {
     const res = await terminalApi.getHosts()
     hosts.value = res as any || []
   } catch (e) {
-    message.error('加载主机列表失败')
+    message.error(messageText.LOAD_HOST_FAILED)
   }
 }
 
 const saveHost = async () => {
   if (!newHost.value.name || !newHost.value.host) {
-    message.warning('请填写完整的主机信息')
+    message.warning(messageText.FILL_HOST_INFO)
     return
   }
   saving.value = true
   try {
     if (newHost.value.id) {
       await terminalApi.updateHost(newHost.value.id, newHost.value)
-      message.success('主机更新成功')
+      message.success(messageText.UPDATE_HOST_SUCCESS)
     } else {
       await terminalApi.createHost(newHost.value)
-      message.success('主机添加成功')
+      message.success(messageText.ADD_HOST_SUCCESS)
     }
     showAddHostModal.value = false
     newHost.value = { id: undefined, name: '', host: '', port: 22, username: '', auth_type: 'password', password: '' }
     await loadHosts()
   } catch (e) {
-    message.error(newHost.value.id ? '更新主机失败' : '添加主机失败')
+    message.error(newHost.value.id ? messageText.UPDATE_HOST_FAILED : messageText.ADD_HOST_FAILED)
   } finally {
     saving.value = false
   }
@@ -71,10 +90,10 @@ const saveHost = async () => {
 const deleteHost = async (id: number) => {
   try {
     await terminalApi.deleteHost(id)
-    message.success('主机已删除')
+    message.success(messageText.DELETE_HOST_SUCCESS)
     await loadHosts()
   } catch (e) {
-    message.error('删除主机失败')
+    message.error(messageText.DELETE_HOST_FAILED)
   }
 }
 
@@ -84,7 +103,7 @@ const editHost = (host: any) => {
 }
 
 const connectHost = (host: any) => {
-  message.info('终端连接功能请在桌面端使用')
+  message.info(messageText.TERMINAL_DESKTOP_ONLY)
 }
 
 // 快速命令
@@ -93,7 +112,7 @@ const loadCommands = async () => {
     const res = await terminalApi.getCommands()
     commands.value = res as any || []
   } catch (e) {
-    message.error('加载命令列表失败')
+    message.error(messageText.LOAD_COMMAND_FAILED)
   }
 }
 
@@ -106,7 +125,7 @@ const savingCommand = ref(false)
 
 const saveCommand = async () => {
   if (!newCommand.value.title || !newCommand.value.command) {
-    message.warning('请填写完整的命令信息')
+    message.warning(messageText.FILL_COMMAND_INFO)
     return
   }
   savingCommand.value = true
@@ -116,13 +135,13 @@ const saveCommand = async () => {
     } else {
       await terminalApi.saveCommand(newCommand.value)
     }
-    message.success(editingCommand.value ? '命令更新成功' : '命令添加成功')
+    message.success(editingCommand.value ? messageText.UPDATE_COMMAND_SUCCESS : messageText.ADD_COMMAND_SUCCESS)
     showAddCommandModal.value = false
     newCommand.value = { title: '', command: '' }
     editingCommand.value = null
     await loadCommands()
   } catch (e) {
-    message.error('保存命令失败')
+    message.error(messageText.SAVE_COMMAND_FAILED)
   } finally {
     savingCommand.value = false
   }
@@ -137,15 +156,15 @@ const editCommand = (cmd: any) => {
 const deleteCommand = async (id: number) => {
   try {
     await terminalApi.deleteCommand(id)
-    message.success('命令已删除')
+    message.success(messageText.DELETE_COMMAND_SUCCESS)
     await loadCommands()
   } catch (e) {
-    message.error('删除命令失败')
+    message.error(messageText.DELETE_COMMAND_FAILED)
   }
 }
 
 const sendCommand = (cmd: any) => {
-  message.info('命令执行功能请在桌面端使用')
+  message.info(messageText.COMMAND_DESKTOP_ONLY)
 }
 
 onMounted(() => {
@@ -163,14 +182,14 @@ onMounted(() => {
 
     <n-card class="hosts-card" :bordered="false" title="主机列表">
       <n-space vertical>
-        <n-button block type="primary" @click="showAddHostModal = true">
+        <n-button block :type="buttonTypes.PRIMARY" @click="showAddHostModal = true">
           <template #icon>
             <n-icon><AddIcon /></n-icon>
           </template>
-          添加主机
+          {{ buttonText.ADD_HOST }}
         </n-button>
         <div v-if="hosts.length === 0" class="empty-state">
-          <n-empty description="暂无主机配置" />
+          <n-empty :description="emptyText.NO_HOST_CONFIG" />
         </div>
         <div v-else class="host-list">
           <div v-for="host in hosts" :key="host.id" class="host-item">
@@ -179,25 +198,25 @@ onMounted(() => {
               <div class="host-detail">{{ host.username }}@{{ host.host }}:{{ host.port }}</div>
             </div>
             <div class="host-actions">
-              <n-button size="small" secondary type="info" @click="connectHost(host)">
+              <n-button :size="buttonSizes.MEDIUM" secondary :type="buttonTypes.INFO" @click="connectHost(host)">
                 <template #icon>
                   <n-icon><TerminalIcon /></n-icon>
                 </template>
-                连接
+                {{ buttonText.CONNECT }}
               </n-button>
-              <n-button size="small" secondary type="warning" @click="editHost(host)">
+              <n-button :size="buttonSizes.MEDIUM" secondary :type="buttonTypes.WARNING" @click="editHost(host)">
                 <template #icon>
                   <n-icon><EditIcon /></n-icon>
                 </template>
-                编辑
+                {{ buttonText.EDIT }}
               </n-button>
-              <n-popconfirm @positive-click="deleteHost(host.id)" positive-text="确认删除" negative-text="取消">
+              <n-popconfirm @positive-click="deleteHost(host.id)" :positive-text="confirmText.CONFIRM_DELETE" :negative-text="confirmText.CANCEL">
                 <template #trigger>
-                  <n-button size="small" secondary type="error">
+                  <n-button :size="buttonSizes.MEDIUM" secondary :type="buttonTypes.ERROR">
                     <template #icon>
                       <n-icon><DeleteIcon /></n-icon>
                     </template>
-                    删除
+                    {{ buttonText.DELETE }}
                   </n-button>
                 </template>
                 确定删除主机 {{ host.name }}？
@@ -210,14 +229,14 @@ onMounted(() => {
 
     <n-card class="commands-card" :bordered="false" title="快速命令">
       <n-space vertical>
-        <n-button block type="primary" secondary @click="showAddCommandModal = true; editingCommand = null; newCommand = { title: '', command: '' }">
+        <n-button block :type="buttonTypes.PRIMARY" secondary @click="showAddCommandModal = true; editingCommand = null; newCommand = { title: '', command: '' }">
           <template #icon>
             <n-icon><AddIcon /></n-icon>
           </template>
-          添加命令
+          {{ buttonText.ADD_COMMAND }}
         </n-button>
         <div v-if="commands.length === 0" class="empty-state">
-          <n-empty description="暂无快速命令" />
+          <n-empty :description="emptyText.NO_QUICK_COMMAND" />
         </div>
         <div v-else class="command-list">
           <div v-for="cmd in commands" :key="cmd.id" class="command-item">
@@ -226,14 +245,14 @@ onMounted(() => {
               <div class="command-preview">{{ cmd.command }}</div>
             </div>
             <div class="command-actions">
-              <n-button size="small" secondary type="warning" @click="editCommand(cmd)">
+              <n-button :size="buttonSizes.MEDIUM" secondary :type="buttonTypes.WARNING" @click="editCommand(cmd)">
                 <template #icon>
                   <n-icon><EditIcon /></n-icon>
                 </template>
               </n-button>
-              <n-popconfirm @positive-click="deleteCommand(cmd.id)" positive-text="确认删除" negative-text="取消">
+              <n-popconfirm @positive-click="deleteCommand(cmd.id)" :positive-text="confirmText.CONFIRM_DELETE" :negative-text="confirmText.CANCEL">
                 <template #trigger>
-                  <n-button size="small" secondary type="error">
+                  <n-button :size="buttonSizes.MEDIUM" secondary :type="buttonTypes.ERROR">
                     <template #icon>
                       <n-icon><DeleteIcon /></n-icon>
                     </template>
@@ -247,48 +266,48 @@ onMounted(() => {
       </n-space>
     </n-card>
 
-    <n-modal v-model:show="showAddHostModal" preset="card" :title="newHost.id ? '编辑主机' : '添加主机'" style="width: 90vw; max-width: 400px">
-      <n-form label-placement="top" size="small">
-        <n-form-item label="名称">
-          <n-input v-model:value="newHost.name" placeholder="主机名称" />
+    <n-modal v-model:show="showAddHostModal" preset="card" :title="newHost.id ? modalTitle.EDIT_HOST : modalTitle.ADD_HOST" style="width: 90vw; max-width: 400px">
+      <n-form label-placement="top" :size="buttonSizes.SMALL">
+        <n-form-item :label="formLabel.NAME">
+          <n-input v-model:value="newHost.name" :placeholder="placeholder.HOST_NAME" />
         </n-form-item>
-        <n-form-item label="主机地址">
-          <n-input v-model:value="newHost.host" placeholder="192.168.1.1" />
+        <n-form-item :label="formLabel.HOST_ADDRESS">
+          <n-input v-model:value="newHost.host" :placeholder="placeholder.HOST_ADDRESS_EXAMPLE" />
         </n-form-item>
-        <n-form-item label="端口">
-          <n-input-number v-model:value="newHost.port" placeholder="22" />
+        <n-form-item :label="formLabel.PORT">
+          <n-input-number v-model:value="newHost.port" :placeholder="placeholder.PORT" />
         </n-form-item>
-        <n-form-item label="用户名">
-          <n-input v-model:value="newHost.username" placeholder="root" />
+        <n-form-item :label="formLabel.USERNAME">
+          <n-input v-model:value="newHost.username" :placeholder="placeholder.USERNAME" />
         </n-form-item>
-        <n-form-item label="认证方式">
+        <n-form-item :label="formLabel.AUTH_TYPE">
           <n-select v-model:value="newHost.auth_type" :options="authTypeOptions" />
         </n-form-item>
-        <n-form-item v-if="newHost.auth_type === 'password'" label="密码">
+        <n-form-item v-if="newHost.auth_type === 'password'" :label="formLabel.PASSWORD">
           <n-input v-model:value="newHost.password" type="password" show-password-on="click" />
         </n-form-item>
       </n-form>
       <template #action>
         <n-space justify="end">
-          <n-button secondary @click="showAddHostModal = false">取消</n-button>
-          <n-button type="primary" @click="saveHost" :loading="saving">保存</n-button>
+          <n-button secondary @click="showAddHostModal = false">{{ buttonText.CANCEL }}</n-button>
+          <n-button :type="buttonTypes.PRIMARY" @click="saveHost" :loading="saving">{{ buttonText.SAVE }}</n-button>
         </n-space>
       </template>
     </n-modal>
 
-    <n-modal v-model:show="showAddCommandModal" preset="card" :title="editingCommand ? '编辑命令' : '添加命令'" style="width: 90vw; max-width: 400px">
-      <n-form label-placement="top" size="small">
-        <n-form-item label="命令名称">
-          <n-input v-model:value="newCommand.title" placeholder="例如：查看日志" />
+    <n-modal v-model:show="showAddCommandModal" preset="card" :title="editingCommand ? modalTitle.EDIT_COMMAND : modalTitle.ADD_COMMAND" style="width: 90vw; max-width: 400px">
+      <n-form label-placement="top" :size="buttonSizes.SMALL">
+        <n-form-item :label="formLabel.COMMAND_NAME">
+          <n-input v-model:value="newCommand.title" :placeholder="placeholder.COMMAND_NAME_EXAMPLE" />
         </n-form-item>
-        <n-form-item label="命令内容">
-          <n-input v-model:value="newCommand.command" type="textarea" :rows="3" placeholder="例如：tail -f /var/log/syslog" />
+        <n-form-item :label="formLabel.COMMAND_CONTENT">
+          <n-input v-model:value="newCommand.command" type="textarea" :rows="3" :placeholder="placeholder.COMMAND_CONTENT_EXAMPLE" />
         </n-form-item>
       </n-form>
       <template #action>
         <n-space justify="end">
-          <n-button secondary @click="showAddCommandModal = false">取消</n-button>
-          <n-button type="primary" @click="saveCommand" :loading="savingCommand">保存</n-button>
+          <n-button secondary @click="showAddCommandModal = false">{{ buttonText.CANCEL }}</n-button>
+          <n-button :type="buttonTypes.PRIMARY" @click="saveCommand" :loading="savingCommand">{{ buttonText.SAVE }}</n-button>
         </n-space>
       </template>
     </n-modal>
