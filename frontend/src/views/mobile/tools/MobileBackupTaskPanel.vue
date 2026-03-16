@@ -32,10 +32,11 @@
                 远程
               </n-tag>
             </div>
-            <n-switch 
-              :value="task.enabled" 
+            <n-switch
+              :value="task.enabled"
               @update:value="(val) => handleToggleEnable(task, val)"
               size="small"
+              class="mobile-switch"
             />
           </div>
           

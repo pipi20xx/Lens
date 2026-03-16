@@ -77,7 +77,7 @@
         </n-form-item>
         <n-form-item label="宿主机标记">
           <n-space align="center">
-            <n-switch v-model:value="editHostForm.is_local" />
+            <n-switch v-model:value="editHostForm.is_local" class="mobile-switch" />
             <n-text depth="3" style="font-size: 12px">标记为此 Lens 容器所在的物理宿主机</n-text>
           </n-space>
         </n-form-item>

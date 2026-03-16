@@ -94,7 +94,7 @@
     <n-modal v-model:show="showRepairModal" preset="card" title="环境修复/安装配置" style="width: 90vw; max-width: 400px">
       <n-form label-placement="top" size="small">
         <n-form-item label="使用国内镜像">
-          <n-switch v-model:value="repairForm.useMirror" />
+          <n-switch v-model:value="repairForm.useMirror" class="mobile-switch" />
         </n-form-item>
         <n-form-item label="安装代理">
           <n-input v-model:value="repairForm.proxy" placeholder="例如: http://192.168.1.10:7890" />

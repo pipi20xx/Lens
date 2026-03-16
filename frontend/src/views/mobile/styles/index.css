@@ -1,0 +1,222 @@
+/**
+ * Mobile 端全局样式
+ * 包含主题变量、基础样式和通用组件样式
+ */
+
+/* ==================== 主题变量 ==================== */
+:root {
+  /* 手机端特定的间距 */
+  --mobile-safe-bottom: env(safe-area-inset-bottom);
+  --mobile-safe-top: env(safe-area-inset-top);
+
+  /* 手机端导航高度 */
+  --mobile-nav-height: 64px;
+  --mobile-header-height: 56px;
+
+  /* 手机端圆角 */
+  --mobile-radius-sm: 8px;
+  --mobile-radius-md: 12px;
+  --mobile-radius-lg: 16px;
+  --mobile-radius-xl: 20px;
+
+  /* 手机端间距 */
+  --mobile-gap-xs: 4px;
+  --mobile-gap-sm: 8px;
+  --mobile-gap-md: 12px;
+  --mobile-gap-lg: 16px;
+  --mobile-gap-xl: 20px;
+  --mobile-gap-xxl: 24px;
+
+  /* 手机端字体大小 */
+  --mobile-text-xs: 11px;
+  --mobile-text-sm: 13px;
+  --mobile-text-md: 15px;
+  --mobile-text-lg: 17px;
+  --mobile-text-xl: 20px;
+  --mobile-text-xxl: 24px;
+}
+
+/* ==================== 基础样式 ==================== */
+.mobile-page {
+  min-height: 100vh;
+  padding-bottom: calc(var(--mobile-nav-height) + var(--mobile-gap-lg));
+  background-color: var(--app-bg-color);
+  color: var(--text-color);
+}
+
+.mobile-container {
+  padding: var(--mobile-gap-lg);
+}
+
+/* ==================== 底部导航 ==================== */
+.mobile-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--mobile-nav-height);
+  background: var(--nav-bg-color);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding-bottom: var(--mobile-safe-bottom);
+  z-index: 1000;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.mobile-bottom-nav .nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--mobile-gap-xs);
+  padding: var(--mobile-gap-sm) var(--mobile-gap-lg);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: var(--mobile-radius-md);
+}
+
+.mobile-bottom-nav .nav-item:active {
+  transform: scale(0.95);
+}
+
+.mobile-bottom-nav .nav-item.active {
+  color: var(--primary-color);
+}
+
+.mobile-bottom-nav .nav-label {
+  font-size: var(--mobile-text-xs);
+  font-weight: 500;
+}
+
+/* ==================== 卡片样式 ==================== */
+.mobile-card {
+  background: var(--card-bg-color);
+  border-radius: var(--mobile-radius-lg);
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.mobile-card:active {
+  transform: scale(0.98);
+}
+
+/* ==================== 列表样式 ==================== */
+.mobile-list {
+  background: var(--card-bg-color);
+  border-radius: var(--mobile-radius-lg);
+  overflow: hidden;
+}
+
+.mobile-list-item {
+  display: flex;
+  align-items: center;
+  padding: var(--mobile-gap-md) var(--mobile-gap-lg);
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-color);
+  transition: background-color 0.2s ease;
+}
+
+.mobile-list-item:last-child {
+  border-bottom: none;
+}
+
+.mobile-list-item:active {
+  background-color: var(--hover-bg);
+}
+
+/* ==================== 按钮样式 ==================== */
+.mobile-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--mobile-gap-md) var(--mobile-gap-xl);
+  border-radius: var(--mobile-radius-md);
+  font-size: var(--mobile-text-md);
+  font-weight: 500;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.mobile-btn-primary {
+  background: var(--primary-color);
+  color: white;
+}
+
+.mobile-btn-primary:active {
+  opacity: 0.8;
+}
+
+.mobile-btn-ghost {
+  background: transparent;
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+/* ==================== 输入框样式 ==================== */
+.mobile-input {
+  width: 100%;
+  padding: var(--mobile-gap-md) var(--mobile-gap-lg);
+  border-radius: var(--mobile-radius-md);
+  border: 1px solid var(--border-color);
+  background: var(--card-bg-color);
+  color: var(--text-color);
+  font-size: var(--mobile-text-md);
+  transition: border-color 0.3s ease;
+}
+
+.mobile-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+/* ==================== Switch 开关样式 ==================== */
+/* 手机端 Switch 样式类 - 需要在组件中添加 class="mobile-switch" */
+.mobile-switch {
+  --n-rail-color: var(--border-color) !important;
+  --n-rail-color-active: var(--primary-color) !important;
+  --n-button-color: #ffffff !important;
+}
+
+/* ==================== 工具类 ==================== */
+.mobile-flex {
+  display: flex;
+}
+
+.mobile-flex-col {
+  flex-direction: column;
+}
+
+.mobile-items-center {
+  align-items: center;
+}
+
+.mobile-justify-between {
+  justify-content: space-between;
+}
+
+.mobile-gap-sm {
+  gap: var(--mobile-gap-sm);
+}
+
+.mobile-gap-md {
+  gap: var(--mobile-gap-md);
+}
+
+.mobile-gap-lg {
+  gap: var(--mobile-gap-lg);
+}
+
+.mobile-text-secondary {
+  color: var(--text-secondary);
+}
+
+.mobile-text-primary {
+  color: var(--primary-color);
+}

@@ -3,35 +3,34 @@ import { useRouter } from 'vue-router'
 import { NIcon } from 'naive-ui'
 import {
   ArrowBackOutlined as BackIcon,
-  GitHubIcon,
+  CodeOutlined as GitHubIcon,
   LanguageOutlined as WebIcon,
-  EmailOutlined as EmailIcon
+  ArticleOutlined as DocIcon,
+  ChevronRightOutlined as ChevronRightIcon
 } from '@vicons/material'
 
 const router = useRouter()
 
+const features = [
+  'Emby 媒体库管理',
+  '播放统计报表',
+  'TMDB 元数据查询',
+  'Docker 容器管理',
+  'PostgreSQL 管理',
+  '数据备份与恢复',
+  'Webhook 接收器',
+  'AI 智能助手',
+]
+
+const links = [
+  { name: 'GitHub 仓库', icon: GitHubIcon, url: 'https://github.com/lens/lens' },
+  { name: '官方文档', icon: DocIcon, url: 'https://docs.lens.app' },
+  { name: '官方网站', icon: WebIcon, url: 'https://lens.app' },
+]
+
 const goBack = () => {
   router.back()
 }
-
-const appInfo = {
-  name: 'Lens',
-  version: 'v2.5.6',
-  description: '一个强大的媒体服务器管理工具',
-  author: 'Lens Team',
-  github: 'https://github.com/lens/lens',
-  website: 'https://lens.app',
-  email: 'support@lens.app'
-}
-
-const features = [
-  'Emby 媒体库管理',
-  'Docker 容器管理',
-  '智能文件清理',
-  '站点导航与书签',
-  '通知推送服务',
-  'TMDB 元数据工具'
-]
 </script>
 
 <template>
@@ -39,92 +38,64 @@ const features = [
     <!-- 头部 -->
     <header class="about-header">
       <div class="back-btn" @click="goBack">
-        <n-icon size="24"><BackIcon /></n-icon>
+        <n-icon size="24" :component="BackIcon" />
       </div>
-      <h1 class="page-title">关于</h1>
+      <h1 class="page-title">关于 Lens</h1>
       <div class="placeholder"></div>
     </header>
 
     <!-- 应用信息 -->
-    <div class="app-info-section">
-      <div class="app-logo">
-        <svg width="80" height="80" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="lens_grad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" style="stop-color:#705df2;stop-opacity:1" />
-              <stop offset="100%" style="stop-color:#bb86fc;stop-opacity:1" />
-            </linearGradient>
-          </defs>
-          <circle cx="100" cy="100" r="85" fill="none" stroke="url(#lens_grad)" stroke-width="15" />
-          <circle cx="100" cy="100" r="55" fill="none" stroke="url(#lens_grad)" stroke-width="6" stroke-dasharray="20 10" opacity="0.6" />
-          <circle cx="100" cy="100" r="25" fill="url(#lens_grad)" />
-          <path d="M60 60 A60 60 0 0 1 140 60" fill="none" stroke="white" stroke-width="8" stroke-linecap="round" opacity="0.3" />
-        </svg>
-      </div>
-      <div class="app-name">{{ appInfo.name }}</div>
-      <div class="app-version">{{ appInfo.version }}</div>
-      <div class="app-description">{{ appInfo.description }}</div>
-    </div>
+    <section class="app-info-section">
+      <img src="/favicon.svg" alt="Lens" class="app-logo" />
+      <h2 class="app-name">Lens</h2>
+      <div class="app-version">v2.5.6</div>
+      <p class="app-description">现代化的媒体服务器管理工具</p>
+    </section>
 
     <!-- 功能列表 -->
-    <div class="features-section">
-      <div class="section-title">主要功能</div>
+    <section class="features-section">
+      <h3 class="section-title">核心功能</h3>
       <div class="features-list">
         <div v-for="feature in features" :key="feature" class="feature-item">
           <div class="feature-dot"></div>
           <span>{{ feature }}</span>
         </div>
       </div>
-    </div>
+    </section>
 
     <!-- 链接列表 -->
-    <div class="links-section">
-      <div class="section-title">联系我们</div>
+    <section class="links-section">
       <div class="links-list">
-        <a class="link-item" :href="appInfo.github" target="_blank">
+        <a
+          v-for="link in links"
+          :key="link.name"
+          :href="link.url"
+          target="_blank"
+          class="link-item"
+        >
           <div class="link-icon">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-              <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-            </svg>
+            <n-icon size="20" :component="link.icon" />
           </div>
-          <span class="link-name">GitHub</span>
-          <n-icon size="16" class="arrow-icon"><ChevronRightIcon /></n-icon>
-        </a>
-        <a class="link-item" :href="appInfo.website" target="_blank">
-          <div class="link-icon">
-            <n-icon size="18"><WebIcon /></n-icon>
-          </div>
-          <span class="link-name">官方网站</span>
-          <n-icon size="16" class="arrow-icon"><ChevronRightIcon /></n-icon>
-        </a>
-        <a class="link-item" :href="`mailto:${appInfo.email}`">
-          <div class="link-icon">
-            <n-icon size="18"><EmailIcon /></n-icon>
-          </div>
-          <span class="link-name">联系我们</span>
-          <n-icon size="16" class="arrow-icon"><ChevronRightIcon /></n-icon>
+          <span class="link-name">{{ link.name }}</span>
+          <n-icon size="18" :component="ChevronRightIcon" class="arrow-icon" />
         </a>
       </div>
-    </div>
+    </section>
 
     <!-- 版权信息 -->
-    <div class="copyright">
-      <p>© 2024 Lens Team. All rights reserved.</p>
+    <footer class="copyright">
+      <p>© 2024 Lens. All rights reserved.</p>
       <p>Made with ❤️ for media lovers</p>
-    </div>
+    </footer>
   </div>
 </template>
-
-<script lang="ts">
-import { ChevronRightOutlined as ChevronRightIcon } from '@vicons/material'
-export { ChevronRightIcon }
-</script>
 
 <style scoped>
 .mobile-about {
   min-height: 100vh;
-  background: #1e1e22;
+  background: var(--app-bg-color);
   padding-bottom: calc(24px + env(safe-area-inset-bottom));
+  transition: background-color 0.3s ease;
 }
 
 /* 头部 */
@@ -134,8 +105,8 @@ export { ChevronRightIcon }
   justify-content: space-between;
   padding: 12px 16px;
   padding-top: calc(12px + env(safe-area-inset-top));
-  background: rgba(255, 255, 255, 0.02);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--card-bg-color);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .back-btn {
@@ -144,20 +115,20 @@ export { ChevronRightIcon }
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-secondary);
   cursor: pointer;
   border-radius: 10px;
   transition: all 0.2s ease;
 }
 
 .back-btn:active {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--hover-bg);
 }
 
 .page-title {
   font-size: 18px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.95);
+  color: var(--text-color);
   margin: 0;
 }
 
@@ -183,20 +154,20 @@ export { ChevronRightIcon }
 .app-name {
   font-size: 24px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.95);
+  color: var(--text-color);
   margin-bottom: 4px;
 }
 
 .app-version {
   font-size: 14px;
-  color: #705df2;
+  color: var(--primary-color);
   font-weight: 500;
   margin-bottom: 8px;
 }
 
 .app-description {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-secondary);
 }
 
 /* 功能列表 */
@@ -208,7 +179,7 @@ export { ChevronRightIcon }
 .section-title {
   font-size: 13px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 14px;
@@ -225,17 +196,18 @@ export { ChevronRightIcon }
   align-items: center;
   gap: 8px;
   padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--card-bg-color);
   border-radius: 10px;
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
 }
 
 .feature-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #705df2;
+  background: var(--primary-color);
   flex-shrink: 0;
 }
 
@@ -246,9 +218,10 @@ export { ChevronRightIcon }
 }
 
 .links-list {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--card-bg-color);
   border-radius: 16px;
   overflow: hidden;
+  border: 1px solid var(--border-color);
 }
 
 .link-item {
@@ -257,7 +230,7 @@ export { ChevronRightIcon }
   gap: 14px;
   padding: 14px 16px;
   text-decoration: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid var(--border-color);
   transition: all 0.2s ease;
 }
 
@@ -266,35 +239,35 @@ export { ChevronRightIcon }
 }
 
 .link-item:active {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--hover-bg);
 }
 
 .link-icon {
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  background: rgba(112, 93, 242, 0.15);
+  background: var(--primary-color);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #705df2;
+  color: white;
 }
 
 .link-name {
   flex: 1;
   font-size: 15px;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text-color);
 }
 
 .arrow-icon {
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--text-secondary);
 }
 
 /* 版权信息 */
 .copyright {
   text-align: center;
   padding: 20px;
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--text-secondary);
   font-size: 12px;
   line-height: 1.8;
 }

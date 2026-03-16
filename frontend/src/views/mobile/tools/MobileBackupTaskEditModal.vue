@@ -43,7 +43,7 @@
       <n-divider title-placement="left">自动化运行计划</n-divider>
       
       <n-form-item label="启用定时备份">
-        <n-switch v-model:value="task.enabled" />
+        <n-switch v-model:value="task.enabled" class="mobile-switch" />
       </n-form-item>
       
       <template v-if="task.enabled">

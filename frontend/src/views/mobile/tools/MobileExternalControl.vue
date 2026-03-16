@@ -54,14 +54,14 @@
             <div class="permission-label">允许外部访问</div>
             <div class="permission-desc">启用后可通过 API 访问系统功能</div>
           </div>
-          <n-switch v-model:value="settings.externalAccessEnabled" @update:value="saveSettings" />
+          <n-switch v-model:value="settings.externalAccessEnabled" @update:value="saveSettings" class="mobile-switch" />
         </div>
         <div class="permission-item">
           <div class="permission-info">
             <div class="permission-label">IP 白名单</div>
             <div class="permission-desc">仅允许指定 IP 访问</div>
           </div>
-          <n-switch v-model:value="settings.ipWhitelistEnabled" @update:value="saveSettings" />
+          <n-switch v-model:value="settings.ipWhitelistEnabled" @update:value="saveSettings" class="mobile-switch" />
         </div>
         <div v-if="settings.ipWhitelistEnabled" class="ip-whitelist">
           <n-input

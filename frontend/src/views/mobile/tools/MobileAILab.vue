@@ -48,7 +48,7 @@
         </n-form-item>
         <n-form-item>
           <n-space align="center">
-            <n-switch v-model:value="config.ai_use_proxy" />
+            <n-switch v-model:value="config.ai_use_proxy" class="mobile-switch" />
             <span class="switch-label">使用系统内置 HTTP 代理</span>
           </n-space>
         </n-form-item>

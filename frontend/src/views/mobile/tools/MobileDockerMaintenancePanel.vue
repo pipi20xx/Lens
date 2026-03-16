@@ -40,7 +40,7 @@
                   {{ daemonForm.proxyEnabled ? '已启用' : '已禁用' }}
                 </n-tag>
               </n-space>
-              <n-switch v-model:value="daemonForm.proxyEnabled" size="small" />
+              <n-switch v-model:value="daemonForm.proxyEnabled" size="small" class="mobile-switch" />
             </n-space>
             
             <template v-if="daemonForm.proxyEnabled">

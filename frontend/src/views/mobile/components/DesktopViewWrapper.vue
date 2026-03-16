@@ -2,6 +2,7 @@
 import { useRouter } from 'vue-router'
 import { NIcon } from 'naive-ui'
 import { ArrowBackOutlined as BackIcon } from '@vicons/material'
+import '../styles/index.css'
 
 const router = useRouter()
 

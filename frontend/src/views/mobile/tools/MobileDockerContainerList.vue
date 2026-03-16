@@ -12,7 +12,7 @@
         </n-space>
         <n-space align="center">
           <n-text depth="3" style="font-size: 12px">增强监控</n-text>
-          <n-switch v-model:value="enhancedMode" size="small" />
+          <n-switch v-model:value="enhancedMode" size="small" class="mobile-switch" />
         </n-space>
       </n-space>
 
@@ -114,7 +114,7 @@
           <n-input v-model:value="settingsForm.custom_port" placeholder="Host 模式或未识别端口跳转" />
         </n-form-item>
         <n-form-item label="自动更新镜像">
-          <n-switch v-model:value="settingsForm.auto_update" />
+          <n-switch v-model:value="settingsForm.auto_update" class="mobile-switch" />
         </n-form-item>
       </n-form>
       <template #action>

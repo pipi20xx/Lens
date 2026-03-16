@@ -154,11 +154,12 @@ const navigateTo = (path: string) => {
 .mobile-tools {
   width: 100vw;
   min-height: 100vh;
-  background: #1e1e22;
+  background: var(--app-bg-color);
   padding: 16px;
   padding-top: calc(16px + env(safe-area-inset-top));
   padding-bottom: calc(16px + 64px + env(safe-area-inset-bottom));
   box-sizing: border-box;
+  transition: background-color 0.3s ease;
 }
 
 /* 顶部标题栏 */
@@ -169,7 +170,7 @@ const navigateTo = (path: string) => {
 .page-title {
   font-size: 24px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.95);
+  color: var(--text-color);
   margin: 0;
 }
 
@@ -179,27 +180,28 @@ const navigateTo = (path: string) => {
 }
 
 .search-input {
-  --n-border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  --n-border-hover: 1px solid rgba(255, 255, 255, 0.2) !important;
-  --n-border-focus: 1px solid #705df2 !important;
-  --n-color: rgba(255, 255, 255, 0.06) !important;
-  --n-color-focus: rgba(255, 255, 255, 0.08) !important;
-  --n-text-color: rgba(255, 255, 255, 0.9) !important;
-  --n-placeholder-color: rgba(255, 255, 255, 0.4) !important;
+  --n-border: 1px solid var(--border-color) !important;
+  --n-border-hover: 1px solid var(--primary-border-color) !important;
+  --n-border-focus: 1px solid var(--primary-color) !important;
+  --n-color: var(--card-bg-color) !important;
+  --n-color-focus: var(--hover-bg) !important;
+  --n-text-color: var(--text-color) !important;
+  --n-placeholder-color: var(--text-secondary) !important;
   --n-height: 44px !important;
   --n-border-radius: 12px !important;
 }
 
 .search-input :deep(.n-input__prefix) {
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-secondary);
 }
 
 /* 工具分类 */
 .category-section {
   margin-bottom: 20px;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--card-bg-color);
   border-radius: 16px;
   overflow: hidden;
+  border: 1px solid var(--border-color);
 }
 
 .category-header {
@@ -207,7 +209,7 @@ const navigateTo = (path: string) => {
   align-items: center;
   gap: 10px;
   padding: 14px 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .category-icon {
@@ -222,7 +224,7 @@ const navigateTo = (path: string) => {
 .category-name {
   font-size: 15px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text-color);
 }
 
 .tools-list {
@@ -241,15 +243,15 @@ const navigateTo = (path: string) => {
 }
 
 .tool-item:active {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--hover-bg);
 }
 
 .tool-name {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-color);
 }
 
 .arrow-icon {
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--text-secondary);
 }
 </style>

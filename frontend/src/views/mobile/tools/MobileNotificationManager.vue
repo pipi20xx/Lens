@@ -8,7 +8,7 @@
     <n-card class="switch-card" :bordered="false" title="全局设置">
       <div class="switch-row">
         <span class="switch-label">启用通知</span>
-        <n-switch v-model:value="settings.enabled" @update:value="saveSettings" size="medium" />
+        <n-switch v-model:value="settings.enabled" @update:value="saveSettings" size="medium" class="mobile-switch" />
       </div>
     </n-card>
 
@@ -30,7 +30,7 @@
                   {{ bot.enabled ? '运行中' : '已停用' }}
                 </n-tag>
               </div>
-              <n-switch v-model:value="bot.enabled" @update:value="saveSettings" size="small" />
+              <n-switch v-model:value="bot.enabled" @update:value="saveSettings" size="small" class="mobile-switch" />
             </div>
             
             <div class="bot-info">
@@ -85,7 +85,7 @@
         </n-form-item>
         <n-form-item label="开启交互">
           <n-space vertical style="width: 100%">
-            <n-switch v-model:value="editingBot.is_interactive" />
+            <n-switch v-model:value="editingBot.is_interactive" class="mobile-switch" />
             <n-alert v-if="editingBot.is_interactive" type="warning" size="tiny">
               开启后，你可以通过 Telegram 直接操控 Docker。请务必配置下方的授权用户 ID。
             </n-alert>
@@ -101,7 +101,7 @@
           />
         </n-form-item>
         <n-form-item label="是否启用">
-          <n-switch v-model:value="editingBot.enabled" />
+          <n-switch v-model:value="editingBot.enabled" class="mobile-switch" />
         </n-form-item>
       </n-form>
       <template #action>
@@ -328,5 +328,12 @@ onMounted(() => {
 .bot-actions {
   display: flex;
   gap: 8px;
+}
+
+/* Switch 开关样式 - 使用 CSS 变量覆盖 naive-ui 默认样式 */
+.mobile-switch {
+  --n-rail-color: var(--border-color) !important;
+  --n-rail-color-active: var(--primary-color) !important;
+  --n-button-color: #ffffff !important;
 }
 </style>

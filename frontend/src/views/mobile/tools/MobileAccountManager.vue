@@ -46,14 +46,14 @@
             <div class="security-label">两步验证</div>
             <div class="security-desc">启用后登录需要验证码</div>
           </div>
-          <n-switch v-model:value="securitySettings.twoFactorEnabled" @update:value="toggleTwoFactor" />
+          <n-switch v-model:value="securitySettings.twoFactorEnabled" @update:value="toggleTwoFactor" class="mobile-switch" />
         </div>
         <div class="security-item">
           <div class="security-info">
             <div class="security-label">登录通知</div>
             <div class="security-desc">新设备登录时发送通知</div>
           </div>
-          <n-switch v-model:value="securitySettings.loginNotification" @update:value="saveSecuritySettings" />
+          <n-switch v-model:value="securitySettings.loginNotification" @update:value="saveSecuritySettings" class="mobile-switch" />
         </div>
       </n-space>
     </n-card>

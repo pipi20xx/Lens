@@ -103,7 +103,7 @@
           <n-input v-model:value="registryForm.url" placeholder="例如: docker.io" />
         </n-form-item>
         <n-form-item label="HTTPS">
-          <n-switch v-model:value="registryForm.is_https" />
+          <n-switch v-model:value="registryForm.is_https" class="mobile-switch" />
         </n-form-item>
         <n-form-item label="关联凭据">
           <n-select v-model:value="registryForm.credential_id" :options="credOptions" clearable placeholder="选择凭据 (选填)" />

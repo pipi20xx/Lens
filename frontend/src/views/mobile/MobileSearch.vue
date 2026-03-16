@@ -18,7 +18,7 @@ const hotSearches = ['站点导航', '终端', '通知', 'TMDB']
 // 搜索结果
 const searchResults = computed(() => {
   if (!searchQuery.value.trim()) return []
-  
+
   const query = searchQuery.value.toLowerCase()
   const allTools = [
     { name: '站点导航', path: '/mobile/tools/sitenav', category: '导航' },
@@ -32,8 +32,8 @@ const searchResults = computed(() => {
     { name: '通知管理', path: '/mobile/tools/notifications', category: '其他' },
     { name: 'TMDB 工具', path: '/mobile/tools/tmdb', category: '其他' },
   ]
-  
-  return allTools.filter(tool => 
+
+  return allTools.filter(tool =>
     tool.name.toLowerCase().includes(query) ||
     tool.category.toLowerCase().includes(query)
   )
@@ -154,7 +154,8 @@ export { RightIcon }
 <style scoped>
 .mobile-search {
   min-height: 100vh;
-  background: #1e1e22;
+  background: var(--app-bg-color);
+  transition: background-color 0.3s ease;
 }
 
 /* 搜索头部 */
@@ -164,8 +165,8 @@ export { RightIcon }
   gap: 12px;
   padding: 12px 16px;
   padding-top: calc(12px + env(safe-area-inset-top));
-  background: rgba(255, 255, 255, 0.02);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--card-bg-color);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .back-btn {
@@ -174,14 +175,14 @@ export { RightIcon }
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-secondary);
   cursor: pointer;
   border-radius: 10px;
   transition: all 0.2s ease;
 }
 
 .back-btn:active {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--hover-bg);
 }
 
 .search-input-wrapper {
@@ -189,17 +190,17 @@ export { RightIcon }
 }
 
 .search-input {
-  --n-border: none !important;
-  --n-color: rgba(255, 255, 255, 0.08) !important;
-  --n-color-focus: rgba(255, 255, 255, 0.12) !important;
-  --n-text-color: rgba(255, 255, 255, 0.9) !important;
-  --n-placeholder-color: rgba(255, 255, 255, 0.4) !important;
+  --n-border: 1px solid var(--border-color) !important;
+  --n-color: var(--card-bg-color) !important;
+  --n-color-focus: var(--hover-bg) !important;
+  --n-text-color: var(--text-color) !important;
+  --n-placeholder-color: var(--text-secondary) !important;
   --n-height: 42px !important;
   --n-border-radius: 10px !important;
 }
 
 .search-input :deep(.n-input__prefix) {
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-secondary);
   margin-right: 8px;
 }
 
@@ -219,29 +220,30 @@ export { RightIcon }
   align-items: center;
   justify-content: space-between;
   padding: 14px 16px;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--card-bg-color);
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
+  border: 1px solid var(--border-color);
 }
 
 .result-item:active {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--hover-bg);
 }
 
 .result-name {
   font-size: 15px;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text-color);
   margin-bottom: 4px;
 }
 
 .result-category {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-secondary);
 }
 
 .arrow-icon {
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--text-secondary);
 }
 
 .empty-result {
@@ -267,12 +269,12 @@ export { RightIcon }
 .section-title {
   font-size: 14px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary);
 }
 
 .clear-btn {
   font-size: 13px;
-  color: #705df2;
+  color: var(--primary-color);
   cursor: pointer;
 }
 
@@ -287,16 +289,17 @@ export { RightIcon }
   align-items: center;
   gap: 6px;
   padding: 8px 14px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--card-bg-color);
   border-radius: 20px;
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-color);
   cursor: pointer;
   transition: all 0.2s ease;
+  border: 1px solid var(--border-color);
 }
 
 .history-tag:active {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--hover-bg);
 }
 
 .hot-tag {
@@ -304,16 +307,17 @@ export { RightIcon }
   align-items: center;
   gap: 8px;
   padding: 8px 14px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--card-bg-color);
   border-radius: 20px;
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-color);
   cursor: pointer;
   transition: all 0.2s ease;
+  border: 1px solid var(--border-color);
 }
 
 .hot-tag:active {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--hover-bg);
 }
 
 .hot-rank {
@@ -322,15 +326,15 @@ export { RightIcon }
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--hover-bg);
   border-radius: 4px;
   font-size: 11px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-secondary);
 }
 
 .hot-rank.top {
-  background: rgba(112, 93, 242, 0.3);
-  color: #705df2;
+  background: var(--primary-color);
+  color: white;
 }
 </style>

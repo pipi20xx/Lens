@@ -9,7 +9,7 @@
       <n-space vertical>
         <div class="switch-row">
           <span class="switch-label">启用 Webhook</span>
-          <n-switch v-model:value="webhookConfig.enabled" @update:value="saveWebhookConfig" />
+          <n-switch v-model:value="webhookConfig.enabled" @update:value="saveWebhookConfig" class="mobile-switch" />
         </div>
         <div v-if="webhookConfig.enabled" class="webhook-url">
           <n-input :value="webhookUrl" readonly>

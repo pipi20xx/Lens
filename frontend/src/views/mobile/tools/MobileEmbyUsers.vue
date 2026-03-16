@@ -83,23 +83,23 @@
           <n-space vertical class="settings-section">
             <div class="setting-item">
               <span class="setting-label">禁用此账户</span>
-              <n-switch v-model:value="policy.IsDisabled" />
+              <n-switch v-model:value="policy.IsDisabled" class="mobile-switch" />
             </div>
             <div class="setting-item">
               <span class="setting-label">管理员权限</span>
-              <n-switch v-model:value="policy.IsAdministrator" />
+              <n-switch v-model:value="policy.IsAdministrator" class="mobile-switch" />
             </div>
             <div class="setting-item">
               <span class="setting-label">在登录界面隐藏</span>
-              <n-switch v-model:value="policy.IsHidden" />
+              <n-switch v-model:value="policy.IsHidden" class="mobile-switch" />
             </div>
             <div class="setting-item">
               <span class="setting-label">在远程访问时隐藏</span>
-              <n-switch v-model:value="policy.IsHiddenRemotely" />
+              <n-switch v-model:value="policy.IsHiddenRemotely" class="mobile-switch" />
             </div>
             <div class="setting-item">
               <span class="setting-label">允许远程访问</span>
-              <n-switch v-model:value="policy.EnableRemoteAccess" />
+              <n-switch v-model:value="policy.EnableRemoteAccess" class="mobile-switch" />
             </div>
             <div class="setting-item">
               <span class="setting-label">同时播放限制</span>
@@ -115,27 +115,27 @@
           <n-space vertical class="settings-section">
             <div class="setting-item">
               <span class="setting-label">允许媒体播放</span>
-              <n-switch v-model:value="policy.EnableMediaPlayback" />
+              <n-switch v-model:value="policy.EnableMediaPlayback" class="mobile-switch" />
             </div>
             <div class="setting-item">
               <span class="setting-label">允许音频转码</span>
-              <n-switch v-model:value="policy.EnableAudioPlaybackTranscoding" />
+              <n-switch v-model:value="policy.EnableAudioPlaybackTranscoding" class="mobile-switch" />
             </div>
             <div class="setting-item">
               <span class="setting-label">允许视频转码</span>
-              <n-switch v-model:value="policy.EnableVideoPlaybackTranscoding" />
+              <n-switch v-model:value="policy.EnableVideoPlaybackTranscoding" class="mobile-switch" />
             </div>
             <div class="setting-item">
               <span class="setting-label">允许播放封装转换</span>
-              <n-switch v-model:value="policy.EnablePlaybackRemuxing" />
+              <n-switch v-model:value="policy.EnablePlaybackRemuxing" class="mobile-switch" />
             </div>
             <div class="setting-item">
               <span class="setting-label">允许媒体转换</span>
-              <n-switch v-model:value="policy.EnableMediaConversion" />
+              <n-switch v-model:value="policy.EnableMediaConversion" class="mobile-switch" />
             </div>
             <div class="setting-item">
               <span class="setting-label">允许同步转码</span>
-              <n-switch v-model:value="policy.EnableSyncTranscoding" />
+              <n-switch v-model:value="policy.EnableSyncTranscoding" class="mobile-switch" />
             </div>
             <div class="setting-item">
               <span class="setting-label">自动远程质量</span>
@@ -147,31 +147,31 @@
           <n-space vertical class="settings-section">
             <div class="setting-item">
               <span class="setting-label">允许删除媒体</span>
-              <n-switch v-model:value="policy.EnableContentDeletion" />
+              <n-switch v-model:value="policy.EnableContentDeletion" class="mobile-switch" />
             </div>
             <div class="setting-item">
               <span class="setting-label">允许下载媒体</span>
-              <n-switch v-model:value="policy.EnableContentDownloading" />
+              <n-switch v-model:value="policy.EnableContentDownloading" class="mobile-switch" />
             </div>
             <div class="setting-item">
               <span class="setting-label">允许下载字幕</span>
-              <n-switch v-model:value="policy.EnableSubtitleDownloading" />
+              <n-switch v-model:value="policy.EnableSubtitleDownloading" class="mobile-switch" />
             </div>
             <div class="setting-item">
               <span class="setting-label">允许管理字幕</span>
-              <n-switch v-model:value="policy.EnableSubtitleManagement" />
+              <n-switch v-model:value="policy.EnableSubtitleManagement" class="mobile-switch" />
             </div>
             <div class="setting-item">
               <span class="setting-label">允许公开分享</span>
-              <n-switch v-model:value="policy.EnablePublicSharing" />
+              <n-switch v-model:value="policy.EnablePublicSharing" class="mobile-switch" />
             </div>
             <div class="setting-item">
               <span class="setting-label">允许远程控制其他用户</span>
-              <n-switch v-model:value="policy.EnableRemoteControlOfOtherUsers" />
+              <n-switch v-model:value="policy.EnableRemoteControlOfOtherUsers" class="mobile-switch" />
             </div>
             <div class="setting-item">
               <span class="setting-label">允许控制共享设备</span>
-              <n-switch v-model:value="policy.EnableSharedDeviceControl" />
+              <n-switch v-model:value="policy.EnableSharedDeviceControl" class="mobile-switch" />
             </div>
           </n-space>
         </n-tab-pane>
@@ -179,23 +179,23 @@
           <n-space vertical class="settings-section">
             <div class="setting-item">
               <span class="setting-label">允许访问所有媒体库</span>
-              <n-switch v-model:value="policy.EnableAllFolders" />
+              <n-switch v-model:value="policy.EnableAllFolders" class="mobile-switch" />
             </div>
             <div class="setting-item">
               <span class="setting-label">允许访问所有频道</span>
-              <n-switch v-model:value="policy.EnableAllChannels" />
+              <n-switch v-model:value="policy.EnableAllChannels" class="mobile-switch" />
             </div>
             <div class="setting-item">
               <span class="setting-label">允许在所有设备上登录</span>
-              <n-switch v-model:value="policy.EnableAllDevices" />
+              <n-switch v-model:value="policy.EnableAllDevices" class="mobile-switch" />
             </div>
             <div class="setting-item">
               <span class="setting-label">允许观看直播电视</span>
-              <n-switch v-model:value="policy.EnableLiveTvAccess" />
+              <n-switch v-model:value="policy.EnableLiveTvAccess" class="mobile-switch" />
             </div>
             <div class="setting-item">
               <span class="setting-label">允许管理直播电视</span>
-              <n-switch v-model:value="policy.EnableLiveTvManagement" />
+              <n-switch v-model:value="policy.EnableLiveTvManagement" class="mobile-switch" />
             </div>
           </n-space>
         </n-tab-pane>

@@ -3,45 +3,63 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { NIcon } from 'naive-ui'
 import {
-  HomeOutlined as HomeIcon,
-  SettingsOutlined as SettingsIcon,
   SearchOutlined as SearchIcon,
-  TerminalOutlined as TerminalIcon,
+  SettingsOutlined as SettingsIcon,
+  ChevronRightOutlined as ArrowIcon,
+  HomeOutlined as HomeIcon,
   StorageOutlined as StorageIcon,
-  CleaningServicesOutlined as CleanIcon,
-  NotificationsOutlined as NotifyIcon,
-  ChevronRightOutlined as RightIcon
+  TerminalOutlined as TerminalIcon,
+  ViewListOutlined as ListIcon
 } from '@vicons/material'
 
 const router = useRouter()
 
-// 快捷功能入口 - 使用桌面导航的完整名称
+// 快捷功能
 const quickActions = [
-  { name: '站点导航页', icon: HomeIcon, path: '/mobile/tools/sitenav', color: '#705df2' },
-  { name: '管理仪表盘', icon: StorageIcon, path: '/mobile/home', color: '#3b82f6' },
-  { name: '终端管理', icon: TerminalIcon, path: '/mobile/tools/terminal', color: '#f59e0b' },
-  { name: 'Docker 容器管理', icon: StorageIcon, path: '/mobile/tools/docker', color: '#3b82f6' },
+  { name: '站点导航', icon: HomeIcon, color: '#705df2', path: '/mobile/tools/site-nav' },
+  { name: '仪表盘', icon: StorageIcon, color: '#4ade80', path: '/mobile/tools/dashboard' },
+  { name: '终端', icon: TerminalIcon, color: '#f59e0b', path: '/mobile/tools/terminal' },
+  { name: 'Docker', icon: ListIcon, color: '#3b82f6', path: '/mobile/tools/docker' },
 ]
 
-// 最近使用 - 使用桌面导航的完整名称
+// 最近使用的工具
 const recentTools = ref([
-  { name: 'Emby 媒体库管理', path: '/mobile/tools/emby', icon: StorageIcon },
-  { name: '媒体净化清理', path: '/mobile/tools/cleanup', icon: CleanIcon },
-  { name: '通知消息中心', path: '/mobile/tools/notifications', icon: NotifyIcon },
+  { name: 'Emby 媒体库', icon: 'mdi:play-circle', path: '/mobile/tools/emby-libraries' },
+  { name: '媒体清理', icon: 'mdi:broom', path: '/mobile/tools/cleanup' },
+  { name: '通知中心', icon: 'mdi:bell', path: '/mobile/tools/notifications' },
 ])
 
-// 搜索
-const searchQuery = ref('')
+// 系统状态
+const systemStatus = ref({
+  embyStatus: '运行中',
+  dockerStatus: '正常',
+  cpuUsage: 45,
+  memoryUsage: 62
+})
 
 const navigateTo = (path: string) => {
   router.push(path)
 }
 
-const handleSearch = () => {
-  if (searchQuery.value.trim()) {
-    router.push(`/mobile/tools/search?q=${encodeURIComponent(searchQuery.value)}`)
-  }
+const goToSearch = () => {
+  router.push('/mobile/search')
 }
+
+const goToSettings = () => {
+  router.push('/mobile/tools/settings')
+}
+
+onMounted(() => {
+  // 加载最近使用的工具
+  const recent = localStorage.getItem('recent_tools')
+  if (recent) {
+    try {
+      recentTools.value = JSON.parse(recent).slice(0, 3)
+    } catch (e) {
+      console.error('解析最近工具失败:', e)
+    }
+  }
+})
 </script>
 
 <template>
@@ -50,22 +68,22 @@ const handleSearch = () => {
     <header class="home-header">
       <h1 class="app-title">Lens</h1>
       <div class="header-actions">
-        <div class="action-btn" @click="navigateTo('/mobile/search')">
-          <n-icon size="22"><SearchIcon /></n-icon>
+        <div class="action-btn" @click="goToSearch">
+          <n-icon size="22" :component="SearchIcon" />
         </div>
-        <div class="action-btn" @click="navigateTo('/mobile/settings')">
-          <n-icon size="22"><SettingsIcon /></n-icon>
+        <div class="action-btn" @click="goToSettings">
+          <n-icon size="22" :component="SettingsIcon" />
         </div>
       </div>
     </header>
 
     <!-- 搜索栏 -->
-    <div class="search-section">
-      <div class="search-bar" @click="navigateTo('/mobile/search')">
-        <n-icon size="18" class="search-icon"><SearchIcon /></n-icon>
+    <section class="search-section" @click="goToSearch">
+      <div class="search-bar">
+        <n-icon size="20" :component="SearchIcon" class="search-icon" />
         <span class="search-placeholder">搜索工具...</span>
       </div>
-    </div>
+    </section>
 
     <!-- 快捷功能 -->
     <section class="quick-actions">
@@ -77,7 +95,7 @@ const handleSearch = () => {
           class="action-item"
           @click="navigateTo(action.path)"
         >
-          <div class="action-icon" :style="{ backgroundColor: action.color + '20', color: action.color }">
+          <div class="action-icon" :style="{ background: `${action.color}20`, color: action.color }">
             <n-icon size="24" :component="action.icon" />
           </div>
           <span class="action-name">{{ action.name }}</span>
@@ -96,32 +114,27 @@ const handleSearch = () => {
           @click="navigateTo(tool.path)"
         >
           <div class="tool-icon">
-            <n-icon size="20" :component="tool.icon" />
+            <iconify-icon :icon="tool.icon" width="20" height="20" />
           </div>
           <span class="tool-name">{{ tool.name }}</span>
-          <n-icon size="16" class="arrow-icon"><RightIcon /></n-icon>
+          <n-icon size="18" :component="ArrowIcon" class="arrow-icon" />
         </div>
       </div>
     </section>
 
-    <!-- 系统状态卡片 -->
+    <!-- 系统状态 -->
     <section class="status-cards">
       <h2 class="section-title">系统状态</h2>
       <div class="cards-row">
         <div class="status-card">
+          <div class="card-label">Emby</div>
+          <div class="card-value">{{ systemStatus.embyStatus }}</div>
+          <div class="card-sublabel">服务状态</div>
+        </div>
+        <div class="status-card">
           <div class="card-label">Docker</div>
-          <div class="card-value">12</div>
-          <div class="card-sublabel">运行中</div>
-        </div>
-        <div class="status-card">
-          <div class="card-label">存储</div>
-          <div class="card-value">68%</div>
-          <div class="card-sublabel">已使用</div>
-        </div>
-        <div class="status-card">
-          <div class="card-label">任务</div>
-          <div class="card-value">3</div>
-          <div class="card-sublabel">进行中</div>
+          <div class="card-value">{{ systemStatus.dockerStatus }}</div>
+          <div class="card-sublabel">容器管理</div>
         </div>
       </div>
     </section>
@@ -132,10 +145,11 @@ const handleSearch = () => {
 .mobile-home {
   width: 100vw;
   min-height: 100vh;
-  background: #1e1e22;
+  background: var(--app-bg-color);
   padding: 16px;
   padding-top: calc(16px + env(safe-area-inset-top));
   box-sizing: border-box;
+  transition: background-color 0.3s ease;
 }
 
 /* 顶部标题栏 */
@@ -149,7 +163,7 @@ const handleSearch = () => {
 .app-title {
   font-size: 28px;
   font-weight: 800;
-  background: linear-gradient(135deg, #705df2, #bb86fc);
+  background: linear-gradient(135deg, var(--primary-color, #705df2), #bb86fc);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -165,17 +179,17 @@ const handleSearch = () => {
   width: 40px;
   height: 40px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--hover-bg, rgba(255, 255, 255, 0.06));
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-color);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .action-btn:active {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--border-color);
   transform: scale(0.95);
 }
 
@@ -189,23 +203,23 @@ const handleSearch = () => {
   align-items: center;
   gap: 10px;
   padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--card-bg-color);
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-color);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .search-bar:active {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--hover-bg);
 }
 
 .search-icon {
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-secondary);
 }
 
 .search-placeholder {
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-secondary);
   font-size: 15px;
 }
 
@@ -213,7 +227,7 @@ const handleSearch = () => {
 .section-title {
   font-size: 16px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text-color);
   margin: 0 0 16px 0;
 }
 
@@ -240,7 +254,7 @@ const handleSearch = () => {
 }
 
 .action-item:active {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--hover-bg);
 }
 
 .action-icon {
@@ -259,7 +273,7 @@ const handleSearch = () => {
 
 .action-name {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-secondary);
   text-align: center;
   line-height: 1.2;
   max-width: 100%;
@@ -276,9 +290,10 @@ const handleSearch = () => {
 }
 
 .tools-list {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--card-bg-color);
   border-radius: 16px;
   overflow: hidden;
+  border: 1px solid var(--border-color);
 }
 
 .tool-item {
@@ -288,7 +303,7 @@ const handleSearch = () => {
   padding: 14px 16px;
   cursor: pointer;
   transition: all 0.2s ease;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .tool-item:last-child {
@@ -296,28 +311,28 @@ const handleSearch = () => {
 }
 
 .tool-item:active {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--hover-bg);
 }
 
 .tool-icon {
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  background: rgba(112, 93, 242, 0.15);
+  background: var(--primary-color);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #705df2;
+  color: white;
 }
 
 .tool-name {
   flex: 1;
   font-size: 15px;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text-color);
 }
 
 .arrow-icon {
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--text-secondary);
 }
 
 /* 状态卡片 */
@@ -332,27 +347,28 @@ const handleSearch = () => {
 
 .status-card {
   flex: 1;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--card-bg-color);
   border-radius: 16px;
   padding: 16px;
   text-align: center;
+  border: 1px solid var(--border-color);
 }
 
 .card-label {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-secondary);
   margin-bottom: 8px;
 }
 
 .card-value {
   font-size: 24px;
   font-weight: 700;
-  color: #705df2;
+  color: var(--primary-color);
   margin-bottom: 4px;
 }
 
 .card-sublabel {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-secondary);
 }
 </style>

@@ -112,11 +112,12 @@ const handleAction = (action: string) => {
 .mobile-profile {
   width: 100%;
   min-height: 100vh;
-  background: #1e1e22;
+  background: var(--app-bg-color);
   padding: 16px;
   padding-top: calc(16px + env(safe-area-inset-top));
   padding-bottom: calc(16px + 64px + env(safe-area-inset-bottom));
   box-sizing: border-box;
+  transition: background-color 0.3s ease;
 }
 
 /* 用户卡片 */
@@ -149,13 +150,13 @@ const handleAction = (action: string) => {
 .username {
   font-size: 20px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.95);
+  color: var(--text-color);
   margin-bottom: 4px;
 }
 
 .user-role {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-secondary);
 }
 
 /* 菜单区块 */
@@ -166,7 +167,7 @@ const handleAction = (action: string) => {
 .menu-title {
   font-size: 13px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 12px;
@@ -174,9 +175,10 @@ const handleAction = (action: string) => {
 }
 
 .menu-list {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--card-bg-color);
   border-radius: 16px;
   overflow: hidden;
+  border: 1px solid var(--border-color);
 }
 
 .menu-item {
@@ -186,7 +188,7 @@ const handleAction = (action: string) => {
   padding: 14px 16px;
   cursor: pointer;
   transition: all 0.2s ease;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .menu-item:last-child {
@@ -194,7 +196,7 @@ const handleAction = (action: string) => {
 }
 
 .menu-item:active {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--hover-bg);
 }
 
 .menu-item.danger .menu-name {
@@ -205,11 +207,11 @@ const handleAction = (action: string) => {
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--hover-bg);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-secondary);
 }
 
 .menu-icon.danger {
@@ -220,18 +222,18 @@ const handleAction = (action: string) => {
 .menu-name {
   flex: 1;
   font-size: 15px;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text-color);
 }
 
 .arrow-icon {
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--text-secondary);
 }
 
 /* 版本信息 */
 .version-info {
   text-align: center;
   padding: 24px;
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--text-secondary);
   font-size: 13px;
 }
 </style>
