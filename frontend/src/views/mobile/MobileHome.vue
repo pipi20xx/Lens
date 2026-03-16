@@ -56,7 +56,7 @@ const goToSearch = () => {
 }
 
 const goToSettings = () => {
-  router.push('/mobile/tools/settings')
+  router.push('/mobile/settings')
 }
 
 onMounted(() => {

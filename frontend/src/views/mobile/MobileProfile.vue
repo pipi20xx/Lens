@@ -6,10 +6,7 @@ import {
   SettingsOutlined as SettingsIcon,
   InfoOutlined as InfoIcon,
   ExitToAppOutlined as LogoutIcon,
-  ChevronRightOutlined as RightIcon,
-  DarkModeOutlined as DarkIcon,
-  LanguageOutlined as LanguageIcon,
-  NotificationsOutlined as NotifyIcon
+  ChevronRightOutlined as RightIcon
 } from '@vicons/material'
 
 const router = useRouter()
@@ -17,9 +14,6 @@ const router = useRouter()
 // 设置菜单
 const settingMenus = [
   { name: '系统设置', icon: SettingsIcon, path: '/mobile/settings' },
-  { name: '通知设置', icon: NotifyIcon, path: '/mobile/tools/notifications' },
-  { name: '深色模式', icon: DarkIcon, action: 'toggleDark' },
-  { name: '语言', icon: LanguageIcon, action: 'language' },
 ]
 
 // 关于菜单
@@ -35,14 +29,7 @@ const navigateTo = (path: string) => {
 const handleAction = (action: string) => {
   switch (action) {
     case 'logout':
-      // 处理退出登录
       router.push('/login')
-      break
-    case 'toggleDark':
-      // 切换深色模式
-      break
-    case 'language':
-      // 切换语言
       break
   }
 }

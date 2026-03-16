@@ -64,6 +64,13 @@ export const ButtonText = {
   RESET: '重置',
   LOGS: '日志',
   TERMINAL: '终端',
+  REGENERATE: '重新生成',
+  BIND: '绑定',
+  REVOKE: '踢出设备',
+  REVOKE_ALL: '踢出所有其他设备',
+  CONFIRM_CHANGE_PASSWORD: '确认修改密码',
+  START_SETUP_2FA: '开始设置 2FA',
+  DISABLE_2FA: '停用双重验证 (2FA)',
 
   // 扩展操作
   CREATE: '创建',
@@ -249,6 +256,7 @@ export const MessageText = {
   CLEAR_FAILED: '清除失败',
   IMPORT_FAILED: '导入失败',
   EXPORT_FAILED: '导出失败',
+  LOAD_FAILED: '加载失败',
 
   // 警告提示
   DELETE_CONFIRM: '确定删除此项目？',

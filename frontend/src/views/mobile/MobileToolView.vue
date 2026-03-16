@@ -58,7 +58,6 @@ import MobileExternalControl from './tools/MobileExternalControl.vue'
 import MobileSiteNav from './tools/MobileSiteNav.vue'
 import MobileBookmarkManager from './tools/MobileBookmarkManager.vue'
 import MobileAutoTagsManager from './tools/MobileAutoTagsManager.vue'
-import MobileSettings from './tools/MobileSettings.vue'
 import MobileDedupe from './tools/MobileDedupe.vue'
 
 const route = useRoute()
@@ -116,7 +115,6 @@ const currentToolComponent = computed(() => {
     case 'notifications': return MobileNotificationManager
     case 'tmdb':
     case 'tmdb-lab': return MobileTmdbLab
-    case 'settings': return MobileSettings
     case 'type-manager': return MobileTypeManager
     case 'lock': return MobileMetadataLocker
     case 'autotags': return MobileAutoTagsManager

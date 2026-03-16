@@ -114,7 +114,14 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { NCard, NButton, NSpace, NEmpty, NModal, NForm, NFormItem, NInput, NSelect, NIcon } from 'naive-ui'
-import { CreateNew, DeleteOutlineOutlined as DeleteIcon } from '@vicons/material'
+import {
+  CreateNew,
+  DeleteOutlineOutlined as DeleteIcon,
+  EditOutlined as EditIcon,
+  ExpandLessOutlined as ExpandLessIcon,
+  ExpandMoreOutlined as ExpandMoreIcon,
+  LinkOutlined as LinkIcon
+} from '@vicons/material'
 import { useMessage } from 'naive-ui'
 import { useSiteNav } from '../../toolkit/sitenav/useSiteNav'
 

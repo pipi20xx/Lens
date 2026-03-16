@@ -121,6 +121,7 @@
 import { ref, onMounted } from 'vue'
 import { NCard, NButton, NSpace, NEmpty, NModal, NForm, NFormItem, NInput, NSelect, NTag, NPopconfirm, NText, NAlert, useMessage } from 'naive-ui'
 import { notificationApi } from '@/api/notification'
+import { NOTIFICATION_EVENTS } from '@/constants/events'
 import MobileSwitch from '../components/MobileSwitch.vue'
 import {
   ButtonTypes,
@@ -178,14 +179,7 @@ const typeOptions = [
   { label: 'Telegram', value: 'telegram' }
 ]
 
-const eventOptions = [
-  { label: '备份完成', value: 'backup_completed' },
-  { label: '任务完成', value: 'task_completed' },
-  { label: '系统告警', value: 'system_alert' },
-  { label: '用户登录', value: 'user_login' },
-  { label: 'Docker 事件', value: 'docker_event' },
-  { label: '镜像构建', value: 'image_build' }
-]
+const eventOptions = NOTIFICATION_EVENTS
 
 const loadSettings = async () => {
   try {
@@ -293,8 +287,11 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--border-color);
+  padding: 16px;
+  background: var(--card-color);
+  border: 1px solid #7c3aed;
+  border-radius: 12px;
+  margin-bottom: 12px;
 }
 
 .setting-label {
@@ -315,8 +312,9 @@ onMounted(() => {
 
 .bot-item {
   padding: 12px;
-  background: var(--app-bg-color);
-  border-radius: 8px;
+  background: var(--card-color);
+  border: 1px solid #7c3aed;
+  border-radius: 12px;
 }
 
 .bot-header {

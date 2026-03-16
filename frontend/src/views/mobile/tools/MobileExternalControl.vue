@@ -2,114 +2,87 @@
   <div class="mobile-external-control">
     <div class="page-header">
       <h1 class="page-title">外部控制体系</h1>
-      <p class="page-desc">配置外部 API 访问控制</p>
+      <p class="page-desc">管理 API 认证、安全审计及自动化对接配置</p>
     </div>
 
-    <n-card class="api-keys-card" :bordered="false" title="API 密钥">
+    <n-card class="token-card" :bordered="false" title="API Token">
       <n-space vertical>
-        <n-button block :type="buttonTypes.PRIMARY" @click="showAddKeyModal = true">
-          {{ buttonText.CREATE }}新密钥
-        </n-button>
-        <div v-if="apiKeys.length === 0" class="empty-state">
-          <n-empty :description="messageText.EMPTY_DATA" />
+        <div class="token-display">
+          <n-input
+            v-model:value="config.api_token"
+            :type="showFullToken ? 'text' : 'password'"
+            show-password-on="click"
+            placeholder="尚未设置 Token"
+            readonly
+            @click="showFullToken = !showFullToken"
+            class="token-input"
+          />
         </div>
-        <div v-else class="key-list">
-          <div v-for="key in apiKeys" :key="key.id" class="key-item">
-            <div class="key-info">
-              <div class="key-name">{{ key.name }}</div>
-              <div class="key-preview">{{ maskKey(key.key) }}</div>
-              <div class="key-meta">
-                <span>{{ formatDate(key.created_at) }}</span>
-                <n-tag :type="key.is_active ? tagTypes.SUCCESS : tagTypes.DEFAULT" :size="buttonSizes.SMALL">
-                  {{ key.is_active ? statusText.ACTIVE : statusText.DISABLED }}
-                </n-tag>
-              </div>
-            </div>
-            <div class="key-actions">
-              <n-button :size="buttonSizes.MEDIUM" secondary :type="buttonTypes.INFO" @click="copyKey(key.key)">
-                {{ buttonText.COPY }}
-              </n-button>
-              <n-button :size="buttonSizes.MEDIUM" secondary :type="buttonTypes.WARNING" @click="toggleKey(key)">
-                {{ key.is_active ? buttonText.DISABLE : buttonText.ENABLE }}
-              </n-button>
-              <n-popconfirm @positive-click="deleteKey(key.id)" :positive-text="buttonText.CONFIRM_DELETE" :negative-text="buttonText.CANCEL">
-                <template #trigger>
-                  <n-button :size="buttonSizes.MEDIUM" secondary :type="buttonTypes.ERROR">
-                    {{ buttonText.DELETE }}
-                  </n-button>
-                </template>
-                {{ messageText.DELETE_CONFIRM }}
-              </n-popconfirm>
-            </div>
-          </div>
+        <div class="token-actions">
+          <n-button block :type="buttonTypes.PRIMARY" secondary @click="copyToken" :disabled="!config.api_token">
+            {{ buttonText.COPY }}
+          </n-button>
+          <n-button block secondary @click="generateNewToken">
+            {{ buttonText.REGENERATE }}
+          </n-button>
         </div>
+        <n-alert :type="buttonTypes.INFO" :size="buttonSizes.TINY">
+          Token 用于外部系统通过 /api 接口与本系统交互，拥有系统所有接口的操作权限。
+        </n-alert>
       </n-space>
     </n-card>
 
-    <n-card class="permissions-card" :bordered="false" title="权限配置">
+    <n-card class="audit-card" :bordered="false" title="审计策略">
       <n-space vertical>
-        <div class="permission-item">
-          <div class="permission-info">
-            <div class="permission-label">允许外部访问</div>
-            <div class="permission-desc">启用后可通过 API 访问系统功能</div>
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label">开启全局审计</div>
+            <div class="setting-desc">记录所有 API 请求的方法、路径及状态码</div>
           </div>
-          <n-switch v-model:value="settings.externalAccessEnabled" @update:value="saveSettings" class="mobile-switch" />
+          <MobileSwitch v-model="config.audit_enabled" @update:model-value="saveSettings" />
         </div>
-        <div class="permission-item">
-          <div class="permission-info">
-            <div class="permission-label">IP 白名单</div>
-            <div class="permission-desc">仅允许指定 IP 访问</div>
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label">Payload 捕获</div>
+            <div class="setting-desc">自动脱敏并存储请求 Body 内容</div>
           </div>
-          <n-switch v-model:value="settings.ipWhitelistEnabled" @update:value="saveSettings" class="mobile-switch" />
-        </div>
-        <div v-if="settings.ipWhitelistEnabled" class="ip-whitelist">
-          <n-input
-            v-model:value="settings.ipWhitelist"
-            type="textarea"
-            placeholder="每行一个 IP 地址，例如：&#10;192.168.1.100&#10;10.0.0.1"
-            :rows="4"
-            @blur="saveSettings"
-          />
+          <MobileSwitch :value="config.audit_enabled" disabled />
         </div>
       </n-space>
     </n-card>
 
     <n-card class="logs-card" :bordered="false" title="访问日志">
-      <div v-if="accessLogs.length === 0" class="empty-state">
+      <div v-if="auditLogs.length === 0" class="empty-state">
         <n-empty :description="messageText.EMPTY_DATA" />
       </div>
       <div v-else class="log-list">
-        <div v-for="log in accessLogs" :key="log.id" class="log-item">
-          <div class="log-info">
-            <div class="log-endpoint">{{ log.endpoint }}</div>
-            <div class="log-meta">
-              <span>{{ formatDate(log.created_at) }}</span>
-              <n-tag :type="log.status_code === 200 ? tagTypes.SUCCESS : tagTypes.ERROR" :size="buttonSizes.SMALL">
-                {{ log.status_code }}
-              </n-tag>
-            </div>
+        <div v-for="log in auditLogs" :key="log.id" class="log-item" @click="viewLogDetail(log)">
+          <div class="log-header">
+            <n-tag :type="log.method === 'GET' ? tagTypes.SUCCESS : tagTypes.INFO" :size="buttonSizes.SMALL">
+              {{ log.method }}
+            </n-tag>
+            <n-tag :type="log.status_code < 400 ? tagTypes.SUCCESS : tagTypes.ERROR" :size="buttonSizes.SMALL">
+              {{ log.status_code }}
+            </n-tag>
+          </div>
+          <div class="log-path">{{ log.path }}</div>
+          <div class="log-meta">
+            <span>{{ formatDate(log.timestamp) }}</span>
+            <span>{{ log.client_ip }}</span>
+            <span>{{ log.process_time.toFixed(1) }}ms</span>
           </div>
         </div>
       </div>
     </n-card>
 
-    <n-modal v-model:show="showAddKeyModal" preset="card" :title="buttonText.CREATE + '新密钥'" style="width: 90vw; max-width: 400px">
-      <n-form label-placement="top" :size="formSizes.SMALL">
-        <n-form-item :label="formLabel.KEY_NAME">
-          <n-input v-model:value="newKey.name" :placeholder="placeholder.KEY_NAME" />
-        </n-form-item>
-        <n-form-item :label="formLabel.PERMISSIONS">
-          <n-select v-model:value="newKey.permissions" multiple :options="permissionOptions" />
-        </n-form-item>
-        <n-form-item :label="formLabel.EXPIRY">
-          <n-select v-model:value="newKey.expires_in" :options="expiryOptions" />
-        </n-form-item>
-      </n-form>
+    <n-modal v-model:show="showLogDetail" preset="card" title="请求详情" style="width: 90vw; max-width: 600px">
+      <div class="detail-wrapper">
+        <n-code :code="currentPayload" language="json" word-wrap />
+      </div>
       <template #action>
-        <n-space justify="end">
-          <n-button secondary @click="showAddKeyModal = false">{{ buttonText.CANCEL }}</n-button>
-          <n-button :type="buttonTypes.PRIMARY" @click="generateKey" :loading="generating">{{ buttonText.CREATE }}</n-button>
-        </n-space>
+        <n-button :type="buttonTypes.PRIMARY" @click="showLogDetail = false">
+          {{ buttonText.CLOSE }}
+        </n-button>
       </template>
     </n-modal>
   </div>
@@ -117,90 +90,51 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { NCard, NButton, NSpace, NSwitch, NEmpty, NModal, NForm, NFormItem, NInput, NSelect, NTag, NPopconfirm, NIcon } from 'naive-ui'
+import { NCard, NButton, NSpace, NEmpty, NModal, NInput, NTag, NAlert, NCode, useMessage } from 'naive-ui'
 import { systemApi } from '@/api/system'
-import { useMessage } from 'naive-ui'
+import MobileSwitch from '../components/MobileSwitch.vue'
 import {
   ButtonTypes,
   ButtonSizes,
   TagTypes,
-  FormSizes,
   ButtonText,
-  StatusText,
   MessageText,
 } from '../constants'
 
 const message = useMessage()
 
-// 使用常量
 const buttonTypes = ButtonTypes
 const buttonSizes = ButtonSizes
 const tagTypes = TagTypes
-const formSizes = FormSizes
 const buttonText = ButtonText
-const statusText = StatusText
 const messageText = MessageText
 
-// 表单标签
-const formLabel = {
-  KEY_NAME: '密钥名称',
-  PERMISSIONS: '权限范围',
-  EXPIRY: '过期时间',
-}
-
-// 占位符
-const placeholder = {
-  KEY_NAME: '例如：生产环境密钥',
-}
-
-const apiKeys = ref<any[]>([])
-const accessLogs = ref<any[]>([])
-const showAddKeyModal = ref(false)
-const generating = ref(false)
-
-const settings = ref({
-  externalAccessEnabled: false,
-  ipWhitelistEnabled: false,
-  ipWhitelist: '',
-  apiToken: '',
-  auditEnabled: true
+const config = ref({
+  api_token: '',
+  audit_enabled: false
 })
 
-const newKey = ref({
-  name: '',
-  permissions: [],
-  expires_in: 'never'
-})
-
-const permissionOptions = [
-  { label: '读取数据', value: 'read' },
-  { label: '写入数据', value: 'write' },
-  { label: '执行任务', value: 'execute' },
-  { label: '管理用户', value: 'admin' }
-]
-
-const expiryOptions = [
-  { label: '永不过期', value: 'never' },
-  { label: '30 天', value: '30d' },
-  { label: '90 天', value: '90d' },
-  { label: '1 年', value: '1y' }
-]
+const auditLogs = ref<any[]>([])
+const showFullToken = ref(false)
+const showLogDetail = ref(false)
+const currentPayload = ref('')
+const loadingLogs = ref(false)
 
 const loadConfig = async () => {
   try {
     const data: any = await systemApi.getConfig()
-    settings.value.apiToken = data.api_token || ''
-    settings.value.auditEnabled = data.audit_enabled !== 'false' && data.audit_enabled !== false
+    config.value.api_token = data.api_token || ''
+    config.value.audit_enabled = data.audit_enabled === 'true' || data.audit_enabled === true
   } catch (err) {
     message.error(messageText.OPERATION_FAILED)
   }
 }
 
-const loadAccessLogs = async () => {
+const loadAuditLogs = async () => {
   loadingLogs.value = true
   try {
     const data: any = await systemApi.getAuditLogs({ page: 1, page_size: 50 })
-    accessLogs.value = data.items || []
+    auditLogs.value = data.items || []
   } catch (err) {
     message.error(messageText.OPERATION_FAILED)
   } finally {
@@ -211,7 +145,7 @@ const loadAccessLogs = async () => {
 const saveSettings = async () => {
   try {
     await systemApi.saveConfig([
-      { key: 'audit_enabled', value: String(settings.value.auditEnabled) }
+      { key: 'audit_enabled', value: String(config.value.audit_enabled) }
     ])
     message.success(messageText.SETTINGS_SAVED)
   } catch (err) {
@@ -219,49 +153,29 @@ const saveSettings = async () => {
   }
 }
 
-const generateKey = async () => {
-  if (!newKey.value.name) {
-    message.warning('请输入密钥名称')
-    return
-  }
-  generating.value = true
-  try {
-    const data: any = await systemApi.generateToken()
-    const newToken = data.token
-    await systemApi.saveConfig([{ key: 'api_token', value: newToken }])
-    settings.value.apiToken = newToken
-    message.success(messageText.CREATE_SUCCESS)
-    showAddKeyModal.value = false
-    newKey.value = { name: '', permissions: [], expires_in: 'never' }
-  } catch (err) {
-    message.error(messageText.CREATE_FAILED)
-  } finally {
-    generating.value = false
-  }
-}
-
-const copyKey = (key: string) => {
-  navigator.clipboard.writeText(key)
+const copyToken = () => {
+  navigator.clipboard.writeText(config.value.api_token)
   message.success(messageText.COPY_SUCCESS)
 }
 
-const toggleKey = async (key: any) => {
-  // 移动端简化处理，实际应该调用API更新状态
-  key.is_active = !key.is_active
-  message.success(key.is_active ? buttonText.ENABLE + statusText.SUCCESS : buttonText.DISABLE + statusText.SUCCESS)
+const generateNewToken = async () => {
+  try {
+    const data: any = await systemApi.generateToken()
+    config.value.api_token = data.token
+    await systemApi.saveConfig([{ key: 'api_token', value: data.token }])
+    message.success('Token 已重新生成')
+  } catch (err) {
+    message.error('生成失败')
+  }
 }
 
-const deleteKey = async (id: string) => {
-  // 移动端简化处理，实际应该调用API删除
-  apiKeys.value = apiKeys.value.filter(k => k.id !== id)
-  message.success(messageText.DELETE_SUCCESS)
-}
-
-const loadingLogs = ref(false)
-
-const maskKey = (key: string) => {
-  if (!key) return ''
-  return key.substring(0, 8) + '...' + key.substring(key.length - 8)
+const viewLogDetail = (log: any) => {
+  try {
+    currentPayload.value = JSON.stringify(JSON.parse(log.payload || '{}'), null, 2)
+  } catch {
+    currentPayload.value = log.payload || '无数据'
+  }
+  showLogDetail.value = true
 }
 
 const formatDate = (date: string) => {
@@ -271,7 +185,7 @@ const formatDate = (date: string) => {
 
 onMounted(() => {
   loadConfig()
-  loadAccessLogs()
+  loadAuditLogs()
 })
 </script>
 
@@ -298,96 +212,100 @@ onMounted(() => {
   margin: 0;
 }
 
-.api-keys-card,
-.permissions-card,
+.token-card,
+.audit-card,
 .logs-card {
   margin-bottom: 12px;
 }
 
-.empty-state {
-  padding: 24px 0;
+.token-display {
+  margin-bottom: 12px;
 }
 
-.key-list,
-.log-list {
+.token-input {
+  cursor: pointer;
+}
+
+.token-actions {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
-.key-item,
-.log-item {
+.setting-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 12px;
-  background: var(--app-bg-color);
-  border-radius: 8px;
+  background: var(--card-color);
+  border: 1px solid #7c3aed;
+  border-radius: 12px;
+  margin-bottom: 12px;
 }
 
-.key-info,
-.log-info {
-  margin-bottom: 8px;
+.setting-info {
+  flex: 1;
 }
 
-.key-name,
-.log-endpoint {
+.setting-label {
   font-size: 15px;
   font-weight: 500;
   color: var(--text-color);
   margin-bottom: 4px;
 }
 
-.key-preview {
+.setting-desc {
   font-size: 12px;
   color: var(--text-color);
   opacity: 0.6;
-  font-family: monospace;
-  margin-bottom: 4px;
 }
 
-.key-meta,
+.empty-state {
+  padding: 24px 0;
+}
+
+.log-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.log-item {
+  padding: 12px;
+  background: var(--card-color);
+  border: 1px solid #7c3aed;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.log-header {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.log-path {
+  font-size: 14px;
+  color: var(--text-color);
+  margin-bottom: 8px;
+  word-break: break-all;
+}
+
 .log-meta {
   display: flex;
-  gap: 8px;
-  font-size: 12px;
-  color: var(--text-color);
-  opacity: 0.6;
-  align-items: center;
-}
-
-.key-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.permission-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.permission-item:last-child {
-  border-bottom: none;
-}
-
-.permission-info {
-  flex: 1;
-}
-
-.permission-label {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-color);
-  margin-bottom: 4px;
-}
-
-.permission-desc {
+  gap: 12px;
   font-size: 12px;
   color: var(--text-color);
   opacity: 0.6;
 }
 
-.ip-whitelist {
-  margin-top: 12px;
+.detail-wrapper {
+  background-color: rgba(0, 0, 0, 0.3);
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  max-height: 400px;
+  overflow-y: auto;
 }
 </style>

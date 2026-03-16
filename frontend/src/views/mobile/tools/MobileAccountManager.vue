@@ -2,86 +2,121 @@
   <div class="mobile-account-manager">
     <div class="page-header">
       <h1 class="page-title">账号安全管理</h1>
-      <p class="page-desc">管理系统用户与安全设置</p>
+      <p class="page-desc">维护管理员凭据及多因素认证设置，确保系统访问安全</p>
     </div>
 
-    <n-card class="profile-card" :bordered="false" title="当前用户">
-      <div class="profile-info">
-        <div class="profile-avatar">
-          <n-avatar round :size="60" :src="user.avatar || '/favicon.svg'" />
-        </div>
-        <div class="profile-details">
-          <div class="profile-name">{{ user.username }}</div>
-          <div class="profile-email">{{ user.email }}</div>
-          <div class="profile-role">
-            <n-tag :type="user.role === 'admin' ? tagTypes.WARNING : tagTypes.INFO" :size="buttonSizes.SMALL">
-              {{ user.role === 'admin' ? roleText.ADMIN : roleText.USER }}
-            </n-tag>
-          </div>
-        </div>
-      </div>
-    </n-card>
-
-    <n-card class="password-card" :bordered="false" title="修改密码">
+    <n-card class="password-card" :bordered="false" title="修改管理员密码">
       <n-space vertical>
-        <n-form-item :label="formLabel.CURRENT_PASSWORD">
-          <n-input v-model:value="passwordForm.oldPassword" type="password" show-password-on="click" :placeholder="placeholder.CURRENT_PASSWORD" />
+        <n-form-item :label="formLabel.OLD_PASSWORD">
+          <n-input v-model:value="pwdForm.old_password" type="password" show-password-on="click" :placeholder="placeholder.OLD_PASSWORD" />
         </n-form-item>
         <n-form-item :label="formLabel.NEW_PASSWORD">
-          <n-input v-model:value="passwordForm.newPassword" type="password" show-password-on="click" :placeholder="placeholder.NEW_PASSWORD" />
+          <n-input v-model:value="pwdForm.new_password" type="password" show-password-on="click" :placeholder="placeholder.NEW_PASSWORD" />
         </n-form-item>
-        <n-form-item :label="formLabel.CONFIRM_PASSWORD">
-          <n-input v-model:value="passwordForm.confirmPassword" type="password" show-password-on="click" :placeholder="placeholder.CONFIRM_PASSWORD" />
-        </n-form-item>
-        <n-button block :type="buttonTypes.PRIMARY" :loading="changingPassword" @click="changePassword">
-          {{ buttonText.CHANGE_PASSWORD }}
+        <n-button block :type="buttonTypes.PRIMARY" :loading="changingPassword" @click="handleChangePassword">
+          {{ buttonText.CONFIRM_CHANGE_PASSWORD }}
         </n-button>
       </n-space>
     </n-card>
 
-    <n-card class="security-card" :bordered="false" title="安全设置">
+    <n-card class="twofa-card" :bordered="false" title="双重验证 (2FA)">
       <n-space vertical>
-        <div class="security-item">
-          <div class="security-info">
-            <div class="security-label">两步验证</div>
-            <div class="security-desc">启用后登录需要验证码</div>
+        <n-alert :type="authInfo.is_otp_enabled ? tagTypes.SUCCESS : tagTypes.WARNING" :size="buttonSizes.TINY">
+          {{ authInfo.is_otp_enabled ? '已开启安全保护，登录时需要输入动态验证码' : '未开启保护，建议开启以防止密码泄露' }}
+        </n-alert>
+        
+        <div v-if="!authInfo.is_otp_enabled && otpSetup.qr_code" class="otp-setup">
+          <div class="qr-code-wrapper">
+            <img :src="otpSetup.qr_code" class="qr-code" />
           </div>
-          <n-switch v-model:value="securitySettings.twoFactorEnabled" @update:value="toggleTwoFactor" class="mobile-switch" />
+          <n-input v-model:value="otpSetup.code" :placeholder="placeholder.VERIFICATION_CODE" maxlength="6" />
+          <n-space>
+            <n-button secondary @click="otpSetup.qr_code = ''">{{ buttonText.BACK }}</n-button>
+            <n-button :type="buttonTypes.PRIMARY" @click="enableOtp">{{ buttonText.BIND }}</n-button>
+          </n-space>
         </div>
-        <div class="security-item">
-          <div class="security-info">
-            <div class="security-label">登录通知</div>
-            <div class="security-desc">新设备登录时发送通知</div>
-          </div>
-          <n-switch v-model:value="securitySettings.loginNotification" @update:value="saveSecuritySettings" class="mobile-switch" />
+
+        <div v-if="!authInfo.is_otp_enabled && !otpSetup.qr_code">
+          <n-button block :type="buttonTypes.PRIMARY" @click="setupOtp">
+            {{ buttonText.START_SETUP_2FA }}
+          </n-button>
         </div>
+        
+        <n-button 
+          v-if="authInfo.is_otp_enabled" 
+          block 
+          :type="buttonTypes.ERROR" 
+          secondary
+          @click="disableOtp"
+        >
+          {{ buttonText.DISABLE_2FA }}
+        </n-button>
       </n-space>
     </n-card>
 
-    <!-- 两步验证设置弹窗 -->
-    <n-modal v-model:show="showOtpModal" preset="card" title="开启两步验证" style="width: 90vw; max-width: 400px">
-      <n-space vertical align="center">
-        <p style="color: var(--text-color); text-align: center;">请使用身份验证器扫描下方二维码</p>
-        <img v-if="otpQrCode" :src="otpQrCode" style="width: 200px; height: 200px;" />
-        <n-form-item :label="formLabel.SECRET_KEY" style="width: 100%;">
-          <n-input :value="otpSecret" readonly />
-        </n-form-item>
-        <n-form-item :label="formLabel.VERIFICATION_CODE" style="width: 100%;">
-          <n-input v-model:value="otpCode" :placeholder="placeholder.VERIFICATION_CODE" maxlength="6" />
-        </n-form-item>
-        <n-space>
-          <n-button secondary @click="showOtpModal = false">{{ buttonText.CANCEL }}</n-button>
-          <n-button :type="buttonTypes.PRIMARY" @click="enableOtp">{{ buttonText.CONFIRM }}</n-button>
+    <n-card class="sessions-card" :bordered="false" title="会话管理">
+      <n-space vertical>
+        <n-alert :type="buttonTypes.INFO" :size="buttonSizes.TINY">
+          管理您的登录会话，查看所有已登录的设备并踢出可疑设备
+        </n-alert>
+
+        <n-space justify="space-between" align="center">
+          <n-text depth="3">共 {{ sessions.length }} 个活跃会话</n-text>
+          <n-button 
+            v-if="sessions.length > 1" 
+            :type="buttonTypes.ERROR" 
+            :size="buttonSizes.SMALL" 
+            @click="handleRevokeAll"
+          >
+            {{ buttonText.REVOKE_ALL }}
+          </n-button>
         </n-space>
+
+        <n-spin :show="loadingSessions">
+          <div v-if="sessions.length === 0" class="empty-state">
+            <n-empty :description="messageText.EMPTY_DATA" />
+          </div>
+          <div v-else class="session-list">
+            <div v-for="session in sessions" :key="session.session_id" class="session-item">
+              <div class="session-header">
+                <div class="session-device">
+                  <n-icon :size="20" :color="session.is_current ? '#18a058' : '#909399'">
+                    <component :is="session.is_current ? CheckCircleIcon : DeviceIcon" />
+                  </n-icon>
+                  <n-text strong>{{ session.device_info }}</n-text>
+                  <n-tag v-if="session.is_current" :type="tagTypes.SUCCESS" :size="buttonSizes.TINY">当前会话</n-tag>
+                </div>
+              </div>
+              <div class="session-details">
+                <div class="session-detail-item">
+                  <n-icon :component="TimeIcon" :size="14" />
+                  <span>{{ session.expires_text }}</span>
+                </div>
+                <div class="session-detail-item">
+                  <n-icon :component="LocationIcon" :size="14" />
+                  <span>IP: {{ session.ip_address }}</span>
+                </div>
+                <div class="session-detail-item">
+                  <n-icon :component="CalendarIcon" :size="14" />
+                  <span>{{ session.login_time }}</span>
+                </div>
+              </div>
+              <div v-if="!session.is_current" class="session-actions">
+                <n-button :type="buttonTypes.ERROR" :size="buttonSizes.SMALL" secondary @click="handleRevokeSession(session.session_id)">
+                  {{ buttonText.REVOKE }}
+                </n-button>
+              </div>
+            </div>
+          </div>
+        </n-spin>
       </n-space>
-    </n-modal>
+    </n-card>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { NCard, NButton, NSpace, NFormItem, NInput, NSwitch, NTag, NAvatar, NModal } from 'naive-ui'
-import { accountApi } from '@/api/account'
+import { NCard, NButton, NSpace, NFormItem, NInput, NTag, NAlert, NSpin, NEmpty, NText, NIcon, h } from 'naive-ui'
 import { authApi } from '@/api/auth'
 import { useMessage } from 'naive-ui'
 import {
@@ -91,92 +126,68 @@ import {
   ButtonText,
   MessageText,
 } from '../constants'
+import {
+  CheckCircleOutlined as CheckCircleIcon,
+  DevicesOutlined as DeviceIcon,
+  AccessTimeOutlined as TimeIcon,
+  LocationOnOutlined as LocationIcon,
+  EventOutlined as CalendarIcon,
+  ExitToAppOutlined as LogoutIcon
+} from '@vicons/material'
 
 const message = useMessage()
 
-// 使用常量
 const buttonTypes = ButtonTypes
 const buttonSizes = ButtonSizes
 const tagTypes = TagTypes
 const buttonText = ButtonText
 const messageText = MessageText
 
-// 角色文本
-const roleText = {
-  ADMIN: '管理员',
-  USER: '普通用户',
-}
-
-// 表单标签
 const formLabel = {
-  CURRENT_PASSWORD: '当前密码',
+  OLD_PASSWORD: '旧密码',
   NEW_PASSWORD: '新密码',
-  CONFIRM_PASSWORD: '确认密码',
-  SECRET_KEY: '或手动输入密钥',
-  VERIFICATION_CODE: '验证码',
 }
 
-// 占位符
 const placeholder = {
-  CURRENT_PASSWORD: '请输入当前密码',
+  OLD_PASSWORD: '请输入当前密码',
   NEW_PASSWORD: '请输入新密码',
-  CONFIRM_PASSWORD: '请再次输入新密码',
-  VERIFICATION_CODE: '请输入6位验证码',
+  VERIFICATION_CODE: '6 位验证码',
 }
 
-const user = ref({
-  username: '',
-  email: '',
-  role: '',
-  avatar: ''
+const pwdForm = ref({
+  old_password: '',
+  new_password: ''
+})
+const authInfo = ref({
+  is_otp_enabled: false
+})
+const otpSetup = ref({
+  qr_code: '',
+  code: ''
 })
 const changingPassword = ref(false)
-const passwordForm = ref({
-  oldPassword: '',
-  newPassword: '',
-  confirmPassword: ''
-})
-const securitySettings = ref({
-  twoFactorEnabled: false,
-  loginNotification: true
-})
+const sessions = ref<any[]>([])
+const loadingSessions = ref(false)
 
-const loadProfile = async () => {
+const loadAuthInfo = async () => {
   try {
-    const res = await accountApi.getUsers()
-    const users = res.data as any || []
-    user.value = users[0] || { username: '', email: '', role: '', avatar: '' }
+    const data: any = await authApi.getMe()
+    authInfo.value.is_otp_enabled = data.is_otp_enabled || false
   } catch (e) {
     message.error(messageText.LOAD_FAILED)
   }
 }
 
-const loadSecuritySettings = async () => {
-  try {
-    const meData: any = await authApi.getMe()
-    securitySettings.value.twoFactorEnabled = meData.is_otp_enabled || false
-  } catch (e) {
-    message.error(messageText.LOAD_FAILED)
-  }
-}
-
-const changePassword = async () => {
-  if (!passwordForm.value.oldPassword || !passwordForm.value.newPassword || !passwordForm.value.confirmPassword) {
+const handleChangePassword = async () => {
+  if (!pwdForm.value.old_password || !pwdForm.value.new_password) {
     message.warning('请填写完整的密码信息')
-    return
-  }
-  if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
-    message.warning('两次输入的新密码不一致')
     return
   }
   changingPassword.value = true
   try {
-    await authApi.changePassword({
-      old_password: passwordForm.value.oldPassword,
-      new_password: passwordForm.value.newPassword
-    })
+    await authApi.changePassword(pwdForm.value)
     message.success(messageText.UPDATE_SUCCESS)
-    passwordForm.value = { oldPassword: '', newPassword: '', confirmPassword: '' }
+    pwdForm.value = { old_password: '', new_password: '' }
   } catch (e: any) {
     message.error(messageText.UPDATE_FAILED + ': ' + (e.response?.data?.detail || e.message))
   } finally {
@@ -184,58 +195,75 @@ const changePassword = async () => {
   }
 }
 
-const toggleTwoFactor = async () => {
-  if (securitySettings.value.twoFactorEnabled) {
-    // 开启两步验证
-    showOtpModal.value = true
-    try {
-      const data: any = await authApi.setup2fa()
-      otpQrCode.value = data.qr_code
-      otpSecret.value = data.secret
-    } catch (e) {
-      message.error(messageText.OPERATION_FAILED)
-    }
-  } else {
-    // 关闭两步验证
-    try {
-      await authApi.disable2fa()
-      message.success('两步验证已关闭')
-    } catch (e) {
-      message.error(messageText.OPERATION_FAILED)
-      securitySettings.value.twoFactorEnabled = true
-    }
-  }
-}
-
-const enableOtp = async () => {
-  if (!otpCode.value) {
-    message.warning('请输入验证码')
-    return
-  }
+const setupOtp = async () => {
   try {
-    await authApi.enable2fa(otpCode.value)
-    message.success('两步验证已开启')
-    showOtpModal.value = false
-    otpCode.value = ''
-    otpQrCode.value = ''
-    otpSecret.value = ''
+    const data: any = await authApi.setup2fa()
+    otpSetup.value.qr_code = data.qr_code
   } catch (e) {
     message.error(messageText.OPERATION_FAILED)
   }
 }
 
-const saveSecuritySettings = () => {
-  message.success(messageText.SETTINGS_SAVED)
+const enableOtp = async () => {
+  if (!otpSetup.value.code) {
+    message.warning('请输入验证码')
+    return
+  }
+  try {
+    await authApi.enable2fa(otpSetup.value.code)
+    message.success('双重验证已开启')
+    otpSetup.value = { qr_code: '', code: '' }
+    await loadAuthInfo()
+  } catch (e) {
+    message.error(messageText.OPERATION_FAILED)
+  }
 }
 
-const showOtpModal = ref(false)
-const otpQrCode = ref('')
-const otpSecret = ref('')
-const otpCode = ref('')
+const disableOtp = async () => {
+  try {
+    await authApi.disable2fa()
+    message.success('双重验证已关闭')
+    await loadAuthInfo()
+  } catch (e) {
+    message.error(messageText.OPERATION_FAILED)
+  }
+}
+
+const loadSessions = async () => {
+  loadingSessions.value = true
+  try {
+    const data: any = await authApi.getSessions()
+    sessions.value = data.sessions || []
+  } catch (error) {
+    message.error('加载会话列表失败')
+  } finally {
+    loadingSessions.value = false
+  }
+}
+
+const handleRevokeSession = async (sessionId: string) => {
+  try {
+    await authApi.revokeSession(sessionId)
+    message.success('设备已踢出')
+    await loadSessions()
+  } catch (error) {
+    message.error('踢出设备失败')
+  }
+}
+
+const handleRevokeAll = async () => {
+  try {
+    await authApi.revokeAllSessions()
+    message.success('所有其他设备已踢出')
+    await loadSessions()
+  } catch (error) {
+    message.error('操作失败')
+  }
+}
 
 onMounted(() => {
-  loadProfile()
-  loadSecuritySettings()
+  loadAuthInfo()
+  loadSessions()
 })
 </script>
 
@@ -262,66 +290,78 @@ onMounted(() => {
   margin: 0;
 }
 
-.profile-card,
 .password-card,
-.security-card {
+.twofa-card,
+.sessions-card {
   margin-bottom: 12px;
 }
 
-.profile-info {
+.otp-setup {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
 }
 
-.profile-avatar {
-  flex-shrink: 0;
+.qr-code-wrapper {
+  background: white;
+  padding: 8px;
+  border-radius: 8px;
 }
 
-.profile-details {
-  flex: 1;
+.qr-code {
+  width: 140px;
+  display: block;
 }
 
-.profile-name {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text-color);
-  margin-bottom: 4px;
+.empty-state {
+  padding: 24px 0;
 }
 
-.profile-email {
-  font-size: 13px;
-  color: var(--text-color);
-  opacity: 0.6;
+.session-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.session-item {
+  padding: 12px;
+  background: var(--card-color);
+  border: 1px solid #7c3aed;
+  border-radius: 12px;
+}
+
+.session-header {
   margin-bottom: 8px;
 }
 
-.security-item {
+.session-device {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.security-item:last-child {
-  border-bottom: none;
-}
-
-.security-info {
-  flex: 1;
-}
-
-.security-label {
-  font-size: 14px;
+  gap: 8px;
+  font-size: 15px;
   font-weight: 500;
   color: var(--text-color);
-  margin-bottom: 4px;
 }
 
-.security-desc {
+.session-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.session-detail-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 12px;
   color: var(--text-color);
   opacity: 0.6;
+}
+
+.session-actions {
+  display: flex;
+  gap: 8px;
 }
 </style>
