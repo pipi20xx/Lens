@@ -6,6 +6,18 @@
     :title="task.id ? modalTitle.EDIT_BACKUP_TASK : modalTitle.ADD_BACKUP_TASK"
     style="width: 95vw; max-width: 500px"
   >
+    <!-- 远程任务特殊说明 -->
+    <n-alert v-if="task.host_id && task.host_id !== 'local'" title="远程 SSH 备份模式" type="warning" :bordered="false" style="margin-bottom: 16px">
+      <template #header-extra>
+        <n-tag :size="buttonSizes.TINY" type="warning" quaternary>Host ID: {{ task.host_id }}</n-tag>
+      </template>
+      <ul style="margin: 0; padding-left: 18px; font-size: 12px; line-height: 1.6">
+        <li><b>数据源：</b>该任务将从远程 Docker 主机拉取文件夹。</li>
+        <li><b>依赖环境：</b>请确保远程主机已安装 <n-text code>tar</n-text> 或 <n-text code>7z</n-text> 命令。</li>
+        <li><b>中转逻辑：</b>Lens 将通过网络执行远程打包并拉取回本地目的地。</li>
+      </ul>
+    </n-alert>
+
     <n-form :model="task" label-placement="top" :size="buttonSizes.SMALL">
       <n-form-item :label="formLabel.TASK_NAME">
         <n-input v-model:value="task.name" :placeholder="placeholder.TASK_NAME_EXAMPLE" />
@@ -23,12 +35,42 @@
         <n-select v-model:value="task.sync_strategy" :options="syncOptions" />
       </n-form-item>
 
+      <!-- PostgreSQL 字段 -->
+      <template v-if="task.mode === 'pgsql'">
+        <n-form-item :label="formLabel.PG_HOST">
+          <n-select 
+            v-model:value="task.pgsql_host_id" 
+            :options="pgsqlHosts.map(h => ({ label: `${h.name} (${h.host}:${h.port})`, value: h.id }))" 
+            :placeholder="placeholder.SELECT_PG_HOST"
+          />
+        </n-form-item>
+        <n-form-item :label="formLabel.PG_DATABASES">
+          <n-checkbox-group v-model:value="task.db_names">
+            <n-space item-style="display: flex;">
+              <n-checkbox v-for="db in pgsqlDatabases" :key="db" :value="db" :label="db" />
+            </n-space>
+          </n-checkbox-group>
+          <n-text v-if="pgsqlDatabases.length === 0 && !loadingDatabases" depth="3">{{ label.SELECT_HOST_FIRST }}</n-text>
+          <n-text v-if="loadingDatabases" depth="3">{{ label.LOADING_DATABASES }}</n-text>
+        </n-form-item>
+      </template>
+
       <n-form-item :label="formLabel.SOURCE_PATH" v-if="task.mode !== 'pgsql'">
-        <n-input v-model:value="task.src_path" :placeholder="placeholder.SOURCE_PATH" />
+        <n-input-group>
+          <n-input v-model:value="task.src_path" :placeholder="task.host_id && task.host_id !== 'local' ? placeholder.REMOTE_PATH : placeholder.SOURCE_PATH" />
+          <n-button v-if="!task.host_id || task.host_id === 'local'" @click="$emit('browse', 'src')">
+            {{ buttonText.BROWSE }}
+          </n-button>
+        </n-input-group>
       </n-form-item>
 
       <n-form-item :label="formLabel.DESTINATION_DIR">
-        <n-input v-model:value="task.dst_path" :placeholder="placeholder.DESTINATION_DIR" />
+        <n-input-group>
+          <n-input v-model:value="task.dst_path" :placeholder="placeholder.DESTINATION_DIR" />
+          <n-button @click="$emit('browse', 'dst')">
+            {{ buttonText.BROWSE }}
+          </n-button>
+        </n-input-group>
       </n-form-item>
 
       <n-form-item :label="formLabel.COMPRESSION_LEVEL" v-if="task.mode === '7z'">
@@ -103,10 +145,11 @@
 </template>
 
 <script setup lang="ts">
+import { ref, watch, onMounted } from 'vue'
 import {
   NModal, NForm, NFormItem, NInput, NSelect, NSlider,
   NText, NDynamicInput, NSpace, NDivider, NSwitch,
-  NTimePicker, NInputNumber, NTag
+  NTimePicker, NInputNumber, NTag, NAlert, NIcon, NCheckbox, NCheckboxGroup
 } from 'naive-ui'
 import {
   ButtonTypes,
@@ -117,13 +160,14 @@ import {
   Placeholder,
   Label,
 } from '../constants'
+import { pgsqlApi } from '@/api/pgsql'
 
 const props = defineProps<{
   show: boolean
   task: any
 }>()
 
-const emit = defineEmits(['update:show', 'save'])
+const emit = defineEmits(['update:show', 'save', 'browse'])
 
 // 使用常量
 const buttonTypes = ButtonTypes
@@ -138,6 +182,10 @@ const simpleScheduleMode = ref('daily')
 const dailyTime = ref('03:00')
 const intervalValue = ref(1)
 const intervalUnit = ref(60)
+
+const pgsqlHosts = ref<any[]>([])
+const pgsqlDatabases = ref<string[]>([])
+const loadingDatabases = ref(false)
 
 const modeOptions = [
   { label: '7z 压缩', value: '7z' },
@@ -173,6 +221,57 @@ const presetPatterns = [
   '__pycache__', '*.pyc', '.git', 'node_modules', 'target',
   '.vscode', '.idea', 'dist', 'build', '*.log', '.DS_Store'
 ]
+
+const fetchPgHosts = async () => {
+  try {
+    const res = await pgsqlApi.getHosts()
+    pgsqlHosts.value = (res as any) || []
+  } catch (e) {
+    console.error('Failed to fetch PG hosts', e)
+  }
+}
+
+const fetchPgDatabases = async (hostId: string) => {
+  if (!hostId) return
+  const host = pgsqlHosts.value.find(h => h.id === hostId)
+  if (!host) return
+
+  loadingDatabases.value = true
+  try {
+    const res = await pgsqlApi.getDatabases(host)
+    pgsqlDatabases.value = (res as any).map((db: any) => db.name)
+  } catch (e) {
+    console.error('Failed to fetch PG databases', e)
+    pgsqlDatabases.value = []
+  } finally {
+    loadingDatabases.value = false
+  }
+}
+
+watch(() => props.task.pgsql_host_id, (newVal) => {
+  if (newVal && props.task.mode === 'pgsql') {
+    fetchPgDatabases(newVal)
+  }
+})
+
+watch(() => props.task.mode, (newVal) => {
+  if (newVal === 'pgsql') {
+    if (props.task.pgsql_host_id) {
+      fetchPgDatabases(props.task.pgsql_host_id)
+    }
+    if (!props.task.dst_path) {
+      props.task.dst_path = 'data/backups/pg'
+    }
+  } else if (newVal === '7z' || newVal === 'tar') {
+    if (!props.task.dst_path) {
+      props.task.dst_path = 'data/backups/files'
+    }
+  }
+})
+
+onMounted(() => {
+  fetchPgHosts()
+})
 
 const handleTogglePattern = (pattern: string, checked: boolean) => {
   const patterns = [...props.task.ignore_patterns]

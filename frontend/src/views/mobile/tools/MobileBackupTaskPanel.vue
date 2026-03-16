@@ -30,12 +30,13 @@
                 远程
               </n-tag>
             </div>
-            <n-switch
-              :value="task.enabled"
-              @update:value="(val) => handleToggleEnable(task, val)"
-              :size="buttonSizes.SMALL"
-              class="mobile-switch"
-            />
+            <n-tag 
+              :type="task.enabled ? tagTypes.SUCCESS : tagTypes.DEFAULT" 
+              :size="buttonSizes.SMALL" 
+              round
+            >
+              {{ task.enabled ? '自动计划中' : '仅手动' }}
+            </n-tag>
           </div>
           
           <div class="task-info">
@@ -66,7 +67,8 @@
             <n-popconfirm @positive-click="() => handleDelete(task)" :positive-text="buttonText.CONFIRM_DELETE" :negative-text="buttonText.CANCEL">
               <template #trigger>
                 <n-button :size="buttonSizes.MEDIUM" secondary :type="buttonTypes.ERROR">
-                  </n-button>
+                  {{ buttonText.DELETE }}
+                </n-button>
               </template>
               {{ messageText.DELETE_CONFIRM }}
             </n-popconfirm>
@@ -78,10 +80,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { NCard, NSpace, NButton, NTag, NIcon, NText, NEmpty, NSwitch, NSpin, NPopconfirm, useMessage } from 'naive-ui'
+import { ref, onMounted } from 'vue'
+import { NCard, NSpace, NButton, NTag, NIcon, NText, NEmpty, NSpin, NPopconfirm, useMessage } from 'naive-ui'
 import {
-  BackupOutlined as ModeIcon
+  BackupOutlined as ModeIcon,
+  StorageOutlined as StorageIcon,
+  ScheduleOutlined as ScheduleIcon
 } from '@vicons/material'
 import axios from 'axios'
 import {
@@ -159,16 +163,6 @@ const fetchTasks = async () => {
   }
 }
 
-const handleToggleEnable = async (task: any, enabled: boolean) => {
-  try {
-    await axios.post('/api/backup/tasks', { ...task, enabled })
-    message.success(enabled ? '任务已启用' : '任务已禁用')
-    await fetchTasks()
-  } catch (e) {
-    message.error(messageText.OPERATION_FAILED)
-  }
-}
-
 const handleDelete = async (task: any) => {
   try {
     await axios.delete(`/api/backup/tasks/${task.id}`)
@@ -178,6 +172,10 @@ const handleDelete = async (task: any) => {
     message.error(messageText.DELETE_FAILED)
   }
 }
+
+onMounted(() => {
+  fetchTasks()
+})
 
 defineExpose({ fetchTasks })
 </script>
@@ -201,15 +199,14 @@ defineExpose({ fetchTasks })
 
 .task-item {
   padding: 12px;
-  background: rgba(255, 255, 255, 0.02);
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: var(--card-color);
+  border: 1px solid #7c3aed;
+  border-radius: 12px;
   transition: all 0.2s ease;
 }
 
 .task-item:hover {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: var(--n-primary-color);
+  border-color: #9f7aea;
 }
 
 .task-header {

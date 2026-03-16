@@ -19,6 +19,19 @@
       v-model:show="showEditModal"
       :task="editTask"
       @save="saveTask"
+      @browse="openBrowser"
+    />
+
+    <MobileBackupHistoryModal 
+      v-model:show="showHistoryModal"
+      :task-id="historyTaskId"
+      :task-name="historyTaskName"
+    />
+
+    <MobilePathBrowserModal 
+      v-model:show="showBrowser"
+      :initial-path="browserInitialPath"
+      @select="handlePathSelect"
     />
   </div>
 </template>
@@ -31,6 +44,8 @@ import axios from 'axios'
 import MobileBackupTaskPanel from './MobileBackupTaskPanel.vue'
 import MobileBackupHistoryPanel from './MobileBackupHistoryPanel.vue'
 import MobileBackupTaskEditModal from './MobileBackupTaskEditModal.vue'
+import MobileBackupHistoryModal from './MobileBackupHistoryModal.vue'
+import MobilePathBrowserModal from './MobilePathBrowserModal.vue'
 import {
   ButtonText,
   MessageText,
@@ -47,6 +62,12 @@ const historyPanelRef = ref()
 
 const showEditModal = ref(false)
 const editTask = ref<any>({})
+const showHistoryModal = ref(false)
+const historyTaskId = ref('')
+const historyTaskName = ref('')
+const showBrowser = ref(false)
+const browserTarget = ref<'src' | 'dst'>('src')
+const browserInitialPath = ref('/')
 
 const handleAddTask = () => {
   editTask.value = {
@@ -61,25 +82,35 @@ const handleAddTask = () => {
     enabled: true,
     schedule_type: 'cron',
     schedule_value: '0 3 * * *',
-    ignore_patterns: []
+    ignore_patterns: [],
+    host_id: 'local'
   }
   showEditModal.value = true
 }
 
 const handleEditTask = (task: any) => {
-  editTask.value = { ...task }
+  editTask.value = JSON.parse(JSON.stringify(task))
   showEditModal.value = true
 }
 
 const saveTask = async () => {
   try {
-    await axios.post('/api/backup/tasks', editTask.value)
+    if (editTask.value.id) {
+      await axios.put(`/api/backup/tasks/${editTask.value.id}`, editTask.value)
+    } else {
+      await axios.post('/api/backup/tasks', editTask.value)
+    }
     message.success(messageText.SAVE_SUCCESS)
     showEditModal.value = false
+    resetEditTask()
     await taskPanelRef.value?.fetchTasks()
   } catch (e: any) {
     message.error(messageText.SAVE_FAILED + ': ' + (e.response?.data?.detail || e.message))
   }
+}
+
+const resetEditTask = () => {
+  editTask.value = {}
 }
 
 const handleRunTask = async (task: any) => {
@@ -93,7 +124,24 @@ const handleRunTask = async (task: any) => {
 }
 
 const handleViewHistory = (task: any) => {
-  message.info('查看历史记录功能开发中')
+  historyTaskId.value = task.id
+  historyTaskName.value = task.name
+  showHistoryModal.value = true
+}
+
+const openBrowser = (target: 'src' | 'dst') => {
+  browserTarget.value = target
+  browserInitialPath.value = '/'
+  showBrowser.value = true
+}
+
+const handlePathSelect = (path: string) => {
+  if (browserTarget.value === 'src') {
+    editTask.value.src_path = path
+  } else {
+    editTask.value.dst_path = path
+  }
+  showBrowser.value = false
 }
 </script>
 

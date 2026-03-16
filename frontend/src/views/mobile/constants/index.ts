@@ -96,6 +96,7 @@ export const ButtonText = {
   SETTINGS: '设置',
   FILTER: '筛选',
   SORT: '排序',
+  HISTORY: '历史',
 
   // 确认类
   CONFIRM_DELETE: '确认删除',
@@ -115,6 +116,18 @@ export const ButtonText = {
   ADD_HOST: '添加主机',
   CONNECT: '连接',
   ADD_COMMAND: '添加命令',
+
+  // 服务器管理
+  ADD_SERVER: '添加服务器',
+  EDIT_SERVER: '编辑服务器',
+  CONFIG: '配置',
+  SAVE_API_CONFIG: '保存 API 配置',
+  SAVE_PROXY_CONFIG: '保存代理配置',
+  SAVE_SESSION_CONFIG: '保存会话配置',
+  EXPORT_CONFIG: '导出 config.json',
+  IMPORT_BACKUP: '导入备份文件',
+  TEST_CONNECTION: '连通性测试',
+  LOGIN_AUTH: '登录鉴权',
 
   // 书签管理
   ADD_BOOKMARK: '添加书签',
@@ -487,6 +500,8 @@ export const Placeholder = {
   OPTIONAL: '可选',
   CRON_EXAMPLE: '0 3 * * *',
   IGNORE_PATTERN_EXAMPLE: '例如：*.log',
+  SELECT_PG_HOST: '选择已配置的 PostgreSQL 主机',
+  REMOTE_PATH: '远程主机上的绝对路径',
 } as const
 
 // ==================== 通用文字 - Tab 标签 ====================
@@ -515,6 +530,15 @@ export const Label = {
   LEVEL: '等级',
   AUTO_SCHEDULE: '自动化运行计划',
   COMMON_PRESETS: '常用预设',
+  SELECT_HOST_FIRST: '请先选择主机',
+  LOADING_DATABASES: '正在加载数据库列表...',
+  BACKUP_HISTORY: '备份历史',
+  SELECT_PATH: '选择路径',
+  CURRENT_PATH: '当前路径',
+  GO_UP: '返回上级',
+  GO_HOME: '返回首页',
+  SIZE: '大小',
+  MESSAGE: '消息',
 } as const
 
 // ==================== 通用文字 - 提示文本 ====================
@@ -651,6 +675,8 @@ export const FormLabel = {
   INTERVAL_TIME: '间隔时间',
   CRON_EXPRESSION: 'Cron 表达式',
   IGNORE_PATTERN: '忽略模式',
+  PG_HOST: 'PG 主机',
+  PG_DATABASES: '待备份数据库',
 } as const
 
 // ==================== 主题选项 ====================
