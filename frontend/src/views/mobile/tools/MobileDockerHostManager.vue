@@ -45,17 +45,14 @@
                 <n-icon size="14"><UserIcon /></n-icon>
                 <span>{{ host.ssh_user }}</span>
               </div>
-              <div v-if="host.compose_scan_paths" class="info-row">
-                <n-icon size="14"><FolderIcon /></n-icon>
-                <span>{{ host.compose_scan_paths }}</span>
-              </div>
             </div>
           </div>
         </div>
       </n-space>
     </div>
+  </n-modal>
 
-    <n-modal v-model:show="showEditModal" preset="card" :title="editHostForm.id ? modalTitle.EDIT_HOST : modalTitle.ADD_HOST" style="width: 90vw; max-width: 500px">
+  <n-modal v-model:show="showEditModal" preset="card" :title="editHostForm.id ? modalTitle.EDIT_HOST : modalTitle.ADD_HOST" style="width: 90vw; max-width: 500px">
       <n-form label-placement="top" :size="buttonSizes.SMALL">
         <n-form-item :label="formLabel.NAME" required>
           <n-input v-model:value="editHostForm.name" :placeholder="placeholder.HOST_NAME_EXAMPLE" />
@@ -74,7 +71,10 @@
         </n-form-item>
         <n-form-item :label="formLabel.HOST_MARK">
           <n-space align="center">
-            <n-switch v-model:value="editHostForm.is_local" class="mobile-switch" />
+            <MobileSwitch
+              :model-value="editHostForm.is_local"
+              @update:model-value="(val) => editHostForm.is_local = val"
+            />
             <n-text depth="3" style="font-size: 12px">{{ formLabel.HOST_MARK_TIP }}</n-text>
           </n-space>
         </n-form-item>
@@ -94,20 +94,21 @@
         </n-space>
       </template>
     </n-modal>
-  </n-modal>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { 
   NSpace, NButton, NTag, NIcon, NText, NModal, NForm, NFormItem, 
-  NInput, NInputNumber, NSwitch, NEmpty, NPopconfirm, useMessage 
+  NInput, NInputNumber, NEmpty, NPopconfirm, useMessage 
 } from 'naive-ui'
 import {
   SensorsOutlined as TestIcon,
-  DnsOutlined as ServerIcon
+  DnsOutlined as ServerIcon,
+  PersonOutlineOutlined as UserIcon
 } from '@vicons/material'
 import axios from 'axios'
+import MobileSwitch from '../components/MobileSwitch.vue'
 import {
   ButtonTypes,
   ButtonSizes,
@@ -130,6 +131,20 @@ const props = defineProps<{
 const emit = defineEmits(['refresh', 'update:show'])
 
 const message = useMessage()
+
+const show = ref(props.show)
+
+watch(() => props.show, (val) => {
+  show.value = val
+})
+
+watch(() => show.value, (val) => {
+  emit('update:show', val)
+})
+
+watch(() => props.hosts, (val) => {
+  console.log('hosts updated:', val)
+}, { immediate: true })
 
 // 使用常量
 const buttonTypes = ButtonTypes
@@ -230,8 +245,9 @@ const testConnection = async (id: string) => {
 }
 
 .host-item {
-  background: var(--app-bg-color);
-  border-radius: 8px;
+  background: var(--card-color);
+  border: 1px solid #7c3aed;
+  border-radius: 12px;
   padding: 12px;
 }
 

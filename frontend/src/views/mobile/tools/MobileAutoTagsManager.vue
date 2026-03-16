@@ -9,7 +9,10 @@
       <n-space vertical>
         <div class="switch-row">
           <span class="switch-label">启用 Webhook</span>
-          <n-switch v-model:value="webhookConfig.enabled" @update:value="saveWebhookConfig" class="mobile-switch" />
+          <MobileSwitch
+            :model-value="webhookConfig.enabled"
+            @update:model-value="(val) => { webhookConfig.enabled = val; saveWebhookConfig() }"
+          />
         </div>
         <div v-if="webhookConfig.enabled" class="webhook-url">
           <n-input :value="webhookUrl" readonly>
@@ -65,20 +68,61 @@
       </n-space>
     </n-card>
 
-    <n-card class="actions-card" :bordered="false" title="操作">
+    <n-card class="actions-card" :bordered="false" title="一键打标签任务">
       <n-space vertical>
-        <n-button block :type="buttonTypes.INFO" secondary @click="runAllRules" :loading="running">
-          运行所有规则
+        <n-form label-placement="top" :size="formSizes.SMALL">
+          <n-form-item :label="formLabel.WRITE_MODE">
+            <n-radio-group v-model:value="taskForm.mode" name="writeMode">
+              <n-space vertical>
+                <n-radio value="merge">合并现有标签</n-radio>
+                <n-radio value="overwrite">覆盖所有标签</n-radio>
+              </n-space>
+            </n-radio-group>
+          </n-form-item>
+          <n-form-item :label="formLabel.LIBRARY_TYPE">
+            <n-radio-group v-model:value="taskForm.library_type" name="libraryType">
+              <n-space vertical>
+                <n-radio value="all">全库媒体</n-radio>
+                <n-radio value="favorite">仅收藏项</n-radio>
+              </n-space>
+            </n-radio-group>
+          </n-form-item>
+          <n-form-item :label="formLabel.CUSTOM_TAGS">
+            <n-space vertical style="width: 100%">
+              <n-checkbox v-model:checked="taskForm.use_custom">
+                使用固定标签内容 (不走自动匹配规则)
+              </n-checkbox>
+              <n-input 
+                v-if="taskForm.use_custom"
+                v-model:value="taskForm.custom_tags_text" 
+                :placeholder="placeholder.CUSTOM_TAGS"
+              />
+            </n-space>
+          </n-form-item>
+        </n-form>
+        <n-button block :type="buttonTypes.PRIMARY" @click="runTask" :loading="running">
+          执行打标签任务
         </n-button>
-        <n-button block :type="buttonTypes.WARNING" secondary @click="testWrite" :loading="testing">
-          测试写入
+      </n-space>
+    </n-card>
+
+    <n-card class="maintenance-card" :bordered="false" title="辅助维护工具">
+      <n-space vertical>
+        <n-button block :type="buttonTypes.WARNING" secondary @click="showClearSpecificModal = true">
+          清除指定标签
         </n-button>
-        <n-button block :type="buttonTypes.ERROR" secondary @click="clearAllTags">
+        <n-button block :type="buttonTypes.ERROR" secondary @click="confirmClearAll">
           清空所有标签
         </n-button>
-        <n-button block secondary @click="showClearSpecificModal = true">
-          清空特定标签
-        </n-button>
+        <n-divider style="margin: 8px 0" />
+        <n-text depth="3" style="font-size: 12px">写入测试 (手动验证权限与解锁逻辑)</n-text>
+        <n-input-group>
+          <n-input v-model:value="testId" :placeholder="placeholder.EMBY_ID" />
+          <n-input v-model:value="testTag" :placeholder="placeholder.TEST_TAG" />
+          <n-button :type="buttonTypes.PRIMARY" secondary @click="handleTestWrite" :loading="testing">
+            执行测试
+          </n-button>
+        </n-input-group>
       </n-space>
     </n-card>
 
@@ -109,12 +153,13 @@
 
 <script setup lang="ts">
 import { ref, computed, reactive, onMounted } from 'vue'
-import { NCard, NButton, NSpace, NSwitch, NInput, NAlert, NEmpty, NModal, NIcon, NSelect, NCheckbox, NInputNumber, NDynamicTags, NForm, NFormItem } from 'naive-ui'
+import { NCard, NButton, NSpace, NInput, NAlert, NEmpty, NModal, NIcon, NSelect, NCheckbox, NInputNumber, NDynamicTags, NForm, NFormItem, NRadioGroup, NRadio, NDivider, NInputGroup, useDialog } from 'naive-ui'
 import { DeleteOutlineOutlined as ClearIcon, FilterListOutlined as FilterIcon } from '@vicons/material'
 import { useMessage } from 'naive-ui'
 import { useAutoTags } from '../../toolkit/autotags/useAutoTags'
 import MobileRuleEditorModal from './MobileRuleEditorModal.vue'
 import MobileRuleCard from './MobileRuleCard.vue'
+import MobileSwitch from '../components/MobileSwitch.vue'
 import axios from 'axios'
 import {
   ButtonTypes,
@@ -126,6 +171,7 @@ import {
 } from '../constants'
 
 const message = useMessage()
+const dialog = useDialog()
 const { rules, fetchRules, saveRules, startTask, clearAll, clearSpecific, testWrite: testWriteApi } = useAutoTags()
 
 // 使用常量
@@ -143,11 +189,16 @@ const formLabel = {
   AUTOMATION_STATUS: '自动化状态',
   DELAY_SECONDS: '处理延迟(秒)',
   SELECT_TAGS: '选择标签',
+  LIBRARY_TYPE: '库类型',
+  CUSTOM_TAGS: '自定义标签',
 }
 
 // 占位符
 const placeholder = {
   SECRET_TOKEN: '自定义 Token',
+  CUSTOM_TAGS: '请输入标签名，多个用英文逗号分隔',
+  EMBY_ID: 'Emby ID',
+  TEST_TAG: '标签名',
 }
 
 // 写入模式选项
@@ -169,6 +220,16 @@ const running = ref(false)
 const saving = ref(false)
 const testing = ref(false)
 const draggedIndex = ref<number | null>(null)
+
+const taskForm = reactive({
+  mode: 'merge',
+  library_type: 'all',
+  use_custom: false,
+  custom_tags_text: ''
+})
+
+const testId = ref('')
+const testTag = ref('测试')
 
 const editingRule = ref({
   id: null as number | null,
@@ -277,32 +338,59 @@ const deleteRule = async (index: number) => {
   }
 }
 
-const runAllRules = async () => {
-  running.value = true
-  try {
-    await startTask({ all: true })
-    message.success('所有规则已执行')
-  } catch (e: any) {
-    message.error(messageText.OPERATION_FAILED + ': ' + (e.message || '未知错误'))
-  } finally {
-    running.value = false
-  }
+const runTask = async () => {
+  dialog.info({
+    title: '确认启动任务',
+    content: '任务将在后台执行，每一项媒体都会调用 TMDB 进行精准元数据匹配。确认开始？',
+    positiveText: '确认',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      running.value = true
+      try {
+        const customTags = taskForm.use_custom 
+          ? taskForm.custom_tags_text.split(',').map(t => t.trim()).filter(t => t)
+          : null
+        
+        await startTask({
+          mode: taskForm.mode,
+          library_type: taskForm.library_type,
+          custom_tags: customTags
+        })
+        message.success('后台任务已排队')
+      } catch (e: any) {
+        message.error(messageText.OPERATION_FAILED + ': ' + (e.message || '未知错误'))
+      } finally {
+        running.value = false
+      }
+    }
+  })
 }
 
-const clearAllTags = async () => {
-  try {
-    await clearAll()
-    message.success('所有标签已清空')
-  } catch (e: any) {
-    message.error(messageText.OPERATION_FAILED + ': ' + (e.message || '未知错误'))
-  }
+const confirmClearAll = () => {
+  dialog.error({
+    title: '危险：清空所有标签',
+    content: '此操作将永久移除库中所有电影/剧集的标签。确认执行？',
+    positiveText: '清空',
+    onPositiveClick: async () => {
+      try {
+        await clearAll()
+        message.success('所有标签已清空')
+      } catch (e: any) {
+        message.error(messageText.OPERATION_FAILED + ': ' + (e.message || '未知错误'))
+      }
+    }
+  })
 }
 
-const testWrite = async () => {
+const handleTestWrite = async () => {
+  if (!testId.value) {
+    message.warning('请输入 Emby ID')
+    return
+  }
   testing.value = true
   try {
-    await testWriteApi()
-    message.success('测试写入成功')
+    await testWriteApi(testId.value, testTag.value)
+    message.success('写入指令已发送')
   } catch (e: any) {
     message.error('测试写入失败: ' + (e.message || '未知错误'))
   } finally {
@@ -374,8 +462,25 @@ onMounted(() => {
 
 .webhook-card,
 .rules-card,
-.actions-card {
+.actions-card,
+.maintenance-card {
   margin-bottom: 12px;
+}
+
+.webhook-card :deep(.n-card__content),
+.rules-card :deep(.n-card__content),
+.actions-card :deep(.n-card__content),
+.maintenance-card :deep(.n-card__content) {
+  padding: 12px;
+}
+
+.rule-item-wrapper {
+  cursor: move;
+  margin-bottom: 8px;
+}
+
+.rule-item-wrapper:last-child {
+  margin-bottom: 0;
 }
 
 .switch-row {
@@ -402,9 +507,5 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 12px;
-}
-
-.rule-item-wrapper {
-  cursor: move;
 }
 </style>

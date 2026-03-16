@@ -20,7 +20,12 @@
       <n-popconfirm @positive-click.stop="$emit('delete')">
         <template #trigger>
           <n-button quaternary circle size="tiny" type="error" @click.stop>
-            </n-button>
+            <template #icon>
+              <n-icon>
+                <DeleteIcon />
+              </n-icon>
+            </template>
+          </n-button>
         </template>
         确认删除？
       </n-popconfirm>
@@ -93,7 +98,8 @@ const onDragEnter = () => {
 .rule-card { 
   cursor: grab; 
   transition: all 0.2s ease; 
-  border: 1px solid transparent;
+  border: 1px solid #7c3aed;
+  border-radius: 12px;
 }
 
 .rule-card:active { 
@@ -101,13 +107,13 @@ const onDragEnter = () => {
 }
 
 .rule-card:hover { 
-  border-color: var(--n-primary-color); 
+  border-color: #9f7aea; 
   transform: translateY(-2px);
 }
 
 .rule-card.is-dragging { 
   opacity: 0.5; 
-  border: 1px dashed var(--n-primary-color); 
+  border: 1px dashed #7c3aed; 
 }
 
 .rule-header {

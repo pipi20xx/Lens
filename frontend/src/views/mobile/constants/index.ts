@@ -97,6 +97,8 @@ export const ButtonText = {
   FILTER: '筛选',
   SORT: '排序',
   HISTORY: '历史',
+  ADD_PATH: '添加路径',
+  ADD: '添加',
 
   // 确认类
   CONFIRM_DELETE: '确认删除',
@@ -253,6 +255,10 @@ export const MessageText = {
   IMPORT_SUCCESS: '导入成功',
   EXPORT_SUCCESS: '导出成功',
   SETTINGS_SAVED: '设置已保存',
+  PATH_ADDED: '路径已添加',
+  PATH_REMOVED: '路径已移除',
+  PATH_EXISTS: '路径已存在',
+  PLEASE_INPUT_PATH: '请输入路径',
 
   // 失败提示
   SAVE_FAILED: '保存失败',
@@ -462,6 +468,7 @@ export const ModalTitle = {
   HOST_MANAGE: '主机管理',
   ADD_HOST: '添加主机',
   EDIT_HOST: '编辑主机',
+  ADD_SCAN_PATH: '添加扫描路径',
   EDIT_BACKUP_TASK: '编辑备份任务',
   ADD_BACKUP_TASK: '新增备份任务',
 } as const
@@ -494,6 +501,7 @@ export const Placeholder = {
   SSH_HOST: '127.0.0.1',
   SSH_USER: 'root',
   SCAN_PATHS_EXAMPLE: '逗号分隔，例如: /opt/docker-compose,/root/projects',
+  SCAN_PATH_EXAMPLE: '例如: /opt/docker-compose',
   TASK_NAME_EXAMPLE: '例如：数据库每日备份',
   SOURCE_PATH: '/app/data',
   DESTINATION_DIR: '/backup',
@@ -659,6 +667,7 @@ export const FormLabel = {
   HOST_MARK: '宿主机标记',
   HOST_MARK_TIP: '标记为此 Lens 容器所在的物理宿主机',
   SCAN_PATHS: '扫描路径',
+  SCAN_PATH: '扫描路径',
 
   // 备份任务
   TASK_NAME: '任务名称',
