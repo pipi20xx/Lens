@@ -1,20 +1,20 @@
 <template>
   <div class="mobile-site-nav">
     <div class="page-header">
-      <h1 class="page-title">站点导航</h1>
-      <p class="page-desc">快速访问常用站点</p>
+      <h1 class="page-title">{{ PageTitle.SITE_NAV }}</h1>
+      <p class="page-desc">{{ ButtonText.QUICK_ACCESS_SITES }}</p>
     </div>
 
-    <n-card class="categories-card" :bordered="false" title="分类">
+    <n-card class="categories-card" :bordered="false" :title="ButtonText.CATEGORY">
       <n-space vertical>
         <div v-for="category in categories" :key="category.id" class="category-item">
           <div class="category-header" @click="toggleCategory(category.id)">
             <div class="category-name">{{ category.name }}</div>
             <n-space :size="4">
-              <n-button size="tiny" secondary circle @click.stop="editCategory(category)">
+              <n-button :size="buttonSizes.TINY" secondary circle @click.stop="editCategory(category)">
                 <template #icon><n-icon :component="EditIcon" /></template>
               </n-button>
-              <n-button size="tiny" secondary type="error" circle @click.stop="handleDeleteCategory(category)">
+              <n-button :size="buttonSizes.TINY" secondary :type="buttonTypes.ERROR" circle @click.stop="handleDeleteCategory(category)">
                 <template #icon><n-icon :component="DeleteIcon" /></template>
               </n-button>
               <n-icon :component="isExpanded(category.id) ? ExpandLessIcon : ExpandMoreIcon" />
@@ -28,83 +28,83 @@
               </div>
               <div class="site-name">{{ site.name }}</div>
               <n-space :size="4" class="site-actions">
-                <n-button size="tiny" secondary circle @click.stop="editSite(site)">
+                <n-button :size="buttonSizes.TINY" secondary circle @click.stop="editSite(site)">
                   <template #icon><n-icon :component="EditIcon" /></template>
                 </n-button>
-                <n-button size="tiny" secondary type="error" circle @click.stop="handleDeleteSite(site)">
+                <n-button :size="buttonSizes.TINY" secondary :type="buttonTypes.ERROR" circle @click.stop="handleDeleteSite(site)">
                   <template #icon><n-icon :component="DeleteIcon" /></template>
                 </n-button>
               </n-space>
             </div>
             <div v-if="!getSitesByCategory(category.id).length" class="empty-sites">
-              暂无站点
+              {{ MessageText.NO_SITES }}
             </div>
           </div>
         </div>
         <div v-if="categories.length === 0" class="empty-state">
-          <n-empty description="暂无分类" />
+          <n-empty :description="MessageText.NO_CATEGORY" />
         </div>
       </n-space>
     </n-card>
 
-    <n-card class="quick-actions-card" :bordered="false" title="快捷操作">
+    <n-card class="quick-actions-card" :bordered="false" :title="ButtonText.QUICK_ACTIONS">
       <n-space vertical>
         <n-button block secondary @click="showAddSiteModal = true">
-          添加站点
+          {{ ButtonText.ADD_SITE }}
         </n-button>
         <n-button block secondary @click="showAddCategoryModal = true">
-          添加分类
+          {{ ButtonText.ADD_CATEGORY }}
         </n-button>
       </n-space>
     </n-card>
 
-    <n-modal v-model:show="showAddSiteModal" preset="card" :title="editingSite ? '编辑站点' : '添加站点'" style="width: 90vw; max-width: 400px">
-      <n-form label-placement="top" size="small">
-        <n-form-item label="站点名称">
-          <n-input v-model:value="newSite.name" placeholder="站点名称" />
+    <n-modal v-model:show="showAddSiteModal" preset="card" :title="editingSite ? ModalTitle.EDIT_SITE : ModalTitle.ADD_SITE" style="width: 90vw; max-width: 400px">
+      <n-form label-placement="top" :size="buttonSizes.SMALL">
+        <n-form-item :label="FormLabel.SITE_NAME">
+          <n-input v-model:value="newSite.name" :placeholder="Placeholder.SITE_NAME" />
         </n-form-item>
-        <n-form-item label="站点 URL">
-          <n-input v-model:value="newSite.url" placeholder="https://example.com" />
+        <n-form-item :label="FormLabel.SITE_URL">
+          <n-input v-model:value="newSite.url" :placeholder="Placeholder.SITE_URL" />
         </n-form-item>
-        <n-form-item label="分类">
+        <n-form-item :label="FormLabel.CATEGORY">
           <n-select v-model:value="newSite.category_id" :options="categoryOptions" />
         </n-form-item>
-        <n-form-item label="图标 URL">
-          <n-input v-model:value="newSite.icon" placeholder="https://example.com/icon.png" />
+        <n-form-item :label="FormLabel.ICON_URL">
+          <n-input v-model:value="newSite.icon" :placeholder="Placeholder.ICON_URL" />
         </n-form-item>
       </n-form>
       <template #action>
         <n-space justify="end">
-          <n-button secondary @click="closeSiteModal">取消</n-button>
-          <n-button type="primary" @click="saveSite" :loading="saving">保存</n-button>
+          <n-button secondary @click="closeSiteModal">{{ ButtonText.CANCEL }}</n-button>
+          <n-button :type="buttonTypes.PRIMARY" @click="saveSite" :loading="saving">{{ ButtonText.SAVE }}</n-button>
         </n-space>
       </template>
     </n-modal>
 
-    <n-modal v-model:show="showAddCategoryModal" preset="card" title="添加分类" style="width: 90vw; max-width: 400px">
-      <n-form label-placement="top" size="small">
-        <n-form-item label="分类名称">
-          <n-input v-model:value="newCategory.name" placeholder="分类名称" />
+    <n-modal v-model:show="showAddCategoryModal" preset="card" :title="ModalTitle.ADD_CATEGORY" style="width: 90vw; max-width: 400px">
+      <n-form label-placement="top" :size="buttonSizes.SMALL">
+        <n-form-item :label="FormLabel.CATEGORY_NAME">
+          <n-input v-model:value="newCategory.name" :placeholder="Placeholder.CATEGORY_NAME" />
         </n-form-item>
       </n-form>
       <template #action>
         <n-space justify="end">
-          <n-button secondary @click="closeCategoryModal">取消</n-button>
-          <n-button type="primary" @click="saveCategory" :loading="saving">保存</n-button>
+          <n-button secondary @click="closeCategoryModal">{{ ButtonText.CANCEL }}</n-button>
+          <n-button :type="buttonTypes.PRIMARY" @click="saveCategory" :loading="saving">{{ ButtonText.SAVE }}</n-button>
         </n-space>
       </template>
     </n-modal>
 
-    <n-modal v-model:show="showEditCategoryModal" preset="card" title="编辑分类" style="width: 90vw; max-width: 400px">
-      <n-form label-placement="top" size="small">
-        <n-form-item label="分类名称">
-          <n-input v-model:value="newCategory.name" placeholder="分类名称" />
+    <n-modal v-model:show="showEditCategoryModal" preset="card" :title="ModalTitle.EDIT_CATEGORY" style="width: 90vw; max-width: 400px">
+      <n-form label-placement="top" :size="buttonSizes.SMALL">
+        <n-form-item :label="FormLabel.CATEGORY_NAME">
+          <n-input v-model:value="newCategory.name" :placeholder="Placeholder.CATEGORY_NAME" />
         </n-form-item>
       </n-form>
       <template #action>
         <n-space justify="end">
-          <n-button secondary @click="closeCategoryModal">取消</n-button>
-          <n-button type="primary" @click="saveCategory" :loading="saving">保存</n-button>
+          <n-button secondary @click="closeCategoryModal">{{ ButtonText.CANCEL }}</n-button>
+          <n-button :type="buttonTypes.PRIMARY" @click="saveCategory" :loading="saving">{{ ButtonText.SAVE }}</n-button>
         </n-space>
       </template>
     </n-modal>
@@ -124,6 +124,16 @@ import {
 } from '@vicons/material'
 import { useMessage } from 'naive-ui'
 import { useSiteNav } from '../../toolkit/sitenav/useSiteNav'
+import {
+  ButtonText,
+  PageTitle,
+  ModalTitle,
+  FormLabel,
+  Placeholder,
+  MessageText,
+  ButtonTypes,
+  ButtonSizes,
+} from '../constants'
 
 const message = useMessage()
 const { 
@@ -139,6 +149,9 @@ const {
   updateCategory,
   deleteCategory
 } = useSiteNav()
+
+const buttonSizes = ButtonSizes
+const buttonTypes = ButtonTypes
 
 const showAddSiteModal = ref(false)
 const showAddCategoryModal = ref(false)
@@ -212,10 +225,10 @@ const editSite = (site: any) => {
 const handleDeleteSite = async (site: any) => {
   try {
     await deleteSite(site.id)
-    message.success('站点已删除')
+    message.success(MessageText.SITE_DELETED)
     await fetchSites()
   } catch (e: any) {
-    message.error('删除失败: ' + (e.message || '未知错误'))
+    message.error(MessageText.DELETE_FAILED + ': ' + (e.message || '未知错误'))
   }
 }
 
@@ -230,17 +243,17 @@ const editCategory = (category: any) => {
 const handleDeleteCategory = async (category: any) => {
   try {
     await deleteCategory(category.id)
-    message.success('分类已删除')
+    message.success(MessageText.CATEGORY_DELETED)
     await fetchCategories()
     await fetchSites()
   } catch (e: any) {
-    message.error('删除失败: ' + (e.message || '未知错误'))
+    message.error(MessageText.DELETE_FAILED + ': ' + (e.message || '未知错误'))
   }
 }
 
 const saveSite = async () => {
   if (!newSite.value.name || !newSite.value.url) {
-    message.warning('请填写完整的站点信息')
+    message.warning(MessageText.FILL_SITE_INFO)
     return
   }
   saving.value = true
@@ -252,7 +265,7 @@ const saveSite = async () => {
         category_id: newSite.value.category_id || undefined,
         icon: newSite.value.icon || undefined
       })
-      message.success('站点更新成功')
+      message.success(MessageText.SITE_UPDATED)
     } else {
       await addSite({
         title: newSite.value.name,
@@ -260,14 +273,14 @@ const saveSite = async () => {
         category_id: newSite.value.category_id || undefined,
         icon: newSite.value.icon || undefined
       })
-      message.success('站点添加成功')
+      message.success(MessageText.SITE_ADDED)
     }
     showAddSiteModal.value = false
     editingSite.value = null
     newSite.value = { name: '', url: '', category_id: null, icon: '' }
     await fetchSites()
   } catch (e: any) {
-    message.error('保存失败: ' + (e.message || '未知错误'))
+    message.error(MessageText.SAVE_FAILED + ': ' + (e.message || '未知错误'))
   } finally {
     saving.value = false
   }
@@ -275,7 +288,7 @@ const saveSite = async () => {
 
 const saveCategory = async () => {
   if (!newCategory.value.name) {
-    message.warning('请填写分类名称')
+    message.warning(MessageText.FILL_CATEGORY_NAME)
     return
   }
   saving.value = true
@@ -284,12 +297,12 @@ const saveCategory = async () => {
       await updateCategory(editingCategory.value.id, {
         name: newCategory.value.name
       })
-      message.success('分类更新成功')
+      message.success(MessageText.CATEGORY_UPDATED)
     } else {
       await addCategory({
         name: newCategory.value.name
       })
-      message.success('分类添加成功')
+      message.success(MessageText.CATEGORY_ADDED)
     }
     showAddCategoryModal.value = false
     showEditCategoryModal.value = false
@@ -297,7 +310,7 @@ const saveCategory = async () => {
     newCategory.value = { name: '' }
     await fetchCategories()
   } catch (e: any) {
-    message.error('保存失败: ' + (e.message || '未知错误'))
+    message.error(MessageText.SAVE_FAILED + ': ' + (e.message || '未知错误'))
   } finally {
     saving.value = false
   }

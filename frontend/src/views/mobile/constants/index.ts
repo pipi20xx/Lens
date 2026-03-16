@@ -98,7 +98,6 @@ export const ButtonText = {
   SORT: '排序',
   HISTORY: '历史',
   ADD_PATH: '添加路径',
-  ADD: '添加',
 
   // 确认类
   CONFIRM_DELETE: '确认删除',
@@ -111,6 +110,38 @@ export const ButtonText = {
   // 发送类
   SEND: '发送',
   SEND_TEST: '发送测试',
+
+  // 智能分析
+  SMART_ANALYZE: '智能分析',
+  CANCEL_SELECT: '取消选中',
+
+  // 规则设置
+  RULES_SETTINGS: '规则设置',
+
+  // 站点导航
+  QUICK_ACCESS_SITES: '快速访问常用站点',
+  CATEGORY: '分类',
+  QUICK_ACTIONS: '快捷操作',
+  ADD_SITE: '添加站点',
+  ADD_CATEGORY: '添加分类',
+  EDIT_SITE: '编辑站点',
+  EDIT_CATEGORY: '编辑分类',
+  NO_CATEGORY: '暂无分类',
+  NO_SITES: '暂无站点',
+  SITE_NAME: '站点名称',
+  SITE_URL: '站点 URL',
+  CATEGORY_NAME: '分类名称',
+  ICON_URL: '图标 URL',
+  SITE_DELETED: '站点已删除',
+  CATEGORY_DELETED: '分类已删除',
+  SITE_UPDATED: '站点更新成功',
+  CATEGORY_UPDATED: '分类更新成功',
+  SITE_ADDED: '站点添加成功',
+  CATEGORY_ADDED: '分类添加成功',
+  DELETE_FAILED: '删除失败',
+  SAVE_FAILED: '保存失败',
+  FILL_SITE_INFO: '请填写完整的站点信息',
+  FILL_CATEGORY_NAME: '请填写分类名称',
 
   // 主机管理
   MANAGE_HOST: '管理主机',
@@ -232,6 +263,14 @@ export const TagText = {
   SCANNED: '已记忆',
   DETECTED: '探测到',
   HOST: '宿主机',
+  COPY: '个副本',
+} as const
+
+// ==================== 统计文本 ====================
+export const StatText = {
+  DUPLICATE_GROUPS: '重复资源组',
+  SUGGESTED_DELETE: '待清理项目',
+  SELECTED_ITEMS: '选中的项目',
 } as const
 
 // ==================== 通用文字 - 提示信息 ====================
@@ -433,6 +472,7 @@ export const EmptyText = {
   NO_DUPLICATES: '暂无重复项',
   NO_DEAD_LINKS: '暂无失效链接',
   NO_PROJECTS: '暂无项目',
+  CLICK_TO_START: '点击上方"执行同步"或"执行搜索"开始',
 } as const
 
 // ==================== 通用文字 - 确认文本 ====================
@@ -471,6 +511,7 @@ export const ModalTitle = {
   ADD_SCAN_PATH: '添加扫描路径',
   EDIT_BACKUP_TASK: '编辑备份任务',
   ADD_BACKUP_TASK: '新增备份任务',
+  RULES_CONFIG: '智能选中与排除规则配置',
 } as const
 
 // ==================== 通用文字 - 占位符 ====================
@@ -510,6 +551,19 @@ export const Placeholder = {
   IGNORE_PATTERN_EXAMPLE: '例如：*.log',
   SELECT_PG_HOST: '选择已配置的 PostgreSQL 主机',
   REMOTE_PATH: '远程主机上的绝对路径',
+
+  // 重复项清理
+  DISPLAY_TITLE: '例如: 4k, 2160p, 1080p',
+  VIDEO_CODEC: '例如: hevc, h265, h264, av1',
+  VIDEO_RANGE: '例如: dolbyvision, hdr, sdr',
+  EXCLUDE_PATHS: '每行一个关键词或路径片段 (不区分大小写)\n只要完整路径中包含该词，文件就会被保护。\n\n例如：\n2023\nFeature\n/vol1/Anime/Protected',
+} as const
+
+// ==================== 通用文字 - 表单提示 ====================
+export const FormHint = {
+  DISPLAY_TITLE: '(对应 DisplayTitle, 如: 4k, 1080p)',
+  VIDEO_CODEC: '(对应 Codec, 如: hevc, h264)',
+  VIDEO_RANGE: '(对应 VideoRange, 如: hdr, sdr)',
 } as const
 
 // ==================== 通用文字 - Tab 标签 ====================
@@ -669,6 +723,13 @@ export const FormLabel = {
   SCAN_PATHS: '扫描路径',
   SCAN_PATH: '扫描路径',
 
+  // 重复项清理
+  DISPLAY_TITLE: '媒体规格',
+  VIDEO_CODEC: '视频编码',
+  VIDEO_RANGE: '动态范围',
+  TIE_BREAKER: '平局决策',
+  EXCLUDE_PATHS: '白名单排除',
+
   // 备份任务
   TASK_NAME: '任务名称',
   BACKUP_MODE: '备份模式',
@@ -703,10 +764,10 @@ export const LanguageOptions = [
 
 // ==================== 快捷操作配置 ====================
 export const QuickActions = [
-  { name: '站点导航', path: '/mobile/tools/site-nav', color: '#705df2' },
-  { name: '仪表盘', path: '/mobile/tools/dashboard', color: '#4ade80' },
+  { name: '站点导航', path: '/mobile/tools/sitenav', color: '#705df2' },
   { name: '终端', path: '/mobile/tools/terminal', color: '#f59e0b' },
   { name: 'Docker', path: '/mobile/tools/docker', color: '#3b82f6' },
+  { name: '重复项清理', path: '/mobile/tools/dedupe', color: '#ef4444' },
 ] as const
 
 // ==================== 底部导航配置 ====================

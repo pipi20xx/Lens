@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { NIcon } from 'naive-ui'
+import { NIcon, NTag, NButton, NAlert } from 'naive-ui'
 import {
   SearchOutlined as SearchIcon,
   SettingsOutlined as SettingsIcon,
@@ -9,13 +9,20 @@ import {
   HomeOutlined as HomeIcon,
   StorageOutlined as StorageIcon,
   TerminalOutlined as TerminalIcon,
-  ViewListOutlined as ListIcon
+  ViewListOutlined as ListIcon,
+  ContentCopyOutlined as DedupeIcon,
+  DnsRound as DockerIcon,
+  SystemUpdateAltOutlined as UpgradeIcon
 } from '@vicons/material'
+import axios from 'axios'
+import { useMessage } from 'naive-ui'
 import {
   PageTitle,
   QuickActions,
   Colors,
   StatusText,
+  ButtonSizes,
+  ButtonTypes,
 } from './constants'
 
 const router = useRouter()
@@ -23,29 +30,34 @@ const router = useRouter()
 // 使用常量
 const pageTitle = PageTitle
 const statusText = StatusText
+const buttonSizes = ButtonSizes
+const buttonTypes = ButtonTypes
+const message = useMessage()
 
 // 快捷功能 - 使用常量并添加图标
 const quickActions = [
   { name: QuickActions[0].name, icon: HomeIcon, color: Colors.SITE_NAV, path: QuickActions[0].path },
-  { name: QuickActions[1].name, icon: StorageIcon, color: Colors.DASHBOARD, path: QuickActions[1].path },
-  { name: QuickActions[2].name, icon: TerminalIcon, color: Colors.TERMINAL, path: QuickActions[2].path },
-  { name: QuickActions[3].name, icon: ListIcon, color: Colors.DOCKER, path: QuickActions[3].path },
+  { name: QuickActions[1].name, icon: TerminalIcon, color: Colors.TERMINAL, path: QuickActions[1].path },
+  { name: QuickActions[2].name, icon: StorageIcon, color: Colors.DOCKER, path: QuickActions[2].path },
+  { name: QuickActions[3].name, icon: DedupeIcon, color: Colors.ERROR, path: QuickActions[3].path },
 ]
 
 // 最近使用的工具
 const recentTools = ref([
-  { name: 'Emby 媒体库', icon: 'mdi:play-circle', path: '/mobile/tools/emby-libraries' },
-  { name: '媒体清理', icon: 'mdi:broom', path: '/mobile/tools/cleanup' },
-  { name: '通知中心', icon: 'mdi:bell', path: '/mobile/tools/notifications' },
+  { name: 'Emby 媒体库', path: '/mobile/tools/emby-libraries' },
+  { name: '媒体清理', path: '/mobile/tools/cleanup' },
+  { name: '通知中心', path: '/mobile/tools/notifications' },
 ])
 
-// 系统状态
-const systemStatus = ref({
-  embyStatus: statusText.RUNNING,
-  dockerStatus: statusText.NORMAL,
-  cpuUsage: 45,
-  memoryUsage: 62
+// 版本信息
+const versionInfo = ref({
+  current: 'v2.5.6',
+  latest: 'v2.5.6',
+  has_update: false,
+  docker_hub: 'https://hub.docker.com/r/pipi20xx/lens'
 })
+
+const upgrading = ref(false)
 
 const navigateTo = (path: string) => {
   router.push(path)
@@ -59,7 +71,33 @@ const goToSettings = () => {
   router.push('/mobile/settings')
 }
 
+const fetchVersion = async () => {
+  try {
+    const res = await axios.get('/api/system/version')
+    if (res.data) {
+      versionInfo.value = res.data
+    }
+  } catch (e) {
+    console.error('Failed to fetch version:', e)
+  }
+}
+
+const handleUpgrade = async () => {
+  upgrading.value = true
+  try {
+    const res = await axios.post('/api/system/upgrade')
+    message.success(res.data.message, { duration: 10000 })
+    setTimeout(() => {
+      window.location.reload()
+    }, 20000)
+  } catch (e: any) {
+    message.error(e.response?.data?.detail || '启动升级失败')
+    upgrading.value = false
+  }
+}
+
 onMounted(() => {
+  fetchVersion()
   // 加载最近使用的工具
   const recent = localStorage.getItem('recent_tools')
   if (recent) {
@@ -123,9 +161,6 @@ onMounted(() => {
           class="tool-item"
           @click="navigateTo(tool.path)"
         >
-          <div class="tool-icon">
-            <iconify-icon :icon="tool.icon" width="20" height="20" />
-          </div>
           <span class="tool-name">{{ tool.name }}</span>
           <n-icon size="18" :component="ArrowIcon" class="arrow-icon" />
         </div>
@@ -134,19 +169,64 @@ onMounted(() => {
 
     <!-- 系统状态 -->
     <section class="status-cards">
-      <h2 class="section-title">系统状态</h2>
-      <div class="cards-row">
-        <div class="status-card">
-          <div class="card-label">Emby</div>
-          <div class="card-value">{{ systemStatus.embyStatus }}</div>
-          <div class="card-sublabel">服务状态</div>
+      <h2 class="section-title">系统状态监控</h2>
+      <n-card class="status-card" :bordered="false">
+        <div class="status-list">
+          <div class="status-item">
+            <span class="status-label">运行版本</span>
+            <div class="status-value">
+              <n-tag :size="buttonSizes.TINY" :type="buttonTypes.PRIMARY" quaternary>{{ versionInfo.current }}</n-tag>
+              <n-tag v-if="!versionInfo.has_update" :size="buttonSizes.TINY" :type="buttonTypes.SUCCESS" quaternary>Latest</n-tag>
+              <n-tag v-else :size="buttonSizes.TINY" :type="buttonTypes.ERROR" quaternary>Update</n-tag>
+            </div>
+          </div>
+          <div class="status-item">
+            <span class="status-label">远端构建</span>
+            <div class="status-value">
+              <span class="version-text">{{ versionInfo.latest }}</span>
+              <n-button 
+                v-if="versionInfo.docker_hub"
+                text 
+                tag="a" 
+                :href="versionInfo.docker_hub" 
+                target="_blank" 
+                :type="buttonTypes.PRIMARY"
+                :size="buttonSizes.TINY"
+              >
+                <n-icon size="16"><DockerIcon /></n-icon>
+              </n-button>
+            </div>
+          </div>
+          <div class="status-item">
+            <span class="status-label">运行环境</span>
+            <n-tag :size="buttonSizes.TINY" :type="buttonTypes.INFO" quaternary>Lens Core v2</n-tag>
+          </div>
         </div>
-        <div class="status-card">
-          <div class="card-label">Docker</div>
-          <div class="card-value">{{ systemStatus.dockerStatus }}</div>
-          <div class="card-sublabel">容器管理</div>
-        </div>
-      </div>
+        
+        <n-alert v-if="versionInfo.has_update" :type="buttonTypes.WARNING" :size="buttonSizes.SMALL" :bordered="false" class="update-alert">
+          检测到新版本 {{ versionInfo.latest }}，请及时更新。
+        </n-alert>
+
+        <template #footer>
+          <n-space vertical style="width: 100%">
+            <n-button 
+              v-if="versionInfo.has_update" 
+              block 
+              :size="buttonSizes.MEDIUM"
+              :type="buttonTypes.WARNING" 
+              :loading="upgrading"
+              @click="handleUpgrade"
+            >
+              <template #icon><n-icon><UpgradeIcon /></n-icon></template>
+              {{ upgrading ? '正在执行更新任务...' : '立即执行系统升级' }}
+            </n-button>
+            <n-button block :size="buttonSizes.MEDIUM" :type="buttonTypes.PRIMARY" secondary @click="goToSettings">
+              <template #icon><n-icon><SettingsIcon /></n-icon></template>
+              配置中心
+            </n-button>
+          </n-space>
+        </template>
+      </n-card>
     </section>
   </div>
 </template>
@@ -324,17 +404,6 @@ onMounted(() => {
   background: var(--hover-bg);
 }
 
-.tool-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: var(--primary-color);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-}
-
 .tool-name {
   flex: 1;
   font-size: 15px;
@@ -350,35 +419,43 @@ onMounted(() => {
   margin-bottom: 24px;
 }
 
-.cards-row {
-  display: flex;
-  gap: 12px;
-}
-
 .status-card {
-  flex: 1;
   background: var(--card-bg-color);
   border-radius: 16px;
-  padding: 16px;
-  text-align: center;
   border: 1px solid var(--border-color);
 }
 
-.card-label {
-  font-size: 12px;
-  color: var(--text-secondary);
-  margin-bottom: 8px;
+.status-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.card-value {
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--primary-color);
-  margin-bottom: 4px;
+.status-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
 }
 
-.card-sublabel {
-  font-size: 11px;
+.status-label {
+  font-size: 14px;
   color: var(--text-secondary);
+}
+
+.status-value {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.version-text {
+  font-size: 13px;
+  font-family: monospace;
+  color: var(--text-color);
+}
+
+.update-alert {
+  margin-top: 12px;
 }
 </style>
