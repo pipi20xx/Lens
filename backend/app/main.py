@@ -41,8 +41,8 @@ async def audit_middleware(request: Request, call_next):
     path = request.url.path
     
     # --- 1. 核心安全拦截逻辑 ---
-    # 只保留必须公开的接口：登录、图片代理
-    public_paths = ["/api/auth/login", "/api/playback-report/image-proxy"]
+    # 只保留必须公开的接口：登录、图片代理、API 文档
+    public_paths = ["/api/auth/login", "/api/playback-report/image-proxy", "/api/system/docs", "/api/system/openapi.json"]
     is_api = path.startswith("/api")
     # 使用精确匹配，避免子路径绕过
     is_public = path in public_paths or path == "/"
