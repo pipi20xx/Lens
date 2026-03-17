@@ -150,8 +150,8 @@ const message = useMessage()
 const upgrading = ref(false)
 
 const versionInfo = ref({
-  current: 'v2.5.7',
-  latest: 'v2.5.7',
+  current: 'v2.5.8',
+  latest: 'v2.5.8',
   has_update: false,
   docker_hub: 'https://hub.docker.com/r/pipi20xx/lens'
 })
