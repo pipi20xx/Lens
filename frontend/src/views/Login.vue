@@ -125,21 +125,18 @@ const handleLogin = async () => {
 }
 
 onMounted(() => {
-  // 同步主题变量到登录页面
+  // 同步主题变量到登录页面 - 使用 useTheme 中定义的变量
   const savedMode = localStorage.getItem('lens_theme_mode') || 'dark'
   const root = document.documentElement
+  const isDark = savedMode === 'dark'
   
-  if (savedMode === 'dark') {
-    root.style.setProperty('--login-bg', '#000')
-    root.style.setProperty('--login-card-bg', 'rgba(24, 24, 28, 0.8)')
-    root.style.setProperty('--login-card-border', 'rgba(255, 255, 255, 0.08)')
-    root.style.setProperty('--login-shadow', '0 25px 50px -12px rgba(0, 0, 0, 0.5)')
-  } else {
-    root.style.setProperty('--login-bg', '#f8f7fa')
-    root.style.setProperty('--login-card-bg', 'rgba(255, 255, 255, 0.9)')
-    root.style.setProperty('--login-card-border', 'rgba(124, 58, 237, 0.15)')
-    root.style.setProperty('--login-shadow', '0 25px 50px -12px rgba(0, 0, 0, 0.15)')
-  }
+  // 设置登录页面特定的变量，根据当前主题模式
+  root.style.setProperty('--login-bg', isDark ? '#000' : '#f8f7fa')
+  root.style.setProperty('--login-card-bg', isDark ? 'rgba(24, 24, 28, 0.8)' : 'rgba(255, 255, 255, 0.9)')
+  root.style.setProperty('--login-card-border', isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(124, 58, 237, 0.15)')
+  root.style.setProperty('--login-shadow', isDark 
+    ? '0 25px 50px -12px rgba(0, 0, 0, 0.5)' 
+    : '0 25px 50px -12px rgba(0, 0, 0, 0.15)')
 })
 </script>
 
@@ -174,7 +171,8 @@ onMounted(() => {
 .bottom-right {
   bottom: -100px;
   right: -100px;
-  background-color: #03dac6;
+  background-color: var(--primary-color);
+  opacity: 0.3;
 }
 
 .login-card {
@@ -197,6 +195,7 @@ onMounted(() => {
   margin: 12px 0 8px 0;
   letter-spacing: 4px;
   font-weight: 700;
+  color: var(--text-color, #e2e2e9);
 }
 
 .login-footer {
