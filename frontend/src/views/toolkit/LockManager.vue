@@ -51,7 +51,6 @@
                     逻辑：清空 LockedFields 列表 (小锁) <b>并</b> 设置 LockData = false (主锁)。
                   </n-p>
                   <n-button block type="error" secondary @click="handleAction('metadata_field_unlocker')" :loading="loading">
-                    <template #icon><n-icon><UnlockIcon /></n-icon></template>
                     执行字段解锁
                   </n-button>
                 </n-card>
@@ -65,7 +64,6 @@
                     逻辑：仅设置 LockData = true。保护整体元数据，但不修改各字段锁定状态。
                   </n-p>
                   <n-button block type="info" secondary @click="handleAction('item_locker')" :loading="loading">
-                    <template #icon><n-icon><LockIcon /></n-icon></template>
                     执行全局锁定
                   </n-button>
                 </n-card>
@@ -79,7 +77,6 @@
                     逻辑：主锁、小锁一起解除 (LockData=false + 列表清空)。
                   </n-p>
                   <n-button block type="success" secondary @click="handleAction('item_unlocker')" :loading="loading">
-                    <template #icon><n-icon><ResetIcon /></n-icon></template>
                     执行深度解锁
                   </n-button>
                 </n-card>

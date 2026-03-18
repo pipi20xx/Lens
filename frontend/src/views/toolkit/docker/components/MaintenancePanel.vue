@@ -6,7 +6,6 @@
           <template #header-extra>
             <n-space align="center">
               <n-button size="tiny" quaternary type="primary" @click="openRawEdit">
-                <template #icon><n-icon><CodeIcon /></n-icon></template>
                 直接编辑 JSON
               </n-button>
               <n-text depth="3" type="warning" style="font-size: 12px">
@@ -114,7 +113,6 @@
             </n-grid>
             <n-space justify="end" style="margin-top: 12px">
               <n-button type="primary" :loading="loading.daemon" @click="handleSaveDaemonConfig">
-                <template #icon><n-icon><SaveIcon /></n-icon></template>
                 保存并应用配置
               </n-button>
             </n-space>
@@ -135,7 +133,6 @@
               </n-checkbox>
             </n-space>
             <n-button type="primary" secondary :loading="loading.images" @click="handlePruneImages">
-              <template #icon><n-icon><DeleteIcon /></n-icon></template>
               开始清理镜像
             </n-button>
           </n-space>
@@ -148,7 +145,6 @@
             <n-text depth="3">清理 Docker Buildx 或 BuildKit 的构建缓存。</n-text>
             <div style="height: 24px"></div> <!-- 保持高度对齐 -->
             <n-button type="warning" secondary :loading="loading.cache" @click="handlePruneCache">
-              <template #icon><n-icon><DeleteIcon /></n-icon></template>
               开始清理构建缓存
             </n-button>
           </n-space>
@@ -161,7 +157,6 @@
             <n-text depth="3">清理所有处于停止状态 de Docker 容器。</n-text>
             <div style="height: 24px"></div> <!-- 保持高度对齐 -->
             <n-button type="error" secondary :loading="loading.containers" @click="handlePruneContainers">
-              <template #icon><n-icon><DeleteIcon /></n-icon></template>
               开始清理停止的容器
             </n-button>
           </n-space>

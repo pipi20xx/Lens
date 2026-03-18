@@ -19,7 +19,6 @@
                 <n-input-group-label style="width: 140px">Emby 单集 ID</n-input-group-label>
                 <n-input v-model:value="episodeId" placeholder="输入 Episode ID (例如: 108)" @keyup.enter="handleLookup" />
                 <n-button type="primary" @click="handleLookup" :loading="loading">
-                  <template #icon><n-icon><SearchIcon /></n-icon></template>
                   执行反查
                 </n-button>
               </n-input-group>

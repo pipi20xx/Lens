@@ -183,9 +183,6 @@ onMounted(() => {
     <n-card class="hosts-card" :bordered="false" title="主机列表">
       <n-space vertical>
         <n-button block :type="buttonTypes.PRIMARY" @click="showAddHostModal = true">
-          <template #icon>
-            <n-icon><AddIcon /></n-icon>
-          </template>
           {{ buttonText.ADD_HOST }}
         </n-button>
         <div v-if="hosts.length === 0" class="empty-state">
@@ -199,23 +196,14 @@ onMounted(() => {
             </div>
             <div class="host-actions">
               <n-button :size="buttonSizes.MEDIUM" secondary :type="buttonTypes.INFO" @click="connectHost(host)">
-                <template #icon>
-                  <n-icon><TerminalIcon /></n-icon>
-                </template>
                 {{ buttonText.CONNECT }}
               </n-button>
               <n-button :size="buttonSizes.MEDIUM" secondary :type="buttonTypes.WARNING" @click="editHost(host)">
-                <template #icon>
-                  <n-icon><EditIcon /></n-icon>
-                </template>
                 {{ buttonText.EDIT }}
               </n-button>
               <n-popconfirm @positive-click="deleteHost(host.id)" :positive-text="confirmText.CONFIRM_DELETE" :negative-text="confirmText.CANCEL">
                 <template #trigger>
                   <n-button :size="buttonSizes.MEDIUM" secondary :type="buttonTypes.ERROR">
-                    <template #icon>
-                      <n-icon><DeleteIcon /></n-icon>
-                    </template>
                     {{ buttonText.DELETE }}
                   </n-button>
                 </template>
@@ -230,9 +218,6 @@ onMounted(() => {
     <n-card class="commands-card" :bordered="false" title="快速命令">
       <n-space vertical>
         <n-button block :type="buttonTypes.PRIMARY" secondary @click="showAddCommandModal = true; editingCommand = null; newCommand = { title: '', command: '' }">
-          <template #icon>
-            <n-icon><AddIcon /></n-icon>
-          </template>
           {{ buttonText.ADD_COMMAND }}
         </n-button>
         <div v-if="commands.length === 0" class="empty-state">
@@ -246,16 +231,10 @@ onMounted(() => {
             </div>
             <div class="command-actions">
               <n-button :size="buttonSizes.MEDIUM" secondary :type="buttonTypes.WARNING" @click="editCommand(cmd)">
-                <template #icon>
-                  <n-icon><EditIcon /></n-icon>
-                </template>
               </n-button>
               <n-popconfirm @positive-click="deleteCommand(cmd.id)" :positive-text="confirmText.CONFIRM_DELETE" :negative-text="confirmText.CANCEL">
                 <template #trigger>
                   <n-button :size="buttonSizes.MEDIUM" secondary :type="buttonTypes.ERROR">
-                    <template #icon>
-                      <n-icon><DeleteIcon /></n-icon>
-                    </template>
                   </n-button>
                 </template>
                 确定删除此命令？

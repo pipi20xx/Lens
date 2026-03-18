@@ -10,9 +10,8 @@
             size="small"
             @update:value="handleDbChange"
           />
-          <n-button block size="tiny" ghost icon-placement="right" @click="fetchTables">
+          <n-button block size="tiny" ghost @click="fetchTables">
             刷新表列表
-            <template #icon><n-icon><RefreshIcon /></n-icon></template>
           </n-button>
         </n-space>
       </div>
@@ -35,7 +34,6 @@
             <n-tag size="small" type="info">{{ pagination.itemCount }} 条记录</n-tag>
           </n-space>
           <n-button size="small" @click="fetchTableData" :loading="loading">
-            <template #icon><n-icon><RefreshIcon /></n-icon></template>
             刷新数据
           </n-button>
         </n-space>
@@ -193,7 +191,6 @@ const fetchTableData = async () => {
               onClick: () => openViewer(col.name, val)
             },
             { 
-              icon: renderIcon(SearchIcon),
               default: () => isObject ? '查看 JSON' : '查看详情'
             }
           )

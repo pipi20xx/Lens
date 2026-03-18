@@ -13,7 +13,6 @@
           size="small" 
           @click="handleRevokeAll"
         >
-          <template #icon><n-icon><LogoutIcon /></n-icon></template>
           踢出所有其他设备
         </n-button>
       </n-space>
@@ -65,7 +64,6 @@
                   secondary
                   @click="handleRevokeSession(session.session_id)"
                 >
-                  <template #icon><n-icon><LogoutIcon /></n-icon></template>
                   踢出设备
                 </n-button>
               </template>

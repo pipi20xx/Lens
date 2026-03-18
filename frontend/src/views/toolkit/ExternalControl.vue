@@ -28,11 +28,9 @@
                           style="cursor: pointer"
                         />
                         <n-button type="primary" secondary @click="copyToken" :disabled="!config.api_token">
-                          <template #icon><n-icon><CopyIcon /></n-icon></template>
                           复制数据
                         </n-button>
                         <n-button secondary @click="generateNewToken">
-                          <template #icon><n-icon><RefreshIcon /></n-icon></template>
                           重新生成
                         </n-button>
                       </n-input-group>
@@ -135,7 +133,6 @@
       <template #footer>
         <n-space justify="end">
           <n-button type="primary" @click="showLogDetail = false">
-            <template #icon><n-icon><CloseIcon /></n-icon></template>
             关闭详情
           </n-button>
         </n-space>
@@ -218,7 +215,6 @@ const columns = [
     render: (row: any) => {
       return h(NButton, {
         size: 'tiny', secondary: true, disabled: !row.payload,
-        icon: renderIcon(ViewIcon),
         onClick: () => {
           try { currentPayload.value = JSON.stringify(JSON.parse(row.payload), null, 2) } 
           catch { currentPayload.value = row.payload || '' }

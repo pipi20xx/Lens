@@ -187,23 +187,18 @@ onUnmounted(() => {
           @update:value="handleDateChange"
         />
         <n-button size="tiny" @click="autoScroll = !autoScroll" :type="autoScroll ? 'primary' : 'default'" secondary>
-          <template #icon><n-icon><ScrollIcon /></n-icon></template>
           {{ autoScroll ? '跟随' : '自由' }}
         </n-button>
         <n-button v-if="!selectedDate" size="tiny" @click="isPaused = !isPaused" :type="isPaused ? 'warning' : 'default'" secondary>
-          <template #icon><n-icon><component :is="isPaused ? PlayIcon : PauseIcon" /></n-icon></template>
           {{ isPaused ? '恢复' : '暂停' }}
         </n-button>
         <n-button size="tiny" @click="openFullLog" secondary>
-          <template #icon><n-icon><OpenIcon /></n-icon></template>
           查看导出
         </n-button>
         <n-button size="tiny" @click="clearConsole" secondary>
-          <template #icon><n-icon><ClearIcon /></n-icon></template>
           清空
         </n-button>
         <n-button size="tiny" @click="emit('close')" type="error" ghost>
-          <template #icon><n-icon><CloseIcon /></n-icon></template>
           关闭
         </n-button>
       </n-space>

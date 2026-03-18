@@ -3,16 +3,13 @@
     <n-space vertical>
       <n-space justify="space-between">
         <n-button type="primary" @click="openCreateModal">
-          <template #icon><n-icon><AddIcon /></n-icon></template>
           新建项目
         </n-button>
         <n-space>
           <n-button @click="fetchProjects">
-            <template #icon><n-icon><RefreshIcon /></n-icon></template>
             刷新列表
           </n-button>
           <n-button type="error" ghost @click="handleClearAllLogs">
-            <template #icon><n-icon><ClearIcon /></n-icon></template>
             清空所有记录
           </n-button>
         </n-space>
@@ -75,11 +72,9 @@
 
         <n-space justify="end">
           <n-button @click="showModal = false">
-            <template #icon><n-icon><CloseIcon /></n-icon></template>
             取消
           </n-button>
           <n-button type="primary" @click="saveProject">
-            <template #icon><n-icon><SaveIcon /></n-icon></template>
             保存项目
           </n-button>
         </n-space>
@@ -177,7 +172,6 @@ const columns = [
                 type: 'primary', 
                 onClick: () => directBuild(row)
               }, { 
-                icon: renderIcon(BuildIcon),
                 default: () => '立即构建' 
               })
             ]
@@ -186,14 +180,12 @@ const columns = [
             size: 'small', 
             onClick: () => openHistory(row)
           }, { 
-            icon: renderIcon(HistoryIcon),
             default: () => '查看历史' 
           }),
           h(NButton, { 
             size: 'small', 
             onClick: () => openEditModal(row)
           }, { 
-            icon: renderIcon(EditIcon),
             default: () => '修改' 
           }),
           h(NButton, { 
@@ -202,7 +194,6 @@ const columns = [
             ghost: true, 
             onClick: () => deleteProject(row)
           }, { 
-            icon: renderIcon(DeleteIcon),
             default: () => '删除' 
           }),
         ]

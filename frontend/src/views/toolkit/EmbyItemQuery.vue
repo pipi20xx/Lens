@@ -19,7 +19,6 @@
                 <n-input-group-label style="width: 140px">Emby Item ID</n-input-group-label>
                 <n-input v-model:value="itemId" placeholder="输入 ID，例如: 12345" @keyup.enter="fetchInfo" />
                 <n-button type="primary" @click="fetchInfo" :loading="loading">
-                  <template #icon><n-icon><LabIcon /></n-icon></template>
                   执行抓取
                 </n-button>
               </n-input-group>
@@ -29,7 +28,6 @@
             <n-card v-if="itemData" title="抓取结果 (Raw Metadata JSON)" size="small" segmented>
               <template #header-extra>
                 <n-button secondary size="tiny" @click="copyData">
-                  <template #icon><n-icon><CopyIcon /></n-icon></template>
                   复制数据
                 </n-button>
               </template>

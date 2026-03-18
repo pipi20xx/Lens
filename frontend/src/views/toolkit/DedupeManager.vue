@@ -9,9 +9,6 @@
           :loading="syncing"
           secondary
         >
-          <template #icon>
-            <n-icon><SyncIcon /></n-icon>
-          </template>
           执行同步
         </n-button>
         <n-button 
@@ -19,9 +16,6 @@
           @click="fetchDuplicates" 
           secondary
         >
-          <template #icon>
-            <n-icon><SearchIcon /></n-icon>
-          </template>
           执行搜索
         </n-button>
       </div>
@@ -52,15 +46,9 @@
     <div v-if="duplicateGroups.length > 0" class="mb-4 flex items-center justify-between bg-white/5 p-3 rounded">
       <n-space>
         <n-button type="warning" secondary size="small" @click="autoSelect">
-          <template #icon>
-            <n-icon><LabIcon /></n-icon>
-          </template>
           智能分析
         </n-button>
         <n-button type="primary" secondary size="small" @click="selectedIds = []">
-          <template #icon>
-            <n-icon><ClearIcon /></n-icon>
-          </template>
           取消选中
         </n-button>
       </n-space>
@@ -70,9 +58,6 @@
         @click="confirmDelete" 
         :disabled="selectedIds.length === 0"
       >
-        <template #icon>
-          <n-icon><DeleteIcon /></n-icon>
-        </template>
         执行删除 ({{ selectedIds.length }})
       </n-button>
     </div>

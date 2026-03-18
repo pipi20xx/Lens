@@ -3,7 +3,6 @@
     <n-card :bordered="false" class="chat-card" title="AI 对话" content-style="display: flex; flex-direction: column; height: 100%;">
       <template #header-extra>
         <n-button size="tiny" secondary type="error" @click="clearHistory" v-if="messages.length > 0">
-          <template #icon><n-icon><DeleteIcon /></n-icon></template>
           清空历史
         </n-button>
       </template>

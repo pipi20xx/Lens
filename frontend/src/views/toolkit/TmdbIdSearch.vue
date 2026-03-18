@@ -17,7 +17,6 @@
                   <n-input-group-label style="width: 100px">TMDB ID</n-input-group-label>
                   <n-input v-model:value="form.tmdb_id" placeholder="输入 ID (如: 94359)" @keyup.enter="handleSearch" />
                   <n-button type="primary" @click="handleSearch" :loading="loading">
-                    <template #icon><n-icon><SearchIcon /></n-icon></template>
                     执行搜索
                   </n-button>
                 </n-input-group>
@@ -175,7 +174,6 @@
         </div>
         <template #footer>
           <n-button block type="primary" secondary @click="copyRawJson">
-            <template #icon><n-icon><CopyIcon /></n-icon></template>
             复制数据
           </n-button>
         </template>

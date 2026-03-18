@@ -24,7 +24,6 @@
           <n-card title="Docker 服务状态" size="small">
             <template #header-extra>
               <n-button size="tiny" quaternary @click="fetchInfo" :loading="loading">
-                <template #icon><n-icon><RefreshIcon /></n-icon></template>
                 重新检测
               </n-button>
             </template>
@@ -73,13 +72,9 @@
         </n-space>
         <n-space justify="center" size="large">
           <n-button @click="fetchInfo" :loading="loading" secondary type="primary">
-            <template #icon><n-icon><RefreshIcon /></n-icon></template>
             手动刷新环境状态
           </n-button>
           <n-button @click="handleRepair" :loading="fixing" type="warning" ghost>
-            <template #icon>
-              <n-icon><RepairIcon /></n-icon>
-            </template>
             一键初始化/修复构建环境
           </n-button>
         </n-space>

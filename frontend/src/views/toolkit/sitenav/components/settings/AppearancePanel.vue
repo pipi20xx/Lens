@@ -95,7 +95,6 @@ const handleUploadBg = (options: { file: { file: File } }) => {
             <n-space align="center" justify="space-between">
               <n-upload :show-file-list="false" @change="handleUploadBg" accept=".png,.jpg,.jpeg,.webp,.svg,.gif">
                 <n-button type="primary" secondary>
-                  <template #icon><n-icon><ImageIcon /></n-icon></template>
                   {{ settings.background_url ? '更换背景图片' : '上传背景图片' }}
                 </n-button>
               </n-upload>
@@ -150,7 +149,6 @@ const handleUploadBg = (options: { file: { file: File } }) => {
                   :loading="wallpaperLoading"
                   @click="emit('refreshWallpaper')"
                 >
-                  <template #icon><n-icon><RefreshIcon /></n-icon></template>
                   换一张
                 </n-button>
                 <n-button 
@@ -158,7 +156,6 @@ const handleUploadBg = (options: { file: { file: File } }) => {
                   type="info" 
                   @click="emit('saveWallpaper')"
                 >
-                  <template #icon><n-icon><SaveIcon /></n-icon></template>
                   设为固定背景
                 </n-button>
               </n-space>
@@ -177,7 +174,6 @@ const handleUploadBg = (options: { file: { file: File } }) => {
                 style="width: fit-content"
                 @click="emit('saveWallpaper')"
               >
-                <template #icon><n-icon><SaveIcon /></n-icon></template>
                 固化当前必应壁纸
               </n-button>
               

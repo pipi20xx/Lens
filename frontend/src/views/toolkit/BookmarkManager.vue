@@ -42,12 +42,10 @@
           </n-button>
 
           <n-button secondary size="small" @click="showAddFolder = true" class="toolbar-btn">
-            <template #icon><n-icon><FolderAddIcon /></n-icon></template>
             新建文件夹
           </n-button>
           
           <n-button secondary size="small" @click="triggerFileInput" class="toolbar-btn">
-            <template #icon><n-icon><ImportIcon /></n-icon></template>
             导入
             <input 
               type="file" 
@@ -59,17 +57,14 @@
           </n-button>
 
           <n-button secondary size="small" @click="handleExport" class="toolbar-btn">
-            <template #icon><n-icon><ExportIcon /></n-icon></template>
             导出
           </n-button>
 
           <n-button secondary type="error" size="small" @click="handleClearAll" class="toolbar-btn">
-            <template #icon><n-icon><ClearIcon /></n-icon></template>
             清空
           </n-button>
 
           <n-button type="primary" size="small" @click="showAddBookmark = true" class="toolbar-btn">
-            <template #icon><n-icon><AddIcon /></n-icon></template>
             添加书签
           </n-button>
           

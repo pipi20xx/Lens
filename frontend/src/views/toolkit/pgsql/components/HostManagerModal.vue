@@ -3,11 +3,9 @@
     <n-space vertical size="large">
       <n-space justify="space-between">
         <n-button type="primary" @click="handleAdd">
-          <template #icon><n-icon><AddIcon /></n-icon></template>
           添加新主机
         </n-button>
         <n-button @click="fetchHosts">
-          <template #icon><n-icon><RefreshIcon /></n-icon></template>
           刷新
         </n-button>
       </n-space>
@@ -46,15 +44,12 @@
       <template #footer>
         <n-space justify="end">
           <n-button @click="showAdd = false">
-            <template #icon><n-icon><CloseIcon /></n-icon></template>
             取消
           </n-button>
           <n-button type="warning" @click="handleTest" :loading="testing">
-            <template #icon><n-icon><TestIcon /></n-icon></template>
             测试连接
           </n-button>
           <n-button type="primary" @click="handleSave">
-            <template #icon><n-icon><SaveIcon /></n-icon></template>
             {{ editingHostId ? '保存修改' : '保存主机' }}
           </n-button>
         </n-space>
@@ -126,7 +121,6 @@ const columns = [
             NButton, 
             { size: 'small', type: 'primary', secondary: true, onClick: () => handleEdit(row) }, 
             { 
-              icon: renderIcon(EditIcon),
               default: () => '编辑' 
             }
           ),
@@ -134,7 +128,6 @@ const columns = [
             NButton, 
             { size: 'small', type: 'error', secondary: true, onClick: () => handleDelete(row.id) }, 
             { 
-              icon: renderIcon(DeleteIcon),
               default: () => '移除' 
             }
           )

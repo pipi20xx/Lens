@@ -22,7 +22,6 @@
                   <n-input-group>
                     <n-input :value="webhookUrl" disabled />
                     <n-button type="primary" secondary @click="copyUrl">
-                      <template #icon><n-icon><CopyIcon /></n-icon></template>
                       复制 URL
                     </n-button>
                   </n-input-group>
@@ -58,7 +57,6 @@
                 <n-text depth="3">按住手柄 ⠿ 拖拽调整顺序</n-text>
               </n-space>
               <n-button type="primary" size="small" @click="prepareNewRule">
-                <template #icon><n-icon><AddIcon /></n-icon></template>
                 添加新规则
               </n-button>
             </div>

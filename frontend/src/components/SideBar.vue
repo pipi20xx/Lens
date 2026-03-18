@@ -100,9 +100,6 @@ const handleToggleTheme = () => {
       <div class="server-switcher" :class="{ 'collapsed': collapsed }">
         <n-dropdown trigger="click" :options="serverOptions" @select="handleServerSelect">
           <n-button quaternary block :size="collapsed ? 'medium' : 'small'" :style="{ padding: collapsed ? '0' : '0 12px', justifyContent: collapsed ? 'center' : 'flex-start' }">
-            <template #icon>
-              <n-icon color="var(--primary-color)" :size="20"><ServerIcon /></n-icon>
-            </template>
             <span v-if="!collapsed" class="server-name-text">{{ activeServerName }}</span>
           </n-button>
         </n-dropdown>

@@ -59,7 +59,6 @@ const columns = [
         secondary: true,
         onClick: () => handleRestore(row)
       }, { 
-        icon: renderIcon(HistoryIcon),
         default: () => '还原' 
       })
     }

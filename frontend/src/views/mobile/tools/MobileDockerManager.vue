@@ -169,15 +169,9 @@ onMounted(() => {
 
         <n-space justify="space-between">
           <n-button :type="buttonTypes.PRIMARY" secondary @click="showHostManager = true" :size="buttonSizes.MEDIUM">
-            <template #icon>
-              <n-icon><ServerIcon /></n-icon>
-            </template>
             {{ buttonText.MANAGE_HOST }}
           </n-button>
           <n-button :type="buttonTypes.INFO" secondary @click="refreshAll" :loading="loading" :size="buttonSizes.MEDIUM">
-            <template #icon>
-              <n-icon><RefreshIcon /></n-icon>
-            </template>
             {{ buttonText.REFRESH }}
           </n-button>
         </n-space>

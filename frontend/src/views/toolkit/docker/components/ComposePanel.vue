@@ -4,7 +4,6 @@
       <n-space justify="space-between" v-if="hostId">
         <n-space>
           <n-button type="primary" @click="handleCreateProject">
-            <template #icon><n-icon><AddIcon /></n-icon></template>
             新建项目
           </n-button>
           <n-input
@@ -20,15 +19,12 @@
         </n-space>
         <n-button-group>
           <n-button type="info" ghost @click="fetchProjects(true)" :loading="loading">
-            <template #icon><n-icon><RefreshIcon /></n-icon></template>
             刷新列表
           </n-button>
           <n-button type="success" secondary @click="handleBulkAction('up')">
-            <template #icon><n-icon><StartIcon /></n-icon></template>
             全部启动/更新
           </n-button>
           <n-button type="error" secondary @click="handleBulkAction('down')">
-            <template #icon><n-icon><StopIcon /></n-icon></template>
             全部停止
           </n-button>
         </n-button-group>
@@ -55,7 +51,6 @@
             <n-input-group>
               <n-input v-model:value="baseSavePath" placeholder="选择存放项目的根目录" />
               <n-button type="primary" ghost @click="pickBasePath">
-                <template #icon><n-icon><FolderIcon /></n-icon></template>
                 选择
               </n-button>
             </n-input-group>
@@ -81,11 +76,9 @@
       <template #footer>
         <n-space justify="end">
           <n-button @click="showComposeModal = false">
-            <template #icon><n-icon><CloseIcon /></n-icon></template>
             取消
           </n-button>
           <n-button type="primary" @click="saveProject" :disabled="!!yamlError">
-            <template #icon><n-icon><SaveIcon /></n-icon></template>
             保存项目
           </n-button>
         </n-space>
@@ -292,27 +285,21 @@ const columns: DataTableColumns<any> = [
       return h(NSpace, { size: 'small' }, {
         default: () => [
           h(NButton, { size: 'tiny', type: 'primary', secondary: true, loading: isLoading, onClick: () => runComposeAction(row, 'up') }, { 
-            icon: () => h(NIcon, null, { default: () => h(StartIcon) }),
             default: () => '启动/更新' 
           }),
           h(NButton, { size: 'tiny', type: 'warning', secondary: true, loading: isLoading, onClick: () => runComposeAction(row, 'pull') }, { 
-            icon: () => h(NIcon, null, { default: () => h(PullIcon) }),
             default: () => '拉取' 
           }),
           h(NButton, { size: 'tiny', type: 'error', secondary: true, loading: isLoading, onClick: () => runComposeAction(row, 'down') }, { 
-            icon: () => h(NIcon, null, { default: () => h(StopIcon) }),
             default: () => '停止' 
           }),
           h(NButton, { size: 'tiny', secondary: true, onClick: () => editProject(row) }, { 
-            icon: () => h(NIcon, null, { default: () => h(EditIcon) }),
             default: () => '编辑' 
           }),
           h(NButton, { size: 'tiny', type: 'error', secondary: true, onClick: () => deleteProject(row) }, { 
-            icon: () => h(NIcon, null, { default: () => h(DeleteIcon) }),
             default: () => '删除' 
           }),
           h(NButton, { size: 'tiny', type: 'info', quaternary: true, onClick: () => createBackupTask(row) }, { 
-            icon: () => h(NIcon, null, { default: () => h(BackupIcon) }),
             default: () => '备份' 
           })
         ]

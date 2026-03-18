@@ -47,11 +47,9 @@
             <template #footer>
               <n-space>
                 <n-button quaternary type="primary" tag="a" href="https://github.com/pipi20xx/Lens" target="_blank">
-                  <template #icon><n-icon><CodeIcon /></n-icon></template>
                   GitHub 源码
                 </n-button>
                 <n-button quaternary type="info" tag="a" href="https://github.com/pipi20xx/Lens/issues" target="_blank">
-                  <template #icon><n-icon><BugIcon /></n-icon></template>
                   提交反馈 (Issues)
                 </n-button>
               </n-space>
@@ -113,11 +111,9 @@
                   :loading="upgrading"
                   @click="handleUpgrade"
                 >
-                  <template #icon><n-icon><UpgradeIcon /></n-icon></template>
                   {{ upgrading ? '正在执行更新任务...' : '立即执行系统升级' }}
                 </n-button>
                 <n-button block size="small" type="primary" secondary @click="navigateTo('SettingsView')">
-                  <template #icon><n-icon><SettingsIcon /></n-icon></template>
                   配置中心
                 </n-button>
               </n-space>

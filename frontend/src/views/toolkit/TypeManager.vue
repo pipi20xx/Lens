@@ -42,7 +42,6 @@
                   </n-space>
                   <div style="margin-top: 16px">
                     <n-button block type="primary" secondary @click="runMapper" :loading="loading">
-                      <template #icon><n-icon><MapIcon /></n-icon></template>
                       执行映射
                     </n-button>
                   </div>
@@ -57,7 +56,6 @@
                   </n-space>
                   <div style="margin-top: 16px">
                     <n-button block type="error" secondary @click="runRemover" :loading="loading">
-                      <template #icon><n-icon><DeleteIcon /></n-icon></template>
                       执行移除
                     </n-button>
                   </div>
@@ -72,7 +70,6 @@
                   </n-space>
                   <div style="margin-top: 16px">
                     <n-button block type="success" secondary @click="runAdder" :loading="loading">
-                      <template #icon><n-icon><AddIcon /></n-icon></template>
                       执行新增
                     </n-button>
                   </div>

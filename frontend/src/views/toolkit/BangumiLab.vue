@@ -29,7 +29,6 @@
                       <n-input v-model:value="form.subject_id" placeholder="例如: 253, 302506..." @keyup.enter="handleFetchAll" />
                     </n-form-item>
                     <n-button block type="primary" :loading="loading" @click="handleFetchAll">
-                      <template #icon><n-icon><LabIcon /></n-icon></template>
                       执行抓取
                     </n-button>
                   </n-form>
@@ -83,7 +82,6 @@
         </div>
         <template #footer>
           <n-button block type="primary" secondary @click="copyRawJson">
-            <template #icon><n-icon><CopyIcon /></n-icon></template>
             复制 JSON 数据
           </n-button>
         </template>

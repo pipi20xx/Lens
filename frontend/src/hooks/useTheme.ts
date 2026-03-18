@@ -26,7 +26,23 @@ const darkOverrides: GlobalThemeOverrides = {
   Button: {
     borderRadiusMedium: '8px',
     fontWeight: '500',
-    fontSizeMedium: '14px'
+    fontSizeMedium: '14px',
+    colorPrimary: '#3B82F6',
+    colorPrimaryHover: '#2563EB',
+    colorPrimaryPressed: '#1D4ED8',
+    colorSuccess: '#10B981',
+    colorSuccessHover: '#059669',
+    colorSuccessPressed: '#047857',
+    colorWarning: '#F59E0B',
+    colorWarningHover: '#D97706',
+    colorWarningPressed: '#B45309',
+    colorError: '#EF4444',
+    colorErrorHover: '#DC2626',
+    colorErrorPressed: '#B91C1C',
+    textColorPrimary: '#ffffff',
+    textColorSuccess: '#ffffff',
+    textColorWarning: '#ffffff',
+    textColorError: '#ffffff'
   },
   Input: {
     borderRadius: '8px',
@@ -61,7 +77,23 @@ const lightOverrides: GlobalThemeOverrides = {
   Button: {
     borderRadiusMedium: '8px',
     fontWeight: '500',
-    fontSizeMedium: '14px'
+    fontSizeMedium: '14px',
+    colorPrimary: '#3B82F6',
+    colorPrimaryHover: '#2563EB',
+    colorPrimaryPressed: '#1D4ED8',
+    colorSuccess: '#10B981',
+    colorSuccessHover: '#059669',
+    colorSuccessPressed: '#047857',
+    colorWarning: '#F59E0B',
+    colorWarningHover: '#D97706',
+    colorWarningPressed: '#B45309',
+    colorError: '#EF4444',
+    colorErrorHover: '#DC2626',
+    colorErrorPressed: '#B91C1C',
+    textColorPrimary: '#ffffff',
+    textColorSuccess: '#ffffff',
+    textColorWarning: '#ffffff',
+    textColorError: '#ffffff'
   },
   Input: {
     borderRadius: '8px',
@@ -99,6 +131,19 @@ export function useTheme() {
       root.style.setProperty('--primary-border-color', 'rgba(163, 112, 247, 0.2)')
       root.style.setProperty('--text-secondary', '#9ca3af')
       root.style.setProperty('--hover-bg', 'rgba(163, 112, 247, 0.08)')
+      // 按钮颜色
+      root.style.setProperty('--btn-primary-color', '#3B82F6')
+      root.style.setProperty('--btn-primary-hover', '#2563EB')
+      root.style.setProperty('--btn-primary-pressed', '#1D4ED8')
+      root.style.setProperty('--btn-success-color', '#10B981')
+      root.style.setProperty('--btn-success-hover', '#059669')
+      root.style.setProperty('--btn-success-pressed', '#047857')
+      root.style.setProperty('--btn-warning-color', '#F59E0B')
+      root.style.setProperty('--btn-warning-hover', '#D97706')
+      root.style.setProperty('--btn-warning-pressed', '#B45309')
+      root.style.setProperty('--btn-danger-color', '#EF4444')
+      root.style.setProperty('--btn-danger-hover', '#DC2626')
+      root.style.setProperty('--btn-danger-pressed', '#B91C1C')
     } else {
       // 白天模式变量
       root.style.setProperty('--primary-color', '#7c3aed')
@@ -114,6 +159,19 @@ export function useTheme() {
       root.style.setProperty('--primary-border-color', 'rgba(124, 58, 237, 0.15)')
       root.style.setProperty('--text-secondary', '#6b7280')
       root.style.setProperty('--hover-bg', 'rgba(124, 58, 237, 0.06)')
+      // 按钮颜色
+      root.style.setProperty('--btn-primary-color', '#3B82F6')
+      root.style.setProperty('--btn-primary-hover', '#2563EB')
+      root.style.setProperty('--btn-primary-pressed', '#1D4ED8')
+      root.style.setProperty('--btn-success-color', '#10B981')
+      root.style.setProperty('--btn-success-hover', '#059669')
+      root.style.setProperty('--btn-success-pressed', '#047857')
+      root.style.setProperty('--btn-warning-color', '#F59E0B')
+      root.style.setProperty('--btn-warning-hover', '#D97706')
+      root.style.setProperty('--btn-warning-pressed', '#B45309')
+      root.style.setProperty('--btn-danger-color', '#EF4444')
+      root.style.setProperty('--btn-danger-hover', '#DC2626')
+      root.style.setProperty('--btn-danger-pressed', '#B91C1C')
     }
   }
 

@@ -25,9 +25,6 @@
             <n-card title="推送通道 (Bots) 列表" size="small" segmented>
               <template #header-extra>
                 <n-button type="primary" size="small" @click="handleAddBot">
-                  <template #icon>
-                    <n-icon><AddIcon /></n-icon>
-                  </template>
                   添加新机器人
                 </n-button>
               </template>
@@ -126,11 +123,9 @@
       <template #footer>
         <n-space justify="end">
           <n-button size="small" @click="showEditModal = false">
-            <template #icon><n-icon><CloseIcon /></n-icon></template>
             取消
           </n-button>
           <n-button size="small" type="primary" :loading="saving" @click="handleSaveBot">
-            <template #icon><n-icon><SaveIcon /></n-icon></template>
             确定保存
           </n-button>
         </n-space>
@@ -222,7 +217,6 @@ const columns: DataTableColumns<NotificationBot> = [
             secondary: true, 
             onClick: () => handleTestBot(row.id) 
           }, { 
-            icon: renderIcon(TestIcon),
             default: () => '测试' 
           }),
           h(NButton, { 
@@ -230,7 +224,6 @@ const columns: DataTableColumns<NotificationBot> = [
             secondary: true,
             onClick: () => handleEditBot(row) 
           }, { 
-            icon: renderIcon(EditIcon),
             default: () => '编辑' 
           }),
           h(NPopconfirm, { onPositiveClick: () => handleDeleteBot(row.id) }, {
@@ -239,7 +232,6 @@ const columns: DataTableColumns<NotificationBot> = [
               type: 'error', 
               secondary: true 
             }, { 
-              icon: renderIcon(DeleteIcon),
               default: () => '删除' 
             }),
             default: () => '确定删除该机器人吗？'

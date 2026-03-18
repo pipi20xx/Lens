@@ -2,11 +2,9 @@
   <n-space vertical>
     <n-space justify="space-between" align="center">
       <n-button type="primary" @click="showCreateModal = true">
-        <template #icon><n-icon><AddIcon /></n-icon></template>
         创建用户
       </n-button>
       <n-button @click="fetchUsers" :loading="loading">
-        <template #icon><n-icon><RefreshIcon /></n-icon></template>
         刷新列表
       </n-button>
     </n-space>
@@ -39,11 +37,9 @@
       <template #footer>
         <n-space justify="end">
           <n-button @click="showCreateModal = false">
-            <template #icon><n-icon><CloseIcon /></n-icon></template>
             取消
           </n-button>
           <n-button type="primary" @click="handleCreate" :loading="creating">
-            <template #icon><n-icon><AddIcon /></n-icon></template>
             创建角色
           </n-button>
         </n-space>
@@ -76,11 +72,9 @@
       <template #footer>
         <n-space justify="end">
           <n-button @click="showEditModal = false">
-            <template #icon><n-icon><CloseIcon /></n-icon></template>
             取消
           </n-button>
           <n-button type="primary" @click="handleUpdate" :loading="updating">
-            <template #icon><n-icon><SaveIcon /></n-icon></template>
             保存修改
           </n-button>
         </n-space>
@@ -166,7 +160,6 @@ const columns = [
           type: 'info', 
           onClick: () => openEditModal(row) 
         }, { 
-          icon: renderIcon(EditIcon),
           default: () => '编辑' 
         }),
         h(NButton, { 
@@ -175,7 +168,6 @@ const columns = [
           type: 'error', 
           onClick: () => handleDrop(row.username) 
         }, { 
-          icon: renderIcon(DeleteIcon),
           default: () => '删除' 
         })
       ]

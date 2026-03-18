@@ -12,7 +12,6 @@
             <n-input-group>
               <n-input v-model:value="searchName" placeholder="搜索名称或 ID..." style="width: 20rem" @keypress.enter="loadItems" />
               <n-button type="primary" secondary @click="loadItems">
-                <template #icon><n-icon><SearchIcon /></n-icon></template>
                 执行搜索
               </n-button>
             </n-input-group>
@@ -23,19 +22,15 @@
           
           <n-space>
             <n-button type="warning" secondary @click="handleAutoSelect">
-              <template #icon><n-icon><AutoIcon /></n-icon></template>
               执行分析
             </n-button>
             <n-button type="primary" secondary @click="showConfig = true">
-              <template #icon><n-icon><SettingsIcon /></n-icon></template>
               规则设置
             </n-button>
             <n-button type="primary" secondary :loading="syncing" @click="syncMedia">
-              <template #icon><n-icon><SyncIcon /></n-icon></template>
               执行同步
             </n-button>
             <n-button v-if="selectedIds.length > 0" type="error" secondary @click="showConfirm = true">
-              <template #icon><n-icon><DeleteIcon /></n-icon></template>
               执行删除 ({{ selectedIds.length }})
             </n-button>
           </n-space>

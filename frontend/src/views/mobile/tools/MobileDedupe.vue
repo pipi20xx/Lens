@@ -15,9 +15,6 @@
           secondary
           block
         >
-          <template #icon>
-            <n-icon><SyncIcon /></n-icon>
-          </template>
           {{ buttonText.SYNC }}
         </n-button>
         <n-button 
@@ -27,9 +24,6 @@
           secondary
           block
         >
-          <template #icon>
-            <n-icon><SearchIcon /></n-icon>
-          </template>
           {{ buttonText.SEARCH }}
         </n-button>
         <n-button 
@@ -39,9 +33,6 @@
           secondary
           block
         >
-          <template #icon>
-            <n-icon><SettingsIcon /></n-icon>
-          </template>
           {{ buttonText.RULES_SETTINGS }}
         </n-button>
       </n-space>
@@ -70,15 +61,9 @@
     <div v-if="duplicateGroups.length > 0" class="toolbar">
       <n-space vertical style="width: 100%">
         <n-button :type="buttonTypes.WARNING" :size="buttonSizes.MEDIUM" secondary @click="autoSelect" :loading="loading" block>
-          <template #icon>
-            <n-icon><LabIcon /></n-icon>
-          </template>
           {{ buttonText.SMART_ANALYZE }}
         </n-button>
         <n-button :type="buttonTypes.PRIMARY" :size="buttonSizes.MEDIUM" secondary @click="selectedIds = []" block>
-          <template #icon>
-            <n-icon><ClearIcon /></n-icon>
-          </template>
           {{ buttonText.CANCEL_SELECT }}
         </n-button>
         <n-button 
@@ -89,9 +74,6 @@
           :disabled="selectedIds.length === 0"
           block
         >
-          <template #icon>
-            <n-icon><DeleteIcon /></n-icon>
-          </template>
           {{ buttonText.DELETE }} ({{ selectedIds.length }})
         </n-button>
       </n-space>

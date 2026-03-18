@@ -15,11 +15,9 @@
     <template #footer>
       <n-space justify="end">
         <n-button @click="copyToClipboard">
-          <template #icon><n-icon><CopyIcon /></n-icon></template>
           复制内容
         </n-button>
         <n-button type="primary" @click="$emit('update:show', false)">
-          <template #icon><n-icon><CloseIcon /></n-icon></template>
           关闭
         </n-button>
       </n-space>

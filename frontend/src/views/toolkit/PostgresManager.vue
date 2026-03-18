@@ -18,13 +18,11 @@
                 @update:value="handleHostChange"
               />
               <n-button type="primary" secondary @click="showHostModal = true">
-                <template #icon><n-icon><ServerIcon /></n-icon></template>
                 管理主机
               </n-button>
             </n-space>
             <n-space>
               <n-button :disabled="!selectedHost" ghost @click="refreshAll" :loading="refreshing">
-                <template #icon><n-icon><RefreshIcon /></n-icon></template>
                 全部刷新
               </n-button>
             </n-space>

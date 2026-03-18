@@ -14,11 +14,9 @@
       <n-button 
         block 
         type="primary" 
-        secondary 
         :loading="loading" 
         @click="handleSearch"
       >
-        <template #icon><n-icon><SearchIcon /></n-icon></template>
         执行搜索
       </n-button>
     </n-form>

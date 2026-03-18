@@ -18,7 +18,6 @@
                       <n-input v-model:value="searchQuery" placeholder="中文或英文姓名..." @keyup.enter="handleSearch" />
                     </n-form-item>
                     <n-button block type="primary" secondary :loading="searchLoading" @click="handleSearch">
-                      <template #icon><n-icon><SearchIcon /></n-icon></template>
                       执行搜索
                     </n-button>
                   </n-form>
@@ -44,7 +43,6 @@
                       <n-select v-model:value="detailLanguage" :options="languageOptions" filterable tag />
                     </n-form-item>
                     <n-button block type="primary" :loading="analyzeLoading" @click="handleAnalyze">
-                      <template #icon><n-icon><LabIcon /></n-icon></template>
                       执行分析
                     </n-button>
                   </n-form>

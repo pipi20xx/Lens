@@ -3,7 +3,6 @@
     <n-card title="构建代理设置" size="small">
       <template #header-extra>
         <n-button size="small" type="primary" @click="openModal()">
-          <template #icon><n-icon><AddIcon /></n-icon></template>
           添加代理
         </n-button>
       </template>
@@ -29,11 +28,9 @@
         </n-form-item>
         <n-space justify="end">
           <n-button @click="showModal = false">
-            <template #icon><n-icon><CloseIcon /></n-icon></template>
             取消
           </n-button>
           <n-button type="primary" @click="saveProxy">
-            <template #icon><n-icon><SaveIcon /></n-icon></template>
             保存
           </n-button>
         </n-space>
@@ -89,7 +86,6 @@ const columns = [
             size: 'small', 
             onClick: () => openModal(row) 
           }, { 
-            icon: renderIcon(EditIcon),
             default: () => '编辑' 
           }),
           h(NButton, { 
@@ -98,7 +94,6 @@ const columns = [
             ghost: true, 
             onClick: () => deleteProxy(row.id) 
           }, { 
-            icon: renderIcon(DeleteIcon),
             default: () => '删除' 
           })
         ]

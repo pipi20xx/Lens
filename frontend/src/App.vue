@@ -214,7 +214,6 @@ const currentView = computed(() => {
                   
                   <n-dropdown v-if="isLoggedIn" trigger="click" :options="serverOptions" @select="handleServerSelect">
                     <n-button quaternary size="small" class="server-btn">
-                      <template #icon><n-icon color="var(--primary-color)"><ServerIcon /></n-icon></template>
                       {{ activeServerName }}
                     </n-button>
                   </n-dropdown>
@@ -285,7 +284,6 @@ const currentView = computed(() => {
                     :class="{ 'active': currentViewKey === item.key }"
                     @click="currentViewKey = item.key"
                   >
-                    <n-icon v-if="item.icon" class="sub-nav-icon"><component :is="item.icon" /></n-icon>
                     <span class="sub-nav-label">{{ item.label }}</span>
                   </div>
                 </div>

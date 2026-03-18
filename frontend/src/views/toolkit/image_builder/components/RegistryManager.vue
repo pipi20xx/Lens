@@ -5,7 +5,6 @@
         <n-card title="仓库配置" size="small">
           <template #header-extra>
             <n-button size="small" type="primary" @click="openRegistryModal()">
-              <template #icon><n-icon><AddIcon /></n-icon></template>
               添加仓库
             </n-button>
           </template>
@@ -16,7 +15,6 @@
         <n-card title="凭据管理" size="small">
           <template #header-extra>
             <n-button size="small" type="primary" @click="openCredModal()">
-              <template #icon><n-icon><AddIcon /></n-icon></template>
               添加凭据
             </n-button>
           </template>
@@ -42,11 +40,9 @@
         </n-form-item>
         <n-space justify="end">
           <n-button @click="showRegistryModal = false">
-            <template #icon><n-icon><CloseIcon /></n-icon></template>
             取消
           </n-button>
           <n-button type="primary" @click="saveRegistry">
-            <template #icon><n-icon><SaveIcon /></n-icon></template>
             保存
           </n-button>
         </n-space>
@@ -67,11 +63,9 @@
         </n-form-item>
         <n-space justify="end">
           <n-button @click="showCredModal = false">
-            <template #icon><n-icon><CloseIcon /></n-icon></template>
             取消
           </n-button>
           <n-button type="primary" @click="saveCredential">
-            <template #icon><n-icon><SaveIcon /></n-icon></template>
             保存
           </n-button>
         </n-space>
@@ -144,14 +138,12 @@ const registryColumns = [
             loading: testingId.value === row.id,
             onClick: () => testRegistry(row) 
           }, { 
-            icon: renderIcon(TestIcon),
             default: () => '测试' 
           }),
           h(NButton, { 
             size: 'small', 
             onClick: () => openRegistryModal(row) 
           }, { 
-            icon: renderIcon(EditIcon),
             default: () => '编辑' 
           }),
           h(NButton, { 
@@ -160,7 +152,6 @@ const registryColumns = [
             ghost: true, 
             onClick: () => deleteRegistry(row.id) 
           }, { 
-            icon: renderIcon(DeleteIcon),
             default: () => '删除' 
           })
         ]
@@ -182,7 +173,6 @@ const credColumns = [
             size: 'small', 
             onClick: () => openCredModal(row) 
           }, { 
-            icon: renderIcon(EditIcon),
             default: () => '编辑' 
           }),
           h(NButton, { 
@@ -191,7 +181,6 @@ const credColumns = [
             ghost: true, 
             onClick: () => deleteCredential(row.id) 
           }, { 
-            icon: renderIcon(DeleteIcon),
             default: () => '删除' 
           })
         ]

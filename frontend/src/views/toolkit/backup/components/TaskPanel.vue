@@ -3,11 +3,9 @@
     <template #header-extra>
       <n-space>
         <n-button type="primary" size="small" @click="$emit('add')">
-          <template #icon><n-icon><AddIcon /></n-icon></template>
           新增任务
         </n-button>
         <n-button size="small" @click="fetchTasks">
-          <template #icon><n-icon><RefreshIcon /></n-icon></template>
           刷新
         </n-button>
       </n-space>
@@ -121,25 +119,21 @@ const columns = [
         h(NButton, { 
           size: 'tiny', secondary: true, type: 'primary', onClick: () => emit('run', row)
         }, { 
-          icon: renderIcon(PlayIcon),
           default: () => '执行' 
         }),
         h(NButton, { 
           size: 'tiny', secondary: true, onClick: () => emit('view-history', row)
         }, { 
-          icon: renderIcon(HistoryIcon),
           default: () => '历史' 
         }),
         h(NButton, { 
           size: 'tiny', onClick: () => emit('edit', row)
         }, { 
-          icon: renderIcon(EditIcon),
           default: () => '编辑' 
         }),
         h(NButton, { 
           size: 'tiny', type: 'error', ghost: true, onClick: () => handleDeleteTask(row)
         }, { 
-          icon: renderIcon(DeleteIcon),
           default: () => '删除' 
         })
       ]

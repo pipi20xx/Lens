@@ -3,11 +3,9 @@
     <n-space justify="space-between" align="center">
       <n-space>
         <n-button type="primary" @click="openCreateModal" :disabled="!host">
-          <template #icon><n-icon><BackupIcon /></n-icon></template>
           创建新备份
         </n-button>
         <n-button @click="fetchBackups" :loading="loading">
-          <template #icon><n-icon><RefreshIcon /></n-icon></template>
           刷新列表
         </n-button>
       </n-space>
@@ -35,11 +33,9 @@
       <template #footer>
         <n-space justify="end">
           <n-button @click="showCreateModal = false">
-            <template #icon><n-icon><CloseIcon /></n-icon></template>
             取消
           </n-button>
           <n-button type="primary" @click="handleCreateBackup" :loading="actionLoading">
-            <template #icon><n-icon><BackupIcon /></n-icon></template>
             开始备份
           </n-button>
         </n-space>
@@ -67,11 +63,9 @@
       <template #footer>
         <n-space justify="end">
           <n-button @click="showRestoreModal = false">
-            <template #icon><n-icon><CloseIcon /></n-icon></template>
             取消
           </n-button>
           <n-button type="error" @click="handleRestore" :loading="actionLoading">
-            <template #icon><n-icon><HistoryIcon /></n-icon></template>
             确认还原
           </n-button>
         </n-space>
@@ -158,7 +152,6 @@ const columns = [
           secondary: true,
           onClick: () => openRestoreModal(row)
         }, { 
-          icon: renderIcon(HistoryIcon),
           default: () => '还原' 
         }),
         h(NButton, {
@@ -167,7 +160,6 @@ const columns = [
           secondary: true,
           onClick: () => handleDelete(row.filename)
         }, { 
-          icon: renderIcon(DeleteIcon),
           default: () => '删除' 
         })
       ]

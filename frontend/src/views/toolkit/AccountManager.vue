@@ -28,7 +28,6 @@
                   </n-form>
                   <div style="margin-top: 16px">
                     <n-button type="primary" block @click="handleChangePassword">
-                      <template #icon><n-icon><LockIcon /></n-icon></template>
                       确认修改密码
                     </n-button>
                   </div>
@@ -54,12 +53,10 @@
                       <n-input-group>
                         <n-input v-model:value="otpSetup.code" placeholder="6 位验证码" maxlength="6" />
                         <n-button type="primary" @click="enableOtp">
-                          <template #icon><n-icon><LinkIcon /></n-icon></template>
                           绑定
                         </n-button>
                       </n-input-group>
                       <n-button text @click="otpSetup.qr_code = ''" style="margin-top: 10px;">
-                        <template #icon><n-icon><BackIcon /></n-icon></template>
                         返回
                       </n-button>
                     </div>
@@ -69,7 +66,6 @@
                     <!-- 未开启状态的初始按钮 -->
                     <div v-if="!authInfo.is_otp_enabled && !otpSetup.qr_code">
                       <n-button block type="primary" @click="setupOtp">
-                        <template #icon><n-icon><SecurityIcon /></n-icon></template>
                         开始设置 2FA
                       </n-button>
                     </div>
@@ -82,7 +78,6 @@
                       type="error" 
                       secondary
                     >
-                      <template #icon><n-icon><ShieldOffIcon /></n-icon></template>
                       停用双重验证 (2FA)
                     </n-button>
                   </div>

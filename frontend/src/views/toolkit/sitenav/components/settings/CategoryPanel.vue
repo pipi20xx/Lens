@@ -118,7 +118,6 @@ const onDragEnd = () => {
           <n-popover trigger="click" placement="bottom-start" style="padding: 12px">
             <template #trigger>
               <n-button secondary type="info">
-                <template #icon><n-icon><EmojiIcon /></n-icon></template>
               </n-button>
             </template>
             <div class="emoji-picker-grid">
@@ -132,7 +131,6 @@ const onDragEnd = () => {
           <n-input v-model:value="newCatIcon" placeholder="图标/Emoji" style="width: 120px" />
           <n-input v-model:value="newCatName" placeholder="新分类名称" @keyup.enter="handleAdd" />
           <n-button type="primary" @click="handleAdd">
-            <template #icon><n-icon><AddIcon /></n-icon></template>
             添加
           </n-button>
         </n-input-group>
@@ -161,7 +159,6 @@ const onDragEnd = () => {
                   <n-popover trigger="click" placement="bottom-start" style="padding: 12px">
                     <template #trigger>
                       <n-button size="small" secondary type="info">
-                        <template #icon><n-icon><EmojiIcon /></n-icon></template>
                       </n-button>
                     </template>
                     <div class="emoji-picker-grid">
@@ -174,7 +171,6 @@ const onDragEnd = () => {
                   <n-input size="small" v-model:value="editingIcon" placeholder="图标" style="width: 100px" />
                   <n-input size="small" v-model:value="editingName" @keyup.enter="saveEdit" />
                   <n-button size="small" type="primary" @click="saveEdit">
-                    <template #icon><n-icon><SaveIcon /></n-icon></template>
                   </n-button>
                 </n-input-group>
               </template>

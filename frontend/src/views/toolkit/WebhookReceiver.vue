@@ -20,11 +20,9 @@
         <template #header-extra>
           <n-space>
             <n-button secondary type="error" size="small" @click="handleClear">
-              <template #icon><n-icon><ClearIcon /></n-icon></template>
               清空日志
             </n-button>
             <n-button secondary size="small" @click="fetchLogs" :loading="loading">
-              <template #icon><n-icon><RefreshIcon /></n-icon></template>
               刷新列表
             </n-button>
           </n-space>
@@ -46,7 +44,6 @@
         </div>
         <template #footer>
           <n-button block type="primary" secondary @click="copyPayload">
-            <template #icon><n-icon><CopyIcon /></n-icon></template>
             复制数据
           </n-button>
         </template>
@@ -121,7 +118,6 @@ const columns = [
           onClick: () => showJson(row.payload)
         },
         { 
-          icon: renderIcon(CodeIcon),
           default: () => '查看原始 JSON'
         }
       )

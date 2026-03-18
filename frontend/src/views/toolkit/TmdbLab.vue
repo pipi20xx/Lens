@@ -26,7 +26,6 @@
                       </n-form-item-gi>
                     </n-grid>
                     <n-button block type="primary" secondary :loading="searchLoading" @click="handleSearch">
-                      <template #icon><n-icon><SearchIcon /></n-icon></template>
                       执行搜索
                     </n-button>
                   </n-form>
@@ -59,7 +58,6 @@
                       </n-space>
                     </n-form-item>
                     <n-button block type="primary" :loading="detailLoading" @click="handleFetchDetail">
-                      <template #icon><n-icon><LabIcon /></n-icon></template>
                       执行抓取
                     </n-button>
                   </n-form>
@@ -241,7 +239,6 @@
         </div>
         <template #footer>
           <n-button block type="primary" secondary @click="copyRawJson">
-            <template #icon><n-icon><CopyIcon /></n-icon></template>
             复制 JSON 数据
           </n-button>
         </template>

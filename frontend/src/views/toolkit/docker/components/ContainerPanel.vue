@@ -3,11 +3,9 @@
     <n-space style="margin-bottom: 12px" align="center" justify="space-between">
       <n-space>
         <n-button type="primary" secondary @click="fetchContainers(true)" :loading="loading">
-          <template #icon><n-icon><RefreshIcon /></n-icon></template>
           刷新列表
         </n-button>
         <n-button type="error" secondary @click="handlePruneContainers" :loading="loadingPrune">
-          <template #icon><n-icon><DeleteIcon /></n-icon></template>
           清理停止的容器
         </n-button>
         <n-space align="center" style="margin-left: 12px">
@@ -59,11 +57,9 @@
         </n-form-item>
         <n-space justify="end">
           <n-button @click="showSettingsModal = false">
-            <template #icon><n-icon><CloseIcon /></n-icon></template>
             取消
           </n-button>
           <n-button type="primary" @click="saveSettings">
-            <template #icon><n-icon><SaveIcon /></n-icon></template>
             保存设置
           </n-button>
         </n-space>
@@ -439,23 +435,18 @@ const columns = computed<DataTableColumns<any>>(() => {
         return h(NSpace, { size: 'small' }, {
           default: () => [
             h(NButton, { size: 'tiny', type: isRunning ? 'error' : 'primary', secondary: true, loading: loadingActions.value[row.id], onClick: () => handleAction(row.id, isRunning ? 'stop' : 'start') }, { 
-              icon: () => h(NIcon, null, { default: () => h(isRunning ? StopIcon : StartIcon) }),
               default: () => isRunning ? '停止' : '启动' 
             }),
             h(NButton, { size: 'tiny', type: hasUpdate ? 'error' : 'warning', secondary: !hasUpdate, pulse: hasUpdate, loading: loadingActions.value[row.id], onClick: () => handleAction(row.id, 'recreate') }, { 
-              icon: () => h(NIcon, null, { default: () => h(RecreateIcon) }),
               default: () => hasUpdate ? '发现新镜像' : '更新' 
             }),
             h(NButton, { size: 'tiny', type: 'error', secondary: true, loading: loadingActions.value[row.id], onClick: () => handleDelete(row) }, { 
-              icon: () => h(NIcon, null, { default: () => h(DeleteIcon) }),
               default: () => '删除' 
             }),
             h(NButton, { size: 'tiny', type: 'info', secondary: true, onClick: () => showLogs(row.id, row.name) }, { 
-              icon: () => h(NIcon, null, { default: () => h(LogIcon) }),
               default: () => '日志' 
             }),
             h(NButton, { size: 'tiny', type: 'info', secondary: true, onClick: () => openTerminal(row) }, { 
-              icon: () => h(NIcon, null, { default: () => h(TerminalIcon) }),
               default: () => '终端' 
             })
           ]

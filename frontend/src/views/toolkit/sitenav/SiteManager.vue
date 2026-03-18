@@ -139,11 +139,9 @@ const columns = [
         <template #header-extra>
           <n-space>
             <n-button secondary size="small" @click="showCatModal = true">
-              <template #icon><n-icon><CategoryIcon /></n-icon></template>
               管理分类
             </n-button>
             <n-button type="primary" size="small" @click="handleAdd">
-              <template #icon><n-icon><AddIcon /></n-icon></template>
               添加站点
             </n-button>
           </n-space>
@@ -166,7 +164,6 @@ const columns = [
           <n-input-group>
             <n-input v-model:value="formValue.url" placeholder="http://..." />
             <n-button type="primary" secondary :loading="fetchingIcon" @click="handleAutoFetchIcon">
-              <template #icon><n-icon><MagicIcon /></n-icon></template>
               获取图标
             </n-button>
           </n-input-group>
@@ -185,7 +182,6 @@ const columns = [
             <n-input-group>
               <n-input v-model:value="formValue.icon" placeholder="URL 或 Emoji" />
               <n-button type="primary" secondary :loading="fetchingIcon" @click="handleAutoFetchIcon">
-                <template #icon><n-icon><MagicIcon /></n-icon></template>
                 抓取图标
               </n-button>
             </n-input-group>

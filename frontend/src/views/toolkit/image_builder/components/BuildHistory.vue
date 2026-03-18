@@ -19,7 +19,6 @@
       <template #footer>
         <n-space justify="end">
           <n-button type="primary" @click="showLog = false">
-            <template #icon><n-icon><CloseIcon /></n-icon></template>
             关闭
           </n-button>
         </n-space>
@@ -110,7 +109,6 @@ const columns = [
             size: 'small', 
             onClick: () => viewLog(row.id) 
           }, { 
-            icon: renderIcon(LogIcon),
             default: () => '查看日志' 
           }),
           h(NButton, { 
@@ -119,7 +117,6 @@ const columns = [
             ghost: true, 
             onClick: () => deleteLog(row.id) 
           }, { 
-            icon: renderIcon(DeleteIcon),
             default: () => '删除' 
           })
         ]

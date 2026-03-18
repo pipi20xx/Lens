@@ -47,7 +47,6 @@
                   <div style="margin-top: 16px">
                     <n-divider style="margin: 8px 0" />
                     <n-button block type="error" secondary @click="handleAction('people_remover')" :loading="loading">
-                      <template #icon><n-icon><DeleteIcon /></n-icon></template>
                       执行清空演职员
                     </n-button>
                   </div>
@@ -62,7 +61,6 @@
                   <div style="margin-top: 16px">
                     <n-divider style="margin: 8px 0" />
                     <n-button block type="primary" secondary @click="handleAction('episode_deleter')" :loading="loading">
-                      <template #icon><n-icon><FixIcon /></n-icon></template>
                       执行修复重置
                     </n-button>
                   </div>

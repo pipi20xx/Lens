@@ -14,7 +14,6 @@
             <n-card title="Emby 服务端管理" size="small" segmented>
               <template #header-extra>
                 <n-button type="primary" size="small" @click="openAddModal">
-                  <template #icon><n-icon><AddIcon /></n-icon></template>
                   添加服务器
                 </n-button>
               </template>
@@ -39,17 +38,14 @@
                     <td>
                       <n-space>
                         <n-button size="tiny" secondary @click="openEditModal(s)">
-                          <template #icon><n-icon><EditIcon /></n-icon></template>
                           配置
                         </n-button>
                         <n-button v-if="s.id !== activeServerId" size="tiny" type="primary" secondary @click="handleActivate(s.id)">
-                          <template #icon><n-icon><CheckIcon /></n-icon></template>
                           激活
                         </n-button>
                         <n-popconfirm @positive-click="handleDelete(s.id)" positive-text="确认" negative-text="取消">
                           <template #trigger>
                             <n-button size="tiny" type="error" quaternary>
-                              <template #icon><n-icon><DeleteIcon /></n-icon></template>
                               删除
                             </n-button>
                           </template>
@@ -77,7 +73,6 @@
                   <n-input-group>
                     <n-input v-model:value="globalConfig.tmdb_api_key" type="password" show-password-on="click" placeholder="The Movie Database V3 Key" />
                     <n-button secondary @click="handleCopy(globalConfig.tmdb_api_key)">
-                      <template #icon><n-icon><CopyIcon /></n-icon></template>
                       复制
                     </n-button>
                   </n-input-group>
@@ -86,7 +81,6 @@
                   <n-input-group>
                     <n-input v-model:value="globalConfig.bangumi_api_token" type="password" show-password-on="click" placeholder="Bangumi Access Token" />
                     <n-button secondary @click="handleCopy(globalConfig.bangumi_api_token)">
-                      <template #icon><n-icon><CopyIcon /></n-icon></template>
                       复制
                     </n-button>
                   </n-input-group>
@@ -95,7 +89,6 @@
               <template #action>
                 <n-space justify="end">
                   <n-button type="primary" size="small" @click="handleSaveGlobal" :loading="savingGlobal">
-                    <template #icon><n-icon><SaveIcon /></n-icon></template>
                     保存 API 配置
                   </n-button>
                 </n-space>
@@ -123,7 +116,6 @@
               <template #action>
                 <n-space justify="end">
                   <n-button type="primary" size="small" @click="handleSaveGlobal" :loading="savingGlobal">
-                    <template #icon><n-icon><SaveIcon /></n-icon></template>
                     保存代理配置
                   </n-button>
                 </n-space>
@@ -149,7 +141,6 @@
               <template #action>
                 <n-space justify="end">
                   <n-button type="primary" size="small" @click="handleSaveGlobal" :loading="savingGlobal">
-                    <template #icon><n-icon><SaveIcon /></n-icon></template>
                     保存会话配置
                   </n-button>
                 </n-space>
@@ -171,11 +162,9 @@
               </n-text>
               <n-space vertical>
                 <n-button block secondary @click="handleExportConfig">
-                  <template #icon><n-icon><ExportIcon /></n-icon></template>
                   导出 config.json
                 </n-button>
                 <n-button block type="primary" ghost @click="triggerImportConfig">
-                  <template #icon><n-icon><ImportIcon /></n-icon></template>
                   导入备份文件
                 </n-button>
                 <input 

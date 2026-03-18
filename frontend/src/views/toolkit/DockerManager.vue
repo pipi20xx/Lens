@@ -17,7 +17,6 @@
                 style="width: 220px"
               />
               <n-button type="primary" secondary @click="showHostModal = true">
-                <template #icon><n-icon><ServerIcon /></n-icon></template>
                 管理主机
               </n-button>
               
@@ -38,15 +37,12 @@
             
             <n-space>
               <n-button type="warning" ghost @click="openAutoUpdateModal">
-                <template #icon><n-icon><SettingsIcon /></n-icon></template>
                 计划设置
               </n-button>
               <n-button type="info" ghost @click="showBrowserModal = true" :disabled="!selectedHostId" v-if="activeTab === 'compose'">
-                <template #icon><n-icon><FolderIcon /></n-icon></template>
                 文件夹浏览器
               </n-button>
               <n-button type="info" ghost @click="refreshAll" :loading="refreshing">
-                <template #icon><n-icon><RefreshIcon /></n-icon></template>
                 全部刷新
               </n-button>
             </n-space>
@@ -170,11 +166,9 @@
 
         <n-space justify="end" style="margin-top: 20px">
           <n-button @click="showAutoUpdateModal = false">
-            <template #icon><n-icon><CloseIcon /></n-icon></template>
             取消
           </n-button>
           <n-button type="primary" :loading="savingAutoUpdate" @click="saveAutoUpdateSettings">
-            <template #icon><n-icon><SaveIcon /></n-icon></template>
             保存并生效
           </n-button>
         </n-space>
