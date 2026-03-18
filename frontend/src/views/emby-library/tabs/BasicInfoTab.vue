@@ -34,7 +34,6 @@ import {
       >
         <template #create-button-default>
           <n-button strong secondary type="primary" size="small">
-            <template #icon><n-icon><AddIcon /></n-icon></template>
             添加路径
           </n-button>
         </template>

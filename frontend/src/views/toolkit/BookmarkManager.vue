@@ -32,12 +32,10 @@
 
         <n-space :size="8" class="toolbar-actions">
           <n-button secondary type="primary" size="small" @click="handleAIAnalyze" class="toolbar-btn ai-btn">
-            <template #icon><n-icon><LabIcon /></n-icon></template>
             AI 智能整理
           </n-button>
 
           <n-button secondary size="small" @click="showHealthModal = true" class="toolbar-btn">
-            <template #icon><n-icon><HealthIcon /></n-icon></template>
             体检中心
           </n-button>
 
@@ -166,7 +164,6 @@
           <n-input-group>
             <n-input v-model:value="form.url" placeholder="https://..." @blur="autoFetchTitle" />
             <n-button type="primary" secondary @click="autoFetchIcon" :loading="fetchingIcon">
-              <template #icon><n-icon><SyncIcon /></n-icon></template>
               抓取
             </n-button>
           </n-input-group>
@@ -181,11 +178,9 @@
       <template #footer>
         <n-space justify="end">
           <n-button @click="showAddBookmarkModal = false">
-            <template #icon><n-icon><CloseIcon /></n-icon></template>
             取消
           </n-button>
           <n-button type="primary" :disabled="!form.title" @click="saveBookmark">
-            <template #icon><n-icon><SaveIcon /></n-icon></template>
             保存书签
           </n-button>
         </n-space>
@@ -201,11 +196,9 @@
       <template #footer>
         <n-space justify="end">
           <n-button @click="showAddFolder = false">
-            <template #icon><n-icon><CloseIcon /></n-icon></template>
             取消
           </n-button>
           <n-button type="primary" :disabled="!folderName" @click="saveFolder">
-            <template #icon><n-icon><AddIcon /></n-icon></template>
             立即创建
           </n-button>
         </n-space>

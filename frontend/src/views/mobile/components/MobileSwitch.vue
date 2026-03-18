@@ -44,7 +44,7 @@ const toggle = () => {
 }
 
 .mobile-switch-custom.active .switch-track {
-  background-color: var(--primary-color, #7c3aed);
+  background-color: var(--primary-color, #3B82F6);
 }
 
 .switch-thumb {

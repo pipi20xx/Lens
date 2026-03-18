@@ -23,7 +23,6 @@
               @click="loadLibraries" 
               :loading="loading"
             >
-              <template #icon><n-icon><RefreshIcon /></n-icon></template>
               刷新媒体库列表
             </n-button>
             <n-button 
@@ -34,7 +33,6 @@
               @click="handleBackupAll" 
               :loading="backingUpAll"
             >
-              <template #icon><n-icon><BackupIcon /></n-icon></template>
               一键备份所有媒体库
             </n-button>
             <EmbyConfigBackupManager category="libraries" :server-id="activeServerId" @restored="loadLibraries" />
@@ -46,7 +44,6 @@
             size="small" 
             @click="showAddModal = true"
           >
-            <template #icon><n-icon><LibAddIcon /></n-icon></template>
             新增媒体库
           </n-button>
         </template>
@@ -77,11 +74,9 @@
       <template #action>
         <n-space justify="end">
           <n-button strong secondary @click="showAddModal = false">
-            <template #icon><n-icon><CloseIcon /></n-icon></template>
             取消
           </n-button>
           <n-button type="primary" strong secondary @click="handleAddLibrary" :loading="adding">
-            <template #icon><n-icon><CheckIcon /></n-icon></template>
             创建媒体库
           </n-button>
         </n-space>

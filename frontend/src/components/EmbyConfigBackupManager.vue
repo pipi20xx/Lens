@@ -7,7 +7,6 @@
       type="info"
       @click="showModal = true"
     >
-      <template #icon><n-icon><HistoryIcon /></n-icon></template>
       配置备份管理
     </n-button>
 
@@ -24,7 +23,6 @@
                 :disabled="backups.length === 0" 
                 :loading="restoringAll"
               >
-                <template #icon><n-icon><RestoreIcon /></n-icon></template>
                 一键还原最新备份
               </n-button>
             </template>
@@ -39,7 +37,6 @@
                 secondary
                 :disabled="backups.length === 0"
               >
-                <template #icon><n-icon><ClearIcon /></n-icon></template>
                 清空所有备份
               </n-button>
             </template>

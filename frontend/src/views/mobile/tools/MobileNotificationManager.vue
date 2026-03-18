@@ -289,7 +289,7 @@ onMounted(() => {
   justify-content: space-between;
   padding: 16px;
   background: var(--card-color);
-  border: 1px solid #7c3aed;
+  border: 1px solid #3B82F6;
   border-radius: 12px;
   margin-bottom: 12px;
 }
@@ -313,7 +313,7 @@ onMounted(() => {
 .bot-item {
   padding: 12px;
   background: var(--card-color);
-  border: 1px solid #7c3aed;
+  border: 1px solid #3B82F6;
   border-radius: 12px;
 }
 

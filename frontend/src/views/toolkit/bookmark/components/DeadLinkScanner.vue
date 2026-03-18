@@ -13,7 +13,6 @@
           @click="$emit('deleteBatchDead', [404])"
           secondary
         >
-          <template #icon><n-icon><DeleteSweepIcon /></n-icon></template>
           清理 404
         </n-button>
         
@@ -24,7 +23,6 @@
           @click="$emit('stopScan')" 
           secondary 
         >
-          <template #icon><n-icon><StopIcon /></n-icon></template>
           停止诊断
         </n-button>
         <n-button 
@@ -34,7 +32,6 @@
           @click="$emit('scanHealth')" 
           secondary 
         >
-          <template #icon><n-icon><PlayIcon /></n-icon></template>
           开始扫描
         </n-button>
       </n-space>

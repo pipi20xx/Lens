@@ -3,11 +3,9 @@
     <n-space vertical>
       <n-space>
         <n-button size="small" secondary type="warning" @click="handleSpecific">
-          <template #icon><n-icon><DeleteSweepIcon /></n-icon></template>
           清除指定标签
         </n-button>
         <n-button size="small" secondary type="error" @click="handleClearAll">
-          <template #icon><n-icon><DeleteForeverIcon /></n-icon></template>
           清空所有标签
         </n-button>
       </n-space>
@@ -17,7 +15,6 @@
         <n-input v-model:value="testId" size="small" placeholder="Emby ID" style="width: 120px" />
         <n-input v-model:value="testTag" size="small" placeholder="标签名" />
         <n-button size="small" type="primary" secondary @click="handleTest">
-          <template #icon><n-icon><SendIcon /></n-icon></template>
           执行写入测试
         </n-button>
       </n-input-group>

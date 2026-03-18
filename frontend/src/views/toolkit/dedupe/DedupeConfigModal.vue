@@ -66,11 +66,9 @@
     <template #footer>
       <n-space justify="end">
         <n-button @click="$emit('update:show', false)">
-          <template #icon><n-icon><CloseIcon /></n-icon></template>
           取消
         </n-button>
         <n-button type="primary" :loading="loading" @click="handleSave">
-          <template #icon><n-icon><SaveIcon /></n-icon></template>
           保存并应用
         </n-button>
       </n-space>

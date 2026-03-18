@@ -514,12 +514,12 @@ onMounted(() => {
 .server-item {
   padding: 12px;
   background: var(--card-color);
-  border: 1px solid #7c3aed;
+  border: 1px solid #3B82F6;
   border-radius: 12px;
 }
 
 .server-item.active {
-  background: rgba(124, 58, 237, 0.1);
+  background: rgba(59, 130, 246, 0.1);
 }
 
 .server-info {
@@ -567,7 +567,7 @@ onMounted(() => {
   color: var(--text-color);
   margin: 16px 0 12px 0;
   padding-left: 8px;
-  border-left: 3px solid #7c3aed;
+  border-left: 3px solid #3B82F6;
 }
 
 .setting-item {
@@ -576,7 +576,7 @@ onMounted(() => {
   justify-content: space-between;
   padding: 12px;
   background: var(--card-color);
-  border: 1px solid #7c3aed;
+  border: 1px solid #3B82F6;
   border-radius: 12px;
   margin-bottom: 12px;
 }
@@ -605,7 +605,7 @@ onMounted(() => {
 .tip-item {
   padding: 12px;
   background: var(--card-color);
-  border: 1px solid #7c3aed;
+  border: 1px solid #3B82F6;
   border-radius: 12px;
   margin-bottom: 8px;
 }

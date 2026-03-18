@@ -55,7 +55,6 @@
     <template #footer>
       <n-space justify="end">
         <n-button @click="$emit('update:show', false)">
-          <template #icon><n-icon><BackIcon /></n-icon></template>
           点错了，返回
         </n-button>
         <n-button 
@@ -63,7 +62,6 @@
           :loading="loading" 
           @click="$emit('confirm')"
         >
-          <template #icon><n-icon><DeleteIcon /></n-icon></template>
           确认并永久删除 ({{ items.length }} 项)
         </n-button>
       </n-space>

@@ -34,7 +34,7 @@
             @click="handleItemClick(item)"
           >
             <div class="file-icon">
-              <n-icon :size="24" :color="item.is_dir ? '#7c3aed' : '#909399'">
+              <n-icon :size="24" :color="item.is_dir ? '#3B82F6' : '#909399'">
                 <component :is="item.is_dir ? FolderIcon : FileIcon" />
               </n-icon>
             </div>
@@ -158,7 +158,7 @@ watch(() => props.show, (newVal) => {
 .current-path {
   padding: 12px;
   background: var(--card-color);
-  border: 1px solid #7c3aed;
+  border: 1px solid #3B82F6;
   border-radius: 8px;
 }
 
@@ -192,7 +192,7 @@ watch(() => props.show, (newVal) => {
   gap: 12px;
   padding: 12px;
   background: var(--card-color);
-  border: 1px solid #7c3aed;
+  border: 1px solid #3B82F6;
   border-radius: 8px;
   cursor: pointer;
   transition: background-color 0.2s;

@@ -98,7 +98,7 @@ const onDragEnter = () => {
 .rule-card { 
   cursor: grab; 
   transition: all 0.2s ease; 
-  border: 1px solid #7c3aed;
+  border: 1px solid #3B82F6;
   border-radius: 12px;
 }
 
@@ -107,13 +107,13 @@ const onDragEnter = () => {
 }
 
 .rule-card:hover { 
-  border-color: #9f7aea; 
+  border-color: #60A5FA; 
   transform: translateY(-2px);
 }
 
 .rule-card.is-dragging { 
   opacity: 0.5; 
-  border: 1px dashed #7c3aed; 
+  border: 1px dashed #3B82F6; 
 }
 
 .rule-header {

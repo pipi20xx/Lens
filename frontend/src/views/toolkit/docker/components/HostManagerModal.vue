@@ -2,7 +2,6 @@
   <n-modal v-model:show="show" preset="card" title="Docker 主机管理" style="width: 800px">
     <n-space vertical>
       <n-button type="primary" block @click="handleAddHost">
-        <template #icon><n-icon><AddIcon /></n-icon></template>
         添加新主机
       </n-button>
       <n-list bordered>
@@ -15,15 +14,12 @@
             </div>
             <n-space>
               <n-button size="small" @click="testConnection(host.id)">
-                <template #icon><n-icon><TestIcon /></n-icon></template>
                 测试
               </n-button>
               <n-button size="small" @click="handleEditHost(host)">
-                <template #icon><n-icon><EditIcon /></n-icon></template>
                 编辑
               </n-button>
               <n-button size="small" type="error" ghost @click="deleteHost(host.id)">
-                <template #icon><n-icon><DeleteIcon /></n-icon></template>
                 删除
               </n-button>
             </n-space>
@@ -54,11 +50,9 @@
       <n-form-item label="扫描路径"><n-input v-model:value="editHostForm.compose_scan_paths" type="textarea" placeholder="逗号分隔" /></n-form-item>
       <n-space justify="end">
         <n-button @click="showEditModal = false">
-          <template #icon><n-icon><CloseIcon /></n-icon></template>
           取消
         </n-button>
         <n-button type="primary" @click="saveHost">
-          <template #icon><n-icon><SaveIcon /></n-icon></template>
           保存
         </n-button>
       </n-space>

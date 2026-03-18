@@ -380,11 +380,13 @@ const currentView = computed(() => {
 
 /* 统一一级和二级菜单的激活样式 */
 :deep(.n-button.nav-group-btn.n-button--primary-type) {
-  background-color: rgba(var(--primary-color-rgb), 0.15) !important;
+  background-color: transparent !important;
   color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
 }
 :deep(.n-button.nav-group-btn:hover) {
-  background-color: rgba(255, 255, 255, 0.08) !important;
+  background-color: var(--hover-bg) !important;
+  border-color: var(--primary-color) !important;
 }
 
 .sub-header {
@@ -404,9 +406,9 @@ const currentView = computed(() => {
   font-weight: 700;
   font-size: 0.9rem;
 }
-.sub-nav-item:hover { background-color: rgba(255, 255, 255, 0.08); opacity: 1; }
+.sub-nav-item:hover { background-color: var(--hover-bg); opacity: 1; }
 .sub-nav-item.active { 
-  background-color: rgba(var(--primary-color-rgb), 0.15); 
+  background-color: transparent; 
   color: var(--primary-color); 
   opacity: 1; 
 }

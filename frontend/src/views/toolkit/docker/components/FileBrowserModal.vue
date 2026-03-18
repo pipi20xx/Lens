@@ -11,19 +11,16 @@
             v-if="isSelected(item.path)"
             size="small" type="error" quaternary @click.stop="$emit('remove', item.path)"
           >
-            <template #icon><n-icon><CancelIcon /></n-icon></template>
             取消扫描
           </n-button>
           <n-button 
             v-else
             size="small" type="primary" quaternary @click.stop="$emit('select', item.path)"
           >
-            <template #icon><n-icon><ScanIcon /></n-icon></template>
             设为扫描路径
           </n-button>
 
           <n-button size="small" type="info" quaternary @click.stop="createBackup(item)">
-            <template #icon><n-icon><BackupIcon /></n-icon></template>
             设为SSH备份
           </n-button>
         </template>

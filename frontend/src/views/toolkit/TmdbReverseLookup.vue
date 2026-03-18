@@ -39,7 +39,6 @@
               </n-descriptions>
               <template #footer>
                 <n-button secondary size="tiny" block @click="copyTmdb">
-                  <template #icon><n-icon><CopyIcon /></n-icon></template>
                   复制数据
                 </n-button>
               </template>

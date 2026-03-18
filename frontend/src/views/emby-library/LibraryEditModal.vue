@@ -48,7 +48,6 @@
           secondary 
           @click="$emit('update:show', false)"
         >
-          <template #icon><n-icon><CloseIcon /></n-icon></template>
           取消
         </n-button>
         <n-button 
@@ -58,7 +57,6 @@
           @click="handleBackup" 
           :loading="backingUp"
         >
-          <template #icon><n-icon><BackupIcon /></n-icon></template>
           备份当前配置
         </n-button>
         <n-button 
@@ -67,7 +65,6 @@
           @click="handleSave" 
           :loading="loading"
         >
-          <template #icon><n-icon><SaveIcon /></n-icon></template>
           保存设置
         </n-button>
       </n-space>

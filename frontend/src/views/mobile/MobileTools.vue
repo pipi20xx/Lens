@@ -49,7 +49,7 @@ const toolCategories = [
   {
     name: '实验室',
     icon: LabIcon,
-    color: '#8b5cf6',
+    color: '#3B82F6',
     tools: [
       { name: 'TMDB 实验中心', path: '/mobile/tools/tmdb-lab' },
       { name: 'Bangumi 实验室', path: '/mobile/tools/bangumi-lab' },

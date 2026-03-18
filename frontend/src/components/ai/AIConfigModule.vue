@@ -26,7 +26,6 @@
         </n-form-item>
         <n-form-item>
           <n-button type="primary" @click="saveConfig" :loading="saving" block>
-            <template #icon><n-icon><SaveIcon /></n-icon></template>
             执行保存
           </n-button>
         </n-form-item>

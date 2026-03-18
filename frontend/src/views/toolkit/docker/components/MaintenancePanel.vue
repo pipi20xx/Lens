@@ -198,11 +198,9 @@
       <template #footer>
         <n-space justify="end">
           <n-button @click="showRawModal = false">
-            <template #icon><n-icon><CloseIcon /></n-icon></template>
             取消
           </n-button>
           <n-button type="primary" :disabled="!!rawJsonError" @click="handleSaveRawJson" :loading="loading.daemon">
-            <template #icon><n-icon><SaveIcon /></n-icon></template>
             保存原始配置
           </n-button>
         </n-space>

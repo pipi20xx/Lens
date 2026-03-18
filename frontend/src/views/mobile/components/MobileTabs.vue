@@ -80,7 +80,7 @@ const handleTabClick = (name: string) => {
 }
 
 .tab-item.active {
-  background: var(--primary-color, #7c3aed);
+  background: var(--primary-color, #3B82F6);
   color: white;
 }
 

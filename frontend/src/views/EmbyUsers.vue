@@ -23,7 +23,6 @@
               @click="loadUsers" 
               :loading="loading"
             >
-              <template #icon><n-icon><RefreshIcon /></n-icon></template>
               刷新用户列表
             </n-button>
             <n-button 
@@ -34,7 +33,6 @@
               @click="handleBackupAll" 
               :loading="backingUpAll"
             >
-              <template #icon><n-icon><BackupIcon /></n-icon></template>
               一键备份所有用户
             </n-button>
             <EmbyConfigBackupManager category="users" :server-id="activeServerId" @restored="loadUsers" />
@@ -44,7 +42,6 @@
           <n-input-group>
             <n-input v-model:value="newUserName" placeholder="新用户名" size="small" @keyup.enter="handleCreateUser" style="width: 150px" />
             <n-button type="primary" size="small" @click="handleCreateUser" :loading="creating">
-              <template #icon><n-icon><UserAddIcon /></n-icon></template>
               新增用户
             </n-button>
           </n-input-group>

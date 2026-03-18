@@ -22,7 +22,6 @@
       <n-space justify="space-between" align="center">
         <n-text depth="3" style="word-break: break-all; max-width: 300px">{{ currentPath }}</n-text>
         <n-button type="primary" @click="confirmPath">
-          <template #icon><n-icon><CheckIcon /></n-icon></template>
           确认选择
         </n-button>
       </n-space>

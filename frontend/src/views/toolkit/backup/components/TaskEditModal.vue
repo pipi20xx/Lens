@@ -78,7 +78,6 @@
           <n-input-group>
             <n-input v-model:value="task.src_path" :placeholder="task.host_id && task.host_id !== 'local' ? '远程主机上的绝对路径' : '/app/data'" />
             <n-button v-if="!task.host_id || task.host_id === 'local'" @click="$emit('browse', 'src')">
-              <template #icon><n-icon><FolderIcon /></n-icon></template>
               浏览
             </n-button>
           </n-input-group>
@@ -88,7 +87,6 @@
           <n-input-group>
             <n-input v-model:value="task.dst_path" placeholder="/backup" />
             <n-button @click="$emit('browse', 'dst')">
-              <template #icon><n-icon><FolderIcon /></n-icon></template>
               浏览
             </n-button>
           </n-input-group>
@@ -156,11 +154,9 @@
     <template #footer>
       <n-space justify="end">
         <n-button @click="$emit('update:show', false)">
-          <template #icon><n-icon><CloseIcon /></n-icon></template>
           取消
         </n-button>
         <n-button type="primary" @click="handleSave">
-          <template #icon><n-icon><SaveIcon /></n-icon></template>
           保存
         </n-button>
       </n-space>

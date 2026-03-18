@@ -37,7 +37,6 @@
 
       <div style="display: flex; justify-content: flex-end; margin-top: 8px">
         <n-button type="primary" @click="handleRun">
-          <template #icon><n-icon><PlayIcon /></n-icon></template>
           执行打标签任务
         </n-button>
       </div>

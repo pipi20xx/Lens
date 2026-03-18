@@ -253,9 +253,9 @@ onMounted(() => {
 .scan-paths-section {
   margin: 12px 0;
   padding: 12px;
-  background: rgba(124, 58, 237, 0.05);
+  background: rgba(59, 130, 246, 0.05);
   border-radius: 8px;
-  border: 1px solid rgba(124, 58, 237, 0.2);
+  border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
 .scan-label {

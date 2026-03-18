@@ -437,7 +437,7 @@ const messageText = {
   border-radius: 12px;
   padding: 12px;
   text-align: center;
-  border-left: 4px solid #7c3aed;
+  border-left: 4px solid #3B82F6;
 }
 
 .stat-label {
@@ -468,7 +468,7 @@ const messageText = {
 
 .group-card {
   background: var(--card-color);
-  border: 1px solid #7c3aed;
+  border: 1px solid #3B82F6;
   border-radius: 12px;
   overflow: hidden;
 }
@@ -509,7 +509,7 @@ const messageText = {
   align-items: flex-start;
   gap: 12px;
   padding: 12px;
-  background: rgba(124, 58, 237, 0.05);
+  background: rgba(59, 130, 246, 0.05);
   border-radius: 8px;
   transition: background 0.2s;
 }

@@ -133,7 +133,7 @@ onMounted(() => {
   // 设置登录页面特定的变量，根据当前主题模式
   root.style.setProperty('--login-bg', isDark ? '#000' : '#f8f7fa')
   root.style.setProperty('--login-card-bg', isDark ? 'rgba(24, 24, 28, 0.8)' : 'rgba(255, 255, 255, 0.9)')
-  root.style.setProperty('--login-card-border', isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(124, 58, 237, 0.15)')
+  root.style.setProperty('--login-card-border', isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(59, 130, 246, 0.15)')
   root.style.setProperty('--login-shadow', isDark 
     ? '0 25px 50px -12px rgba(0, 0, 0, 0.5)' 
     : '0 25px 50px -12px rgba(0, 0, 0, 0.15)')

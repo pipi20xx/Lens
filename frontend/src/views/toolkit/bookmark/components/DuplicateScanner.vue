@@ -15,7 +15,6 @@
           @click="$emit('mergeAllDuplicates')"
           secondary
         >
-          <template #icon><n-icon><MergeIcon /></n-icon></template>
           自动合并
         </n-button>
         
@@ -26,7 +25,6 @@
           :loading="loadingDuplicates"
           secondary
         >
-          <template #icon><n-icon><RefreshIcon /></n-icon></template>
           重新扫描
         </n-button>
       </n-space>

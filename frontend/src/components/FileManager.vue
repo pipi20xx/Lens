@@ -6,10 +6,8 @@
         <n-space align="center">
           <n-button-group size="small">
             <n-button @click="browse(getParentPath(currentPath))" :disabled="currentPath === '/'">
-              <template #icon><n-icon><ArrowUpIcon /></n-icon></template>
             </n-button>
             <n-button @click="browse(currentPath)">
-              <template #icon><n-icon><RefreshIcon /></n-icon></template>
             </n-button>
           </n-button-group>
           
@@ -23,15 +21,12 @@
 
         <n-space>
           <n-button size="small" type="success" secondary @click="triggerUpload">
-            <template #icon><n-icon><UploadIcon /></n-icon></template>
             上传文件
           </n-button>
           <n-button size="small" type="primary" secondary @click="showMkdirModal = true">
-            <template #icon><n-icon><FolderAddIcon /></n-icon></template>
             新建文件夹
           </n-button>
           <n-button size="small" type="info" secondary @click="showMkfileModal = true">
-            <template #icon><n-icon><FileAddIcon /></n-icon></template>
             新建文件
           </n-button>
         </n-space>

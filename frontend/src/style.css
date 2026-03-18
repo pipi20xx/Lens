@@ -145,3 +145,257 @@ code, pre, .n-code {
 }
 .fade-enter-from { opacity: 0; transform: translateY(4px); }
 .fade-leave-to { opacity: 0; transform: translateY(-4px); }
+
+/* 按钮样式统一 - 颜色底色+白色文字+透明边框，但排除导航按钮 */
+.n-button--primary-type:not(.n-button--ghost):not(.n-button--quaternary):not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button) {
+  background-color: var(--btn-primary-color, #3B82F6) !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
+}
+
+.n-button--primary-type:not(.n-button--ghost):not(.n-button--quaternary):not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button):hover {
+  background-color: var(--btn-primary-hover, #2563EB) !important;
+  color: #ffffff !important;
+}
+
+.n-button--primary-type:not(.n-button--ghost):not(.n-button--quaternary):not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button):active {
+  background-color: var(--btn-primary-pressed, #1D4ED8) !important;
+  color: #ffffff !important;
+}
+
+.n-button--success-type:not(.n-button--ghost):not(.n-button--quaternary):not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button) {
+  background-color: var(--btn-success-color, #10B981) !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
+}
+
+.n-button--success-type:not(.n-button--ghost):not(.n-button--quaternary):not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button):hover {
+  background-color: var(--btn-success-hover, #059669) !important;
+  color: #ffffff !important;
+}
+
+.n-button--success-type:not(.n-button--ghost):not(.n-button--quaternary):not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button):active {
+  background-color: var(--btn-success-pressed, #047857) !important;
+  color: #ffffff !important;
+}
+
+.n-button--warning-type:not(.n-button--ghost):not(.n-button--quaternary):not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button) {
+  background-color: var(--btn-warning-color, #F59E0B) !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
+}
+
+.n-button--warning-type:not(.n-button--ghost):not(.n-button--quaternary):not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button):hover {
+  background-color: var(--btn-warning-hover, #D97706) !important;
+  color: #ffffff !important;
+}
+
+.n-button--warning-type:not(.n-button--ghost):not(.n-button--quaternary):not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button):active {
+  background-color: var(--btn-warning-pressed, #B45309) !important;
+  color: #ffffff !important;
+}
+
+.n-button--error-type:not(.n-button--ghost):not(.n-button--quaternary):not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button) {
+  background-color: var(--btn-danger-color, #EF4444) !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
+}
+
+.n-button--error-type:not(.n-button--ghost):not(.n-button--quaternary):not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button):hover {
+  background-color: var(--btn-danger-hover, #DC2626) !important;
+  color: #ffffff !important;
+}
+
+.n-button--error-type:not(.n-button--ghost):not(.n-button--quaternary):not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button):active {
+  background-color: var(--btn-danger-pressed, #B91C1C) !important;
+  color: #ffffff !important;
+}
+
+/* default 类型也使用 Primary 颜色，但排除导航按钮 */
+.n-button--default-type:not(.n-button--ghost):not(.n-button--quaternary):not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button) {
+  background-color: var(--btn-primary-color, #3B82F6) !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
+}
+
+.n-button--default-type:not(.n-button--ghost):not(.n-button--quaternary):not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button):hover {
+  background-color: var(--btn-primary-hover, #2563EB) !important;
+  color: #ffffff !important;
+}
+
+.n-button--default-type:not(.n-button--ghost):not(.n-button--quaternary):not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button):active {
+  background-color: var(--btn-primary-pressed, #1D4ED8) !important;
+  color: #ffffff !important;
+}
+
+/* info 类型也使用 Primary 颜色，但排除导航按钮 */
+.n-button--info-type:not(.n-button--ghost):not(.n-button--quaternary):not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button) {
+  background-color: var(--btn-primary-color, #3B82F6) !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
+}
+
+.n-button--info-type:not(.n-button--ghost):not(.n-button--quaternary):not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button):hover {
+  background-color: var(--btn-primary-hover, #2563EB) !important;
+  color: #ffffff !important;
+}
+
+.n-button--info-type:not(.n-button--ghost):not(.n-button--quaternary):not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button):active {
+  background-color: var(--btn-primary-pressed, #1D4ED8) !important;
+  color: #ffffff !important;
+}
+
+/* ghost 类型也使用颜色底色+白色文字，但排除导航按钮 */
+.n-button--ghost.n-button--primary-type:not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button) {
+  background-color: var(--btn-primary-color, #3B82F6) !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
+}
+
+.n-button--ghost.n-button--primary-type:not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button):hover {
+  background-color: var(--btn-primary-hover, #2563EB) !important;
+  color: #ffffff !important;
+}
+
+.n-button--ghost.n-button--primary-type:not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button):active {
+  background-color: var(--btn-primary-pressed, #1D4ED8) !important;
+  color: #ffffff !important;
+}
+
+.n-button--ghost.n-button--success-type:not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button) {
+  background-color: var(--btn-success-color, #10B981) !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
+}
+
+.n-button--ghost.n-button--success-type:not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button):hover {
+  background-color: var(--btn-success-hover, #059669) !important;
+  color: #ffffff !important;
+}
+
+.n-button--ghost.n-button--success-type:not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button):active {
+  background-color: var(--btn-success-pressed, #047857) !important;
+  color: #ffffff !important;
+}
+
+.n-button--ghost.n-button--warning-type:not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button) {
+  background-color: var(--btn-warning-color, #F59E0B) !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
+}
+
+.n-button--ghost.n-button--warning-type:not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button):hover {
+  background-color: var(--btn-warning-hover, #D97706) !important;
+  color: #ffffff !important;
+}
+
+.n-button--ghost.n-button--warning-type:not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button):active {
+  background-color: var(--btn-warning-pressed, #B45309) !important;
+  color: #ffffff !important;
+}
+
+.n-button--ghost.n-button--error-type:not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button) {
+  background-color: var(--btn-danger-color, #EF4444) !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
+}
+
+.n-button--ghost.n-button--error-type:not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button):hover {
+  background-color: var(--btn-danger-hover, #DC2626) !important;
+  color: #ffffff !important;
+}
+
+.n-button--ghost.n-button--error-type:not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button):active {
+  background-color: var(--btn-danger-pressed, #B91C1C) !important;
+  color: #ffffff !important;
+}
+
+.n-button--ghost.n-button--info-type:not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button) {
+  background-color: var(--btn-primary-color, #3B82F6) !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
+}
+
+.n-button--ghost.n-button--info-type:not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button):hover {
+  background-color: var(--btn-primary-hover, #2563EB) !important;
+  color: #ffffff !important;
+}
+
+.n-button--ghost.n-button--info-type:not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button):active {
+  background-color: var(--btn-primary-pressed, #1D4ED8) !important;
+  color: #ffffff !important;
+}
+
+.n-button--ghost.n-button--default-type:not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button) {
+  background-color: var(--btn-primary-color, #3B82F6) !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
+}
+
+.n-button--ghost.n-button--default-type:not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button):hover {
+  background-color: var(--btn-primary-hover, #2563EB) !important;
+  color: #ffffff !important;
+}
+
+.n-button--ghost.n-button--default-type:not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button):active {
+  background-color: var(--btn-primary-pressed, #1D4ED8) !important;
+  color: #ffffff !important;
+}
+
+/* secondary 按钮也要使用相同的颜色方案，但排除导航按钮 */
+.n-button--secondary.n-button--primary-type:not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button) {
+  background-color: var(--btn-primary-color, #3B82F6) !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
+}
+
+.n-button--secondary.n-button--success-type:not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button) {
+  background-color: var(--btn-success-color, #10B981) !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
+}
+
+.n-button--secondary.n-button--warning-type:not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button) {
+  background-color: var(--btn-warning-color, #F59E0B) !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
+}
+
+.n-button--secondary.n-button--error-type:not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button) {
+  background-color: var(--btn-danger-color, #EF4444) !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
+}
+
+.n-button--secondary.n-button--default-type:not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button) {
+  background-color: var(--btn-primary-color, #3B82F6) !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
+}
+
+.n-button--secondary.n-button--info-type:not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button) {
+  background-color: var(--btn-primary-color, #3B82F6) !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
+}
+
+/* 顶部导航按钮保持原样 - 不应用颜色底色 */
+.top-nav .n-button,
+.nav-bar .n-button,
+.header .n-button,
+.nav-group-btn,
+.n-button.nav-group-btn {
+  background-color: transparent !important;
+  color: var(--text-color) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+.top-nav .n-button:hover,
+.nav-bar .n-button:hover,
+.header .n-button:hover,
+.nav-group-btn:hover,
+.n-button.nav-group-btn:hover {
+  background-color: var(--hover-bg) !important;
+  color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+}

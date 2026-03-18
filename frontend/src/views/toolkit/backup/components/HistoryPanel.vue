@@ -2,7 +2,6 @@
   <n-card size="small" segmented title="执行历史">
     <template #header-extra>
       <n-button size="small" @click="fetchHistory">
-        <template #icon><n-icon><RefreshIcon /></n-icon></template>
         刷新
       </n-button>
     </template>

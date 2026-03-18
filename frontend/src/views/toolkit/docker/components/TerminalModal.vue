@@ -13,7 +13,6 @@
       <n-space justify="space-between" align="center">
         <n-text depth="3">提示: 输入 `exit` 或关闭窗口退出终端</n-text>
         <n-button size="small" @click="$emit('update:show', false)">
-          <template #icon><n-icon><CloseIcon /></n-icon></template>
           关闭终端
         </n-button>
       </n-space>
