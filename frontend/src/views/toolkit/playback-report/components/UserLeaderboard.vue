@@ -201,7 +201,7 @@ const getRankColor = (rank: number) => {
   width: 24px;
   height: 24px;
   background: #333;
-  color: #fff;
+  color: var(--text-color);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -256,17 +256,17 @@ const getRankColor = (rank: number) => {
 }
 
 .user-list-row {
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--hover-bg);
   padding: 10px 16px;
   border-radius: 12px;
   display: flex;
   align-items: center;
   gap: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-color);
   transition: all 0.2s;
 }
 .user-list-row:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--hover-bg);
   transform: translateX(4px);
   border-color: var(--primary-color);
 }
@@ -303,7 +303,7 @@ const getRankColor = (rank: number) => {
 
 .progress-track {
   height: 4px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--hover-bg);
   border-radius: 2px;
   width: 100%;
   overflow: hidden;

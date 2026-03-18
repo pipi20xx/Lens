@@ -157,7 +157,6 @@ const handleClose = () => {
               >
                 <template #trigger>
                   <n-button quaternary size="small" type="warning">
-                    <template #icon><n-icon><ResetIcon /></n-icon></template>
                     恢复默认布局
                   </n-button>
                 </template>
@@ -165,7 +164,6 @@ const handleClose = () => {
               </n-popconfirm>
 
               <n-button type="primary" secondary size="small" @click="addNewGroup">
-                <template #icon><n-icon><AddIcon /></n-icon></template>
                 添加新分类容器
               </n-button>
             </n-space>

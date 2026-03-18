@@ -188,7 +188,6 @@
             </n-form-item>
             <n-form-item>
               <n-button type="warning" secondary strong @click="handleUpdatePassword" :disabled="!newPassword">
-                <template #icon><n-icon><EditIcon /></n-icon></template>
                 单独更新密码
               </n-button>
             </n-form-item>
@@ -215,15 +214,12 @@
       <template #action>
         <n-space justify="end">
           <n-button strong secondary @click="showEditModal = false">
-            <template #icon><n-icon><CloseIcon /></n-icon></template>
             取消
           </n-button>
           <n-button type="warning" secondary strong @click="handleBackup" :loading="backingUp">
-            <template #icon><n-icon><BackupIcon /></n-icon></template>
             备份当前配置
           </n-button>
           <n-button type="primary" strong @click="handleSavePolicy" :loading="savingPolicy">
-            <template #icon><n-icon><SaveIcon /></n-icon></template>
             保存设置
           </n-button>
         </n-space>
@@ -307,8 +303,7 @@ const columns = [
             type: 'info',
             onClick: () => openEdit(row)
           }, { 
-            default: () => '设置',
-            icon: () => h(NIcon, null, { default: () => h(EditIcon) })
+            default: () => '设置'
           }),
           h(NButton, {
             size: 'tiny',
@@ -317,8 +312,7 @@ const columns = [
             type: 'warning',
             onClick: () => handleDirectBackup(row)
           }, { 
-            default: () => '备份',
-            icon: () => h(NIcon, null, { default: () => h(BackupIcon) })
+            default: () => '备份'
           }),
           h(NPopconfirm, {
             onPositiveClick: () => handleDeleteUser(row.Id),
@@ -331,8 +325,7 @@ const columns = [
               secondary: true,
               type: 'error'
             }, { 
-              default: () => '删除',
-              icon: () => h(NIcon, null, { default: () => h(DeleteIcon) })
+              default: () => '删除'
             }),
             default: () => `确定删除用户 ${row.Name}？`
           })

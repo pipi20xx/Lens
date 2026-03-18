@@ -138,13 +138,13 @@ const dayOptions = [
   gap: 12px;
   padding: 8px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: var(--hover-bg);
+  border: 1px solid var(--border-color);
   transition: all 0.2s ease;
 }
 
 .activity-item:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--hover-bg);
   transform: translateX(4px);
   border-color: var(--primary-color);
 }
@@ -181,10 +181,10 @@ const dayOptions = [
 
 .activity-badge {
   padding: 2px 8px;
-  border-radius: 4px;
+  border-radius:4px;
   font-size: 10px;
   font-weight: bold;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--hover-bg);
   color: var(--text-color-3);
 }
 

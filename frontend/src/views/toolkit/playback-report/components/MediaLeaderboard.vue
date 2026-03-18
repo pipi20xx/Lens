@@ -67,7 +67,7 @@ const sections = computed(() => [
 
 <style scoped>
 .media-pulse-container { display: flex; flex-direction: column; gap: 60px; }
-.section-title { display: flex; align-items: center; gap: 12px; font-size: 22px; font-weight: 900; color: #fff; margin-bottom: 30px; padding-left: 10px; border-left: 5px solid #0078d4; }
+.section-title { display: flex; align-items: center; gap: 12px; font-size: 22px; font-weight: 900; color: var(--text-color); margin-bottom: 30px; padding-left: 10px; border-left: 5px solid var(--primary-color); }
 
 .pulse-row { display: flex; gap: 40px; overflow-x: auto; padding: 40px 10px 30px 50px; scrollbar-width: none; }
 .pulse-row::-webkit-scrollbar { display: none; }
@@ -112,7 +112,7 @@ const sections = computed(() => [
 .text-rank-2 { color: #c0c0c0; -webkit-text-stroke: 1px #e8e8e8; }
 .text-rank-3 { color: #b87333; -webkit-text-stroke: 1px #cd7f32; }
 .text-rank-4, .text-rank-5, .text-rank-6, .text-rank-7, .text-rank-8, .text-rank-9, .text-rank-10 { 
-  color: #222; -webkit-text-stroke: 2px rgba(255,255,255,0.4); 
+  color: var(--text-color); -webkit-text-stroke: 2px rgba(59,130,246,0.4); 
 }
 
 .main-poster-wrapper {
@@ -130,8 +130,8 @@ const sections = computed(() => [
 .play-tag {
   position: absolute;
   bottom: 0; left: 0; right: 0;
-  background: linear-gradient(transparent, rgba(0, 120, 212, 0.95));
-  color: white; font-size: 12px; font-weight: 900; padding: 15px 0 8px;
+  background: linear-gradient(transparent, rgba(59, 130, 246, 0.95));
+  color: var(--text-color); font-size: 12px; font-weight: 900; padding: 15px 0 8px;
   text-align: center;
 }
 .tag-rank-1 { background: linear-gradient(transparent, rgba(240, 160, 32, 0.95)); color: #000; }
@@ -141,12 +141,13 @@ const sections = computed(() => [
 .poster-top-info {
   position: absolute; top: 0; left: 0; right: 0;
   padding: 8px; background: linear-gradient(rgba(0,0,0,0.8), transparent);
-  display: flex; justify-content: flex-end; font-size: 12px; color: #fff; font-weight: 900;
+  display: flex; justify-content: flex-end; font-size: 12px; color: var(--text-color); font-weight: 900;
 }
+
 .rating-val { color: #f0a020; text-shadow: 0 0 5px rgba(240, 160, 32, 0.5); }
 
 .item-name {
-  margin-top: 15px; font-size: 14px; font-weight: 800; color: #fff;
+  margin-top: 15px; font-size: 14px; font-weight: 800; color: var(--text-color);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   padding: 0 5px; text-align: center;
   width: 160px; margin: 15px auto 0 auto;

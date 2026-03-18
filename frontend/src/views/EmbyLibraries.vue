@@ -163,8 +163,7 @@ const columns = [
             type: 'info',
             onClick: () => openEdit(row) 
           }, { 
-            default: () => '设置',
-            icon: () => h(NIcon, null, { default: () => h(EditIcon) })
+            default: () => '设置'
           }),
           h(NButton, { 
             size: 'tiny', 
@@ -173,8 +172,7 @@ const columns = [
             type: 'warning',
             onClick: () => handleDirectBackup(row) 
           }, { 
-            default: () => '备份',
-            icon: () => h(NIcon, null, { default: () => h(BackupIcon) })
+            default: () => '备份'
           }),
           h(NPopconfirm, {
             onPositiveClick: () => handleRemoveLibrary(row.Name, row.Id),
@@ -187,8 +185,7 @@ const columns = [
               secondary: true, 
               type: 'error'
             }, { 
-              default: () => '移除',
-              icon: () => h(NIcon, null, { default: () => h(DeleteIcon) })
+              default: () => '移除'
             }),
             default: () => `确定移除媒体库 ${row.Name}？`
           })

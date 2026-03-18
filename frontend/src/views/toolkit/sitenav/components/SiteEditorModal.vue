@@ -75,7 +75,6 @@ const isEmoji = (str: string) => {
         <n-input-group>
           <n-input v-model:value="editingSite.url" placeholder="http://..." />
           <n-button type="primary" secondary :loading="fetchingIcon" @click="emit('fetchIcon')">
-            <template #icon><n-icon><MagicIcon /></n-icon></template>
           </n-button>
         </n-input-group>
       </n-form-item>
@@ -93,8 +92,7 @@ const isEmoji = (str: string) => {
           <n-input-group>
             <n-input v-model:value="editingSite.icon" placeholder="URL 或 Emoji" />
             <n-button type="primary" secondary :loading="fetchingIcon" @click="emit('fetchIcon')">
-              <template #icon><n-icon><MagicIcon /></n-icon></template>
-            </n-button>
+          </n-button>
           </n-input-group>
           
           <n-upload
@@ -106,13 +104,11 @@ const isEmoji = (str: string) => {
             @change="handleUploadChange"
           >
             <n-button block type="info" secondary dashed size="small">
-              <template #icon><n-icon><UploadIcon /></n-icon></template>
               点击上传本地图标 (PNG/JPG/ICO/SVG/GIF)
             </n-button>
           </n-upload>
 
           <n-button block type="primary" secondary dashed size="small" @click="showHDIconPicker = true">
-            <template #icon><n-icon><LibraryIcon /></n-icon></template>
             HD-Icons 图标库 (在线选择)
           </n-button>
 

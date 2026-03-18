@@ -53,13 +53,13 @@ const chartOption = computed(() => {
     tooltip: {
       trigger: 'axis',
       backgroundColor: 'rgba(16, 16, 20, 0.9)',
-      borderColor: 'rgba(255, 255, 255, 0.1)',
-      textStyle: { color: '#fff' },
+      borderColor: 'rgba(59, 130, 246, 0.1)',
+      textStyle: { color: 'var(--text-color)' },
       formatter: (params: any) => {
         const p = params[0]
         return `<div style="padding: 4px">
           <div style="color: #888; font-size: 12px; margin-bottom: 4px">${p.name}:00 - ${p.name.replace('h', '')}:59</div>
-          <div style="font-weight: bold; color: #0078d4">播放次数: ${p.value}</div>
+          <div style="font-weight: bold; color: var(--primary-color)">播放次数: ${p.value}</div>
         </div>`
       }
     },
@@ -74,13 +74,13 @@ const chartOption = computed(() => {
       type: 'category',
       data: hours,
       boundaryGap: false,
-      axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.1)' } },
+      axisLine: { lineStyle: { color: 'rgba(59, 130, 246, 0.1)' } },
       axisTick: { show: false },
       axisLabel: { color: '#666', fontSize: 11, interval: 2 }
     },
     yAxis: {
       type: 'value',
-      splitLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.03)', type: 'dashed' } },
+      splitLine: { lineStyle: { color: 'rgba(59, 130, 246, 0.03)', type: 'dashed' } },
       axisLabel: { color: '#666', fontSize: 11 }
     },
     series: [
@@ -116,8 +116,8 @@ const chartOption = computed(() => {
         emphasis: {
           scale: true,
           itemStyle: {
-            color: '#fff',
-            borderColor: '#0078d4',
+            color: 'var(--text-color)',
+            borderColor: 'var(--primary-color)',
             borderWidth: 3
           }
         }
@@ -145,17 +145,17 @@ const chartOption = computed(() => {
 .title {
   font-size: 18px;
   font-weight: bold;
-  color: #fff;
+  color: var(--text-color);
 }
 .peak-info {
   font-size: 12px;
   color: #666;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--hover-bg);
   padding: 4px 12px;
   border-radius: 20px;
 }
 .highlight {
-  color: #0078d4;
+  color: var(--primary-color);
   font-weight: bold;
 }
 .chart-container {
