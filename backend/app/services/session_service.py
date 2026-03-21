@@ -118,6 +118,10 @@ async def update_session_activity(db: AsyncSession, session_id: str):
         if now.tzinfo is not None:
             now = now.replace(tzinfo=None)
         
+        # 检查会话是否已过期
+        if session.expires_at < now:
+            return
+        
         session.last_activity = now
         await db.commit()
 

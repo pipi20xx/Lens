@@ -1,7 +1,7 @@
 import json
 import asyncio
 from typing import List
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, HTTPException, Body
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, HTTPException, Body, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete
 from app.db.session import get_db
@@ -95,9 +95,55 @@ async def delete_command(cmd_id: int, db: AsyncSession = Depends(get_db)):
 # --- WebSocket 终端连接 ---
 
 from app.core.config_manager import get_config
+from app.utils.auth import decode_access_token
+from app.services.config_service import ConfigService
+from app.services.session_service import get_session_by_id, update_session_activity
+from app.utils.time import get_local_time
 
 @router.websocket("/ws/{host_id}")
-async def terminal_websocket(websocket: WebSocket, host_id: str, db: AsyncSession = Depends(get_db)):
+async def terminal_websocket(websocket: WebSocket, host_id: str, token: str = Query(...), db: AsyncSession = Depends(get_db)):
+    # 验证 Token - 使用与 HTTP API 相同的验证逻辑
+    from app.db.session import AsyncSessionLocal
+    from sqlalchemy import select
+    from app.models.user import User
+    
+    valid = False
+    if token:
+        # 检查静态 Token
+        static_token = await ConfigService.get("api_token")
+        if static_token and token == static_token:
+            valid = True
+        else:
+            # 检查 JWT Token - 完整验证
+            payload = decode_access_token(token)
+            if payload and payload.get("type") != "2fa_pending":
+                session_id = payload.get("sid")
+                token_ps = payload.get("ps")
+                
+                if session_id and token_ps:
+                    async with AsyncSessionLocal() as db:
+                        session = await get_session_by_id(db, session_id)
+                        if session:
+                            # 检查会话是否已过期
+                            now = get_local_time()
+                            if now.tzinfo is not None:
+                                now = now.replace(tzinfo=None)
+                            
+                            if session.expires_at >= now:
+                                # 验证密码指纹
+                                result = await db.execute(select(User).where(User.id == session.user_id))
+                                user = result.scalars().first()
+                                if user:
+                                    current_ps = user.hashed_password[:16]
+                                    if token_ps == current_ps:
+                                        # 更新会话最后活动时间
+                                        await update_session_activity(db, session_id)
+                                        valid = True
+    
+    if not valid:
+        await websocket.close(code=1008, reason="Unauthorized")
+        return
+    
     await websocket.accept()
     
     term_service = TerminalService()

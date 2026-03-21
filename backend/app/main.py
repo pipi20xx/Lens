@@ -82,25 +82,34 @@ async def audit_middleware(request: Request, call_next):
                         else:
                             # 验证会话是否存在且活跃
                             from app.services.session_service import get_session_by_id
+                            from app.utils.time import get_local_time
                             async with AsyncSessionLocal() as db:
                                 session = await get_session_by_id(db, session_id)
                                 if not session:
                                     valid = False
                                 else:
-                                    # 验证密码指纹
-                                    result = await db.execute(select(User).where(User.id == session.user_id))
-                                    user = result.scalars().first()
-                                    if not user:
+                                    # 检查会话是否已过期
+                                    now = get_local_time()
+                                    if now.tzinfo is not None:
+                                        now = now.replace(tzinfo=None)
+                                    
+                                    if session.expires_at < now:
                                         valid = False
                                     else:
-                                        current_ps = user.hashed_password[:16]
-                                        if token_ps != current_ps:
+                                        # 验证密码指纹
+                                        result = await db.execute(select(User).where(User.id == session.user_id))
+                                        user = result.scalars().first()
+                                        if not user:
                                             valid = False
                                         else:
-                                            # 更新会话最后活动时间
-                                            from app.services.session_service import update_session_activity
-                                            await update_session_activity(db, session_id)
-                                            valid = True
+                                            current_ps = user.hashed_password[:16]
+                                            if token_ps != current_ps:
+                                                valid = False
+                                            else:
+                                                # 更新会话最后活动时间
+                                                from app.services.session_service import update_session_activity
+                                                await update_session_activity(db, session_id)
+                                                valid = True
             
             if not valid:
                 from fastapi.responses import JSONResponse
@@ -181,6 +190,10 @@ async def startup_event():
     from app.services.backup_service import BackupService
     asyncio.create_task(BackupService.start_scheduler())
     
+    # 启动会话清理任务调度器
+    from app.services.session_cleanup_service import SessionCleanupService
+    asyncio.create_task(SessionCleanupService.start_scheduler())
+    
     # 启动 Docker 自动更新调度器
     from app.services.docker_service import DockerService
     asyncio.create_task(DockerService.start_scheduler())
@@ -259,9 +272,14 @@ async def shutdown_event():
 # WebSocket 实时日志
 @app.websocket("/ws/system/logs")
 async def websocket_endpoint(websocket: WebSocket, token: str = Query(...)):
-    # 验证 Token
+    # 验证 Token - 使用与 HTTP API 相同的验证逻辑
     from app.utils.auth import decode_access_token
     from app.services.config_service import ConfigService
+    from app.db.session import AsyncSessionLocal
+    from sqlalchemy import select
+    from app.models.user import User
+    from app.services.session_service import get_session_by_id, update_session_activity
+    from app.utils.time import get_local_time
     
     valid = False
     if token:
@@ -270,10 +288,31 @@ async def websocket_endpoint(websocket: WebSocket, token: str = Query(...)):
         if static_token and token == static_token:
             valid = True
         else:
-            # 检查 JWT Token
+            # 检查 JWT Token - 完整验证
             payload = decode_access_token(token)
             if payload and payload.get("type") != "2fa_pending":
-                valid = True
+                session_id = payload.get("sid")
+                token_ps = payload.get("ps")
+                
+                if session_id and token_ps:
+                    async with AsyncSessionLocal() as db:
+                        session = await get_session_by_id(db, session_id)
+                        if session:
+                            # 检查会话是否已过期
+                            now = get_local_time()
+                            if now.tzinfo is not None:
+                                now = now.replace(tzinfo=None)
+                            
+                            if session.expires_at >= now:
+                                # 验证密码指纹
+                                result = await db.execute(select(User).where(User.id == session.user_id))
+                                user = result.scalars().first()
+                                if user:
+                                    current_ps = user.hashed_password[:16]
+                                    if token_ps == current_ps:
+                                        # 更新会话最后活动时间
+                                        await update_session_activity(db, session_id)
+                                        valid = True
     
     if not valid:
         await websocket.close(code=1008, reason="Unauthorized")

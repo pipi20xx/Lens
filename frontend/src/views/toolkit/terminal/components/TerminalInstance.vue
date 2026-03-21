@@ -60,7 +60,8 @@ const initTerminal = () => {
 
 const connectWS = () => {
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  ws = new WebSocket(`${protocol}//${window.location.host}/api/terminal/ws/${props.hostId}`);
+  const token = localStorage.getItem('lens_access_token') || ''
+  ws = new WebSocket(`${protocol}//${window.location.host}/api/terminal/ws/${props.hostId}?token=${encodeURIComponent(token)}`);
 
   ws.onopen = () => {
     emit('connected');

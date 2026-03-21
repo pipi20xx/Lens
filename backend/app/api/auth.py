@@ -57,6 +57,10 @@ async def login(req: LoginRequest, request: Request, db: AsyncSession = Depends(
     user.last_login = get_local_time()
     await db.commit()
     
+    # 检查是否开启永不过期配置
+    from app.services.config_service import ConfigService
+    never_expire = await ConfigService.get("session_never_expire", False)
+    
     # 创建会话记录
     from app.services.session_service import create_session
     session = await create_session(
@@ -69,7 +73,14 @@ async def login(req: LoginRequest, request: Request, db: AsyncSession = Depends(
     
     # 创建 Token 时包含密码指纹和 session_id，确保修改密码后旧 Token 失效
     password_fingerprint = user.hashed_password[:16]
-    access_token = create_access_token(data={"sub": user.username, "ps": password_fingerprint, "sid": session.session_id})
+    
+    # 根据 session_never_expire 配置设置 token 过期时间
+    if never_expire:
+        token_expire = timedelta(days=365 * 100)
+    else:
+        token_expire = timedelta(hours=24)
+    
+    access_token = create_access_token(data={"sub": user.username, "ps": password_fingerprint, "sid": session.session_id}, expires_delta=token_expire)
     asyncio.create_task(add_audit_log("POST", "/api/auth/login", 200, client_ip, 0, payload=f"登录成功: {user.username}"))
     
     # 发送登录通知
