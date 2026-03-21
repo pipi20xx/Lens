@@ -51,8 +51,8 @@ const recentTools = ref([
 
 // 版本信息
 const versionInfo = ref({
-  current: 'v2.5.9',
-  latest: 'v2.5.9',
+  current: 'v2.6.0',
+  latest: 'v2.6.0',
   has_update: false,
   docker_hub: 'https://hub.docker.com/r/pipi20xx/lens'
 })
