@@ -23,10 +23,10 @@
           <div v-if="isExpanded(category.id)" class="category-sites">
             <div v-for="site in getSitesByCategory(category.id)" :key="site.id" class="site-item" @click="openSite(site)">
               <div class="site-icon">
-                <img v-if="site.icon" :src="site.icon" :alt="site.name" />
+                <img v-if="site.icon" :src="site.icon" :alt="site.title" />
                 <n-icon v-else :component="LinkIcon" />
               </div>
-              <div class="site-name">{{ site.name }}</div>
+              <div class="site-name">{{ site.title }}</div>
               <n-space :size="4" class="site-actions">
                 <n-button :size="buttonSizes.TINY" secondary circle @click.stop="editSite(site)">
                   <template #icon><n-icon :component="EditIcon" /></template>
