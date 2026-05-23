@@ -291,7 +291,7 @@ class BackupService:
                         strategy=task.get("sync_strategy", "mirror")
                     )
             
-            if success and output_path and os.path.exists(output_path):
+            if success and output_path and os.path.exists(output_path) and os.path.isfile(output_path):
                 total_size = os.path.getsize(output_path) / (1024 * 1024) # MB
             
         except Exception as e:
