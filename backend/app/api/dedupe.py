@@ -298,13 +298,97 @@ async def smart_select_v4(db: AsyncSession = Depends(get_db)):
             
             to_delete_ids.extend(suggested)
     
+    # 4. 全局安全校验：确保每一集至少保留一个副本
+    # 收集所有被建议删除的 Series 的子 Episode（Emby 物理删除会级联）
+    series_cascade_delete_ids = set()
+    series_to_cascade_eps = defaultdict(list)
+    for sid in to_delete_ids:
+        item = item_by_id.get(sid)
+        if item and item.item_type == "Series":
+            for i in all_items:
+                if i.item_type == "Episode" and item_to_series.get(i.id) == sid:
+                    series_cascade_delete_ids.add(i.id)
+                    series_to_cascade_eps[sid].append(i)
+    
+    # 合并显式删除和级联删除
+    all_potential_deleted = set(to_delete_ids) | series_cascade_delete_ids
+    
+    # 对每个 Episode key，检查是否还有保留的副本
+    ep_key_survivors = defaultdict(list)
+    for i in all_items:
+        if i.item_type == "Episode" and i.tmdb_id:
+            key = f"{i.tmdb_id}-S{str(i.season_num or 0).zfill(2)}E{str(i.episode_num or 0).zfill(2)}"
+            if i.id not in all_potential_deleted:
+                ep_key_survivors[key].append(i.id)
+    
+    # 如果某集完全没有保留，需要保护
+    protected_ep_count = 0
+    protected_series_count = 0
+    
+    # 第一轮：保护被显式标记删除的 Episode
+    for i in all_items:
+        if i.item_type == "Episode" and i.tmdb_id and i.id in to_delete_ids:
+            key = f"{i.tmdb_id}-S{str(i.season_num or 0).zfill(2)}E{str(i.episode_num or 0).zfill(2)}"
+            if not ep_key_survivors.get(key):
+                group_key = f"TV-{i.tmdb_id}-S{str(i.season_num or 0).zfill(2)}E{str(i.episode_num or 0).zfill(2)}"
+                group_items = groups.get(group_key, [])
+                if group_items:
+                    scored_data = [{"id": gi.id, "emby_id": gi.id, "path": gi.path, "display_title": gi.display_title, "video_codec": gi.video_codec, "video_range": gi.video_range} for gi in group_items]
+                    best_id = min(scored_data, key=lambda x: scorer.score_item(x))[0] if scored_data else None
+                    if best_id and best_id in to_delete_ids:
+                        to_delete_ids.remove(best_id)
+                        ep_key_survivors[key].append(best_id)
+                        protected_ep_count += 1
+                        logger.warning(f"┃  🛡️ [分析保护] Episode {key} 无保留副本，自动保留最佳版本: {item_by_id.get(best_id).path if best_id in item_by_id else best_id}")
+    
+    # 第二轮：检查 Series 级联删除是否会导致唯一集丢失
+    # 重新计算级联影响
+    all_potential_deleted_v2 = set(to_delete_ids)
+    for sid in to_delete_ids:
+        item = item_by_id.get(sid)
+        if item and item.item_type == "Series":
+            for i in all_items:
+                if i.item_type == "Episode" and item_to_series.get(i.id) == sid:
+                    all_potential_deleted_v2.add(i.id)
+    
+    ep_key_survivors_v2 = defaultdict(list)
+    for i in all_items:
+        if i.item_type == "Episode" and i.tmdb_id:
+            key = f"{i.tmdb_id}-S{str(i.season_num or 0).zfill(2)}E{str(i.episode_num or 0).zfill(2)}"
+            if i.id not in all_potential_deleted_v2:
+                ep_key_survivors_v2[key].append(i.id)
+    
+    # 找出会导致唯一集丢失的 Series
+    unsafe_series = set()
+    for sid in list(to_delete_ids):
+        item = item_by_id.get(sid)
+        if not item or item.item_type != "Series": continue
+        for ep in series_to_cascade_eps.get(sid, []):
+            if ep.tmdb_id:
+                key = f"{ep.tmdb_id}-S{str(ep.season_num or 0).zfill(2)}E{str(ep.episode_num or 0).zfill(2)}"
+                if not ep_key_survivors_v2.get(key):
+                    unsafe_series.add(sid)
+                    break
+    
+    for sid in unsafe_series:
+        item = item_by_id.get(sid)
+        if sid in to_delete_ids:
+            to_delete_ids.remove(sid)
+            protected_series_count += 1
+            logger.warning(f"┃  🛡️ [分析保护] Series {item.path if item else sid} 的级联删除会导致唯一集丢失，自动保留")
+    
+    if protected_ep_count > 0 or protected_series_count > 0:
+        logger.info(f"┃  🛡️ [分析保护] 保护 {protected_ep_count} 个唯一集版本，保护 {protected_series_count} 个剧集文件夹")
+    
     process_time = (time.time() - start_time) * 1000
     logger.info(f"✅ [智能分析] 完成: 发现 {duplicate_group_count} 组重复，建议清理 {len(to_delete_ids)} 个节点。")
     
     audit_log("智能分析引擎执行完毕", process_time, [
         f"分析总数: {len(all_items)}",
         f"发现重复组: {duplicate_group_count}",
-        f"建议清理数: {len(to_delete_ids)}"
+        f"建议清理数: {len(to_delete_ids)}",
+        f"分析保护(集): {protected_ep_count}",
+        f"分析保护(剧): {protected_series_count}"
     ])
     
     if not to_delete_ids: return []
@@ -378,6 +462,14 @@ async def delete_items_optimized(request: BulkDeleteRequest, db: AsyncSession = 
                         final_ids_to_call.append(child.id)
                         actual_deleted_ids.append(child.id)
                 continue 
+
+        # 单集安全校验：确保同一集至少保留一个副本
+        if item.item_type == "Episode" and item.tmdb_id:
+            key = f"{item.tmdb_id}-S{item.season_num}E{item.episode_num}"
+            others = [oid for oid in ep_registry.get(key, []) if oid != item.id and oid not in request.item_ids]
+            if not others:
+                logger.warning(f"🛡️ [单集保护] {item.path} 是该集唯一副本，跳过删除以保留至少一个版本。")
+                continue
 
         final_ids_to_call.append(eid)
         actual_deleted_ids.append(eid)
