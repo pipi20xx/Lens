@@ -48,7 +48,7 @@ const goBack = () => {
     <section class="app-info-section">
       <img src="/favicon.svg" alt="Lens" class="app-logo" />
       <h2 class="app-name">Lens</h2>
-      <div class="app-version">v2.6.1</div>
+      <div class="app-version">v2.6.2</div>
       <p class="app-description">现代化的媒体服务器管理工具</p>
     </section>
 

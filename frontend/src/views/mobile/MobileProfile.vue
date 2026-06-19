@@ -90,7 +90,7 @@ const handleAction = (action: string) => {
 
     <!-- 版本信息 -->
     <div class="version-info">
-      <span>Lens v2.6.1</span>
+      <span>Lens v2.6.2</span>
     </div>
   </div>
 </template>
