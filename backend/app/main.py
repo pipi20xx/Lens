@@ -11,6 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from app.api import router as api_router
+from app.api.system import CURRENT_VERSION
 from app.utils.logger import logger, audit_log
 from sqlalchemy import select
 from app.db.session import engine, Base, get_db
@@ -30,7 +31,7 @@ os.makedirs("/app/data/logs/audit", exist_ok=True)
 
 app = FastAPI(
     title="Lens API",
-    version="2.6.2",
+    version=CURRENT_VERSION.lstrip('v'),
     docs_url=None,
     redoc_url=None,
 )
