@@ -334,7 +334,7 @@ async def smart_select_v4(db: AsyncSession = Depends(get_db)):
                 group_items = groups.get(group_key, [])
                 if group_items:
                     scored_data = [{"id": gi.id, "emby_id": gi.id, "path": gi.path, "display_title": gi.display_title, "video_codec": gi.video_codec, "video_range": gi.video_range} for gi in group_items]
-                    best_id = min(scored_data, key=lambda x: scorer.score_item(x))[0] if scored_data else None
+                    best_id = min(scored_data, key=lambda x: scorer.score_item(x))["id"] if scored_data else None
                     if best_id and best_id in to_delete_ids:
                         to_delete_ids.remove(best_id)
                         ep_key_survivors[key].append(best_id)
