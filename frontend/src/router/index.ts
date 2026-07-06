@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { isLoggedIn } from '@/store/navigationStore'
-import { mobileRoutes } from '../views/mobile/mobile-routes'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -157,24 +156,8 @@ const router = createRouter({
       name: 'Settings',
       component: () => import('../views/Settings.vue'),
     },
-    // 移动端路由
-    ...mobileRoutes
   ]
 })
-
-// 设备检测 - 判断是否为移动端
-const isMobileDevice = (to: any) => {
-  // 如果 URL 中有 forceMobile 参数，强制使用移动端
-  if (to.query.forceMobile === '1' || to.query.forceMobile === 'true') {
-    return true
-  }
-  // 优先检查 User Agent（更可靠）
-  if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-    return true
-  }
-  // 然后检查屏幕宽度
-  return window.innerWidth <= 768
-}
 
 // 导航守卫
 router.beforeEach((to, from, next) => {
@@ -187,91 +170,6 @@ router.beforeEach((to, from, next) => {
   if (to.name === 'Login' && isLoggedIn.value) {
     // 如果已经在登录页，但已登录，则跳回首页
     next({ name: 'Dashboard' })
-    return
-  }
-
-  // 移动端自动跳转
-  if (isMobileDevice(to) && !to.path.startsWith('/mobile') && to.path !== '/login') {
-    // 映射桌面路由到移动端路由
-    const mobilePathMap: Record<string, string> = {
-      '/': '/mobile/home',
-      '/settings': '/mobile/settings',
-      '/dedupe': '/mobile/tools/dedupe',
-      '/toolkit/site-nav': '/mobile/tools/sitenav',
-      '/toolkit/bookmark-manager': '/mobile/tools/bookmarks',
-      '/toolkit/docker-manager': '/mobile/tools/docker',
-      '/toolkit/terminal': '/mobile/tools/terminal',
-      '/toolkit/cleanup': '/mobile/tools/cleanup',
-      '/toolkit/notification-manager': '/mobile/tools/notifications',
-      '/toolkit/emby-item-query': '/mobile/tools/item-query',
-      '/toolkit/tmdb-reverse-lookup': '/mobile/tools/tmdb-lookup',
-      '/toolkit/tmdb-id-search': '/mobile/tools/tmdb-search',
-      '/toolkit/type-manager': '/mobile/tools/type-manager',
-      '/toolkit/lock-manager': '/mobile/tools/lock',
-      '/toolkit/autotags': '/mobile/tools/autotags',
-      '/toolkit/actor-manager': '/mobile/tools/actor-manager',
-      '/toolkit/image-builder': '/mobile/tools/image-builder',
-      '/toolkit/postgres-manager': '/mobile/tools/postgres',
-      '/toolkit/backup-manager': '/mobile/tools/backup',
-      '/toolkit/webhook-receiver': '/mobile/tools/webhook',
-      '/toolkit/account-manager': '/mobile/tools/account',
-      '/toolkit/external-control': '/mobile/tools/external-control',
-      '/toolkit/emby-scheduled-tasks': '/mobile/tools/tasks',
-      '/toolkit/playback-report': '/mobile/tools/reports',
-      '/emby-libraries': '/mobile/tools/emby',
-      '/emby-users': '/mobile/tools/emby-users',
-      '/toolkit/tmdb-lab': '/mobile/tools/tmdb-lab',
-      '/toolkit/bangumi-lab': '/mobile/tools/bangumi-lab',
-      '/toolkit/ai-lab': '/mobile/tools/ai-lab',
-      '/toolkit/actor-lab': '/mobile/tools/actor-lab',
-    }
-
-    const mobilePath = mobilePathMap[to.path]
-    if (mobilePath) {
-      next(mobilePath)
-      return
-    }
-  }
-
-  // 桌面端访问移动端路由，跳回桌面端（除非有 forceMobile 参数）
-  if (!isMobileDevice(to) && to.path.startsWith('/mobile')) {
-    const desktopPathMap: Record<string, string> = {
-      '/mobile/home': '/',
-      '/mobile/tools': '/',
-      '/mobile/profile': '/settings',
-      '/mobile/settings': '/settings',
-      '/mobile/tools/dedupe': '/dedupe',
-      '/mobile/tools/sitenav': '/toolkit/site-nav',
-      '/mobile/tools/bookmarks': '/toolkit/bookmark-manager',
-      '/mobile/tools/docker': '/toolkit/docker-manager',
-      '/mobile/tools/terminal': '/toolkit/terminal',
-      '/mobile/tools/cleanup': '/toolkit/cleanup',
-      '/mobile/tools/notifications': '/toolkit/notification-manager',
-      '/mobile/tools/item-query': '/toolkit/emby-item-query',
-      '/mobile/tools/tmdb-lookup': '/toolkit/tmdb-reverse-lookup',
-      '/mobile/tools/tmdb-search': '/toolkit/tmdb-id-search',
-      '/mobile/tools/type-manager': '/toolkit/type-manager',
-      '/mobile/tools/lock': '/toolkit/lock-manager',
-      '/mobile/tools/autotags': '/toolkit/autotags',
-      '/mobile/tools/actor-manager': '/toolkit/actor-manager',
-      '/mobile/tools/image-builder': '/toolkit/image-builder',
-      '/mobile/tools/postgres': '/toolkit/postgres-manager',
-      '/mobile/tools/backup': '/toolkit/backup-manager',
-      '/mobile/tools/webhook': '/toolkit/webhook-receiver',
-      '/mobile/tools/account': '/toolkit/account-manager',
-      '/mobile/tools/external-control': '/toolkit/external-control',
-      '/mobile/tools/tasks': '/toolkit/emby-scheduled-tasks',
-      '/mobile/tools/reports': '/toolkit/playback-report',
-      '/mobile/tools/emby': '/emby-libraries',
-      '/mobile/tools/emby-users': '/emby-users',
-      '/mobile/tools/tmdb-lab': '/toolkit/tmdb-lab',
-      '/mobile/tools/bangumi-lab': '/toolkit/bangumi-lab',
-      '/mobile/tools/ai-lab': '/toolkit/ai-lab',
-      '/mobile/tools/actor-lab': '/toolkit/actor-lab',
-    }
-
-    const desktopPath = desktopPathMap[to.path] || '/'
-    next(desktopPath)
     return
   }
 
