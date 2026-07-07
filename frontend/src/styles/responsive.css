@@ -375,174 +375,208 @@
 }
 
 /* ============================================
-   13. Modal 移动端全屏适配
-   让 NModal 在小屏上全屏展示
-   覆盖 preset="card" 和 preset="dialog" 两种类型
+   13. Modal 移动端全屏适配 (统一所有弹框)
+   - DOM 结构: .n-modal-container > ... > .n-card (或 .n-dialog)
+   - 全屏 100dvh,固定头部 + 滚动内容 + 固定底部
    ============================================ */
 @media (max-width: 768px) {
-  /* —— 全屏 flex 布局 (card 类型) —— */
-  .n-modal-container .n-modal.n-card {
-    display: flex !important;
-    flex-direction: column !important;
-    width: 100vw !important;
-    max-width: 100vw !important;
-    height: 100vh !important;
-    height: 100dvh !important;
-    max-height: 100vh !important;
-    max-height: 100dvh !important;
-    margin: 0 !important;
-    border-radius: 0 !important;
+  /* —— 第 0 层: modal 遮罩容器 —— */
+  .n-modal-container {
+    padding: 0 !important;
   }
 
-  /* —— 全屏 flex 布局 (dialog 类型) —— */
-  .n-modal-container .n-modal.n-dialog {
+  /* —— 第 1 层: .n-card / .n-dialog (实际容器,直接用后代选择器避免中间层级变化) —— */
+  .n-modal-container .n-card,
+  .n-modal-container .n-dialog {
     display: flex !important;
-    flex-direction: column !important;
-    width: 100vw !important;
-    max-width: 100vw !important;
-    height: 100vh !important;
-    height: 100dvh !important;
+    flex-flow: column nowrap !important;
     max-height: 100vh !important;
     max-height: 100dvh !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
     margin: 0 !important;
     border-radius: 0 !important;
+    overflow: hidden !important;
   }
 
-  /* —— 固定头部 (card 类型) —— */
-  .n-modal-container .n-modal.n-card > .n-card-header {
-    flex-shrink: 0 !important;
+  /* —— 第 2 层: 头部 (固定不滚) —— */
+  /* card 类型 (兼容 n-card-header 和 n-card__header 两种命名) */
+  .n-modal-container .n-card > .n-card-header,
+  .n-modal-container .n-card > .n-card__header {
+    flex: 0 0 auto !important;
     padding: 12px 16px !important;
     padding-top: max(12px, env(safe-area-inset-top, 0px)) !important;
+    background: var(--card-bg-color, var(--app-bg-color, #1a1a1f)) !important;
+    border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.06)) !important;
   }
-  .n-modal-container .n-modal.n-card > .n-card-header .n-card-header__main {
+  .n-modal-container .n-card > .n-card-header .n-card-header__main,
+  .n-modal-container .n-card > .n-card__header .n-card-header__main,
+  .n-modal-container .n-card > .n-card-header .n-card-header-main,
+  .n-modal-container .n-card > .n-card__header .n-card-header-main {
     font-size: 1rem !important;
     font-weight: 600 !important;
   }
-
-  /* —— 固定头部 (dialog 类型) —— */
-  .n-modal-container .n-modal.n-dialog > .n-dialog__title {
-    flex-shrink: 0 !important;
+  /* dialog 类型 */
+  .n-modal-container .n-dialog > .n-dialog-title,
+  .n-modal-container .n-dialog > .n-dialog__title {
+    flex: 0 0 auto !important;
     padding: 12px 16px !important;
     padding-top: max(12px, env(safe-area-inset-top, 0px)) !important;
+    background: var(--card-bg-color, var(--app-bg-color, #1a1a1f)) !important;
+    border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.06)) !important;
   }
 
-  /* —— 可滚动内容区 (card 类型) —— */
-  .n-modal-container .n-modal.n-card > .n-card__content {
-    flex: 1 !important;
-    min-height: 0;
+  /* —— 第 2 层: 内容区 (可滚动,核心!) —— */
+  /* 注意: Naive UI 实际 class 是 n-card-content (不是 n-card__content) */
+  .n-modal-container .n-card > .n-card-content,
+  .n-modal-container .n-card > .n-card__content {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    height: 0 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    padding: 16px !important;
+  }
+  .n-modal-container .n-dialog > .n-dialog-content,
+  .n-modal-container .n-dialog > .n-dialog__content {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    height: 0 !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
     -webkit-overflow-scrolling: touch;
     padding: 16px !important;
   }
 
-  /* —— 可滚动内容区 (dialog 类型) —— */
-  .n-modal-container .n-modal.n-dialog > .n-dialog__content {
-    flex: 1 !important;
-    min-height: 0;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    -webkit-overflow-scrolling: touch;
-    padding: 16px !important;
-  }
-
-  /* —— 固定底部 (card 类型: action / footer 槽) —— */
-  .n-modal-container .n-modal.n-card > .n-card__action,
-  .n-modal-container .n-modal.n-card > .n-card__footer {
-    flex-shrink: 0 !important;
+  /* —— 第 2 层: 底部 (固定不滚) —— */
+  /* card 类型 (Naive UI 实际 footer class 是 n-card__footer) */
+  .n-modal-container .n-card > .n-card-footer,
+  .n-modal-container .n-card > .n-card__footer {
+    flex: 0 0 auto !important;
     padding: 12px 16px !important;
     padding-bottom: max(12px, env(safe-area-inset-bottom, 0px)) !important;
+    background: var(--card-bg-color, var(--app-bg-color, #1a1a1f)) !important;
+    border-top: 1px solid var(--border-color, rgba(255, 255, 255, 0.06)) !important;
   }
-  /* 底部按钮区全宽 */
-  .n-modal-container .n-modal.n-card > .n-card__action .n-space,
-  .n-modal-container .n-modal.n-card > .n-card__footer .n-space {
+  .n-modal-container .n-card > .n-card-footer .n-space,
+  .n-modal-container .n-card > .n-card__footer .n-space {
     width: 100% !important;
+    gap: 8px !important;
   }
-
-  /* —— 固定底部 (dialog 类型) —— */
-  .n-modal-container .n-modal.n-dialog > .n-dialog__action {
-    flex-shrink: 0 !important;
+  .n-modal-container .n-card > .n-card-footer .n-button,
+  .n-modal-container .n-card > .n-card__footer .n-button {
+    flex: 1 !important;
+    margin: 0 !important;
+  }
+  /* dialog 类型 */
+  .n-modal-container .n-dialog > .n-dialog-action,
+  .n-modal-container .n-dialog > .n-dialog__action {
+    flex: 0 0 auto !important;
     padding: 12px 16px !important;
     padding-bottom: max(12px, env(safe-area-inset-bottom, 0px)) !important;
+    background: var(--card-bg-color, var(--app-bg-color, #1a1a1f)) !important;
+    border-top: 1px solid var(--border-color, rgba(255, 255, 255, 0.06)) !important;
   }
 
-  /* —— Modal 内表单项一行一个 —— */
-  .n-modal-container .n-modal.n-card .n-grid,
-  .n-modal-container .n-modal.n-dialog .n-grid {
+  /* ============================================
+     第 4 层+: Modal 内嵌套组件适配
+     ============================================ */
+
+  /* —— NGrid: 移动端强制单列 —— */
+  .n-modal-container .n-grid {
     display: flex !important;
     flex-direction: column !important;
     gap: 12px !important;
   }
-  .n-modal-container .n-modal.n-card .n-grid > .n-gi,
-  .n-modal-container .n-modal.n-dialog .n-grid > .n-gi {
+  .n-modal-container .n-grid > .n-gi {
     width: 100% !important;
     grid-column: auto !important;
   }
-  .n-modal-container .n-modal.n-card .n-form-item,
-  .n-modal-container .n-modal.n-dialog .n-form-item {
+  .n-modal-container .n-form-item {
     width: 100% !important;
   }
-  .n-modal-container .n-modal.n-card .n-space--vertical,
-  .n-modal-container .n-modal.n-dialog .n-space--vertical {
+  .n-modal-container .n-space--vertical {
     width: 100% !important;
   }
-  .n-modal-container .n-modal.n-card .n-space--vertical > *,
-  .n-modal-container .n-modal.n-dialog .n-space--vertical > * {
+  .n-modal-container .n-space--vertical > * {
     width: 100% !important;
   }
 
-  /* —— Modal 内常见 flex 布局:纵向堆叠 —— */
-  .n-modal-container .n-modal.n-card .filter-bar,
-  .n-modal-container .n-modal.n-card .action-bar,
-  .n-modal-container .n-modal.n-card .header-section,
-  .n-modal-container .n-modal.n-card .main-layout,
-  .n-modal-container .n-modal.n-dialog .filter-bar,
-  .n-modal-container .n-modal.n-dialog .action-bar,
-  .n-modal-container .n-modal.n-dialog .header-section,
-  .n-modal-container .n-modal.n-dialog .main-layout {
+  /* —— NForm: label-placement="left" 时 label-width 自适应 —— */
+  .n-modal-container .n-form-item .n-form-item-label {
+    width: auto !important;
+    min-width: 80px !important;
+    padding-bottom: 4px !important;
+  }
+
+  /* —— NForm label 过长的括号说明:隐藏 —— */
+  .n-modal-container .n-form-item-label > span > span {
+    display: none !important;
+  }
+
+  /* —— NInput / NSelect / NInputNumber 等固定宽度元素全宽 —— */
+  .n-modal-container .n-input[style*="width"],
+  .n-modal-container .n-select[style*="width"],
+  .n-modal-container .n-input-number[style*="width"] {
+    width: 100% !important;
+  }
+
+  /* —— NInputGroup: 内部 input 和 button 横向滚动而非换行 —— */
+  .n-modal-container .n-input-group {
+    flex-wrap: nowrap !important;
+  }
+
+  /* —— NAlert: 紧凑显示 —— */
+  .n-modal-container .n-alert {
+    font-size: 0.8rem !important;
+    padding: 8px 12px !important;
+    margin-bottom: 12px !important;
+  }
+  .n-modal-container .n-alert div {
+    font-size: 0.8rem !important;
+  }
+
+  /* —— 常见自定义 flex 布局:纵向堆叠 —— */
+  .n-modal-container .filter-bar,
+  .n-modal-container .action-bar,
+  .n-modal-container .header-section,
+  .n-modal-container .main-layout {
     flex-direction: column !important;
     gap: 12px !important;
   }
 
-  /* —— Modal 内表单 label-width 过宽时缩减 —— */
-  .n-modal-container .n-modal.n-card .n-form-item .n-form-item-label,
-  .n-modal-container .n-modal.n-dialog .n-form-item .n-form-item-label {
-    width: auto !important;
-    min-width: 80px !important;
-  }
-
-  /* —— Modal 内 NScrollbar 占满剩余高度并滚动 —— */
-  .n-modal-container .n-modal.n-card .n-scrollbar,
-  .n-modal-container .n-modal.n-dialog .n-scrollbar {
+  /* —— NScrollbar / NLayout 占满剩余空间 —— */
+  .n-modal-container .n-scrollbar,
+  .n-modal-container .n-layout,
+  .n-modal-container .n-layout-content {
     flex: 1 !important;
     min-height: 0 !important;
   }
+}
 
-  /* —— Modal 内常见自定义内容容器:占满剩余空间 —— */
-  .n-modal-container .n-modal.n-card .modal-body,
-  .n-modal-container .n-modal.n-card .modal-content,
-  .n-modal-container .n-modal.n-card .content-wrapper,
-  .n-modal-container .n-modal.n-card .scroll-content,
-  .n-modal-container .n-modal.n-dialog .modal-body,
-  .n-modal-container .n-modal.n-dialog .modal-content,
-  .n-modal-container .n-modal.n-dialog .content-wrapper,
-  .n-modal-container .n-modal.n-dialog .scroll-content {
-    flex: 1 !important;
-    min-height: 0 !important;
-    overflow-y: auto !important;
+/* ============================================
+   13.1 Modal 内 NTabs 移动端优化
+   ============================================ */
+@media (max-width: 768px) {
+  /* —— NTabs: tab 导航 sticky 固定 —— */
+  .n-modal-container .n-tabs .n-tabs-nav {
+    position: sticky !important;
+    top: -16px !important;
+    z-index: 5 !important;
+    background: var(--card-bg-color, var(--app-bg-color, #1a1a1f)) !important;
+    margin: -16px -16px 0 -16px !important;
+    padding: 12px 16px 8px 16px !important;
+    border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.06)) !important;
+  }
+  .n-modal-container .n-tabs .n-tab-pane {
+    padding-top: 16px !important;
+  }
+  .n-modal-container .n-tabs .n-tabs-nav-scroll-wrapper {
+    overflow-x: auto !important;
     -webkit-overflow-scrolling: touch;
-  }
-
-  /* —— Modal 内 NLayout 占满剩余空间 (防止嵌套布局溢出) —— */
-  .n-modal-container .n-modal.n-card .n-layout,
-  .n-modal-container .n-modal.n-dialog .n-layout {
-    flex: 1 !important;
-    min-height: 0 !important;
-  }
-  .n-modal-container .n-modal.n-card .n-layout-content,
-  .n-modal-container .n-modal.n-dialog .n-layout-content {
-    flex: 1 !important;
-    min-height: 0 !important;
   }
 }
 
