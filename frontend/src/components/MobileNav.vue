@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, h, Component } from 'vue'
-import { NIcon, NButton, NDrawer } from 'naive-ui'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { NIcon, NButton, NDrawer, NDropdown, NInput } from 'naive-ui'
 import {
   DashboardOutlined as DashboardIcon,
   CameraOutlined as SiteNavIcon,
@@ -12,10 +12,13 @@ import {
   LightModeOutlined as LightIcon,
   DarkModeOutlined as DarkIcon,
   PersonOutlined as ProfileIcon,
-  ExitToAppOutlined as LogoutIcon
+  ExitToAppOutlined as LogoutIcon,
+  SearchOutlined as SearchIcon,
+  DragHandleOutlined as MenuManageIcon
 } from '@vicons/material'
 import { currentViewKey, menuLayout, activeGroupKey, isLogConsoleOpen, logout } from '../store/navigationStore'
 import { allMenuItems } from '../config/menu'
+import { servers, activeServerId, fetchServers, activateServer } from '../store/serverStore'
 
 const props = defineProps<{
   isDark: boolean
@@ -25,34 +28,50 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'toggleTheme'): void
   (e: 'goBack'): void
+  (e: 'openMenuManager'): void
 }>()
 
 const showMobileMenu = ref(false)
+const searchKeyword = ref('')
 
-// ── 底部 4 个主 Tab (最常用的入口) ──
+// ── 底部 4 个主 Tab ──
+// 每个 Tab 关联一个分组 key,激活态基于分组判断
 const bottomNavItems = computed(() => [
-  { key: 'DashboardView', label: '仪表盘', icon: DashboardIcon },
-  { key: 'SiteNavView', label: '站点', icon: SiteNavIcon },
-  { key: 'PlaybackReportView', label: 'Emby', icon: EmbyIcon },
+  { key: 'DashboardView', label: '仪表盘', icon: DashboardIcon, groupKey: 'DashboardView' },
+  { key: 'SiteNavView', label: '站点', icon: SiteNavIcon, groupKey: 'SiteNavView' },
+  { key: 'PlaybackReportView', label: 'Emby', icon: EmbyIcon, groupKey: 'group-emby-mgmt' },
   // 第 4 个固定是"更多"
 ])
 
-// ── "更多"面板:按 menuLayout 分组呈现 ──
+// ── "更多"面板:按 menuLayout 分组呈现,支持搜索过滤 ──
 const panelGroups = computed(() => {
+  const kw = searchKeyword.value.trim().toLowerCase()
   return menuLayout.value.map(group => {
     if (group.type === 'item') {
-      // 单项组:直接展示
       const item = allMenuItems.find(m => m.key === group.key)
+      // 搜索过滤
+      if (kw && item) {
+        const label = (item.label || '').toLowerCase()
+        if (!label.includes(kw) && !group.key.toLowerCase().includes(kw)) {
+          return { groupLabel: group.label, groupKey: group.key, items: [] }
+        }
+      }
       return {
         groupLabel: group.label,
         groupKey: group.key,
         items: item ? [item] : []
       }
     } else {
-      // 多项组:展示所有子项
-      const items = group.items
+      let items = group.items
         .map(itemKey => allMenuItems.find(m => m.key === itemKey))
         .filter(Boolean) as any[]
+      // 搜索过滤
+      if (kw) {
+        items = items.filter(item => {
+          const label = (item.label || '').toLowerCase()
+          return label.includes(kw) || (item.key || '').toLowerCase().includes(kw)
+        })
+      }
       return {
         groupLabel: group.label,
         groupKey: group.key,
@@ -62,30 +81,46 @@ const panelGroups = computed(() => {
   }).filter(g => g.items.length > 0)
 })
 
-// ── 当前激活态判断 ──
-const isNavActive = (key: string) => {
-  return currentViewKey.value === key
+// ── 当前激活态判断 (基于分组归属,而非 key 精确匹配) ──
+const isNavActive = (tabKey: string, groupKey: string) => {
+  if (currentViewKey.value === tabKey) return true
+  // 检查当前视图是否属于该 Tab 关联的分组
+  if (groupKey.startsWith('group-')) {
+    const group = menuLayout.value.find(g => g.key === groupKey)
+    if (group && group.type === 'group' && group.items.includes(currentViewKey.value)) {
+      return true
+    }
+  }
+  return false
+}
+
+// ── 触觉反馈 ──
+const vibrate = (ms = 10) => {
+  if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+    try { navigator.vibrate(ms) } catch {}
+  }
 }
 
 // ── 底部 Tab 点击 ──
 const handleMobileNav = (key: string) => {
+  vibrate()
   if (key === 'MORE') {
     showMobileMenu.value = true
   } else {
     currentViewKey.value = key
-    // 同步 activeGroupKey
     syncGroupKey(key)
   }
 }
 
 // ── "更多"面板项点击 ──
 const handlePanelSelect = (key: string) => {
+  vibrate()
   currentViewKey.value = key
   syncGroupKey(key)
   showMobileMenu.value = false
 }
 
-// ── 同步 activeGroupKey (用于桌面端切换回来时保持一致) ──
+// ── 同步 activeGroupKey ──
 const syncGroupKey = (viewKey: string) => {
   for (const group of menuLayout.value) {
     if (group.type === 'group' && group.items.includes(viewKey)) {
@@ -106,7 +141,8 @@ const syncGroupKey = (viewKey: string) => {
 }
 
 // ── 面板底部快捷操作 ──
-const handlePanelAction = (action: 'theme' | 'console' | 'settings' | 'logout') => {
+const handlePanelAction = (action: 'theme' | 'console' | 'settings' | 'account' | 'menuManager' | 'logout') => {
+  vibrate()
   showMobileMenu.value = false
   if (action === 'theme') {
     emit('toggleTheme')
@@ -115,14 +151,75 @@ const handlePanelAction = (action: 'theme' | 'console' | 'settings' | 'logout') 
   } else if (action === 'settings') {
     currentViewKey.value = 'SettingsView'
     syncGroupKey('SettingsView')
+  } else if (action === 'account') {
+    currentViewKey.value = 'AccountManagerView'
+    syncGroupKey('AccountManagerView')
+  } else if (action === 'menuManager') {
+    emit('openMenuManager')
   } else if (action === 'logout') {
     logout()
   }
 }
 
-function renderIcon(icon: Component) {
-  return () => h(NIcon, null, { default: () => h(icon) })
+// ── 服务器选择 ──
+const serverOptions = computed(() => {
+  return servers.value.map(s => ({
+    label: s.name,
+    key: s.id
+  }))
+})
+
+const activeServerName = computed(() => {
+  const active = servers.value.find(s => s.id === activeServerId.value)
+  return active ? active.name : '未选择'
+})
+
+const handleServerSelect = async (serverId: string) => {
+  const success = await activateServer(serverId)
+  if (success) {
+    window.location.reload()
+  }
 }
+
+onMounted(() => {
+  fetchServers()
+})
+
+// ── Android 返回键关闭"更多"面板 ──
+// 打开面板时 push 一个 history state,按返回键时 popstate 关闭面板
+let panelPushedState = false
+
+watch(showMobileMenu, (val) => {
+  if (val) {
+    // 打开:push state
+    window.history.pushState({ mobileMenu: true }, '')
+    panelPushedState = true
+  } else if (panelPushedState) {
+    // 通过关闭按钮/选择项关闭:消费 push 的 state
+    panelPushedState = false
+    window.history.back()
+  }
+  // 关闭时清空搜索
+  if (!val) {
+    searchKeyword.value = ''
+  }
+})
+
+const onPopState = (e: PopStateEvent) => {
+  if (showMobileMenu.value) {
+    // 返回键关闭面板
+    panelPushedState = false  // 阻止 watch 再次 history.back()
+    showMobileMenu.value = false
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('popstate', onPopState)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('popstate', onPopState)
+})
 </script>
 
 <template>
@@ -139,6 +236,17 @@ function renderIcon(icon: Component) {
       </n-button>
       <span class="mobile-title">LENS</span>
     </div>
+
+    <div class="mobile-header-center">
+      <!-- 服务器选择器 -->
+      <n-dropdown trigger="click" :options="serverOptions" @select="handleServerSelect">
+        <n-button quaternary size="small" class="server-btn">
+          <n-icon size="16"><EmbyIcon /></n-icon>
+          <span class="server-name">{{ activeServerName }}</span>
+        </n-button>
+      </n-dropdown>
+    </div>
+
     <div class="mobile-header-right">
       <n-button quaternary size="small" class="mobile-icon-btn" @click="emit('toggleTheme')">
         <template #icon>
@@ -160,7 +268,7 @@ function renderIcon(icon: Component) {
             v-for="item in bottomNavItems"
             :key="item.key"
             class="nav-item"
-            :class="{ active: isNavActive(item.key) }"
+            :class="{ active: isNavActive(item.key, item.groupKey) }"
             @click="handleMobileNav(item.key)"
           >
             <n-icon size="26"><component :is="item.icon" /></n-icon>
@@ -179,18 +287,33 @@ function renderIcon(icon: Component) {
   <!-- 全屏功能面板 -->
   <n-drawer v-model:show="showMobileMenu" placement="bottom" :height="'100dvh'" :style="{ '--n-drawer-body-padding': '0' }">
     <div class="full-panel">
-      <!-- 顶部标题栏 -->
+      <!-- 顶部标题栏 + 搜索框 -->
       <div class="full-panel-header">
         <div class="full-panel-title">
           <span>全部功能</span>
         </div>
+        <n-input
+          v-model:value="searchKeyword"
+          placeholder="搜索功能..."
+          clearable
+          size="small"
+          class="full-panel-search"
+        >
+          <template #prefix>
+            <n-icon size="14"><SearchIcon /></n-icon>
+          </template>
+        </n-input>
         <n-button quaternary size="small" class="full-panel-close" @click="showMobileMenu = false">
           <template #icon><n-icon size="24"><ArrowBackIcon /></n-icon></template>
         </n-button>
       </div>
 
-      <!-- 可滚动功能网格(按分组呈现) -->
+      <!-- 可滚动功能网格 -->
       <div class="full-panel-body">
+        <div v-if="panelGroups.length === 0" class="empty-state">
+          <n-icon size="48" opacity="0.3"><SearchIcon /></n-icon>
+          <p>未找到匹配的功能</p>
+        </div>
         <div v-for="group in panelGroups" :key="group.groupKey" class="panel-group">
           <div class="panel-group-title">{{ group.groupLabel }}</div>
           <div class="app-grid-panel">
@@ -213,22 +336,30 @@ function renderIcon(icon: Component) {
       <!-- 底部快捷操作栏 -->
       <div class="full-panel-footer">
         <div class="panel-footer-item" @click="handlePanelAction('theme')">
-          <n-icon size="24" :color="isDark ? 'var(--primary-color)' : 'var(--text-color, #fff)'">
+          <n-icon size="22" :color="isDark ? 'var(--primary-color, #705df2)' : 'var(--text-color, #fff)'">
             <DarkIcon v-if="isDark" />
             <LightIcon v-else />
           </n-icon>
           <span>{{ isDark ? '夜间' : '日间' }}</span>
         </div>
+        <div class="panel-footer-item" @click="handlePanelAction('account')">
+          <n-icon size="22"><ProfileIcon /></n-icon>
+          <span>账号</span>
+        </div>
+        <div class="panel-footer-item" @click="handlePanelAction('menuManager')">
+          <n-icon size="22"><MenuManageIcon /></n-icon>
+          <span>菜单</span>
+        </div>
         <div class="panel-footer-item" @click="handlePanelAction('console')">
-          <n-icon size="24"><ConsoleIcon /></n-icon>
+          <n-icon size="22"><ConsoleIcon /></n-icon>
           <span>日志</span>
         </div>
         <div class="panel-footer-item" @click="handlePanelAction('settings')">
-          <n-icon size="24"><SettingIcon /></n-icon>
+          <n-icon size="22"><SettingIcon /></n-icon>
           <span>设置</span>
         </div>
         <div class="panel-footer-item" @click="handlePanelAction('logout')">
-          <n-icon size="24" color="var(--color-error, #EF4444)"><LogoutIcon /></n-icon>
+          <n-icon size="22" color="var(--color-error, #EF4444)"><LogoutIcon /></n-icon>
           <span>退出</span>
         </div>
       </div>
@@ -249,18 +380,30 @@ function renderIcon(icon: Component) {
   position: sticky;
   top: 0;
   z-index: 100;
+  gap: 8px;
 }
 
 .mobile-header-left {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.mobile-header-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .mobile-header-right {
   display: flex;
   align-items: center;
   gap: 4px;
+  flex-shrink: 0;
 }
 
 .mobile-icon-btn {
@@ -272,6 +415,20 @@ function renderIcon(icon: Component) {
   font-weight: 900;
   letter-spacing: 1px;
   color: var(--primary-color, #705df2);
+  white-space: nowrap;
+}
+
+.server-btn {
+  max-width: 100%;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.server-btn .server-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 30vw;
 }
 
 /* ============ 浮动底部 Tab 导航 (胶囊式) ============ */
@@ -368,7 +525,7 @@ function renderIcon(icon: Component) {
 .full-panel-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 12px;
   padding: 12px 16px;
   padding-top: max(12px, env(safe-area-inset-top, 0px));
   border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.06));
@@ -379,12 +536,16 @@ function renderIcon(icon: Component) {
 }
 
 .full-panel-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
   font-size: 1.125rem;
   font-weight: 700;
   color: var(--text-color, #fff);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.full-panel-search {
+  flex: 1;
+  min-width: 0;
 }
 
 .full-panel-body {
@@ -395,7 +556,27 @@ function renderIcon(icon: Component) {
   padding: 16px;
 }
 
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 60px 20px;
+  color: var(--text-color, #fff);
+  opacity: 0.5;
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
 .full-panel-footer {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 8px 0 max(8px, env(safe-area-inset-bottom, 0px)) 0;
   flex-shrink: 0;
   border-top: 1px solid var(--border-color, rgba(255, 255, 255, 0.06));
   background: color-mix(in srgb, var(--sidebar-bg-color, #1a1a1f) 90%, transparent);
@@ -491,25 +672,20 @@ function renderIcon(icon: Component) {
 }
 
 /* ============ 面板底部快捷操作 ============ */
-.full-panel-footer {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  padding: 8px 0 max(8px, env(safe-area-inset-bottom, 0px)) 0;
-}
-
 .panel-footer-item {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 4px;
   cursor: pointer;
-  padding: 6px 10px;
+  padding: 6px 8px;
   border-radius: 8px;
   transition: all 0.25s ease;
   color: var(--text-color, #fff);
   opacity: 0.7;
   -webkit-tap-highlight-color: transparent;
+  flex: 1;
+  min-width: 0;
 }
 
 .panel-footer-item:active {
@@ -519,6 +695,7 @@ function renderIcon(icon: Component) {
 
 .panel-footer-item span {
   font-size: 10px;
+  white-space: nowrap;
 }
 
 /* ============ 滑入动画 ============ */

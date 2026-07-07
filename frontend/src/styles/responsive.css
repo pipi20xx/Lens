@@ -377,9 +377,10 @@
 /* ============================================
    13. Modal 移动端全屏适配
    让 NModal 在小屏上全屏展示
+   覆盖 preset="card" 和 preset="dialog" 两种类型
    ============================================ */
 @media (max-width: 768px) {
-  /* —— 全屏 flex 布局 —— */
+  /* —— 全屏 flex 布局 (card 类型) —— */
   .n-modal-container .n-modal.n-card {
     display: flex !important;
     flex-direction: column !important;
@@ -393,17 +394,39 @@
     border-radius: 0 !important;
   }
 
-  /* —— 固定头部 —— */
+  /* —— 全屏 flex 布局 (dialog 类型) —— */
+  .n-modal-container .n-modal.n-dialog {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    max-height: 100vh !important;
+    max-height: 100dvh !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  /* —— 固定头部 (card 类型) —— */
   .n-modal-container .n-modal.n-card > .n-card-header {
     flex-shrink: 0 !important;
     padding: 12px 16px !important;
+    padding-top: max(12px, env(safe-area-inset-top, 0px)) !important;
   }
   .n-modal-container .n-modal.n-card > .n-card-header .n-card-header__main {
     font-size: 1rem !important;
     font-weight: 600 !important;
   }
 
-  /* —— 可滚动内容区 —— */
+  /* —— 固定头部 (dialog 类型) —— */
+  .n-modal-container .n-modal.n-dialog > .n-dialog__title {
+    flex-shrink: 0 !important;
+    padding: 12px 16px !important;
+    padding-top: max(12px, env(safe-area-inset-top, 0px)) !important;
+  }
+
+  /* —— 可滚动内容区 (card 类型) —— */
   .n-modal-container .n-modal.n-card > .n-card__content {
     flex: 1 !important;
     min-height: 0;
@@ -413,7 +436,17 @@
     padding: 16px !important;
   }
 
-  /* —— 固定底部 (action / footer 槽) —— */
+  /* —— 可滚动内容区 (dialog 类型) —— */
+  .n-modal-container .n-modal.n-dialog > .n-dialog__content {
+    flex: 1 !important;
+    min-height: 0;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    padding: 16px !important;
+  }
+
+  /* —— 固定底部 (card 类型: action / footer 槽) —— */
   .n-modal-container .n-modal.n-card > .n-card__action,
   .n-modal-container .n-modal.n-card > .n-card__footer {
     flex-shrink: 0 !important;
@@ -426,23 +459,35 @@
     width: 100% !important;
   }
 
+  /* —— 固定底部 (dialog 类型) —— */
+  .n-modal-container .n-modal.n-dialog > .n-dialog__action {
+    flex-shrink: 0 !important;
+    padding: 12px 16px !important;
+    padding-bottom: max(12px, env(safe-area-inset-bottom, 0px)) !important;
+  }
+
   /* —— Modal 内表单项一行一个 —— */
-  .n-modal-container .n-modal.n-card .n-grid {
+  .n-modal-container .n-modal.n-card .n-grid,
+  .n-modal-container .n-modal.n-dialog .n-grid {
     display: flex !important;
     flex-direction: column !important;
     gap: 12px !important;
   }
-  .n-modal-container .n-modal.n-card .n-grid > .n-gi {
+  .n-modal-container .n-modal.n-card .n-grid > .n-gi,
+  .n-modal-container .n-modal.n-dialog .n-grid > .n-gi {
     width: 100% !important;
     grid-column: auto !important;
   }
-  .n-modal-container .n-modal.n-card .n-form-item {
+  .n-modal-container .n-modal.n-card .n-form-item,
+  .n-modal-container .n-modal.n-dialog .n-form-item {
     width: 100% !important;
   }
-  .n-modal-container .n-modal.n-card .n-space--vertical {
+  .n-modal-container .n-modal.n-card .n-space--vertical,
+  .n-modal-container .n-modal.n-dialog .n-space--vertical {
     width: 100% !important;
   }
-  .n-modal-container .n-modal.n-card .n-space--vertical > * {
+  .n-modal-container .n-modal.n-card .n-space--vertical > *,
+  .n-modal-container .n-modal.n-dialog .n-space--vertical > * {
     width: 100% !important;
   }
 
@@ -450,15 +495,54 @@
   .n-modal-container .n-modal.n-card .filter-bar,
   .n-modal-container .n-modal.n-card .action-bar,
   .n-modal-container .n-modal.n-card .header-section,
-  .n-modal-container .n-modal.n-card .main-layout {
+  .n-modal-container .n-modal.n-card .main-layout,
+  .n-modal-container .n-modal.n-dialog .filter-bar,
+  .n-modal-container .n-modal.n-dialog .action-bar,
+  .n-modal-container .n-modal.n-dialog .header-section,
+  .n-modal-container .n-modal.n-dialog .main-layout {
     flex-direction: column !important;
     gap: 12px !important;
   }
 
   /* —— Modal 内表单 label-width 过宽时缩减 —— */
-  .n-modal-container .n-modal.n-card .n-form-item .n-form-item-label {
+  .n-modal-container .n-modal.n-card .n-form-item .n-form-item-label,
+  .n-modal-container .n-modal.n-dialog .n-form-item .n-form-item-label {
     width: auto !important;
     min-width: 80px !important;
+  }
+
+  /* —— Modal 内 NScrollbar 占满剩余高度并滚动 —— */
+  .n-modal-container .n-modal.n-card .n-scrollbar,
+  .n-modal-container .n-modal.n-dialog .n-scrollbar {
+    flex: 1 !important;
+    min-height: 0 !important;
+  }
+
+  /* —— Modal 内常见自定义内容容器:占满剩余空间 —— */
+  .n-modal-container .n-modal.n-card .modal-body,
+  .n-modal-container .n-modal.n-card .modal-content,
+  .n-modal-container .n-modal.n-card .content-wrapper,
+  .n-modal-container .n-modal.n-card .scroll-content,
+  .n-modal-container .n-modal.n-dialog .modal-body,
+  .n-modal-container .n-modal.n-dialog .modal-content,
+  .n-modal-container .n-modal.n-dialog .content-wrapper,
+  .n-modal-container .n-modal.n-dialog .scroll-content {
+    flex: 1 !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* —— Modal 内 NLayout 占满剩余空间 (防止嵌套布局溢出) —— */
+  .n-modal-container .n-modal.n-card .n-layout,
+  .n-modal-container .n-modal.n-dialog .n-layout {
+    flex: 1 !important;
+    min-height: 0 !important;
+  }
+  .n-modal-container .n-modal.n-card .n-layout-content,
+  .n-modal-container .n-modal.n-dialog .n-layout-content {
+    flex: 1 !important;
+    min-height: 0 !important;
   }
 }
 
@@ -531,3 +615,36 @@
     display: none !important;
   }
 }
+
+/* ============================================
+   17. 移动端页面切换动画
+   ============================================ */
+@media (max-width: 767px) {
+  /* view-wrapper: 内容区容器,加 transition 让切换平滑 */
+  .view-wrapper,
+  .n-layout-content > div {
+    animation: view-fade-in 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+@keyframes view-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 按钮按下触觉反馈类 (可选使用) */
+.touch-feedback {
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.1s ease;
+}
+
+.touch-feedback:active {
+  transform: scale(0.96);
+}
+

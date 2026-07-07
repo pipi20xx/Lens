@@ -307,6 +307,7 @@ const currentView = computed(() => {
             :appMode="appMode"
             @toggleTheme="toggleTheme"
             @goBack="goBack"
+            @openMenuManager="showMenuManager = true"
           />
 
           <!-- 内容区域 -->
