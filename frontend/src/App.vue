@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { 
-  NConfigProvider, 
-  NDialogProvider, 
-  NMessageProvider, 
-  NLayout, 
-  NLayoutContent, 
+import {
+  NConfigProvider,
+  NDialogProvider,
+  NMessageProvider,
+  NLayout,
+  NLayoutContent,
   NLayoutHeader,
   NGlobalStyle,
   NModal,
@@ -22,12 +22,13 @@ import {
 import AppLogo from './components/AppLogo.vue'
 import LogConsole from './components/LogConsole.vue'
 import MenuManagerModal from './components/MenuManagerModal.vue'
+import MobileNav from './components/MobileNav.vue'
 import LoginView from './views/Login.vue'
-import { 
-  currentViewKey, 
+import {
+  currentViewKey,
   activeGroupKey,
-  isLogConsoleOpen, 
-  isLoggedIn, 
+  isLogConsoleOpen,
+  isLoggedIn,
   isHomeEntry,
   menuLayout,
   username,
@@ -38,9 +39,10 @@ import {
 } from './store/navigationStore'
 
 import { useTheme } from './hooks/useTheme'
+import { usePWA } from './composables/usePWA'
 import { viewMap } from './config/views'
 import { allMenuItems, SettingIcon, ConsoleIcon } from './config/menu'
-import { 
+import {
   ExitToAppOutlined as LogoutIcon,
   DnsOutlined as ServerIcon,
   DragHandleOutlined as MenuManageIcon,
@@ -57,6 +59,18 @@ import { watch, computed, onMounted, ref, h } from 'vue'
 const { isDark, naiveTheme, themeOverrides, toggleTheme } = useTheme()
 const router = useRouter()
 const showMenuManager = ref(false)
+
+// --- PWA / 移动端检测 ---
+const { isMobile, appMode } = usePWA()
+
+/** 返回上一页 (PWA App 模式的返回按钮) */
+function goBack() {
+  if (window.history.length > 1) {
+    window.history.back()
+  } else {
+    currentViewKey.value = 'DashboardView'
+  }
+}
 
 // --- UI Layout State ---
 const shouldHideNav = computed(() => {
@@ -188,15 +202,16 @@ const currentView = computed(() => {
           :native-scrollbar="false"
         >
           
-          <!-- 头部导航区域 - 包含一级和二级 -->
+          <!-- 头部导航区域 - 包含一级和二级 (仅桌面端) -->
           <div
+            v-if="!isMobile"
             class="navigation-wrapper"
             :class="{ 'sticky-nav': isHeaderSticky && !shouldHideNav }"
           >
             <!-- 第一级：主顶部导航栏 -->
-            <n-layout-header 
-              bordered 
-              class="app-header" 
+            <n-layout-header
+              bordered
+              class="app-header"
               v-if="!shouldHideNav"
             >
               <div class="header-content">
@@ -205,18 +220,18 @@ const currentView = computed(() => {
                     <app-logo :size="28" :isDark="isDark" />
                     <span class="header-title">LENS</span>
                   </div>
-                  
+
                   <n-dropdown v-if="isLoggedIn" trigger="click" :options="serverOptions" @select="handleServerSelect">
                     <n-button quaternary size="small" class="server-btn">
                       {{ activeServerName }}
                     </n-button>
                   </n-dropdown>
                 </div>
-                
+
                 <div class="header-center">
                   <n-space :size="4" v-if="isLoggedIn">
-                    <n-button 
-                      v-for="group in visibleGroups" 
+                    <n-button
+                      v-for="group in visibleGroups"
                       :key="group.key"
                       quaternary
                       :type="activeGroupKey === group.key ? 'primary' : 'default'"
@@ -239,16 +254,16 @@ const currentView = computed(() => {
                           </n-icon>
                         </template>
                       </n-button>
-                      
+
                       <n-button circle quaternary size="small" @click="isLogConsoleOpen = true">
                         <template #icon><n-icon><ConsoleIcon /></n-icon></template>
                       </n-button>
 
                       <n-dropdown trigger="click" :options="userDropdownOptions" @select="handleUserSelect">
                         <div class="user-info">
-                          <n-avatar 
-                            round 
-                            size="small" 
+                          <n-avatar
+                            round
+                            size="small"
                             :style="{ backgroundColor: 'var(--primary-color)' }"
                           >
                             <n-icon><UserIcon /></n-icon>
@@ -265,14 +280,14 @@ const currentView = computed(() => {
             </n-layout-header>
 
             <!-- 第二级：副导航栏 (子功能 Tab) -->
-            <div 
-              v-if="isLoggedIn && !shouldHideNav && currentSubMenuItems.length > 0" 
+            <div
+              v-if="isLoggedIn && !shouldHideNav && currentSubMenuItems.length > 0"
               class="sub-header"
             >
               <n-scrollbar x-scrollable content-style="padding: 0 16px;">
                 <div class="sub-nav-tabs">
-                  <div 
-                    v-for="item in currentSubMenuItems" 
+                  <div
+                    v-for="item in currentSubMenuItems"
                     :key="item.key"
                     class="sub-nav-item"
                     :class="{ 'active': currentViewKey === item.key }"
@@ -285,10 +300,20 @@ const currentView = computed(() => {
             </div>
           </div>
 
+          <!-- 移动端导航 (底部 Tab + 更多面板) -->
+          <MobileNav
+            v-if="isMobile && isLoggedIn && !shouldHideNav"
+            :isDark="isDark"
+            :appMode="appMode"
+            @toggleTheme="toggleTheme"
+            @goBack="goBack"
+          />
+
           <!-- 内容区域 -->
-          <n-layout-content 
+          <n-layout-content
             :content-style="{
-              padding: shouldHideNav ? '0' : 'var(--space-md)',
+              padding: shouldHideNav ? '0' : (isMobile ? '0' : 'var(--space-md)'),
+              paddingBottom: isMobile && isLoggedIn && !shouldHideNav ? '90px' : (shouldHideNav ? '0' : 'var(--space-md)'),
               minHeight: '100%',
               display: 'flex',
               flexDirection: 'column',

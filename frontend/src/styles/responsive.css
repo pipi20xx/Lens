@@ -1,0 +1,533 @@
+/**
+ * Lens 响应式设计系统
+ * 统一 Desktop / Mobile 布局,消除 useIsMobile 分支
+ *
+ * 断点:
+ *   xs: < 480px    (手机竖屏)
+ *   sm: 480-767px  (手机横屏/小平板)
+ *   md: 768-1023px (平板)
+ *   lg: 1024-1439px (小桌面)
+ *   xl: >= 1440px   (大桌面)
+ *
+ * 设计参考: 123123 项目 (番剧管家)
+ * 适配 Lens 现有变量命名 (--space-xs/sm/md/lg/xl)
+ */
+
+/* ============================================
+   1. 响应式间距变量 (跟随断点变化)
+   ============================================ */
+:root {
+  --rsp-page-padding: var(--space-md);
+  --rsp-card-padding: var(--space-md);
+  --rsp-grid-gap: var(--space-sm);
+  --rsp-section-gap: var(--space-md);
+}
+
+@media (min-width: 768px) {
+  :root {
+    --rsp-page-padding: var(--space-lg);
+    --rsp-card-padding: var(--space-lg);
+    --rsp-grid-gap: var(--space-md);
+    --rsp-section-gap: var(--space-lg);
+  }
+}
+
+@media (min-width: 1440px) {
+  :root {
+    --rsp-page-padding: var(--space-xl);
+    --rsp-section-gap: var(--space-xl);
+  }
+}
+
+/* ============================================
+   2. 统一页面容器
+   ============================================ */
+.app-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: var(--rsp-page-padding);
+  padding-bottom: max(var(--rsp-page-padding), env(safe-area-inset-bottom, 0px));
+  box-sizing: border-box;
+  width: 100%;
+}
+
+/* 移动端预留底部导航/安全区空间 */
+@media (max-width: 767px) {
+  .app-page {
+    padding-bottom: max(80px, env(safe-area-inset-bottom, 80px));
+  }
+}
+
+.app-page--full-bleed {
+  padding: 0;
+}
+
+/* ============================================
+   3. 统一页面头部 (替代 desktop/mobile 分支)
+   ============================================ */
+.app-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  margin-bottom: var(--rsp-section-gap);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.app-page-header__left {
+  min-width: 0;
+}
+
+.app-page-header h1 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 0;
+  line-height: 1.2;
+  color: var(--text-color, #fff);
+}
+
+.app-page-header .subtitle {
+  font-size: 0.875rem;
+  color: var(--text-color, #fff);
+  opacity: 0.7;
+  margin-top: 2px;
+}
+
+.app-page-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 767px) {
+  .app-page-header h1 {
+    font-size: 1.25rem;
+  }
+  .app-page-header {
+    margin-bottom: var(--space-md);
+  }
+}
+
+/* ============================================
+   4. 响应式网格 (替代 NGrid 硬编码 cols)
+   ============================================ */
+.app-grid {
+  display: grid;
+  gap: var(--rsp-grid-gap);
+}
+
+/* 默认 1 列 (移动端) */
+.app-grid--auto,
+.app-grid--2,
+.app-grid--3,
+.app-grid--4 {
+  grid-template-columns: 1fr;
+}
+
+/* 平板: 2 列 */
+@media (min-width: 768px) {
+  .app-grid--auto,
+  .app-grid--2,
+  .app-grid--3,
+  .app-grid--4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* 桌面 */
+@media (min-width: 1024px) {
+  .app-grid--auto { grid-template-columns: repeat(3, 1fr); }
+  .app-grid--2 { grid-template-columns: repeat(2, 1fr); }
+  .app-grid--3 { grid-template-columns: repeat(3, 1fr); }
+  .app-grid--4 { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* 大桌面 */
+@media (min-width: 1440px) {
+  .app-grid--auto { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* ============================================
+   5. 响应式分栏布局 (主内容 + 侧栏)
+   ============================================ */
+.app-split-layout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rsp-grid-gap);
+}
+
+@media (min-width: 1024px) {
+  .app-split-layout {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+  .app-split-layout__main {
+    flex: 3;
+    min-width: 0;
+  }
+  .app-split-layout__side {
+    flex: 1;
+    min-width: 280px;
+    max-width: 400px;
+  }
+}
+
+/* ============================================
+   6. 统一卡片列表
+   ============================================ */
+.app-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rsp-grid-gap);
+}
+
+/* ============================================
+   7. 响应式表单网格
+   ============================================ */
+.app-form-grid {
+  display: grid;
+  gap: var(--space-sm);
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .app-form-grid--2 { grid-template-columns: repeat(2, 1fr); }
+  .app-form-grid--3 { grid-template-columns: repeat(3, 1fr); }
+  .app-form-grid--4 { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* ============================================
+   8. 统一 section 间距
+   ============================================ */
+.app-section {
+  margin-bottom: var(--rsp-section-gap);
+}
+
+.app-section:last-child {
+  margin-bottom: 0;
+}
+
+/* ============================================
+   9. 响应式卡片触摸反馈
+   统一桌面 hover 和移动端 active 效果
+   ============================================ */
+.app-clickable {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.1s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.app-clickable:hover {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+.app-clickable:active {
+  transform: scale(0.98);
+}
+
+/* ============================================
+   10. 统一 section header
+   ============================================ */
+.app-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.app-section-header__title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-color, #fff);
+}
+
+.app-section-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+}
+
+/* ============================================
+   11. 响应式 Tab 内容区
+   ============================================ */
+.app-tab-content {
+  padding: var(--rsp-card-padding);
+}
+
+/* ============================================
+   12. Desktop 组件移动端全局适配
+   让 Desktop 组件在小屏上自动适配,无需修改 Desktop 源码
+   ============================================ */
+@media (max-width: 767px) {
+  /* —— 页面头部:堆叠为纵向 —— */
+  .page-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: var(--space-xs) !important;
+  }
+
+  .page-header .n-h2 {
+    font-size: 1.25rem !important;
+  }
+
+  /* —— 工具栏行:换行 —— */
+  .toolbar-row {
+    flex-wrap: wrap !important;
+    gap: var(--space-xs) !important;
+  }
+
+  /* —— 页面级 NGrid:强制单列 ——
+     使用 minmax(0, 1fr) 而非 1fr,防止卡片内容
+     (如长标题 white-space:nowrap) 撑宽网格轨道导致溢出 */
+  .n-grid:not(.n-modal-container .n-grid) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .n-grid > .n-gi {
+    grid-column: auto !important;
+  }
+
+  /* —— NDataTable:水平滚动 —— */
+  .n-data-table {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  .n-data-table .n-data-table-wrapper {
+    overflow-x: auto !important;
+  }
+
+  /* —— 水平 NSpace:自动换行 —— */
+  .n-space:not(.n-space--vertical) {
+    flex-wrap: wrap !important;
+  }
+
+  /* —— 固定宽度元素:变为全宽 —— */
+  .n-input[style*="width"],
+  .n-select[style*="width"],
+  .n-date-picker[style*="width"],
+  .n-input-number[style*="width"],
+  .n-tabs[style*="width"] {
+    width: 100% !important;
+  }
+
+  /* —— NCard 内边距缩减 —— */
+  .n-card .n-card__content {
+    padding: var(--space-sm) !important;
+  }
+
+  /* —— 隐藏桌面端 hover 专属元素 —— */
+  .desktop-only {
+    display: none !important;
+  }
+
+  /* —— Markdown 表格:水平滚动兜底 —— */
+  .markdown-body table,
+  .n-code table {
+    display: block !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* —— 搜索栏:换行 —— */
+  .search-bar {
+    flex-wrap: wrap !important;
+  }
+
+  /* —— 信息网格:换行 —— */
+  .info-grid {
+    flex-wrap: wrap !important;
+    gap: 8px 12px !important;
+  }
+
+  /* —— 标题行:缩小字号 —— */
+  .title {
+    font-size: 1.25rem !important;
+  }
+
+  /* —— 开关行:说明文字换行到下一行 —— */
+  .switch-row {
+    flex-wrap: wrap !important;
+  }
+  .switch-row__desc {
+    width: 100% !important;
+    white-space: normal !important;
+    line-height: 1.4 !important;
+    margin-top: 2px !important;
+  }
+  .switch-desc {
+    width: 100% !important;
+    white-space: normal !important;
+    line-height: 1.4 !important;
+  }
+
+  /* —— 详情标签换行 —— */
+  .detail-group {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+}
+
+/* ============================================
+   13. Modal 移动端全屏适配
+   让 NModal 在小屏上全屏展示
+   ============================================ */
+@media (max-width: 768px) {
+  /* —— 全屏 flex 布局 —— */
+  .n-modal-container .n-modal.n-card {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    max-height: 100vh !important;
+    max-height: 100dvh !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  /* —— 固定头部 —— */
+  .n-modal-container .n-modal.n-card > .n-card-header {
+    flex-shrink: 0 !important;
+    padding: 12px 16px !important;
+  }
+  .n-modal-container .n-modal.n-card > .n-card-header .n-card-header__main {
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+  }
+
+  /* —— 可滚动内容区 —— */
+  .n-modal-container .n-modal.n-card > .n-card__content {
+    flex: 1 !important;
+    min-height: 0;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    padding: 16px !important;
+  }
+
+  /* —— 固定底部 (action / footer 槽) —— */
+  .n-modal-container .n-modal.n-card > .n-card__action,
+  .n-modal-container .n-modal.n-card > .n-card__footer {
+    flex-shrink: 0 !important;
+    padding: 12px 16px !important;
+    padding-bottom: max(12px, env(safe-area-inset-bottom, 0px)) !important;
+  }
+  /* 底部按钮区全宽 */
+  .n-modal-container .n-modal.n-card > .n-card__action .n-space,
+  .n-modal-container .n-modal.n-card > .n-card__footer .n-space {
+    width: 100% !important;
+  }
+
+  /* —— Modal 内表单项一行一个 —— */
+  .n-modal-container .n-modal.n-card .n-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+  .n-modal-container .n-modal.n-card .n-grid > .n-gi {
+    width: 100% !important;
+    grid-column: auto !important;
+  }
+  .n-modal-container .n-modal.n-card .n-form-item {
+    width: 100% !important;
+  }
+  .n-modal-container .n-modal.n-card .n-space--vertical {
+    width: 100% !important;
+  }
+  .n-modal-container .n-modal.n-card .n-space--vertical > * {
+    width: 100% !important;
+  }
+
+  /* —— Modal 内常见 flex 布局:纵向堆叠 —— */
+  .n-modal-container .n-modal.n-card .filter-bar,
+  .n-modal-container .n-modal.n-card .action-bar,
+  .n-modal-container .n-modal.n-card .header-section,
+  .n-modal-container .n-modal.n-card .main-layout {
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+
+  /* —— Modal 内表单 label-width 过宽时缩减 —— */
+  .n-modal-container .n-modal.n-card .n-form-item .n-form-item-label {
+    width: auto !important;
+    min-width: 80px !important;
+  }
+}
+
+/* ============================================
+   14. 安全区适配 (刘海屏 / 底部横条)
+   ============================================ */
+
+/* 顶部安全区 padding (用于固定头部) */
+.safe-area-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* 底部安全区 padding (用于固定底部栏) */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* 同时适用上下安全区 */
+.safe-area-inset {
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
+/* ============================================
+   15. 文本截断工具类
+   ============================================ */
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.text-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.text-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* CJK 文字正常换行,防止溢出 */
+.text-break {
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
+}
+
+/* ============================================
+   16. 移动端隐藏/显示控制
+   ============================================ */
+.mobile-only {
+  display: none !important;
+}
+
+@media (max-width: 767px) {
+  .mobile-only {
+    display: block !important;
+  }
+  .desktop-only {
+    display: none !important;
+  }
+}

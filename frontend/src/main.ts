@@ -6,6 +6,7 @@ import axios from 'axios'
 import { logout, uiAuthEnabled } from './store/navigationStore'
 import './style.css'
 import './styles/global.css'
+import './styles/responsive.css'
 
 axios.defaults.timeout = 20000 // 20秒超时
 

@@ -6,7 +6,17 @@
     <link rel="alternate icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/pwa-192x192.png" />
     <link rel="mask-icon" href="/favicon.svg" color="#705df2" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- PWA / 移动端 Meta 标签 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+
+    <!-- iOS Safari PWA 支持 -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Lens" />
+
+    <!-- 主题色 (浏览器地址栏 / PWA 启动屏) -->
     <meta name="theme-color" content="#705df2" />
     <meta name="description" content="Lens - 一个强大的导航和管理工具" />
     <title>Lens</title>
