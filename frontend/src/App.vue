@@ -23,6 +23,7 @@ import AppLogo from './components/AppLogo.vue'
 import LogConsole from './components/LogConsole.vue'
 import MenuManagerModal from './components/MenuManagerModal.vue'
 import MobileNav from './components/MobileNav.vue'
+import ReloadPrompt from './components/ReloadPrompt.vue'
 import LoginView from './views/Login.vue'
 import {
   currentViewKey,
@@ -336,6 +337,7 @@ const currentView = computed(() => {
           </n-layout-content>
         </n-layout>
 
+        <ReloadPrompt />
         <MenuManagerModal v-model:show="showMenuManager" />
         
         <n-modal v-model:show="isLogConsoleOpen" transform-origin="center">

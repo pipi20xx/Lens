@@ -39,39 +39,43 @@ export default defineConfig({
     }),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'masked-icon.svg'],
-      manifest: {
-        name: 'Lens',
-        short_name: 'Lens',
-        description: 'Lens - 一个强大的导航和管理工具',
-        theme_color: '#705df2',
-        background_color: '#ffffff',
-        display: 'standalone',
-        scope: '/',
-        start_url: '/',
-        icons: [
-          {
-            src: '/pwa-192x192.png',
-            sizes: '192x192',
-            type: 'image/png'
-          },
-          {
-            src: '/pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png'
-          },
-          {
-            src: '/pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'any maskable'
-          }
-        ]
-      },
+      injectRegister: 'auto',
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,ico}'],
+        maximumFileSizeToCacheInBytes: 3000000,
+        // 预缓存所有静态资源
+        globPatterns: ['**/*.{js,css,html,svg,png,ico,woff,woff2,ttf}'],
+        // SPA 路由离线回退到 index.html
+        navigateFallback: 'index.html',
+        navigateFallbackDenylist: [/^\/api\//],
+        // 运行时缓存策略
         runtimeCaching: [
           {
+            // API 请求: 网络优先, 超时回退缓存
+            urlPattern: /\/api\//,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'api-cache',
+              networkTimeoutSeconds: 10,
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24, // 24小时
+              },
+            },
+          },
+          {
+            // 图片资源: 缓存优先, 缓存过期后更新
+            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'image-cache',
+              expiration: {
+                maxEntries: 200,
+                maxAgeSeconds: 60 * 60 * 24 * 30, // 30天
+              },
+            },
+          },
+          {
+            // Google Fonts
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
             handler: 'CacheFirst',
             options: {
@@ -98,6 +102,44 @@ export default defineConfig({
                 statuses: [0, 200]
               }
             }
+          }
+        ],
+      },
+      manifest: {
+        name: 'Lens',
+        short_name: 'Lens',
+        description: 'Lens - 一个强大的导航和管理工具',
+        theme_color: '#705df2',
+        background_color: '#705df2',
+        display: 'standalone',
+        orientation: 'portrait',
+        start_url: '/',
+        scope: '/',
+        lang: 'zh-CN',
+        icons: [
+          {
+            src: '/pwa-192x192.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'any',
+          },
+          {
+            src: '/pwa-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any',
+          },
+          {
+            src: '/pwa-maskable-192x192.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'maskable',
+          },
+          {
+            src: '/pwa-maskable-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable',
           }
         ]
       }
