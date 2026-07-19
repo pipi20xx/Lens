@@ -448,6 +448,13 @@ const openUrl = (url: string) => window.open(url, '_blank')
   position: relative; 
   min-height: 100vh; 
   padding: 8px; 
+  /* 覆盖全局主题变量，使站点导航页不受白天/夜晚模式影响
+     本页面有独立的外观设置系统，主题变量固定为适配自定义背景的中性值 */
+  --text-color: #ffffff;
+  --card-bg-color: rgba(255, 255, 255, 0.08);
+  --border-color: rgba(255, 255, 255, 0.15);
+  --hover-bg: rgba(255, 255, 255, 0.1);
+  --app-bg-color: transparent;
 }
 
 /* 背景底层：实色 */

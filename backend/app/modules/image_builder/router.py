@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Body
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
+from datetime import datetime, timezone
 from app.db.session import get_db
 from . import schemas, models, service
 
@@ -128,7 +129,19 @@ async def build_project(project_id: str, req: schemas.BuildRequest, db: AsyncSes
 
 @router.get("/projects/{project_id}/tasks", response_model=List[schemas.TaskLog])
 async def get_task_logs(project_id: str, db: AsyncSession = Depends(get_db)):
-    return await Service.get_task_logs(db, project_id)
+    logs = await Service.get_task_logs(db, project_id)
+    # SQLite 的 func.now()/CURRENT_TIMESTAMP 始终返回 UTC 时间（无时区标记），
+    # SQLAlchemy 读取后得到 naive datetime，Pydantic 序列化为无时区标记的 ISO 字符串，
+    # 前端 JS new Date() 会将其当作浏览器本地时间解析，导致时区错误。
+    # 修复：将 naive UTC datetime 标记为 UTC，再转换为容器本地时区（由 TZ 环境变量决定），
+    # 使 API 返回带时区标记的时间字符串（如 "2026-07-19T17:05:50+08:00"）。
+    local_tz = datetime.now().astimezone().tzinfo
+    for log in logs:
+        if log.created_at and log.created_at.tzinfo is None:
+            log.created_at = log.created_at.replace(tzinfo=timezone.utc).astimezone(local_tz)
+        if log.completed_at and log.completed_at.tzinfo is None:
+            log.completed_at = log.completed_at.replace(tzinfo=timezone.utc).astimezone(local_tz)
+    return logs
 
 @router.get("/tasks/{task_id}/log")
 async def get_task_log_content(task_id: str):
