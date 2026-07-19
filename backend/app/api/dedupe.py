@@ -199,21 +199,13 @@ async def list_duplicates(db: AsyncSession = Depends(get_db)):
         res.append({"id": item.id, "name": item.name, "item_type": item.item_type, "path": item.path, "display_title": item.display_title, "video_codec": item.video_codec, "video_range": item.video_range, "tmdb_id": item.tmdb_id, "raw_data": item.raw_data, "is_duplicate": True})
     return res
 
-@router.post("/smart-select")
-async def smart_select_v4(db: AsyncSession = Depends(get_db)):
-    """智能分析评分引擎 (V4): 深度层级分析与空壳清理"""
-    start_time = time.time()
-    active_server_id = get_config().get("active_server_id")
-    config = get_config()
-    rule_data = config.get("dedupe_rules")
-    exclude_paths = config.get("exclude_paths", [])
+def _smart_analysis_core(all_items, rule_data, exclude_paths, active_server_id, start_time):
+    """智能分析核心计算（CPU 密集型）。
+    
+    通过 asyncio.to_thread 在线程池中执行，避免阻塞 FastAPI 事件循环。
+    本函数仅访问已加载到内存的 ORM 对象属性，不触发任何 DB 操作，可安全在子线程运行。
+    """
     scorer = Scorer(rule_data)
-    
-    logger.info(f"🧪 [智能分析] 评分引擎启动 (Server: {active_server_id})...")
-    
-    # 加载全量媒体，包含 Season 用于层级分析
-    all_items_res = await db.execute(select(MediaItem).where(MediaItem.server_id == active_server_id, MediaItem.item_type.in_(["Movie", "Series", "Season", "Episode"])))
-    all_items = all_items_res.scalars().all()
     item_by_id = {i.id: i for i in all_items}
     
     # 1. 构建层级溯源索引 (找出每个 Episode 最终属于哪个 Series)
@@ -390,6 +382,33 @@ async def smart_select_v4(db: AsyncSession = Depends(get_db)):
         f"分析保护(集): {protected_ep_count}",
         f"分析保护(剧): {protected_series_count}"
     ])
+    
+    return to_delete_ids, {
+        "duplicate_group_count": duplicate_group_count,
+        "protected_ep_count": protected_ep_count,
+        "protected_series_count": protected_series_count,
+    }
+
+
+@router.post("/smart-select")
+async def smart_select_v4(db: AsyncSession = Depends(get_db)):
+    """智能分析评分引擎 (V4): 深度层级分析与空壳清理"""
+    start_time = time.time()
+    active_server_id = get_config().get("active_server_id")
+    config = get_config()
+    rule_data = config.get("dedupe_rules")
+    exclude_paths = config.get("exclude_paths", [])
+    
+    logger.info(f"🧪 [智能分析] 评分引擎启动 (Server: {active_server_id})...")
+    
+    # 加载全量媒体，包含 Season 用于层级分析
+    all_items_res = await db.execute(select(MediaItem).where(MediaItem.server_id == active_server_id, MediaItem.item_type.in_(["Movie", "Series", "Season", "Episode"])))
+    all_items = all_items_res.scalars().all()
+    
+    # 将 CPU 密集型分析逻辑放入线程池执行，避免阻塞 FastAPI 事件循环（不阻塞其它请求）
+    to_delete_ids, _stats = await asyncio.to_thread(
+        _smart_analysis_core, all_items, rule_data, exclude_paths, active_server_id, start_time
+    )
     
     if not to_delete_ids: return []
     final_res = await db.execute(select(MediaItem).where(MediaItem.server_id == active_server_id, MediaItem.id.in_(to_delete_ids)))

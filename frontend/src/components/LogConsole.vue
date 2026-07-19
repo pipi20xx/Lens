@@ -225,7 +225,7 @@ onUnmounted(() => {
 
 .console-header {
   padding: 10px 16px;
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: transparent;
   border-bottom: 1px solid var(--border-color);
   display: flex;
   justify-content: space-between;
@@ -255,7 +255,7 @@ onUnmounted(() => {
 
 .console-body {
   flex: 1;
-  background-color: rgba(0, 0, 0, 0.2);
+  background-color: transparent;
   padding: 8px 0;
   position: relative;
 }
@@ -284,7 +284,7 @@ onUnmounted(() => {
 }
 
 .log-line:hover {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: var(--hover-bg);
 }
 
 .empty-tip {
