@@ -9,7 +9,7 @@
                 直接编辑 JSON
               </n-button>
               <n-text depth="3" type="warning" style="font-size: 12px">
-                <n-icon><WarningIcon /></n-icon> 需要 Root 权限的 SSH 账户
+                <n-icon><ExclamationTriangleIcon /></n-icon> 需要 Root 权限的 SSH 账户
               </n-text>
             </n-space>
           </template>
@@ -212,13 +212,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, h } from 'vue'
 import { NGrid, NGi, NCard, NSpace, NText, NCheckbox, NSwitch, NButton, NModal, NForm, NFormItem, NInput, NInputNumber, NAlert, NIcon, useMessage, useDialog, NTag } from 'naive-ui'
-import { 
-  WarningAmberOutlined as WarningIcon,
-  CodeOutlined as CodeIcon,
-  SaveOutlined as SaveIcon,
-  DeleteOutlined as DeleteIcon,
-  CloseOutlined as CloseIcon
-} from '@vicons/material'
+import { ExclamationTriangleIcon } from '@heroicons/vue/24/outline'
 import axios from 'axios'
 
 const props = defineProps({

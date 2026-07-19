@@ -39,8 +39,6 @@ import { ref, onMounted } from 'vue'
 import { aiApi } from '@/api/ai'
 import { useMessage } from 'naive-ui'
 import { NCard, NForm, NFormItem, NInput, NButton, NSelect, NSwitch, NIcon } from 'naive-ui'
-import { SaveOutlined as SaveIcon } from '@vicons/material'
-
 const message = useMessage()
 const config = ref({
   provider: 'openai',

@@ -74,15 +74,6 @@
 <script setup lang="ts">
 import { computed, markRaw } from 'vue'
 import { NAvatar, NIcon } from 'naive-ui'
-import { 
-  PeopleOutlined, 
-  EmojiEventsOutlined, 
-  LocalFireDepartmentOutlined, 
-  HomeOutlined, 
-  AutoAwesomeOutlined,
-  NightsStayOutlined
-} from '@vicons/material'
-
 const props = defineProps<{
   users: any[]
 }>()

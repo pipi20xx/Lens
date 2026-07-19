@@ -6,7 +6,7 @@
 
     <n-card class="login-card" :bordered="false">
       <div class="login-header">
-        <n-icon size="48" color="var(--primary-color)"><LockIcon /></n-icon>
+        <n-icon size="48" color="var(--primary-color)"><LockOpenIcon /></n-icon>
         <n-h2>Lens</n-h2>
         <n-text depth="3">请输入管理员凭据以访问系统</n-text>
       </div>
@@ -40,7 +40,7 @@
               @keyup.enter="handleLogin"
               autofocus
             >
-              <template #prefix><n-icon><LockIcon /></n-icon></template>
+              <template #prefix><n-icon><LockOpenIcon /></n-icon></template>
             </n-input>
           </n-form-item>
           <n-button text block @click="showOtp = false" style="margin-bottom: 10px;">返回账号登录</n-button>
@@ -71,11 +71,11 @@ import { useRouter } from 'vue-router'
 import { 
   NCard, NForm, NFormItem, NInput, NButton, NIcon, NH2, NText, useMessage 
 } from 'naive-ui'
-import { 
-  LockOpenOutlined as LockIcon,
-  PersonOutlined as UserIcon,
-  KeyOutlined as KeyIcon
-} from '@vicons/material'
+import {
+  KeyIcon,
+  LockOpenIcon,
+  UserIcon
+} from '@heroicons/vue/24/outline'
 import axios from 'axios'
 import { loginSuccess, initMenuSettingsFromBackend } from '../store/navigationStore'
 

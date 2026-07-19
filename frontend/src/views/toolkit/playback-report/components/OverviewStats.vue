@@ -23,13 +23,12 @@
 <script setup lang="ts">
 import { computed, markRaw } from 'vue'
 import { NGrid, NGi, NCard, NStatistic, NIcon, NNumberAnimation } from 'naive-ui'
-import { 
-  PlayArrowOutlined, 
-  AccessTimeOutlined, 
-  PeopleOutlined, 
-  DevicesOutlined 
-} from '@vicons/material'
-
+import {
+  ClockIcon,
+  DevicePhoneMobileIcon,
+  PlayIcon,
+  UsersIcon
+} from '@heroicons/vue/24/outline'
 const props = defineProps<{
   stats: {
     totalPlay: number
@@ -43,28 +42,28 @@ const statItems = computed(() => [
   {
     title: '累计播放次数',
     value: props.stats.totalPlay,
-    icon: markRaw(PlayArrowOutlined),
+    icon: markRaw(PlayIcon),
     color: 'var(--primary-color)',
     unit: '次'
   },
   {
     title: '累计播放时长',
     value: props.stats.totalDuration,
-    icon: markRaw(AccessTimeOutlined),
+    icon: markRaw(ClockIcon),
     color: '#18a058',
     unit: '分钟'
   },
   {
     title: '累计活跃用户',
     value: props.stats.userCount,
-    icon: markRaw(PeopleOutlined),
+    icon: markRaw(UsersIcon),
     color: '#f0a020',
     unit: '人'
   },
   {
     title: '覆盖设备终端',
     value: props.stats.deviceCount,
-    icon: markRaw(DevicesOutlined),
+    icon: markRaw(DevicePhoneMobileIcon),
     color: '#d03050',
     unit: '台'
   }

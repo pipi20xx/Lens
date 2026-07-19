@@ -4,7 +4,7 @@ import {
   NModal, NInput, NSelect, NGrid, NGridItem, 
   NScrollbar, NSpin, NEmpty, NButton, NSpace, NTooltip
 } from 'naive-ui'
-import { SearchOutlined as SearchIcon } from '@vicons/material'
+import { MagnifyingGlassIcon } from '@heroicons/vue/24/outline'
 
 // 辅助函数：获取认证头
 const getAuthHeaders = () => {
@@ -99,7 +99,7 @@ const onStyleChange = () => {
             style="width: 300px"
             clearable
           >
-            <template #prefix><n-icon><SearchIcon /></n-icon></template>
+            <template #prefix><n-icon><MagnifyingGlassIcon /></n-icon></template>
           </n-input>
         </n-space>
         <div class="count-tag">已加载 {{ iconData.length }} 个图标</div>

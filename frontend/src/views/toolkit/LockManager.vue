@@ -109,11 +109,6 @@ import {
   useMessage, NSpace, NH2, NText, NCard, NP, NButton, NGrid, NGi, 
   NCode, NCheckboxGroup, NCheckbox, NSwitch, NForm, NFormItem, NSelect, NIcon 
 } from 'naive-ui'
-import {
-  LockOpenOutlined as UnlockIcon,
-  LockOutlined as LockIcon,
-  LockResetOutlined as ResetIcon
-} from '@vicons/material'
 import axios from 'axios'
 
 const message = useMessage()
@@ -171,12 +166,3 @@ const handleAction = async (endpoint: string) => {
   }
 }
 </script>
-
-<style scoped>
-.debug-code-wrapper {
-  background-color: rgba(0, 0, 0, 0.3);
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
-}
-</style>

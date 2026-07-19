@@ -1,9 +1,9 @@
 import { ref, reactive, computed, h, type Ref } from 'vue'
 import { NIcon } from 'naive-ui'
-import { 
-  FolderOutlined as FolderIcon,
-  HomeOutlined as HomeIcon
-} from '@vicons/material'
+import {
+  FolderIcon,
+  HomeIcon
+} from '@heroicons/vue/24/outline'
 import { type Bookmark } from '../../sitenav/useBookmark'
 
 export function useBookmarkState(bookmarks: Ref<Bookmark[]>) {

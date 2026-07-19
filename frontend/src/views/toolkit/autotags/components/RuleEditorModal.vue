@@ -82,10 +82,6 @@ import {
   NModal, NForm, NFormItem, NInput, NSelect, NButton, NSpace, 
   NRadioGroup, NRadio, NCheckbox, NIcon 
 } from 'naive-ui'
-import {
-  CloseOutlined as CloseIcon,
-  SaveOutlined as SaveIcon
-} from '@vicons/material'
 import { COUNTRY_OPTIONS, GENRE_OPTIONS, ITEM_TYPE_OPTIONS } from '../constants'
 
 const props = defineProps<{ show: boolean, rule: any, isNew: boolean }>()

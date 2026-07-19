@@ -70,10 +70,6 @@ import {
   useMessage, NSpace, NH2, NText, NCard, NInput, NButton, NInputGroup, 
   NInputGroupLabel, NCode, NTag, NDescriptions, NDescriptionsItem, NGi, NGrid, NEmpty, NIcon
 } from 'naive-ui'
-import { 
-  SearchOutlined as SearchIcon,
-  ContentCopyOutlined as CopyIcon
-} from '@vicons/material'
 import axios from 'axios'
 import { copyText } from '@/utils/clipboard'
 

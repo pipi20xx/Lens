@@ -60,14 +60,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { NCard, NSpace, NButton, NIcon, NInput, NInputGroup, NCheckbox, NDataTable, NH2, NText, useMessage } from 'naive-ui'
-import { 
-  SearchOutlined as SearchIcon, 
-  SettingsOutlined as SettingsIcon, 
-  AutoFixHighOutlined as AutoIcon,
-  SyncOutlined as SyncIcon,
-  DeleteOutlined as DeleteIcon
-} from '@vicons/material'
-
 import { getColumns } from './toolkit/dedupe/columns'
 import { useDedupe } from './toolkit/dedupe/useDedupe'
 import DedupeConfigModal from './toolkit/dedupe/DedupeConfigModal.vue'

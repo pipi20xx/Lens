@@ -4,17 +4,7 @@ import {
   NCard, NSpace, NButton, NIcon, NTag, NSwitch, NVirtualList, NSelect, NSpin, NText
 } from 'naive-ui'
 import axios from 'axios'
-import {
-  TerminalRound as TerminalIcon,
-  PauseCircleRound as PauseIcon,
-  PlayCircleRound as PlayIcon,
-  DeleteSweepRound as ClearIcon,
-  VerticalAlignBottomRound as ScrollIcon,
-  CloseRound as CloseIcon,
-  HistoryRound as HistoryIcon,
-  OpenInNewRound as OpenIcon
-} from '@vicons/material'
-
+import { CodeBracketIcon } from '@heroicons/vue/24/outline'
 const props = defineProps({
   // 组件放置在 NModal 里
 })
@@ -164,7 +154,7 @@ onUnmounted(() => {
   <div class="console-wrapper">
     <div class="console-header">
       <n-space align="center" :size="12">
-        <n-icon size="20" color="var(--primary-color)"><TerminalIcon /></n-icon>
+        <n-icon size="20" color="var(--primary-color)"><CodeBracketIcon /></n-icon>
         <span class="header-title">{{ selectedDate ? `历史记录: ${selectedDate}` : '实时系统日志 (Live)' }}</span>
         <n-tag v-if="!selectedDate" :type="socketStatus === 'connected' ? 'success' : 'error'" size="tiny" round>
           <template #icon>

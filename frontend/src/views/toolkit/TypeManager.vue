@@ -110,11 +110,6 @@ import {
   useMessage, NSpace, NH2, NText, NCard, NButton, NGrid, NGi, 
   NSwitch, NForm, NFormItem, NSelect, NInput, NAlert, NIcon 
 } from 'naive-ui'
-import {
-  SyncAltOutlined as MapIcon,
-  DeleteSweepOutlined as DeleteIcon,
-  AddCircleOutlineOutlined as AddIcon
-} from '@vicons/material'
 import axios from 'axios'
 
 const message = useMessage()

@@ -2,32 +2,31 @@ import { h, Component } from 'vue'
 import { NIcon } from 'naive-ui'
 import type { MenuOption } from 'naive-ui'
 import {
-  DashboardOutlined as DashboardIcon,
-  AutoDeleteOutlined as DedupeIcon,
-  SettingsOutlined as SettingIcon,
-  TerminalOutlined as ConsoleIcon,
-  PaletteOutlined as ThemeIcon,
-  CategoryOutlined as CategoryIcon,
-  LayersOutlined as CleanupIcon,
-  LockOpenOutlined as LockIcon,
-  CameraOutlined as LensIcon,
-  SearchOutlined as SearchIcon,
-  MyLocationOutlined as TargetIcon,
-  YoutubeSearchedForOutlined as DeepSearchIcon,
-  ScienceOutlined as LabIcon,
-  ContactPageOutlined as ActorLabIcon,
-  PeopleAltOutlined as ActorIcon,
-  SyncAltOutlined as WebhookIcon,
-  StorageOutlined as PostgresIcon,
-  BackupOutlined as BackupIcon,
-  CloudUploadOutlined as BuildIcon,
-  NotificationsOutlined as NotificationIcon,
-  AdminPanelSettingsOutlined as SecurityIcon,
-  PersonOutlined as ProfileIcon,
-  BarChartOutlined as ChartIcon,
-  DnsOutlined as EmbyIcon,
-  AssignmentOutlined as AssignmentIcon
-} from '@vicons/material'
+  ArchiveBoxIcon,
+  ArrowPathIcon,
+  BeakerIcon,
+  BellIcon,
+  CameraIcon,
+  ChartBarIcon,
+  CircleStackIcon,
+  ClipboardDocumentListIcon,
+  CloudArrowUpIcon,
+  CodeBracketIcon,
+  Cog6ToothIcon,
+  DocumentTextIcon,
+  IdentificationIcon,
+  LockOpenIcon,
+  MagnifyingGlassIcon,
+  MapPinIcon,
+  RectangleStackIcon,
+  ServerStackIcon,
+  ShieldCheckIcon,
+  Squares2X2Icon,
+  SwatchIcon,
+  TrashIcon,
+  UserIcon,
+  UsersIcon
+} from '@heroicons/vue/24/outline'
 
 // 自定义 Docker 图标
 export const DockerIcon = {
@@ -44,47 +43,47 @@ function renderIcon(icon: Component) {
 
 // 原始基础项定义
 const rawItems = {
-  Dashboard: { label: '管理仪表盘', key: 'DashboardView', icon: renderIcon(DashboardIcon) },
-  SiteNav: { label: '站点导航页', key: 'SiteNavView', icon: renderIcon(LensIcon) },
+  Dashboard: { label: '管理仪表盘', key: 'DashboardView', icon: renderIcon(Squares2X2Icon) },
+  SiteNav: { label: '站点导航页', key: 'SiteNavView', icon: renderIcon(CameraIcon) },
   
-  PlaybackReport: { label: '播放统计报表', key: 'PlaybackReportView', icon: renderIcon(ChartIcon) },
-  EmbyUsers: { label: 'Emby 用户管理', key: 'EmbyUsersView', icon: renderIcon(ActorIcon) },
-  EmbyLibraries: { label: 'Emby 媒体库管理', key: 'EmbyLibrariesView', icon: renderIcon(PostgresIcon) },
-  EmbyTasks: { label: 'Emby 任务计划', key: 'EmbyScheduledTasksView', icon: renderIcon(AssignmentIcon) },
+  PlaybackReport: { label: '播放统计报表', key: 'PlaybackReportView', icon: renderIcon(ChartBarIcon) },
+  EmbyUsers: { label: 'Emby 用户管理', key: 'EmbyUsersView', icon: renderIcon(UsersIcon) },
+  EmbyLibraries: { label: 'Emby 媒体库管理', key: 'EmbyLibrariesView', icon: renderIcon(CircleStackIcon) },
+  EmbyTasks: { label: 'Emby 任务计划', key: 'EmbyScheduledTasksView', icon: renderIcon(ClipboardDocumentListIcon) },
 
-  Dedupe: { label: '重复项清理', key: 'DedupeView', icon: renderIcon(DedupeIcon) },
-  TypeManager: { label: '类型映射管理', key: 'TypeManagerView', icon: renderIcon(CategoryIcon) },
-  Cleanup: { label: '媒体净化清理', key: 'CleanupToolsView', icon: renderIcon(CleanupIcon) },
-  MetadataLock: { label: '元数据锁定器', key: 'LockManagerView', icon: renderIcon(LockIcon) },
-  AutoTags: { label: '自动标签助手', key: 'AutoTagsView', icon: renderIcon(CategoryIcon) },
-  ActorManager: { label: '演员信息维护', key: 'ActorManagerView', icon: renderIcon(ActorIcon) },
+  Dedupe: { label: '重复项清理', key: 'DedupeView', icon: renderIcon(TrashIcon) },
+  TypeManager: { label: '类型映射管理', key: 'TypeManagerView', icon: renderIcon(Squares2X2Icon) },
+  Cleanup: { label: '媒体净化清理', key: 'CleanupToolsView', icon: renderIcon(RectangleStackIcon) },
+  MetadataLock: { label: '元数据锁定器', key: 'LockManagerView', icon: renderIcon(LockOpenIcon) },
+  AutoTags: { label: '自动标签助手', key: 'AutoTagsView', icon: renderIcon(Squares2X2Icon) },
+  ActorManager: { label: '演员信息维护', key: 'ActorManagerView', icon: renderIcon(UsersIcon) },
 
-  ItemQuery: { label: '项目元数据查询', key: 'EmbyItemQueryView', icon: renderIcon(SearchIcon) },
-  TmdbLookup: { label: '剧集 TMDB 反查', key: 'TmdbReverseLookupView', icon: renderIcon(TargetIcon) },
-  TmdbSearch: { label: 'TMDB ID 深度搜索', key: 'TmdbIdSearchView', icon: renderIcon(DeepSearchIcon) },
+  ItemQuery: { label: '项目元数据查询', key: 'EmbyItemQueryView', icon: renderIcon(MagnifyingGlassIcon) },
+  TmdbLookup: { label: '剧集 TMDB 反查', key: 'TmdbReverseLookupView', icon: renderIcon(MapPinIcon) },
+  TmdbSearch: { label: 'TMDB ID 深度搜索', key: 'TmdbIdSearchView', icon: renderIcon(MagnifyingGlassIcon) },
 
-  TmdbLab: { label: 'TMDB 实验中心', key: 'TmdbLabView', icon: renderIcon(LabIcon) },
-  BangumiLab: { label: 'Bangumi 实验室', key: 'BangumiLabView', icon: renderIcon(LabIcon) },
-  AILab: { label: 'AI 实验室', key: 'AILabView', icon: renderIcon(LabIcon) },
-  ActorLab: { label: 'TMDB 演员实验室', key: 'ActorLabView', icon: renderIcon(ActorLabIcon) },
+  TmdbLab: { label: 'TMDB 实验中心', key: 'TmdbLabView', icon: renderIcon(BeakerIcon) },
+  BangumiLab: { label: 'Bangumi 实验室', key: 'BangumiLabView', icon: renderIcon(BeakerIcon) },
+  AILab: { label: 'AI 实验室', key: 'AILabView', icon: renderIcon(BeakerIcon) },
+  ActorLab: { label: 'TMDB 演员实验室', key: 'ActorLabView', icon: renderIcon(IdentificationIcon) },
 
-  Terminal: { label: '终端管理', key: 'TerminalManagerView', icon: renderIcon(ConsoleIcon) },
+  Terminal: { label: '终端管理', key: 'TerminalManagerView', icon: renderIcon(CodeBracketIcon) },
   Docker: { label: 'Docker 容器管理', key: 'DockerManagerView', icon: renderIcon(DockerIcon) },
-  ImageBuilder: { label: '镜像构建与推送', key: 'ImageBuilderView', icon: renderIcon(BuildIcon) },
-  Postgres: { label: 'PostgreSQL 管理', key: 'PostgresManagerView', icon: renderIcon(PostgresIcon) },
-  Backup: { label: '数据备份管理', key: 'BackupManagerView', icon: renderIcon(BackupIcon) },
+  ImageBuilder: { label: '镜像构建与推送', key: 'ImageBuilderView', icon: renderIcon(CloudArrowUpIcon) },
+  Postgres: { label: 'PostgreSQL 管理', key: 'PostgresManagerView', icon: renderIcon(CircleStackIcon) },
+  Backup: { label: '数据备份管理', key: 'BackupManagerView', icon: renderIcon(ArchiveBoxIcon) },
 
-  Webhook: { label: 'Webhook 接收器', key: 'WebhookReceiverView', icon: renderIcon(WebhookIcon) },
-  Notification: { label: '通知消息中心', key: 'NotificationManagerView', icon: renderIcon(NotificationIcon) },
-  Account: { label: '账号安全管理', key: 'AccountManagerView', icon: renderIcon(ProfileIcon) },
-  ExternalControl: { label: '外部控制体系', key: 'ExternalControlView', icon: renderIcon(SecurityIcon) },
+  Webhook: { label: 'Webhook 接收器', key: 'WebhookReceiverView', icon: renderIcon(ArrowPathIcon) },
+  Notification: { label: '通知消息中心', key: 'NotificationManagerView', icon: renderIcon(BellIcon) },
+  Account: { label: '账号安全管理', key: 'AccountManagerView', icon: renderIcon(UserIcon) },
+  ExternalControl: { label: '外部控制体系', key: 'ExternalControlView', icon: renderIcon(ShieldCheckIcon) },
 }
 
 // 统一的 Emby 服务管理节点
 const EmbyManagementNode = {
   label: 'Emby 运维管理',
   key: 'emby-management',
-  icon: renderIcon(EmbyIcon),
+  icon: renderIcon(ServerStackIcon),
   children: [
     rawItems.PlaybackReport,
     rawItems.EmbyUsers,
@@ -196,4 +195,4 @@ export const groupedMenuOptions = [
   }
 ]
 
-export { SettingIcon, ConsoleIcon, ThemeIcon }
+export { Cog6ToothIcon, CodeBracketIcon, DocumentTextIcon, SwatchIcon }

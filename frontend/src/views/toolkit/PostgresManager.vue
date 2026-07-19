@@ -60,11 +60,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { NSpace, NCard, NText, NButton, NSelect, NTabs, NTabPane, useMessage, NIcon, NH2 } from 'naive-ui'
-import { 
-  DnsOutlined as ServerIcon,
-  RefreshOutlined as RefreshIcon
-} from '@vicons/material'
-
 // 导入乐高组件
 import TableBrowserPanel from './pgsql/components/TableBrowserPanel.vue'
 import DatabasePanel from './pgsql/components/DatabasePanel.vue'

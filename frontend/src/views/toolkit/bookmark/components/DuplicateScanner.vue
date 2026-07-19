@@ -67,12 +67,7 @@
 </template>
 
 <script setup lang="ts">
-import { 
-  RefreshOutlined as RefreshIcon, 
-  FolderOutlined as FolderIcon,
-  LayersOutlined as MergeIcon
-} from '@vicons/material'
-
+import { FolderIcon } from '@heroicons/vue/24/outline'
 const props = defineProps<{
   duplicates: any[]
   loadingDuplicates: boolean

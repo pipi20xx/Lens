@@ -5,14 +5,11 @@ import {
   NFormItem, NInput, NInputNumber, NIcon, NPopconfirm,
   NTag, NSelect, NDivider, NAvatar
 } from 'naive-ui'
-import { 
-  AddOutlined as AddIcon,
-  EditOutlined as EditIcon,
-  DeleteOutlined as DeleteIcon,
-  LanguageOutlined as WebIcon,
-  AutoFixHighOutlined as MagicIcon,
-  CategoryOutlined as CategoryIcon
-} from '@vicons/material'
+import {
+  GlobeAltIcon,
+  PencilIcon,
+  TrashIcon
+} from '@heroicons/vue/24/outline'
 import { useSiteNav, SiteNav, Category } from './useSiteNav'
 
 const { 
@@ -120,9 +117,9 @@ const columns = [
     render(row: SiteNav) {
       return h(NSpace, { size: 'small' }, {
         default: () => [
-          h(NButton, { size: 'small', quaternary: true, onClick: () => handleEdit(row) }, { icon: () => h(NIcon, null, { default: () => h(EditIcon) }) }),
+          h(NButton, { size: 'small', quaternary: true, onClick: () => handleEdit(row) }, { icon: () => h(NIcon, null, { default: () => h(PencilIcon) }) }),
           h(NPopconfirm, { onPositiveClick: () => deleteSite(row.id) }, {
-            trigger: () => h(NButton, { size: 'small', quaternary: true, type: 'error' }, { icon: () => h(NIcon, null, { default: () => h(DeleteIcon) }) }),
+            trigger: () => h(NButton, { size: 'small', quaternary: true, type: 'error' }, { icon: () => h(NIcon, null, { default: () => h(TrashIcon) }) }),
             default: () => '确定删除吗？'
           })
         ]
@@ -194,7 +191,7 @@ const columns = [
                   <img v-else :src="formValue.icon" class="preview-img" @error="handleIconError" />
                 </template>
                 <div v-else class="preview-placeholder">
-                  <n-icon size="24"><WebIcon /></n-icon>
+                  <n-icon size="24"><GlobeAltIcon /></n-icon>
                   <span>待填入</span>
                 </div>
               </div>

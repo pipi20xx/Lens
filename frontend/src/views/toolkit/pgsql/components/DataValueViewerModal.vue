@@ -28,10 +28,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { NModal, NSpace, NButton, NIcon, useMessage } from 'naive-ui'
-import { 
-  ContentCopyOutlined as CopyIcon,
-  CloseOutlined as CloseIcon 
-} from '@vicons/material'
 import { copyText } from '@/utils/clipboard'
 
 const props = defineProps<{

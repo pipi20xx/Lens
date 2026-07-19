@@ -61,15 +61,6 @@
 <script setup lang="ts">
 import { ref, reactive, h, onMounted } from 'vue'
 import { NModal, NSpace, NButton, NDataTable, NForm, NFormItem, NInput, NInputNumber, NGrid, NGi, useMessage, useDialog, NIcon } from 'naive-ui'
-import {
-  AddOutlined as AddIcon,
-  RefreshOutlined as RefreshIcon,
-  EditOutlined as EditIcon,
-  DeleteOutlined as DeleteIcon,
-  SaveOutlined as SaveIcon,
-  CloseOutlined as CloseIcon,
-  SensorsOutlined as TestIcon
-} from '@vicons/material'
 import request from '@/utils/request'
 
 defineProps<{ show: boolean }>()

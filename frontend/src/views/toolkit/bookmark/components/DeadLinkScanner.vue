@@ -74,7 +74,7 @@
 
           <div class="item-actions">
             <n-button circle quaternary type="error" size="small" @click="$emit('deleteDead', item.id)">
-              <template #icon><n-icon><DeleteIcon /></n-icon></template>
+              <template #icon><n-icon><TrashIcon /></n-icon></template>
             </n-button>
           </div>
         </div>
@@ -92,14 +92,10 @@
 </template>
 
 <script setup lang="ts">
-import { 
-  DeleteOutlineOutlined as DeleteIcon,
-  PlayArrowOutlined as PlayIcon,
-  StopOutlined as StopIcon,
-  FolderOutlined as FolderIcon,
-  DeleteSweepOutlined as DeleteSweepIcon
-} from '@vicons/material'
-
+import {
+  FolderIcon,
+  TrashIcon
+} from '@heroicons/vue/24/outline'
 const props = defineProps<{
   healthResults: any[]
   healthProgress: number

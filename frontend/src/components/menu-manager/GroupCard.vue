@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { NSpace, NSwitch, NInput, NText, NIcon, NButton, NPopconfirm } from 'naive-ui'
-import { 
-  DragIndicatorOutlined as DragIcon,
-  DeleteOutlineOutlined as DeleteIcon,
-  EditOutlined as EditIcon
-} from '@vicons/material'
+import {
+  Bars3Icon,
+  PencilIcon,
+  TrashIcon
+} from '@heroicons/vue/24/outline'
 import draggable from 'vuedraggable'
 import { allMenuItems } from '@/config/menu'
 
@@ -32,7 +32,7 @@ const getItemLabel = (element: any) => {
     <!-- 分类头部 -->
     <div class="group-header">
       <n-space align="center" :size="12">
-        <n-icon class="primary-drag-handle group-drag-handle"><DragIcon /></n-icon>
+        <n-icon class="primary-drag-handle group-drag-handle"><Bars3Icon /></n-icon>
         <n-switch v-model:value="group.visible" size="small" />
         <n-input 
           v-if="isEditing"
@@ -46,7 +46,7 @@ const getItemLabel = (element: any) => {
         />
         <n-text v-else strong class="group-label" @click.stop="emit('startEdit', gIdx)">
           {{ group.label }}
-          <n-icon size="14" class="edit-icon"><EditIcon /></n-icon>
+          <n-icon size="14" class="edit-icon"><PencilIcon /></n-icon>
         </n-text>
       </n-space>
 
@@ -57,7 +57,7 @@ const getItemLabel = (element: any) => {
       >
         <template #trigger>
           <n-button quaternary circle size="small" type="error">
-            <template #icon><n-icon><DeleteIcon /></n-icon></template>
+            <template #icon><n-icon><TrashIcon /></n-icon></template>
           </n-button>
         </template>
         确定要删除此分类及其包含的所有配置吗？此操作不可撤销。
@@ -75,7 +75,7 @@ const getItemLabel = (element: any) => {
     >
       <template #item="{ element, index }">
         <div class="sub-item">
-          <n-icon size="14" class="sub-drag-icon"><DragIcon /></n-icon>
+          <n-icon size="14" class="sub-drag-icon"><Bars3Icon /></n-icon>
           <n-text class="sub-item-text">{{ getItemLabel(element) }}</n-text>
           <n-button 
             quaternary 
@@ -85,7 +85,7 @@ const getItemLabel = (element: any) => {
             class="item-del-btn" 
             @click.stop="emit('removeItem', gIdx, index)"
           >
-            <template #icon><n-icon><DeleteIcon /></n-icon></template>
+            <template #icon><n-icon><TrashIcon /></n-icon></template>
           </n-button>
         </div>
       </template>

@@ -3,7 +3,7 @@
     <div class="panel-header">
       <span class="title">主机列表</span>
       <n-button quaternary circle size="tiny" @click="openModal()">
-        <template #icon><n-icon :component="AddIcon" /></template>
+        <template #icon><n-icon :component="PlusCircleIcon" /></template>
       </n-button>
     </div>
     <n-scrollbar>
@@ -13,7 +13,7 @@
           :class="{ active: activeHostId === 0 }"
           @click="handleSelect({ id: 0, name: '本地 Shell' })"
         >
-          <n-icon :component="LocalIcon" />
+          <n-icon :component="ComputerDesktopIcon" />
           <span class="name">本地 Shell</span>
         </div>
         <div 
@@ -24,17 +24,17 @@
           @click="handleSelect(h)"
           @dblclick="handleSelect(h, true)"
         >
-          <n-icon :component="HostIcon" />
+          <n-icon :component="ServerStackIcon" />
           <span class="name" :title="h.host">{{ h.name }}</span>
           <div class="actions">
-            <n-button text size="tiny" @click.stop="openModal(h)"><n-icon :component="EditIcon" /></n-button>
+            <n-button text size="tiny" @click.stop="openModal(h)"><n-icon :component="PencilIcon" /></n-button>
             <n-popconfirm 
               @positive-click="handleDelete(h.id)"
               positive-text="确定删除"
               negative-text="我再想想"
             >
               <template #trigger>
-                <n-button text size="tiny" type="error" @click.stop><n-icon :component="DeleteIcon" /></n-button>
+                <n-button text size="tiny" type="error" @click.stop><n-icon :component="TrashIcon" /></n-button>
               </template>
               确定要删除主机「{{ h.name }}」吗？此操作不可撤销。
             </n-popconfirm>
@@ -90,13 +90,13 @@ import {
   NInput, NInputNumber, NRadioGroup, NRadioButton, NSpace, NInputGroup,
   NPopconfirm
 } from 'naive-ui';
-import { 
-  AddCircleOutlineOutlined as AddIcon,
-  EditOutlined as EditIcon,
-  DeleteOutlineOutlined as DeleteIcon,
-  ComputerOutlined as LocalIcon,
-  DnsOutlined as HostIcon
-} from '@vicons/material';
+import {
+  ComputerDesktopIcon,
+  PencilIcon,
+  PlusCircleIcon,
+  ServerStackIcon,
+  TrashIcon
+} from '@heroicons/vue/24/outline'
 
 const props = defineProps<{ activeHostId: number }>();
 const emit = defineEmits(['select', 'change']);

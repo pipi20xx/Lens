@@ -25,7 +25,7 @@
         <div class="search-box">
           <n-input v-model:value="searchQuery" placeholder="搜索书签..." size="small" round clearable>
             <template #prefix>
-              <n-icon :component="SearchIcon" />
+              <n-icon :component="MagnifyingGlassIcon" />
             </template>
           </n-input>
         </div>
@@ -67,7 +67,7 @@
           </n-button>
           
           <n-button v-if="isModal" circle quaternary size="small" @click="$emit('close')">
-            <template #icon><n-icon size="18"><CloseIcon /></n-icon></template>
+            <template #icon><n-icon size="18"><XMarkIcon /></n-icon></template>
           </n-button>
         </n-space>
       </div>
@@ -130,7 +130,7 @@
                       <div class="row-icon">
                         <n-icon v-if="item.type === 'folder'" size="20" color="#f0a020"><FolderIcon /></n-icon>
                         <img v-else-if="item.icon" :src="item.icon" class="icon-img" />
-                        <n-icon v-else size="18" class="opacity-20"><WebIcon /></n-icon>
+                        <n-icon v-else size="18" class="opacity-20"><GlobeAltIcon /></n-icon>
                       </div>
                       <div class="row-info">
                         <div class="row-title">{{ item.title }}</div>
@@ -139,10 +139,10 @@
                     </div>
                     <div class="row-actions">
                       <n-button circle quaternary size="tiny" @click.stop="handleEdit(item)" class="action-btn edit">
-                        <template #icon><n-icon size="14"><EditIcon /></n-icon></template>
+                        <template #icon><n-icon size="14"><PencilIcon /></n-icon></template>
                       </n-button>
                       <n-button circle quaternary size="tiny" @click.stop="confirmDelete(item)" class="action-btn delete">
-                        <template #icon><n-icon size="14"><DeleteIcon /></n-icon></template>
+                        <template #icon><n-icon size="14"><TrashIcon /></n-icon></template>
                       </n-button>
                     </div>
                   </div>
@@ -228,25 +228,15 @@
 
 <script setup lang="ts">
 import { h, ref, nextTick } from 'vue'
-import { 
-  BookmarkBorderOutlined as BookmarkIcon,
-  CreateNewFolderOutlined as FolderAddIcon,
-  AddCircleOutlineOutlined as AddIcon,
-  CloseOutlined as CloseIcon,
-  FolderOutlined as FolderIcon,
-  LanguageOutlined as WebIcon,
-  EditOutlined as EditIcon,
-  DeleteOutlineOutlined as DeleteIcon,
-  HomeOutlined as HomeIcon,
-  FileDownloadOutlined as ImportIcon,
-  FileUploadOutlined as ExportIcon,
-  DeleteSweepOutlined as ClearIcon,
-  SearchOutlined as SearchIcon,
-  MedicalServicesOutlined as HealthIcon,
-  ScienceOutlined as LabIcon,
-  SaveOutlined as SaveIcon,
-  SyncOutlined as SyncIcon
-} from '@vicons/material'
+import {
+  BookmarkIcon,
+  FolderIcon,
+  GlobeAltIcon,
+  MagnifyingGlassIcon,
+  PencilIcon,
+  TrashIcon,
+  XMarkIcon
+} from '@heroicons/vue/24/outline'
 import { useBookmarkManager } from './bookmark/useBookmarkManager'
 import BookmarkHealthModal from './bookmark/components/BookmarkHealthModal.vue'
 import { NIcon } from 'naive-ui'

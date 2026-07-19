@@ -4,7 +4,7 @@
     <div class="terminal-top-bar">
       <div class="bar-left">
         <n-button quaternary circle size="small" @click="collapsedSider = !collapsedSider">
-          <template #icon><n-icon :component="MenuIcon" /></template>
+          <template #icon><n-icon :component="Bars3Icon" /></template>
         </n-button>
         <n-divider vertical />
         <n-breadcrumb>
@@ -18,13 +18,13 @@
       <div class="bar-right">
         <n-space>
           <n-button quaternary circle size="small" @click="showFileManager = true" title="文件管理">
-            <template #icon><n-icon :component="FileIcon" /></template>
+            <template #icon><n-icon :component="FolderOpenIcon" /></template>
           </n-button>
           <n-button quaternary circle size="small" @click="clearActiveTerm" title="清屏">
-            <template #icon><n-icon :component="ClearIcon" /></template>
+            <template #icon><n-icon :component="TrashIcon" /></template>
           </n-button>
           <n-button quaternary circle size="small" @click="reconnectActiveTerm" title="重连">
-            <template #icon><n-icon :component="RefreshIcon" /></template>
+            <template #icon><n-icon :component="ArrowPathIcon" /></template>
           </n-button>
         </n-space>
       </div>
@@ -110,12 +110,12 @@ import {
   NLayout, NLayoutSider, NLayoutContent, NButton, NSpace, NTag, 
   NDivider, NBreadcrumb, NBreadcrumbItem, NText, NIcon, NModal, NTabs, NTabPane
 } from 'naive-ui';
-import { 
-  MenuOpenOutlined as MenuIcon,
-  RefreshOutlined as RefreshIcon,
-  AutoDeleteOutlined as ClearIcon,
-  FolderOpenOutlined as FileIcon
-} from '@vicons/material';
+import {
+  ArrowPathIcon,
+  Bars3Icon,
+  FolderOpenIcon,
+  TrashIcon
+} from '@heroicons/vue/24/outline'
 
 import HostPanel from './components/HostPanel.vue';
 import CommandPanel from './components/CommandPanel.vue';

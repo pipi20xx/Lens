@@ -2,13 +2,6 @@
 import { 
   NSpace, NButton, NIcon, NText, NUpload, NSlider, NSelect, NCard, NColorPicker, NDivider, NGrid, NGridItem, NInput, NRadioGroup, NRadioButton, NSwitch
 } from 'naive-ui'
-import { 
-  ImageOutlined as ImageIcon,
-  PaletteOutlined as PaletteIcon,
-  RefreshOutlined as RefreshIcon,
-  BookmarkOutlined as SaveIcon
-} from '@vicons/material'
-
 const props = defineProps<{
   wallpaperLoading?: boolean
   settings: {

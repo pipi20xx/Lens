@@ -81,12 +81,6 @@ import ImageSettingsTab from './tabs/ImageSettingsTab.vue'
 import FeatureSwitchesTab from './tabs/FeatureSwitchesTab.vue'
 import { updateEmbyLibrary } from '@/api/embyLibraries'
 import { createEmbyBackup } from '@/api/embyBackup'
-import { 
-  BackupOutlined as BackupIcon,
-  SaveOutlined as SaveIcon,
-  CloseOutlined as CloseIcon
-} from '@vicons/material'
-
 const props = defineProps<{
   show: boolean
   library: any

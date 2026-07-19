@@ -39,8 +39,8 @@
                     </template>
                   </n-thing>
                   <template #suffix>
-                    <n-button secondary circle size="tiny" type="primary" @click.stop="showJson(person)">
-                      <template #icon><n-icon color="var(--primary-color)"><CodeIcon /></n-icon></template>
+                    <n-button quaternary circle size="tiny" type="primary" @click.stop="showJson(person)">
+                      <template #icon><n-icon color="var(--primary-color)"><DocumentTextIcon /></n-icon></template>
                     </n-button>
                   </template>
                 </n-list-item>
@@ -75,7 +75,7 @@
             <n-card title="操作指南" size="small" segmented>
               <n-text depth="3" style="font-size: 13px">
                 1. <b>姓名修正</b>：用于修复刮削器导致的译名不统一或错别字。<br/>
-                2. <b>元数据审计</b>：点击右侧代码图标可查看该演员在 Emby 中的全量原始 JSON 数据。<br/>
+                2. <b>元数据审计</b>：点击右侧文档图标可查看该演员在 Emby 中的全量原始 JSON 数据。<br/>
                 3. <b>头像同步</b>：如果您需要从 TMDB 强制拉取最新头像，请使用“演员实验室”功能。
               </n-text>
             </n-card>
@@ -105,12 +105,7 @@ import {
   NList, NListItem, NAvatar, NThing, NScrollbar, NEmpty, NGi, NGrid, 
   NDescriptions, NDescriptionsItem, NCode, NTag, NSelect, NModal, NIcon 
 } from 'naive-ui'
-import { 
-  TerminalOutlined as CodeIcon,
-  SearchOutlined as SearchIcon,
-  SaveOutlined as SaveIcon,
-  ContentCopyOutlined as CopyIcon
-} from '@vicons/material'
+import { DocumentTextIcon } from '@heroicons/vue/24/outline'
 
 // 导入提取的逻辑
 import { useActorSearch } from './actor/hooks/useActorSearch'

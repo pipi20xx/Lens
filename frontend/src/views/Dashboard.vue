@@ -84,7 +84,7 @@
                       target="_blank" 
                       type="primary"
                     >
-                      <n-icon size="16"><DockerIcon /></n-icon>
+                      <n-icon size="16"><ServerStackIcon /></n-icon>
                     </n-button>
                   </n-space>
                 </n-space>
@@ -133,13 +133,7 @@ import {
   NList, NListItem, NTag, NButton, NAlert, useMessage
 } from 'naive-ui'
 import axios from 'axios'
-import {
-  CodeOutlined as CodeIcon,
-  BugReportOutlined as BugIcon,
-  DnsRound as DockerIcon,
-  SettingsOutlined as SettingsIcon,
-  SystemUpdateAltOutlined as UpgradeIcon
-} from '@vicons/material'
+import { ServerStackIcon } from '@heroicons/vue/24/outline'
 import { currentViewKey } from '../store/navigationStore'
 
 const message = useMessage()

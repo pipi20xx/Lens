@@ -58,12 +58,6 @@ import {
   useMessage, NSpace, NH2, NText, NCard, NAlert, NDataTable, NButton, 
   NIcon, NTag, NModal, NCode 
 } from 'naive-ui'
-import { 
-  RefreshRound as RefreshIcon,
-  TerminalOutlined as CodeIcon,
-  DeleteSweepRound as ClearIcon,
-  ContentCopyOutlined as CopyIcon
-} from '@vicons/material'
 import { copyElementContent } from '@/utils/clipboard'
 
 // 导入提取的逻辑

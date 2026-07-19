@@ -18,6 +18,7 @@ import {
   NScrollbar,
   NTag
 } from 'naive-ui'
+import { zhCN, dateZhCN } from 'naive-ui'
 
 import AppLogo from './components/AppLogo.vue'
 import LogConsole from './components/LogConsole.vue'
@@ -42,15 +43,13 @@ import {
 import { useTheme } from './hooks/useTheme'
 import { usePWA } from './composables/usePWA'
 import { viewMap } from './config/views'
-import { allMenuItems, SettingIcon, ConsoleIcon } from './config/menu'
+import { allMenuItems, Cog6ToothIcon, DocumentTextIcon } from './config/menu'
 import {
-  ExitToAppOutlined as LogoutIcon,
-  DnsOutlined as ServerIcon,
-  DragHandleOutlined as MenuManageIcon,
-  PersonOutlined as UserIcon,
-  LightModeOutlined as LightIcon,
-  DarkModeOutlined as DarkIcon
-} from '@vicons/material'
+  MoonIcon,
+  ServerStackIcon,
+  SunIcon,
+  UserIcon
+} from '@heroicons/vue/24/outline'
 import { servers, activeServerId, fetchServers, activateServer } from './store/serverStore'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
@@ -128,11 +127,11 @@ watch(currentViewKey, (newKey) => {
 
 // 用户下拉菜单
 const userDropdownOptions = computed(() => [
-  { label: '个人中心', key: 'AccountManagerView', icon: () => h(NIcon, null, { default: () => h(UserIcon) }) },
-  { label: '菜单管理', key: 'menu_manager', icon: () => h(NIcon, null, { default: () => h(MenuManageIcon) }) },
-  { label: '系统设置', key: 'SettingsView', icon: () => h(NIcon, null, { default: () => h(SettingIcon) }) },
+  { label: '个人中心', key: 'AccountManagerView' },
+  { label: '菜单管理', key: 'menu_manager' },
+  { label: '系统设置', key: 'SettingsView' },
   { type: 'divider', key: 'd1' },
-  { label: '退出登录', key: 'logout', icon: () => h(NIcon, null, { default: () => h(LogoutIcon) }) }
+  { label: '退出登录', key: 'logout' }
 ])
 
 const handleUserSelect = (key: string) => {
@@ -150,7 +149,7 @@ const serverOptions = computed(() => {
   return servers.value.map(s => ({
     label: s.name,
     key: s.id,
-    icon: () => h(NIcon, null, { default: () => h(ServerIcon) })
+    icon: () => h(NIcon, null, { default: () => h(ServerStackIcon) })
   }))
 })
 
@@ -193,7 +192,7 @@ const currentView = computed(() => {
 </script>
 
 <template>
-  <n-config-provider :theme="naiveTheme" :theme-overrides="themeOverrides">
+  <n-config-provider :theme="naiveTheme" :theme-overrides="themeOverrides" :locale="zhCN" :date-locale="dateZhCN">
     <n-global-style />
     <n-dialog-provider>
       <n-message-provider>
@@ -250,25 +249,21 @@ const currentView = computed(() => {
                       <n-button circle quaternary size="small" @click="toggleTheme" :type="isDark ? 'default' : 'primary'">
                         <template #icon>
                           <n-icon>
-                            <DarkIcon v-if="isDark" />
-                            <LightIcon v-else />
+                            <MoonIcon v-if="isDark" />
+                            <SunIcon v-else />
                           </n-icon>
                         </template>
                       </n-button>
 
                       <n-button circle quaternary size="small" @click="isLogConsoleOpen = true">
-                        <template #icon><n-icon><ConsoleIcon /></n-icon></template>
+                        <template #icon><n-icon><DocumentTextIcon /></n-icon></template>
                       </n-button>
 
                       <n-dropdown trigger="click" :options="userDropdownOptions" @select="handleUserSelect">
                         <div class="user-info">
-                          <n-avatar
-                            round
-                            size="small"
-                            :style="{ backgroundColor: 'var(--primary-color)' }"
-                          >
-                            <n-icon><UserIcon /></n-icon>
-                          </n-avatar>
+                          <n-icon :size="20" color="var(--primary-color)">
+                            <UserIcon />
+                          </n-icon>
                           <div class="user-text-box">
                             <n-text class="username-text">{{ username || 'Admin' }}</n-text>
                           </div>

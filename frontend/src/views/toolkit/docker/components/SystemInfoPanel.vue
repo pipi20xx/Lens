@@ -124,15 +124,6 @@
 <script setup lang="ts">
 import { ref, watch, reactive } from 'vue'
 import { NGrid, NGi, NCard, NDescriptions, NDescriptionsItem, NTag, NBadge, NSkeleton, NButton, NIcon, NAlert, NSpace, NModal, useMessage, useDialog, NForm, NFormItem, NInput, NSwitch, NButtonGroup } from 'naive-ui'
-import { 
-  RefreshOutlined as RefreshIcon,
-  BuildOutlined as RepairIcon,
-  PlayArrowOutlined as StartIcon,
-  StopOutlined as StopIcon,
-  AutorenewOutlined as RecreateIcon,
-  CloseOutlined as CloseIcon,
-  CheckCircleOutlined as SaveIcon
-} from '@vicons/material'
 import axios from 'axios'
 
 const props = defineProps<{ hostId: string | null }>()

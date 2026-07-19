@@ -15,13 +15,13 @@
       <n-space :size="4" align="center">
         <!-- 拖拽手柄图标 -->
         <n-icon size="18" class="drag-handle" @mousedown.stop>
-          <DragIcon />
+          <Bars3Icon />
         </n-icon>
         
         <n-popconfirm @positive-click.stop="$emit('delete')">
           <template #trigger>
             <n-button quaternary circle size="tiny" type="error" @click.stop>
-              <template #icon><n-icon><DeleteIcon /></n-icon></template>
+              <template #icon><n-icon><TrashIcon /></n-icon></template>
             </n-button>
           </template>
           确认删除？
@@ -46,11 +46,10 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { NCard, NSpace, NButton, NIcon, NTag, NText, NPopconfirm } from 'naive-ui'
-import { 
-  DragIndicatorOutlined as DragIcon,
-  DeleteOutlineOutlined as DeleteIcon
-} from '@vicons/material'
-
+import {
+  Bars3Icon,
+  TrashIcon
+} from '@heroicons/vue/24/outline'
 const props = defineProps<{ 
   rule: any,
   index: number

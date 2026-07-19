@@ -47,8 +47,6 @@
 <script setup lang="ts">
 import { reactive } from 'vue'
 import { NCard, NForm, NGrid, NFormItemGi, NRadioGroup, NRadio, NSpace, NCheckbox, NInput, NButton, NText, NFormItem, NIcon, useDialog, useMessage } from 'naive-ui'
-import { PlayArrowOutlined as PlayIcon } from '@vicons/material'
-
 const props = defineProps<{ onRun: (options: any) => void }>()
 const dialog = useDialog()
 const message = useMessage()

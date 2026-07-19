@@ -106,7 +106,7 @@
 
     <!-- 无数据展示 -->
     <div v-else-if="!syncing" class="flex flex-col items-center justify-center py-20 bg-white/5 rounded-xl border-2 border-dashed border-white/10 text-gray-500">
-      <n-icon size="48" class="mb-4 opacity-20"><CopyIcon /></n-icon>
+      <n-icon size="48" class="mb-4 opacity-20"><DocumentDuplicateIcon /></n-icon>
       <p>暂无重复项数据</p>
       <p class="text-sm">点击上方“执行同步”或“执行搜索”开始</p>
     </div>
@@ -117,14 +117,7 @@
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import { NButton, NIcon, NCard, NTag, NSpace } from 'naive-ui';
-import { 
-  SyncOutlined as SyncIcon,
-  SearchOutlined as SearchIcon,
-  DeleteOutlined as DeleteIcon,
-  ScienceOutlined as LabIcon,
-  ClearOutlined as ClearIcon,
-  ContentCopyOutlined as CopyIcon
-} from '@vicons/material';
+import { DocumentDuplicateIcon } from '@heroicons/vue/24/outline'
 
 const syncing = ref(false);
 const duplicateGroups = ref<any[]>([]);

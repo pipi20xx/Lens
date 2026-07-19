@@ -66,14 +66,6 @@ import {
   NModal, NSpace, NButton, NList, NListItem, NText, NTag, 
   NForm, NFormItem, NInput, NInputNumber, NSelect, NSwitch, useMessage, NIcon 
 } from 'naive-ui'
-import {
-  AddOutlined as AddIcon,
-  SensorsOutlined as TestIcon,
-  EditOutlined as EditIcon,
-  DeleteOutlined as DeleteIcon,
-  SaveOutlined as SaveIcon,
-  CloseOutlined as CloseIcon
-} from '@vicons/material'
 import axios from 'axios'
 
 const props = defineProps<{

@@ -49,7 +49,7 @@
                 @click="router.push('/toolkit/bookmark-manager')"
               >
                 <template #icon>
-                  <n-icon><EditIcon /></n-icon>
+                  <n-icon><PencilSquareIcon /></n-icon>
                 </template>
               </n-button>
             </template>
@@ -65,7 +65,7 @@
 import { ref, onMounted, onUnmounted, h } from 'vue'
 import { useRouter } from 'vue-router'
 import { NDropdown, NTooltip, NButton, NIcon } from 'naive-ui'
-import { BookmarkEditOutlined as EditIcon } from '@vicons/material'
+import { PencilSquareIcon } from '@heroicons/vue/24/outline'
 import { useBookmark, type Bookmark } from '../useBookmark'
 
 const router = useRouter()

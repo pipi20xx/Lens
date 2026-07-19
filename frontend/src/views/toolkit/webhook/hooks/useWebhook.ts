@@ -1,9 +1,9 @@
 import { ref, h } from 'vue'
 import { useMessage, useDialog, NButton, NIcon, NSpace } from 'naive-ui'
-import { 
-  DeleteForeverOutlined as DeleteIcon,
-  CloseOutlined as CloseIcon
-} from '@vicons/material'
+import {
+  TrashIcon,
+  XMarkIcon
+} from '@heroicons/vue/24/outline'
 import { webhookApi } from '@/api/webhook'
 
 export function useWebhook() {
@@ -40,7 +40,7 @@ export function useWebhook() {
             size: 'small', 
             onClick: () => d.destroy() 
           }, { 
-            icon: renderIcon(CloseIcon),
+            icon: renderIcon(XMarkIcon),
             default: () => '取消' 
           }),
           h(NButton, { 
@@ -61,7 +61,7 @@ export function useWebhook() {
               }
             }
           }, { 
-            icon: renderIcon(DeleteIcon),
+            icon: renderIcon(TrashIcon),
             default: () => '确定清空' 
           })
         ]

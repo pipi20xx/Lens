@@ -2,11 +2,11 @@
 import { 
   NModal, NSpace, NIcon, NTabs, NTabPane
 } from 'naive-ui'
-import { 
-  PaletteOutlined as PaletteIcon,
-  CategoryOutlined as CategoryIcon,
-  StorageOutlined as StorageIcon
-} from '@vicons/material'
+import {
+  CircleStackIcon,
+  Squares2X2Icon,
+  SwatchIcon
+} from '@heroicons/vue/24/outline'
 import { Category } from '../useSiteNav'
 
 // 导入物理隔离的积木组件
@@ -67,7 +67,7 @@ const handleUploadBg = (file: File) => emit('uploadBg', file)
       <n-tab-pane name="appearance">
         <template #tab>
           <n-space :size="4" align="center">
-            <n-icon><PaletteIcon /></n-icon> 外观设置
+            <n-icon><SwatchIcon /></n-icon> 外观设置
           </n-space>
         </template>
         <AppearancePanel 
@@ -85,7 +85,7 @@ const handleUploadBg = (file: File) => emit('uploadBg', file)
       <n-tab-pane name="categories">
         <template #tab>
           <n-space :size="4" align="center">
-            <n-icon><CategoryIcon /></n-icon> 分类管理
+            <n-icon><Squares2X2Icon /></n-icon> 分类管理
           </n-space>
         </template>
         <CategoryPanel 
@@ -101,7 +101,7 @@ const handleUploadBg = (file: File) => emit('uploadBg', file)
       <n-tab-pane name="storage">
         <template #tab>
           <n-space :size="4" align="center">
-            <n-icon><StorageIcon /></n-icon> 数据管理
+            <n-icon><CircleStackIcon /></n-icon> 数据管理
           </n-space>
         </template>
         <DataPanel 

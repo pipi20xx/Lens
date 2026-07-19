@@ -71,11 +71,6 @@
 
 <script setup lang="ts">
 import { NModal, NTable, NText, NTag, NSpace, NButton, NAlert, NIcon } from 'naive-ui'
-import { 
-  ArrowBackOutlined as BackIcon,
-  DeleteForeverOutlined as DeleteIcon
-} from '@vicons/material'
-
 defineProps<{
   show: boolean
   items: any[]

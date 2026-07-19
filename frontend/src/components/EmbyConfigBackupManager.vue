@@ -64,15 +64,8 @@
 
 <script setup lang="ts">
 import { ref, watch, h } from 'vue'
-import { NButton, NSpace, NPopconfirm, useMessage, NIcon, NModal, NAlert, NDataTable } from 'naive-ui'
+import { NButton, NSpace, NPopconfirm, useMessage, NModal, NAlert, NDataTable } from 'naive-ui'
 import { listEmbyBackups, restoreEmbyBackup, deleteEmbyBackup, clearEmbyBackups, restoreAllEmbyBackups } from '@/api/embyBackup'
-import { 
-  RestoreOutlined as RestoreIcon,
-  DeleteOutlined as DeleteIcon,
-  CleaningServicesOutlined as ClearIcon,
-  HistoryOutlined as HistoryIcon 
-} from '@vicons/material'
-
 const props = defineProps<{
   category: 'users' | 'libraries'
   serverId: string
@@ -113,8 +106,7 @@ const columns = [
               strong: true,
               secondary: true 
             }, { 
-              default: () => '还原',
-              icon: () => h(NIcon, null, { default: () => h(RestoreIcon) })
+              default: () => '还原'
             }),
             default: () => '确定要将此配置还原到服务器吗？当前设置将被覆盖。'
           }),
@@ -129,8 +121,7 @@ const columns = [
               strong: true,
               secondary: true 
             }, { 
-              default: () => '删除',
-              icon: () => h(NIcon, null, { default: () => h(DeleteIcon) })
+              default: () => '删除'
             }),
             default: () => `确定删除此备份文件吗？`
           })

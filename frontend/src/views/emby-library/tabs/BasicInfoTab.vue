@@ -20,10 +20,6 @@
         <n-input :value="modelValue.LibraryOptions?.MetadataCountryCode" @update:value="(val) => updateLibOpt('MetadataCountryCode', val)" placeholder="CN" />
       </n-form-item>
       
-import { 
-  AddOutlined as AddIcon
-} from '@vicons/material'
-
 // ... (props, emit, refs, etc.)
 
       <n-divider title-placement="left">媒体路径</n-divider>

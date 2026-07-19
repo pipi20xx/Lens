@@ -37,8 +37,6 @@
 
 <script setup lang="ts">
 import { NForm, NFormItem, NInput, NSelect, NButton, NDivider, NList, NListItem, NThing, NIcon } from 'naive-ui'
-import { SearchOutlined as SearchIcon } from '@vicons/material'
-
 defineProps<{
   searchForm: any
   results: any[]

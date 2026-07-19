@@ -62,10 +62,6 @@ import {
   useMessage, NSpace, NH2, NText, NCard, NInput, NButton, NInputGroup, 
   NInputGroupLabel, NCode, NTag, NEmpty, NGrid, NGi, NIcon
 } from 'naive-ui'
-import { 
-  ScienceOutlined as LabIcon,
-  ContentCopyOutlined as CopyIcon
-} from '@vicons/material'
 import { copyElementContent } from '@/utils/clipboard'
 
 // 导入提取的逻辑

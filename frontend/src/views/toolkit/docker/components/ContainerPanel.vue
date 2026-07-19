@@ -14,7 +14,7 @@
           <n-switch v-model:value="enhancedMode" size="small" />
           <n-tooltip trigger="hover">
             <template #trigger>
-              <n-icon size="16" depth="3" style="cursor: help"><SearchIcon /></n-icon>
+              <n-icon size="16" depth="3" style="cursor: help"><MagnifyingGlassIcon /></n-icon>
             </template>
             开启后将实时获取 CPU、内存占用、IP 及运行时间。关闭可降低服务器负担。
           </n-tooltip>
@@ -28,7 +28,7 @@
         class="search-input"
       >
         <template #prefix>
-          <n-icon><SearchIcon /></n-icon>
+          <n-icon><MagnifyingGlassIcon /></n-icon>
         </template>
       </n-input>
     </div>
@@ -48,7 +48,7 @@
               <n-text strong class="container-name text-truncate">{{ row.name }}</n-text>
               <n-tooltip v-if="containerSettings[row.name]?.auto_update" trigger="hover">
                 <template #trigger>
-                  <n-icon size="16" color="#18a058" class="auto-update-icon"><AutoModeIcon /></n-icon>
+                  <n-icon size="16" color="#18a058" class="auto-update-icon"><ArrowPathIcon /></n-icon>
                 </template>
                 已开启自动更新
               </n-tooltip>
@@ -93,7 +93,7 @@
                 class="check-update-btn"
                 @click="checkSingleUpdate(row.image)"
               >
-                <template #icon><n-icon size="14"><UpdateIcon /></n-icon></template>
+                <template #icon><n-icon size="14"><ArrowDownTrayIcon /></n-icon></template>
               </n-button>
               <n-text v-else-if="loadingActions[row.image]" depth="3" style="font-size: 10px">...</n-text>
             </div>
@@ -259,10 +259,10 @@
 import { ref, watch, h, computed } from 'vue'
 import { NTag, NButton, NSpace, NIcon, NModal, NText, NFormItem, NInput, NSpin, NEmpty, useMessage, useDialog, NRadioGroup, NRadioButton, NSwitch, NTooltip } from 'naive-ui'
 import {
-  SystemUpdateAltOutlined as UpdateIcon,
-  SearchOutlined as SearchIcon,
-  UpdateOutlined as AutoModeIcon
-} from '@vicons/material'
+  ArrowDownTrayIcon,
+  ArrowPathIcon,
+  MagnifyingGlassIcon
+} from '@heroicons/vue/24/outline'
 import axios from 'axios'
 import TerminalModal from './TerminalModal.vue'
 import { useDockerStore } from '@/store/dockerStore'

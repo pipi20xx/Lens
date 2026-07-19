@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { NIcon } from 'naive-ui'
-import { LinkOutlined as LinkIcon } from '@vicons/material'
+import { LinkIcon } from '@heroicons/vue/24/outline'
 import { SiteNav } from '../useSiteNav'
 
 const props = defineProps<{

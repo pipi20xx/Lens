@@ -19,15 +19,14 @@
               @update:value="fetchAllData" 
             />
             <n-button 
-              strong 
-              secondary 
+              quaternary 
               circle 
               type="primary" 
               :loading="loading" 
               @click="fetchAllData"
             >
               <template #icon>
-                <n-icon><RefreshOutlined /></n-icon>
+                <n-icon><ArrowPathIcon /></n-icon>
               </template>
             </n-button>
           </n-space>
@@ -59,7 +58,7 @@
                   <div class="activity-info">
                     <div class="name-text" :title="activity.label">{{ activity.label }}</div>
                     <n-space :size="8" align="center">
-                      <n-icon size="14" color="var(--primary-color)"><PeopleOutlined /></n-icon>
+                      <n-icon size="14" color="var(--primary-color)"><UsersIcon /></n-icon>
                       <n-text depth="2" style="font-size: 12px">{{ activity.user_name || activity.UserName }}</n-text>
                     </n-space>
                     <n-text depth="3" style="font-size: 11px">{{ activity.DateCreated?.split(' ')[0] || activity.date }}</n-text>
@@ -92,9 +91,10 @@ import {
   NSpace, NIcon, NButton, NSelect, NGrid, NGi, NScrollbar, 
   NH2, NText, NCard 
 } from 'naive-ui'
-import { 
-  RefreshOutlined, HistoryOutlined, PeopleOutlined 
-} from '@vicons/material'
+import {
+  ArrowPathIcon,
+  UsersIcon
+} from '@heroicons/vue/24/outline'
 import { usePlaybackReport } from './usePlaybackReport'
 
 import OverviewStats from './components/OverviewStats.vue'

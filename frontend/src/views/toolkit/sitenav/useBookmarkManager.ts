@@ -1,9 +1,9 @@
 import { onMounted, h, computed } from 'vue'
 import { NIcon } from 'naive-ui'
-import { 
-  FolderOutlined as FolderIcon,
-  HomeOutlined as HomeIcon
-} from '@vicons/material'
+import {
+  FolderIcon,
+  HomeIcon
+} from '@heroicons/vue/24/outline'
 import { useBookmarkState } from './hooks/useBookmarkState'
 import { useBookmarkActions } from './hooks/useBookmarkActions'
 import { useBookmarkDnd } from './hooks/useBookmarkDnd'

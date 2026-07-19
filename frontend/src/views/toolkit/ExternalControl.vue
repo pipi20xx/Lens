@@ -148,13 +148,6 @@ import {
   NFormItem, NInput, NInputGroup, NButton, NGrid, NGi, NThing, NSwitch, NDivider,
   NDataTable, NTag, NCode, NModal, NIcon
 } from 'naive-ui'
-import { 
-  ContentCopyOutlined as CopyIcon,
-  AutorenewOutlined as RefreshIcon,
-  SearchOutlined as ViewIcon,
-  CloseOutlined as CloseIcon
-} from '@vicons/material'
-
 // 导入提取的逻辑
 import { useExternalControl } from './externalControl/hooks/useExternalControl'
 import { useTheme } from '@/hooks/useTheme'

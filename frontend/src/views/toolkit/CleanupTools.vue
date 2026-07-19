@@ -100,11 +100,6 @@ import {
   NSpace, NH2, NText, NCard, NP, NButton, NGrid, NGi, 
   NCheckboxGroup, NCheckbox, NSwitch, NForm, NFormItem, NSelect, NDivider, NIcon 
 } from 'naive-ui'
-import {
-  PersonRemoveOutlined as DeleteIcon,
-  BuildCircleOutlined as FixIcon
-} from '@vicons/material'
-
 // 导入提取的逻辑
 import { useCleanupTools } from './cleanup/hooks/useCleanupTools'
 

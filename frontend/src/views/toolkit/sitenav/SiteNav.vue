@@ -5,16 +5,13 @@ import {
   NDropdown, NTooltip, NModal
 } from 'naive-ui'
 import {
-  LinkOutlined as LinkIcon,
-  LaunchOutlined as LaunchIcon,
-  AddCircleOutlineOutlined as AddIcon,
-  SettingsOutlined as SettingsIcon,
-  EditOutlined as EditIcon,
-  DeleteOutlined as DeleteIcon,
-  MenuOpenOutlined as MenuOpenIcon,
-  MenuOutlined as MenuIcon,
-  BookmarkBorderOutlined as BookmarkIcon
-} from '@vicons/material'
+  Bars3Icon,
+  BookmarkIcon,
+  Cog6ToothIcon,
+  PencilIcon,
+  PlusCircleIcon,
+  TrashIcon
+} from '@heroicons/vue/24/outline'
 import { useSiteNav, SiteNav } from './useSiteNav'
 import { isHomeEntry } from '@/store/navigationStore'
 import { useRouter } from 'vue-router'
@@ -98,8 +95,8 @@ const yRef = ref(0)
 const rightClickedSite = ref<SiteNav | null>(null)
 
 const contextMenuOptions = [
-  { label: '编辑站点', key: 'edit', icon: () => h(NIcon, null, { default: () => h(EditIcon) }) },
-  { label: '删除站点', key: 'delete', icon: () => h(NIcon, null, { default: () => h(DeleteIcon) }) },
+  { label: '编辑站点', key: 'edit', icon: () => h(NIcon, null, { default: () => h(PencilIcon) }) },
+  { label: '删除站点', key: 'delete', icon: () => h(NIcon, null, { default: () => h(TrashIcon) }) },
 ]
 
 // 判断背景色是否为浅色
@@ -325,11 +322,11 @@ const openUrl = (url: string) => window.open(url, '_blank')
           <n-space>
             <n-tooltip trigger="hover">
               <template #trigger>
-                <n-button circle secondary type="primary" @click="isHomeEntry = !isHomeEntry">
+                <n-button circle quaternary type="primary" @click="isHomeEntry = !isHomeEntry">
                   <template #icon>
                     <n-icon>
-                      <MenuOpenIcon v-if="isHomeEntry" />
-                      <MenuIcon v-else />
+                      <Bars3Icon v-if="isHomeEntry" />
+                      <Bars3Icon v-else />
                     </n-icon>
                   </template>
                 </n-button>
@@ -338,14 +335,14 @@ const openUrl = (url: string) => window.open(url, '_blank')
             </n-tooltip>
             <n-tooltip trigger="hover">
               <template #trigger>
-                <n-button circle secondary type="primary" @click="showBookmarkManager = true">
+                <n-button circle quaternary type="primary" @click="showBookmarkManager = true">
                   <template #icon><n-icon><BookmarkIcon /></n-icon></template>
                 </n-button>
               </template>
               书签管理
             </n-tooltip>
-            <n-button circle secondary type="primary" @click="showSettings = true">
-              <template #icon><n-icon><SettingsIcon /></n-icon></template>
+            <n-button circle quaternary type="primary" @click="showSettings = true">
+              <template #icon><n-icon><Cog6ToothIcon /></n-icon></template>
             </n-button>
           </n-space>
         </div>
@@ -375,7 +372,7 @@ const openUrl = (url: string) => window.open(url, '_blank')
           <div v-if="navSettings.show_category_line" class="category-line"></div>
           <div class="category-action">
             <n-button circle quaternary size="small" @click="handleAddSite(group.id)" class="add-btn">
-              <template #icon><n-icon><AddIcon /></n-icon></template>
+              <template #icon><n-icon><PlusCircleIcon /></n-icon></template>
             </n-button>
           </div>
         </div>

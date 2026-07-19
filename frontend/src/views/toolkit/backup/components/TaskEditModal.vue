@@ -170,11 +170,6 @@ import {
   NModal, NForm, NFormItemGi, NInput, NSelect, NInputGroup, NButton, NSlider, 
   NText, NDynamicInput, NSpace, NGrid, NDivider, NSwitch, NTimePicker, NInputNumber, NTag, NAlert, NIcon, NCheckbox, NCheckboxGroup
 } from 'naive-ui'
-import { 
-  FolderOpenOutlined as FolderIcon,
-  SaveOutlined as SaveIcon,
-  CloseOutlined as CloseIcon
-} from '@vicons/material'
 import { pgsqlApi } from '@/api/pgsql'
 
 const props = defineProps<{

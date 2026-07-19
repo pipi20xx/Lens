@@ -29,7 +29,7 @@
       <div v-else style="flex: 1; display: flex; flex-direction: column;">
         <n-space justify="space-between" align="center" style="margin-bottom: 12px">
           <n-space align="center">
-            <n-icon size="20"><TableIcon /></n-icon>
+            <n-icon size="20"><TableCellsIcon /></n-icon>
             <n-text strong style="font-size: 16px">{{ selectedTable }}</n-text>
             <n-tag size="small" type="info">{{ pagination.itemCount }} 条记录</n-tag>
           </n-space>
@@ -60,11 +60,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, watch, h } from 'vue'
 import { NLayout, NLayoutSider, NLayoutContent, NMenu, NDataTable, NEmpty, NSpace, NIcon, NText, NTag, NButton, NSelect, NEllipsis, useMessage } from 'naive-ui'
-import { 
-  TableChartOutlined as TableIcon, 
-  RefreshOutlined as RefreshIcon,
-  SearchOutlined as SearchIcon
-} from '@vicons/material'
+import { TableCellsIcon } from '@heroicons/vue/24/outline'
 import axios from 'axios'
 import DataValueViewerModal from './DataValueViewerModal.vue'
 
@@ -117,7 +113,7 @@ const tableMenuOptions = computed(() => {
   return tableList.value.map(t => ({
     label: t,
     key: t,
-    icon: () => h(NIcon, null, { default: () => h(TableIcon) })
+    icon: () => h(NIcon, null, { default: () => h(TableCellsIcon) })
   }))
 })
 

@@ -13,7 +13,6 @@
 <script setup lang="ts">
 import { ref, h, watch } from 'vue'
 import { NModal, NDataTable, NTag, NButton, NSpace, NRadio, NRadioGroup, NText, NIcon, useMessage, useDialog } from 'naive-ui'
-import { RestoreOutlined as HistoryIcon } from '@vicons/material'
 import axios from 'axios'
 
 const props = defineProps<{

@@ -184,15 +184,6 @@ import {
   useMessage, useDialog, NH2, NModal, NFormItem, NRadioGroup, 
   NRadioButton, NSwitch, NAlert, NTimePicker, NGrid, NFormItemGi, NInputNumber, NIcon
 } from 'naive-ui'
-import {
-  DnsOutlined as ServerIcon,
-  SettingsOutlined as SettingsIcon,
-  FolderOpenOutlined as FolderIcon,
-  RefreshOutlined as RefreshIcon,
-  SaveOutlined as SaveIcon,
-  CloseOutlined as CloseIcon
-} from '@vicons/material'
-
 // 导入乐高组件
 import ContainerPanel from './docker/components/ContainerPanel.vue'
 import ComposePanel from './docker/components/ComposePanel.vue'

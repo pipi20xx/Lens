@@ -26,7 +26,7 @@
           <n-list-item v-for="session in sessions" :key="session.session_id">
             <template #prefix>
               <n-icon size="24" :color="session.is_current ? '#18a058' : '#909399'">
-                <component :is="session.is_current ? CheckCircleIcon : DeviceIcon" />
+                <component :is="session.is_current ? CheckCircleIcon : DevicePhoneMobileIcon" />
               </n-icon>
             </template>
             <n-thing>
@@ -39,15 +39,15 @@
               <template #description>
                 <n-space vertical size="small">
                   <n-text depth="3" style="font-size: 12px">
-                    <n-icon :component="TimeIcon" style="vertical-align: middle; margin-right: 4px;" />
+                    <n-icon :component="ClockIcon" style="vertical-align: middle; margin-right: 4px;" />
                     {{ session.expires_text }}
                   </n-text>
                   <n-text depth="3" style="font-size: 12px">
-                    <n-icon :component="LocationIcon" style="vertical-align: middle; margin-right: 4px;" />
+                    <n-icon :component="MapPinIcon" style="vertical-align: middle; margin-right: 4px;" />
                     IP: {{ session.ip_address }}
                   </n-text>
                   <n-text depth="3" style="font-size: 12px">
-                    <n-icon :component="BrowserIcon" style="vertical-align: middle; margin-right: 4px;" />
+                    <n-icon :component="ArrowPathIcon" style="vertical-align: middle; margin-right: 4px;" />
                     UA: {{ session.user_agent }}
                   </n-text>
                   <n-text depth="3" style="font-size: 12px">
@@ -85,15 +85,13 @@ import {
   NThing, NText, NTag, NSpin, NEmpty
 } from 'naive-ui'
 import {
-  CheckCircleOutlined as CheckCircleIcon,
-  DevicesOutlined as DeviceIcon,
-  AccessTimeOutlined as TimeIcon,
-  LocationOnOutlined as LocationIcon,
-  BrowserUpdatedOutlined as BrowserIcon,
-  EventOutlined as CalendarIcon,
-  ExitToAppOutlined as LogoutIcon
-} from '@vicons/material'
-
+  ArrowPathIcon,
+  CalendarIcon,
+  CheckCircleIcon,
+  ClockIcon,
+  DevicePhoneMobileIcon,
+  MapPinIcon
+} from '@heroicons/vue/24/outline'
 const message = useMessage()
 const loading = ref(false)
 const sessions = ref<any[]>([])

@@ -7,7 +7,7 @@
 
     <!-- 1. Infobox -->
     <div class="report-row">
-      <div class="row-label"><n-icon size="14"><InfoIcon /></n-icon> 1. 信息框 (Infobox)</div>
+      <div class="row-label"><n-icon size="14"><InformationCircleIcon /></n-icon> 1. 信息框 (Infobox)</div>
       <div class="row-content">
         <n-grid :cols="2" :x-gap="12">
           <n-gi v-for="(info, index) in infobox" :key="index">
@@ -43,7 +43,7 @@
 
     <!-- 4. Title Pool -->
     <div class="report-row">
-      <div class="row-label"><n-icon size="14"><ListIcon /></n-icon> 4. 全量标题池 ({{ titlePool.length }})</div>
+      <div class="row-label"><n-icon size="14"><ListBulletIcon /></n-icon> 4. 全量标题池 ({{ titlePool.length }})</div>
       <div class="row-content" style="margin-top: 6px">
         <span v-for="t in titlePool" :key="t" class="data-tag">{{ t }}</span>
       </div>
@@ -64,8 +64,11 @@
 
 <script setup lang="ts">
 import { NIcon, NText, NGrid, NGi } from 'naive-ui'
-import { LocalOfferOutlined as TagIcon, InfoOutlined as InfoIcon, ListOutlined as ListIcon } from '@vicons/material'
-
+import {
+  InformationCircleIcon,
+  ListBulletIcon,
+  TagIcon
+} from '@heroicons/vue/24/outline'
 defineProps<{ 
   subject: any, 
   infobox: any[], 

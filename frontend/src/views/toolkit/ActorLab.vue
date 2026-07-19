@@ -74,8 +74,8 @@
                   </n-space>
                 </div>
                 <div class="hero-extra">
-                  <n-button secondary circle type="primary" @click="showJson(result.raw)">
-                    <template #icon><n-icon><CodeIcon /></n-icon></template>
+                  <n-button quaternary circle type="primary" @click="showJson(result.raw)">
+                    <template #icon><n-icon><DocumentTextIcon /></n-icon></template>
                   </n-button>
                 </div>
               </div>
@@ -83,7 +83,7 @@
               <!-- 详细情报对照表 -->
               <div class="lab-report-card" style="margin-top: 20px">
                 <div class="report-header">
-                  <n-icon color="#bb86fc" size="18" style="margin-right: 8px"><ReportIcon /></n-icon>
+                  <n-icon color="#bb86fc" size="18" style="margin-right: 8px"><IdentificationIcon /></n-icon>
                   <span class="report-title">演员关键信息深度解析 (扫描报告)</span>
                 </div>
 
@@ -170,12 +170,10 @@ import {
   NSelect, NDivider, NList, NListItem, NThing, 
   NIcon, NModal, NAvatar, NTabs, NTabPane
 } from 'naive-ui'
-import { 
-  TerminalOutlined as CodeIcon,
-  AssignmentIndOutlined as ReportIcon,
-  SearchOutlined as SearchIcon,
-  ScienceOutlined as LabIcon
-} from '@vicons/material'
+import {
+  DocumentTextIcon,
+  IdentificationIcon
+} from '@heroicons/vue/24/outline'
 
 // 导入提取的逻辑
 import { useActorLab } from './actorLab/hooks/useActorLab'

@@ -3,7 +3,7 @@
     <div class="panel-header">
       <n-text strong>快速命令</n-text>
       <n-button quaternary circle size="tiny" @click="openModal()">
-        <template #icon><n-icon :component="AddIcon" /></template>
+        <template #icon><n-icon :component="PlusCircleIcon" /></template>
       </n-button>
     </div>
     <div class="panel-toolbar">
@@ -25,12 +25,12 @@
             >
               <div class="card-header">
                 <div class="header-left">
-                  <n-icon :component="DragIcon" class="drag-handle" />
+                  <n-icon :component="Bars3Icon" class="drag-handle" />
                   <span class="cmd-title">{{ cmd.title }}</span>
                 </div>
                 <n-space :size="4">
                   <n-button quaternary circle size="tiny" @click.stop="openModal(cmd)">
-                    <template #icon><n-icon :component="EditIcon" /></template>
+                    <template #icon><n-icon :component="PencilIcon" /></template>
                   </n-button>
                   <n-popconfirm 
                     @positive-click="handleDelete(cmd.id)"
@@ -39,7 +39,7 @@
                   >
                     <template #trigger>
                       <n-button quaternary circle size="tiny" type="error" @click.stop>
-                        <template #icon><n-icon :component="DeleteIcon" /></template>
+                        <template #icon><n-icon :component="TrashIcon" /></template>
                       </n-button>
                     </template>
                     确定要删除快速命令「{{ cmd.title }}」吗？
@@ -77,12 +77,12 @@ import {
   NButton, NIcon, NScrollbar, NModal, NForm, NFormItem, 
   NInput, NSpace, NText, NCheckbox, NEmpty, NPopconfirm 
 } from 'naive-ui';
-import { 
-  AddCircleOutlineOutlined as AddIcon,
-  EditOutlined as EditIcon,
-  DeleteOutlineOutlined as DeleteIcon,
-  DragIndicatorOutlined as DragIcon
-} from '@vicons/material';
+import {
+  Bars3Icon,
+  PencilIcon,
+  PlusCircleIcon,
+  TrashIcon
+} from '@heroicons/vue/24/outline'
 
 defineEmits(['send']);
 

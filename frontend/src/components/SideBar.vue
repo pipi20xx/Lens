@@ -9,16 +9,16 @@ import {
   NSpace,
   NTooltip
 } from 'naive-ui'
-import { groupedMenuOptions, SettingIcon, ConsoleIcon } from '../config/menu'
+import { groupedMenuOptions, Cog6ToothIcon, DocumentTextIcon } from '../config/menu'
 import MenuManagerModal from './MenuManagerModal.vue'
 import { currentViewKey, activeGroupKey, isLogConsoleOpen, menuSettings, isLoggedIn, logout, uiAuthEnabled } from '../store/navigationStore'
-import { 
-  DragHandleOutlined as MenuManageIcon,
-  ExitToAppOutlined as LogoutIcon,
-  DnsOutlined as ServerIcon,
-  LightModeOutlined as LightIcon,
-  DarkModeOutlined as DarkIcon
-} from '@vicons/material'
+import {
+  ArrowRightOnRectangleIcon,
+  Bars3Icon,
+  MoonIcon,
+  ServerStackIcon,
+  SunIcon
+} from '@heroicons/vue/24/outline'
 import { useRouter } from 'vue-router'
 import { servers, activeServerId, fetchServers, activateServer } from '../store/serverStore'
 import { useMessage } from 'naive-ui'
@@ -38,7 +38,7 @@ const serverOptions = computed(() => {
   return servers.value.map(s => ({
     label: s.name,
     key: s.id,
-    icon: () => h(NIcon, null, { default: () => h(ServerIcon) })
+    icon: () => h(NIcon, null, { default: () => h(ServerStackIcon) })
   }))
 })
 
@@ -121,54 +121,54 @@ const handleToggleTheme = () => {
         <n-space :vertical="collapsed" justify="space-around" align="center" :size="[8, 12]">
           <n-tooltip placement="right" v-if="collapsed">
             <template #trigger>
-              <n-button circle secondary size="medium" @click="showMenuManager = true">
-                <template #icon><n-icon><MenuManageIcon /></n-icon></template>
+              <n-button circle quaternary size="medium" @click="showMenuManager = true">
+                <template #icon><n-icon><Bars3Icon /></n-icon></template>
               </n-button>
             </template>
             菜单管理
           </n-tooltip>
-          <n-button v-else circle secondary size="small" @click="showMenuManager = true">
-            <template #icon><n-icon><MenuManageIcon /></n-icon></template>
+          <n-button v-else circle quaternary size="small" @click="showMenuManager = true">
+            <template #icon><n-icon><Bars3Icon /></n-icon></template>
           </n-button>
 
           <n-button 
             circle 
-            secondary 
+            quaternary 
             :size="collapsed ? 'medium' : 'small'" 
             :type="isDark ? 'default' : 'primary'"
             @click="handleToggleTheme"
           >
             <template #icon>
               <n-icon>
-                <DarkIcon v-if="isDark" />
-                <LightIcon v-else />
+                <MoonIcon v-if="isDark" />
+                <SunIcon v-else />
               </n-icon>
             </template>
           </n-button>
           
           <n-button 
             circle 
-            secondary 
+            quaternary 
             :size="collapsed ? 'medium' : 'small'" 
             :type="currentViewKey === 'SettingsView' ? 'primary' : 'default'" 
             @click="currentViewKey = 'SettingsView'"
           >
-            <template #icon><n-icon><SettingIcon /></n-icon></template>
+            <template #icon><n-icon><Cog6ToothIcon /></n-icon></template>
           </n-button>
 
-          <n-button circle secondary :size="collapsed ? 'medium' : 'small'" type="info" @click="isLogConsoleOpen = true">
-            <template #icon><n-icon><ConsoleIcon /></n-icon></template>
+          <n-button circle quaternary :size="collapsed ? 'medium' : 'small'" type="info" @click="isLogConsoleOpen = true">
+            <template #icon><n-icon><DocumentTextIcon /></n-icon></template>
           </n-button>
 
           <n-button 
             v-if="isLoggedIn && uiAuthEnabled"
             circle 
-            secondary 
+            quaternary 
             :size="collapsed ? 'medium' : 'small'" 
             type="error" 
             @click="handleLogout"
           >
-            <template #icon><n-icon><LogoutIcon /></n-icon></template>
+            <template #icon><n-icon><ArrowRightOnRectangleIcon /></n-icon></template>
           </n-button>
         </n-space>
       </div>

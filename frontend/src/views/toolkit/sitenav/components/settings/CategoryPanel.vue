@@ -4,15 +4,11 @@ import {
   NSpace, NInput, NInputGroup, NButton, NDivider, NIcon, NText, 
   NPopconfirm, NScrollbar, NPopover
 } from 'naive-ui'
-import { 
-  DragIndicatorOutlined as DragIcon,
-  DeleteOutlined as DeleteIcon,
-  AddOutlined as AddIcon,
-  EditOutlined as EditIcon,
-  CheckOutlined as SaveIcon,
-  InsertEmoticonOutlined as EmojiIcon,
-  ImageOutlined as ImageIcon
-} from '@vicons/material'
+import {
+  Bars3Icon,
+  PencilIcon,
+  TrashIcon
+} from '@heroicons/vue/24/outline'
 import HDIconPicker from '../HDIconPicker.vue'
 
 // 常用 Emoji 预设
@@ -151,7 +147,7 @@ const onDragEnd = () => {
             @dragenter="onDragEnter(cat.id)"
             @dragend="onDragEnd"
           >
-            <div class="drag-handle"><n-icon><DragIcon /></n-icon></div>
+            <div class="drag-handle"><n-icon><Bars3Icon /></n-icon></div>
             
             <div class="cat-content">
               <template v-if="editingId === cat.id">
@@ -183,7 +179,7 @@ const onDragEnd = () => {
                   <span class="cat-name">{{ cat.name }}</span>
                 </div>
                 <n-button quaternary circle size="tiny" @click="startEdit(cat)" class="edit-btn">
-                  <template #icon><n-icon><EditIcon /></n-icon></template>
+                  <template #icon><n-icon><PencilIcon /></n-icon></template>
                 </n-button>
               </template>
             </div>
@@ -192,7 +188,7 @@ const onDragEnd = () => {
               <n-popconfirm @positive-click="emit('delete', cat.id)">
                 <template #trigger>
                   <n-button quaternary circle size="small" type="error">
-                    <template #icon><n-icon><DeleteIcon /></n-icon></template>
+                    <template #icon><n-icon><TrashIcon /></n-icon></template>
                   </n-button>
                 </template>
                 确定删除该分类吗？

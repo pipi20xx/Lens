@@ -13,15 +13,13 @@ import {
   NText,
   useMessage
 } from 'naive-ui'
-import { 
-  AddCircleOutlineOutlined as AddIcon,
-  DragIndicatorOutlined as DragIcon,
-  DeleteOutlineOutlined as DeleteIcon,
-  LaunchOutlined as ItemIcon,
-  ArrowForwardOutlined as QuickAddIcon,
-  SettingsBackupRestoreOutlined as ResetIcon,
-  PushPinOutlined as StickyIcon
-} from '@vicons/material'
+import {
+  ArrowRightIcon,
+  ArrowTopRightOnSquareIcon,
+  Bars3Icon,
+  MapPinIcon,
+  TrashIcon
+} from '@heroicons/vue/24/outline'
 import draggable from 'vuedraggable'
 
 import GroupCard from './menu-manager/GroupCard.vue'
@@ -103,7 +101,7 @@ const handleClose = () => {
                   <div class="pool-item">
                     <n-space align="center" justify="space-between" :wrap="false" style="width: 100%">
                       <n-space align="center" :size="8" :wrap="false" style="overflow: hidden; flex: 1;">
-                        <n-icon class="drag-handle-icon" :size="18"><DragIcon /></n-icon>
+                        <n-icon class="drag-handle-icon" :size="18"><Bars3Icon /></n-icon>
                         <span class="pool-label">{{ element.label }}</span>
                       </n-space>
                       
@@ -123,7 +121,7 @@ const handleClose = () => {
                                 class="quick-add-btn"
                                 @click.stop
                               >
-                                <template #icon><n-icon><QuickAddIcon /></n-icon></template>
+                                <template #icon><n-icon><ArrowRightIcon /></n-icon></template>
                               </n-button>
                             </template>
                             快速设为一级菜单
@@ -201,10 +199,10 @@ const handleClose = () => {
                       >
                         <n-space align="center" justify="space-between" style="width: 100%">
                           <n-space align="center" :size="12">
-                            <n-icon class="primary-drag-handle"><DragIcon /></n-icon>
+                            <n-icon class="primary-drag-handle"><Bars3Icon /></n-icon>
                             <n-switch v-model:value="element.visible" size="small" />
                             <div class="item-content-styled">
-                              <n-icon :size="18"><ItemIcon /></n-icon>
+                              <n-icon :size="18"><ArrowTopRightOnSquareIcon /></n-icon>
                               <span class="item-label-text">{{ element.label }}</span>
                             </div>
                           </n-space>
@@ -216,7 +214,7 @@ const handleClose = () => {
                           >
                             <template #trigger>
                               <n-button quaternary circle size="small" type="error">
-                                <template #icon><n-icon><DeleteIcon /></n-icon></template>
+                                <template #icon><n-icon><TrashIcon /></n-icon></template>
                               </n-button>
                             </template>
                             确定要将此项从一级菜单中移出吗？
@@ -243,7 +241,7 @@ const handleClose = () => {
             <!-- 体验增强开关 -->
             <n-space align="center" :size="20">
               <div class="footer-setting-item">
-                <n-icon :size="18" style="margin-right: 8px;"><StickyIcon /></n-icon>
+                <n-icon :size="18" style="margin-right: 8px;"><MapPinIcon /></n-icon>
                 <n-text style="margin-right: 8px;">导航栏吸顶显示</n-text>
                 <n-switch v-model:value="isHeaderSticky" size="small" />
               </div>

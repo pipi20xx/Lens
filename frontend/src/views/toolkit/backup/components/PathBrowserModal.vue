@@ -34,7 +34,6 @@ import { ref, computed, watch } from 'vue'
 import { 
   NModal, NBreadcrumb, NBreadcrumbItem, NList, NListItem, NSpace, NText, NButton, NIcon, useMessage 
 } from 'naive-ui'
-import { CheckCircleOutlined as CheckIcon } from '@vicons/material'
 import axios from 'axios'
 
 const props = defineProps<{

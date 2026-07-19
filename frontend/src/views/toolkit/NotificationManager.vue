@@ -145,15 +145,6 @@ import {
   NButton, NSpace, NTag, NPopconfirm, NCard, NSwitch, NAlert, NDataTable, NModal, NForm, 
   NFormItem, NInput, NSelect, NH2, NText, NGrid, NGi, DataTableColumns, useMessage, NIcon 
 } from 'naive-ui'
-import { 
-  AddOutlined as AddIcon,
-  SendOutlined as TestIcon,
-  EditOutlined as EditIcon,
-  DeleteOutlined as DeleteIcon,
-  SaveOutlined as SaveIcon,
-  CloseOutlined as CloseIcon
-} from '@vicons/material'
-
 // 导入提取的逻辑
 import { useNotificationManager } from './notification/hooks/useNotificationManager'
 import { NOTIFICATION_EVENTS } from '@/constants/events'

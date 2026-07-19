@@ -79,8 +79,8 @@
                 </n-space>
               </template>
               <template #header-extra>
-                <n-button secondary circle size="small" type="primary" @click="showJson(detailResult, 'main')" title="查看本体 JSON">
-                  <template #icon><n-icon><CodeIcon /></n-icon></template>
+                <n-button quaternary circle size="small" type="primary" @click="showJson(detailResult, 'main')" title="查看本体 JSON">
+                  <template #icon><n-icon><DocumentTextIcon /></n-icon></template>
                 </n-button>
               </template>
 
@@ -102,13 +102,13 @@
               <!-- 详细名称对照表 -->
               <div class="lab-report-card">
                 <div class="report-header">
-                  <n-icon color="#bb86fc" size="18" style="margin-right: 8px"><TitleIcon /></n-icon>
+                  <n-icon color="#bb86fc" size="18" style="margin-right: 8px"><LanguageIcon /></n-icon>
                   <span class="report-title">详细名称对照表 (分拣参考)</span>
                 </div>
 
                 <!-- 1. 流派 -->
                 <div class="report-row">
-                  <div class="row-label"><n-icon size="14"><GenreIcon /></n-icon> 1. 所有流派</div>
+                  <div class="row-label"><n-icon size="14"><SwatchIcon /></n-icon> 1. 所有流派</div>
                   <div class="row-content">
                     <span v-for="g in detailResult.genres" :key="g.id" class="data-tag">
                       {{ g.name }} ({{ g.id }})
@@ -119,7 +119,7 @@
 
                 <!-- 2. 制作公司 -->
                 <div class="report-row">
-                  <div class="row-label"><n-icon size="14"><CompanyIcon /></n-icon> 2. 制作公司</div>
+                  <div class="row-label"><n-icon size="14"><BuildingOffice2Icon /></n-icon> 2. 制作公司</div>
                   <div class="row-content">
                     <span v-for="c in detailResult.production_companies" :key="c.id" class="data-tag">
                       {{ c.name }} ({{ c.id }})
@@ -141,7 +141,7 @@
 
                 <!-- 4. 标题池 -->
                 <div class="report-row">
-                  <div class="row-label"><n-icon size="14"><TitleIcon /></n-icon> 4. 全量标题池 ({{ titlePool.length }})</div>
+                  <div class="row-label"><n-icon size="14"><LanguageIcon /></n-icon> 4. 全量标题池 ({{ titlePool.length }})</div>
                   <div class="row-content" style="margin-top: 6px">
                     <div v-if="titlePool.length > 0">
                       <span v-for="t in titlePool" :key="t" class="data-tag">{{ t }}</span>
@@ -155,7 +155,7 @@
 
                 <!-- 5. 别名池 -->
                 <div class="report-row">
-                  <div class="row-label" style="color: #f0a020"><n-icon size="14"><AliasIcon /></n-icon> 5. 全量别名池 ({{ aliasPool.length }})</div>
+                  <div class="row-label" style="color: #f0a020"><n-icon size="14"><TagIcon /></n-icon> 5. 全量别名池 ({{ aliasPool.length }})</div>
                   <div class="row-content" style="margin-top: 6px">
                     <div v-if="aliasPool.length > 0">
                       <span v-for="a in aliasPool" :key="a" class="data-tag tag-orange">{{ a }}</span>
@@ -176,11 +176,11 @@
                       <n-space justify="space-between" style="width: 100%" align="center">
                         <n-text strong>{{ season.name }} ({{ season.episodes?.length || 0 }} 集)</n-text>
                         <n-space>
-                          <n-button secondary circle size="tiny" type="default" @click.stop="showJson(season, 'season', false)" title="查看当前快照">
-                            <template #icon><n-icon><SnippetIcon /></n-icon></template>
+                          <n-button quaternary circle size="tiny" type="default" @click.stop="showJson(season, 'season', false)" title="查看当前快照">
+                            <template #icon><n-icon><DocumentTextIcon /></n-icon></template>
                           </n-button>
-                          <n-button secondary circle size="tiny" type="info" @click.stop="showJson(season, 'season', true)" title="全语言深度探针">
-                            <template #icon><n-icon><CodeIcon /></n-icon></template>
+                          <n-button quaternary circle size="tiny" type="info" @click.stop="showJson(season, 'season', true)" title="全语言深度探针">
+                            <template #icon><n-icon><DocumentTextIcon /></n-icon></template>
                           </n-button>
                         </n-space>
                       </n-space>
@@ -191,11 +191,11 @@
                         <n-thing :title="`EP ${ep.episode_number} - ${ep.name}`">
                           <template #header-extra>
                             <n-space>
-                              <n-button secondary circle size="tiny" type="default" @click="showJson(ep, 'episode', false)" title="查看当前快照">
-                                <template #icon><n-icon><SnippetIcon /></n-icon></template>
+                              <n-button quaternary circle size="tiny" type="default" @click="showJson(ep, 'episode', false)" title="查看当前快照">
+                                <template #icon><n-icon><DocumentTextIcon /></n-icon></template>
                               </n-button>
-                              <n-button secondary circle size="tiny" type="primary" @click="showJson(ep, 'episode', true)" title="全语言深度探针">
-                                <template #icon><n-icon><CodeIcon /></n-icon></template>
+                              <n-button quaternary circle size="tiny" type="primary" @click="showJson(ep, 'episode', true)" title="全语言深度探针">
+                                <template #icon><n-icon><DocumentTextIcon /></n-icon></template>
                               </n-button>
                             </n-space>
                           </template>
@@ -255,18 +255,13 @@ import {
   NSelect, NDivider, NList, NListItem, NThing, NSwitch, NTabs, NTabPane,
   NDescriptions, NDescriptionsItem, NCollapse, NCollapseItem, NP, NIcon, NAlert, NModal, NProgress
 } from 'naive-ui'
-import { 
-  TerminalOutlined as CodeIcon,
-  ArticleOutlined as SnippetIcon,
-  TranslateOutlined as TitleIcon,
-  LabelOutlined as AliasIcon,
-  BusinessOutlined as CompanyIcon,
-  StyleOutlined as GenreIcon,
-  LocalOfferOutlined as TagIcon,
-  SearchOutlined as SearchIcon,
-  ScienceOutlined as LabIcon,
-  ContentCopyOutlined as CopyIcon
-} from '@vicons/material'
+import {
+  BuildingOffice2Icon,
+  DocumentTextIcon,
+  LanguageIcon,
+  SwatchIcon,
+  TagIcon
+} from '@heroicons/vue/24/outline'
 
 // 导入提取的逻辑
 import { useTmdbSearch } from './tmdb/hooks/useTmdbSearch'
@@ -434,5 +429,4 @@ const copyRawJson = () => {
   opacity: 0.9;
   word-break: break-all;
 }
-.alias-text { color: #f0a020 !important; }
 </style>

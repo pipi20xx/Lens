@@ -11,15 +11,14 @@
             <n-text depth="3">查看并管理 Emby 服务器的计划任务与维护操作。</n-text>
           </div>
           <n-button 
-            strong 
-            secondary 
+            quaternary 
             circle 
             type="primary" 
             :loading="loading" 
             @click="fetchTasks(true)"
           >
             <template #icon>
-              <n-icon><RefreshOutlined /></n-icon>
+              <n-icon><ArrowPathIcon /></n-icon>
             </template>
           </n-button>
         </n-space>
@@ -64,7 +63,7 @@
                       type="primary"
                       @click="handleRun(task.Id)"
                     >
-                      <template #icon><n-icon><PlayArrowFilled /></n-icon></template>
+                      <template #icon><n-icon><PlayIcon /></n-icon></template>
                     </n-button>
                     <n-button
                       v-else
@@ -74,7 +73,7 @@
                       type="error"
                       @click="handleStop(task.Id)"
                     >
-                      <template #icon><n-icon><StopFilled /></n-icon></template>
+                      <template #icon><n-icon><StopCircleIcon /></n-icon></template>
                     </n-button>
                   </template>
 
@@ -129,11 +128,16 @@ import {
   NSpace, NIcon, NButton, NProgress, useMessage, NH2, NText, 
   NDivider, NGrid, NGi, NCard, NEmpty 
 } from 'naive-ui'
-import { 
-  RefreshOutlined, PlayArrowFilled, StopFilled,
-  StorageOutlined, SettingsSuggestOutlined, PhotoFilterOutlined, 
-  BuildCircleOutlined, HelpOutlineOutlined
-} from '@vicons/material'
+import {
+  ArrowPathIcon,
+  CircleStackIcon,
+  Cog6ToothIcon,
+  PlayIcon,
+  QuestionMarkCircleIcon,
+  StopCircleIcon,
+  SwatchIcon,
+  WrenchIcon
+} from '@heroicons/vue/24/outline'
 import { embyTasksApi } from '@/api/embyTasks'
 
 const message = useMessage()
@@ -204,14 +208,14 @@ const getCategoryColor = (category: string) => {
 
 const getTaskIcon = (category: string) => {
   const icons: any = {
-    'Library': markRaw(StorageOutlined),
-    'System': markRaw(SettingsSuggestOutlined),
-    'Media': markRaw(PhotoFilterOutlined),
-    'Maintenance': markRaw(BuildCircleOutlined),
-    'Danmu': markRaw(PhotoFilterOutlined),
-    'Bangumi': markRaw(BuildCircleOutlined)
+    'Library': markRaw(CircleStackIcon),
+    'System': markRaw(Cog6ToothIcon),
+    'Media': markRaw(SwatchIcon),
+    'Maintenance': markRaw(WrenchIcon),
+    'Danmu': markRaw(SwatchIcon),
+    'Bangumi': markRaw(WrenchIcon)
   }
-  return icons[category] || markRaw(HelpOutlineOutlined)
+  return icons[category] || markRaw(QuestionMarkCircleIcon)
 }
 
 const formatTaskDate = (dateStr: string) => {

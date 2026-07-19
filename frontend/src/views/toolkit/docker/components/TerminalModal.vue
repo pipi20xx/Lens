@@ -23,7 +23,6 @@
 <script setup lang="ts">
 import { ref, onBeforeUnmount } from 'vue'
 import { NModal, NSpace, NButton, NText, NIcon } from 'naive-ui'
-import { CloseOutlined as CloseIcon } from '@vicons/material'
 import { Terminal } from 'xterm'
 import { FitAddon } from 'xterm-addon-fit'
 import 'xterm/css/xterm.css'

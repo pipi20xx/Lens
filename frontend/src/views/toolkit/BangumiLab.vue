@@ -96,10 +96,6 @@ import {
   NSpace, NH2, NText, NCard, NInput, NButton, NEmpty, NGrid, NGi, NForm, NFormItem, NModal, NCode, useMessage,
   NTabs, NTabPane, NIcon
 } from 'naive-ui'
-import { 
-  ScienceOutlined as LabIcon,
-  ContentCopyOutlined as CopyIcon
-} from '@vicons/material'
 import { useBangumi } from './bangumi/useBangumi'
 import { copyElementContent } from '@/utils/clipboard'
 import SubjectCard from './bangumi/components/SubjectCard.vue'

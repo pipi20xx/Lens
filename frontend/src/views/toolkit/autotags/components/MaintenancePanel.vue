@@ -25,12 +25,6 @@
 <script setup lang="ts">
 import { ref, h } from 'vue'
 import { NCard, NSpace, NButton, NDivider, NText, NInputGroup, NInput, NIcon, useDialog, useMessage } from 'naive-ui'
-import {
-  DeleteSweepOutlined as DeleteSweepIcon,
-  DeleteForeverOutlined as DeleteForeverIcon,
-  SendOutlined as SendIcon
-} from '@vicons/material'
-
 const props = defineProps<{
   onClearAll: () => void
   onClearSpecific: (tags: string[]) => void

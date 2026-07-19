@@ -2,7 +2,7 @@
   <div class="pulse-activity-card">
     <div class="card-header">
       <div class="title-group">
-        <n-icon size="22" color="#0078d4"><TimelineOutlined /></n-icon>
+        <n-icon size="22" color="#0078d4"><QueueListIcon /></n-icon>
         <span class="title">24小时播放热度脉冲</span>
       </div>
       <div class="peak-info" v-if="peakHour">
@@ -18,7 +18,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { NIcon } from 'naive-ui'
-import { TimelineOutlined } from '@vicons/material'
+import { QueueListIcon } from '@heroicons/vue/24/outline'
 import VChart from 'vue-echarts'
 import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'

@@ -13,7 +13,7 @@
           class="search-input"
         >
           <template #prefix>
-            <n-icon><SearchIcon /></n-icon>
+            <n-icon><MagnifyingGlassIcon /></n-icon>
           </template>
         </n-input>
       </div>
@@ -51,7 +51,7 @@
                 @click="pinProject(row)"
                 title="记忆项目路径"
               >
-                <template #icon><n-icon><PushPinIcon /></n-icon></template>
+                <template #icon><n-icon><MapPinIcon /></n-icon></template>
               </n-button>
             </div>
             <n-tag
@@ -218,10 +218,10 @@ import {
   NModal, NForm, NFormItem, NInput, NInputGroup, NCheckbox, NSpin, NEmpty, useMessage, useDialog
 } from 'naive-ui'
 import {
-  PushPinOutlined as PushPinIcon,
-  FolderOutlined as FolderIcon,
-  SearchOutlined as SearchIcon
-} from '@vicons/material'
+  FolderIcon,
+  MagnifyingGlassIcon,
+  MapPinIcon
+} from '@heroicons/vue/24/outline'
 import axios from 'axios'
 import yaml from 'js-yaml'
 import { useDockerStore } from '@/store/dockerStore'

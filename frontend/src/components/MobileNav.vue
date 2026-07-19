@@ -2,20 +2,19 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { NIcon, NButton, NDrawer, NDropdown, NInput } from 'naive-ui'
 import {
-  DashboardOutlined as DashboardIcon,
-  CameraOutlined as SiteNavIcon,
-  DnsOutlined as EmbyIcon,
-  MenuOutlined as HamburgerIcon,
-  ArrowBackOutlined as ArrowBackIcon,
-  SettingsOutlined as SettingIcon,
-  TerminalOutlined as ConsoleIcon,
-  LightModeOutlined as LightIcon,
-  DarkModeOutlined as DarkIcon,
-  PersonOutlined as ProfileIcon,
-  ExitToAppOutlined as LogoutIcon,
-  SearchOutlined as SearchIcon,
-  DragHandleOutlined as MenuManageIcon
-} from '@vicons/material'
+  ArrowLeftIcon,
+  ArrowRightOnRectangleIcon,
+  Bars3Icon,
+  CameraIcon,
+  CodeBracketIcon,
+  Cog6ToothIcon,
+  MagnifyingGlassIcon,
+  MoonIcon,
+  ServerStackIcon,
+  Squares2X2Icon,
+  SunIcon,
+  UserIcon
+} from '@heroicons/vue/24/outline'
 import { currentViewKey, menuLayout, activeGroupKey, isLogConsoleOpen, logout } from '../store/navigationStore'
 import { allMenuItems } from '../config/menu'
 import { servers, activeServerId, fetchServers, activateServer } from '../store/serverStore'
@@ -37,9 +36,9 @@ const searchKeyword = ref('')
 // ── 底部 4 个主 Tab ──
 // 每个 Tab 关联一个分组 key,激活态基于分组判断
 const bottomNavItems = computed(() => [
-  { key: 'DashboardView', label: '仪表盘', icon: DashboardIcon, groupKey: 'DashboardView' },
-  { key: 'SiteNavView', label: '站点', icon: SiteNavIcon, groupKey: 'SiteNavView' },
-  { key: 'PlaybackReportView', label: 'Emby', icon: EmbyIcon, groupKey: 'group-emby-mgmt' },
+  { key: 'DashboardView', label: '仪表盘', icon: Squares2X2Icon, groupKey: 'DashboardView' },
+  { key: 'SiteNavView', label: '站点', icon: CameraIcon, groupKey: 'SiteNavView' },
+  { key: 'PlaybackReportView', label: 'Emby', icon: ServerStackIcon, groupKey: 'group-emby-mgmt' },
   // 第 4 个固定是"更多"
 ])
 
@@ -228,11 +227,11 @@ onUnmounted(() => {
     <div class="mobile-header-left">
       <!-- PWA App 模式: 返回按钮 -->
       <n-button v-if="appMode" quaternary size="small" class="mobile-icon-btn" @click="emit('goBack')" title="返回">
-        <template #icon><n-icon size="24"><ArrowBackIcon /></n-icon></template>
+        <template #icon><n-icon size="24"><ArrowLeftIcon /></n-icon></template>
       </n-button>
       <!-- 移动浏览器模式: 汉堡菜单 -->
       <n-button v-else quaternary size="small" class="mobile-icon-btn" @click="showMobileMenu = true" title="菜单">
-        <template #icon><n-icon size="24"><HamburgerIcon /></n-icon></template>
+        <template #icon><n-icon size="24"><Bars3Icon /></n-icon></template>
       </n-button>
       <span class="mobile-title">LENS</span>
     </div>
@@ -241,7 +240,7 @@ onUnmounted(() => {
       <!-- 服务器选择器 -->
       <n-dropdown trigger="click" :options="serverOptions" @select="handleServerSelect">
         <n-button quaternary size="small" class="server-btn">
-          <n-icon size="16"><EmbyIcon /></n-icon>
+          <n-icon size="16"><ServerStackIcon /></n-icon>
           <span class="server-name">{{ activeServerName }}</span>
         </n-button>
       </n-dropdown>
@@ -251,8 +250,8 @@ onUnmounted(() => {
       <n-button quaternary size="small" class="mobile-icon-btn" @click="emit('toggleTheme')">
         <template #icon>
           <n-icon size="20">
-            <DarkIcon v-if="isDark" />
-            <LightIcon v-else />
+            <MoonIcon v-if="isDark" />
+            <SunIcon v-else />
           </n-icon>
         </template>
       </n-button>
@@ -276,7 +275,7 @@ onUnmounted(() => {
           </div>
           <!-- 更多按钮 -->
           <div class="nav-item" :class="{ active: showMobileMenu }" @click="handleMobileNav('MORE')">
-            <n-icon size="26"><HamburgerIcon /></n-icon>
+            <n-icon size="26"><Bars3Icon /></n-icon>
             <span class="label">更多</span>
           </div>
         </div>
@@ -300,18 +299,18 @@ onUnmounted(() => {
           class="full-panel-search"
         >
           <template #prefix>
-            <n-icon size="14"><SearchIcon /></n-icon>
+            <n-icon size="14"><MagnifyingGlassIcon /></n-icon>
           </template>
         </n-input>
         <n-button quaternary size="small" class="full-panel-close" @click="showMobileMenu = false">
-          <template #icon><n-icon size="24"><ArrowBackIcon /></n-icon></template>
+          <template #icon><n-icon size="24"><ArrowLeftIcon /></n-icon></template>
         </n-button>
       </div>
 
       <!-- 可滚动功能网格 -->
       <div class="full-panel-body">
         <div v-if="panelGroups.length === 0" class="empty-state">
-          <n-icon size="48" opacity="0.3"><SearchIcon /></n-icon>
+          <n-icon size="48" opacity="0.3"><MagnifyingGlassIcon /></n-icon>
           <p>未找到匹配的功能</p>
         </div>
         <div v-for="group in panelGroups" :key="group.groupKey" class="panel-group">
@@ -337,29 +336,29 @@ onUnmounted(() => {
       <div class="full-panel-footer">
         <div class="panel-footer-item" @click="handlePanelAction('theme')">
           <n-icon size="22" :color="isDark ? 'var(--primary-color, #705df2)' : 'var(--text-color, #fff)'">
-            <DarkIcon v-if="isDark" />
-            <LightIcon v-else />
+            <MoonIcon v-if="isDark" />
+            <SunIcon v-else />
           </n-icon>
           <span>{{ isDark ? '夜间' : '日间' }}</span>
         </div>
         <div class="panel-footer-item" @click="handlePanelAction('account')">
-          <n-icon size="22"><ProfileIcon /></n-icon>
+          <n-icon size="22"><UserIcon /></n-icon>
           <span>账号</span>
         </div>
         <div class="panel-footer-item" @click="handlePanelAction('menuManager')">
-          <n-icon size="22"><MenuManageIcon /></n-icon>
+          <n-icon size="22"><Bars3Icon /></n-icon>
           <span>菜单</span>
         </div>
         <div class="panel-footer-item" @click="handlePanelAction('console')">
-          <n-icon size="22"><ConsoleIcon /></n-icon>
+          <n-icon size="22"><CodeBracketIcon /></n-icon>
           <span>日志</span>
         </div>
         <div class="panel-footer-item" @click="handlePanelAction('settings')">
-          <n-icon size="22"><SettingIcon /></n-icon>
+          <n-icon size="22"><Cog6ToothIcon /></n-icon>
           <span>设置</span>
         </div>
         <div class="panel-footer-item" @click="handlePanelAction('logout')">
-          <n-icon size="22" color="var(--color-error, #EF4444)"><LogoutIcon /></n-icon>
+          <n-icon size="22" color="var(--color-error, #EF4444)"><ArrowRightOnRectangleIcon /></n-icon>
           <span>退出</span>
         </div>
       </div>

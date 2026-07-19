@@ -51,8 +51,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { NIcon } from 'naive-ui'
-import { MovieOutlined, LiveTvOutlined } from '@vicons/material'
-
+import {
+  FilmIcon,
+  TvIcon
+} from '@heroicons/vue/24/outline'
 const props = defineProps<{
   movies: any[]
   tvShows: any[]
@@ -60,8 +62,8 @@ const props = defineProps<{
 }>()
 
 const sections = computed(() => [
-  { title: '热门电影排行', icon: MovieOutlined, data: props.movies },
-  { title: '热门剧集排行', icon: LiveTvOutlined, data: props.tvShows }
+  { title: '热门电影排行', icon: FilmIcon, data: props.movies },
+  { title: '热门剧集排行', icon: TvIcon, data: props.tvShows }
 ])
 </script>
 

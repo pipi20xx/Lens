@@ -95,6 +95,108 @@ p, div, span, label {
   line-height: 1.6;
 }
 
+/* ============================================
+   图标样式统一 - 无底色描边图标 (Heroicons)
+   规则: 所有图标统一使用 Heroicons outline 描边风格,
+         无背景底色, 尺寸跟随 NIcon 的 font-size (1em),
+         颜色跟随 currentColor (NIcon 的 color)
+   ============================================ */
+.n-icon {
+  background-color: transparent !important;
+}
+.n-icon > svg,
+.n-icon svg {
+  width: 1em !important;
+  height: 1em !important;
+  display: inline-block;
+  background-color: transparent !important;
+}
+
+/* ============================================
+   图标与文字垂直对齐修复
+   Heroicons SVG 作为 inline-block 会有 baseline 间隙,
+   导致下拉菜单 / 菜单项 / 按钮内 图标与文字不对齐。
+   统一用 flex 居中 + 去除多余 line-height 解决。
+   ============================================ */
+
+/* 下拉菜单选项: 图标与文字垂直居中 */
+.n-dropdown-option {
+  display: flex !important;
+  align-items: center !important;
+}
+.n-dropdown-option__icon {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+}
+.n-dropdown-option__icon .n-icon {
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* 菜单(侧边栏)选项: 图标与文字垂直居中 */
+.n-menu-item-content {
+  display: flex !important;
+  align-items: center !important;
+}
+.n-menu-item-content__icon {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+}
+.n-menu-item-content__icon .n-icon {
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* 按钮内图标与文字垂直居中 */
+.n-button__icon {
+  display: flex !important;
+  align-items: center !important;
+}
+.n-button .n-icon {
+  display: flex !important;
+  align-items: center !important;
+  line-height: 0 !important;
+}
+
+/* n-thing / 列表项 图标对齐 */
+.n-thing .n-icon,
+.n-list-item .n-icon {
+  display: inline-flex !important;
+  align-items: center !important;
+  vertical-align: middle !important;
+}
+/* 纯图标按钮统一无底色无边框
+   关键: Naive UI 的 circle 按钮在渲染时会忽略 quaternary/secondary 修饰符,
+   不会输出 .n-button--quaternary 类, 所以靠类名无法匹配 circle 图标按钮。
+   改用 :has() 精准识别"含图标但不含文字内容"的按钮, 强制透明底+透明边框,
+   图标颜色仍跟随 type (primary 蓝 / error 红 等), 只去掉底色和边框。 */
+.n-button:has(.n-button__icon):not(:has(.n-button__content)),
+.n-button--quaternary,
+.n-button--text-type,
+.n-button--text {
+  --n-color: transparent !important;
+  --n-color-hover: var(--hover-bg, rgba(255,255,255,0.06)) !important;
+  --n-color-pressed: var(--hover-bg, rgba(255,255,255,0.1)) !important;
+  --n-color-focus: transparent !important;
+  --n-color-disabled: transparent !important;
+  --n-border: 1px solid transparent !important;
+  --n-border-hover: 1px solid transparent !important;
+  --n-border-pressed: 1px solid transparent !important;
+  --n-border-focus: 1px solid transparent !important;
+  --n-border-disabled: 1px solid transparent !important;
+  background-color: transparent !important;
+  border-color: transparent !important;
+}
+.n-button:has(.n-button__icon):not(:has(.n-button__content)):hover,
+.n-button--quaternary:hover,
+.n-button--text-type:hover {
+  background-color: var(--hover-bg, rgba(255,255,255,0.06)) !important;
+}
+
 /* 统一代码字体 */
 code, pre, .n-code {
   font-family: var(--font-mono) !important;
@@ -226,9 +328,10 @@ code, pre, .n-code {
   --btn-bg-pressed: var(--btn-danger-pressed, #B91C1C);
 }
 
-/* Step 2: 覆盖 Naive UI 的 --n-* CSS 变量 (排除导航 / text / quaternary)
-   通过覆盖变量而非直接属性，确保 .n-button__border 等子元素也正确渲染 */
-.n-button:not(.n-button--quaternary):not(.n-button--text-type):not(.n-button--text):not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button) {
+/* Step 2: 覆盖 Naive UI 的 --n-* CSS 变量 (仅作用于文字按钮)
+   关键: 用 :has(.n-button__content) 限定只对有文字内容的按钮加底色,
+   纯图标按钮(无 content)不被匹配, 由图标按钮规则处理为透明无边框 */
+.n-button:has(.n-button__content):not(.n-button--quaternary):not(.n-button--text-type):not(.n-button--text):not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button) {
   --n-color: var(--btn-bg, #3B82F6) !important;
   --n-color-hover: var(--btn-bg-hover, #2563EB) !important;
   --n-color-pressed: var(--btn-bg-pressed, #1D4ED8) !important;
@@ -250,13 +353,13 @@ code, pre, .n-code {
   border: 1px solid var(--btn-bg, #3B82F6) !important;
 }
 
-.n-button:not(.n-button--quaternary):not(.n-button--text-type):not(.n-button--text):not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button):hover {
+.n-button:has(.n-button__content):not(.n-button--quaternary):not(.n-button--text-type):not(.n-button--text):not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button):hover {
   background-color: var(--btn-bg-hover, #2563EB) !important;
   color: #ffffff !important;
   border-color: var(--btn-bg-hover, #2563EB) !important;
 }
 
-.n-button:not(.n-button--quaternary):not(.n-button--text-type):not(.n-button--text):not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button):active {
+.n-button:has(.n-button__content):not(.n-button--quaternary):not(.n-button--text-type):not(.n-button--text):not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button):active {
   background-color: var(--btn-bg-pressed, #1D4ED8) !important;
   color: #ffffff !important;
   border-color: var(--btn-bg-pressed, #1D4ED8) !important;

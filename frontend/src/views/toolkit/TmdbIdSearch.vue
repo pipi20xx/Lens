@@ -45,8 +45,8 @@
                         <n-tag size="small" type="primary" round quaternary>{{ item.ProductionYear }}</n-tag>
                         <n-tag size="small" :type="item.Type === 'Series' ? 'info' : 'success'">{{ item.Type }}</n-tag>
                       </n-space>
-                      <n-button secondary circle size="small" type="primary" @click.stop="showJson(item)" title="本体 JSON">
-                        <template #icon><n-icon><CodeIcon /></n-icon></template>
+                      <n-button quaternary circle size="small" type="primary" @click.stop="showJson(item)" title="本体 JSON">
+                        <template #icon><n-icon><DocumentTextIcon /></n-icon></template>
                       </n-button>
                     </n-space>
                   </template>
@@ -90,8 +90,8 @@
                           <template #header>
                             <n-space justify="space-between" style="width: 100%" align="center">
                               <n-text strong>{{ season.Name }} (ID: {{ season.Id }})</n-text>
-                              <n-button secondary circle size="tiny" type="info" @click.stop="showJson(season)">
-                                <template #icon><n-icon><CodeIcon /></n-icon></template>
+                              <n-button quaternary circle size="tiny" type="info" @click.stop="showJson(season)">
+                                <template #icon><n-icon><DocumentTextIcon /></n-icon></template>
                               </n-button>
                             </n-space>
                           </template>
@@ -109,8 +109,8 @@
                             <n-list-item v-for="ep in season.Episodes" :key="ep.Id">
                               <n-thing :title="`EP ${ep.IndexNumber} - ${ep.Name}`">
                                 <template #header-extra>
-                                  <n-button secondary circle size="tiny" type="primary" @click="showJson(ep)">
-                                    <template #icon><n-icon color="#bb86fc"><CodeIcon /></n-icon></template>
+                                  <n-button quaternary circle size="tiny" type="primary" @click="showJson(ep)">
+                                    <template #icon><n-icon color="#bb86fc"><DocumentTextIcon /></n-icon></template>
                                   </n-button>
                                 </template>
                                 <template #description>
@@ -160,7 +160,7 @@
               <n-text depth="3">
                 - 对于电影，通常只需要一个 ID。<br/>
                 - 对于剧集，搜索结果会展示详细的层级结构。<br/>
-                - 点击右侧的代码图标可以查看该项目的原始 JSON 元数据。
+                - 点击右侧的文档图标可以查看该项目的原始 JSON 元数据。
               </n-text>
             </n-card>
           </n-space>
@@ -190,11 +190,7 @@ import {
   NCollapseItem, NGrid, NGi, NFormItemGi, NForm, NDescriptions, 
   NDescriptionsItem, NDivider, NList, NListItem, NRate, NModal, NP, NIcon, NThing 
 } from 'naive-ui'
-import { 
-  TerminalOutlined as CodeIcon,
-  SearchOutlined as SearchIcon,
-  ContentCopyOutlined as CopyIcon
-} from '@vicons/material'
+import { DocumentTextIcon } from '@heroicons/vue/24/outline'
 import axios from 'axios'
 
 const message = useMessage()

@@ -4,12 +4,7 @@ import {
   NModal, NForm, NFormItem, NInput, NInputNumber, 
   NSelect, NButton, NSpace, NInputGroup, NIcon, NAvatar, NUpload, useMessage
 } from 'naive-ui'
-import { 
-  AutoFixHighOutlined as MagicIcon, 
-  LanguageOutlined as WebIcon,
-  FileUploadOutlined as UploadIcon,
-  CollectionsOutlined as LibraryIcon
-} from '@vicons/material'
+import { GlobeAltIcon } from '@heroicons/vue/24/outline'
 import { SiteNav, Category } from '../useSiteNav'
 import HDIconPicker from './HDIconPicker.vue'
 
@@ -117,7 +112,7 @@ const isEmoji = (str: string) => {
               <div v-if="isEmoji(editingSite.icon)" class="preview-emoji">{{ editingSite.icon }}</div>
               <img v-else :src="editingSite.icon" class="preview-img" />
             </template>
-            <n-icon v-else size="20"><WebIcon /></n-icon>
+            <n-icon v-else size="20"><GlobeAltIcon /></n-icon>
           </div>
         </n-space>
       </n-form-item>

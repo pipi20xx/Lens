@@ -9,7 +9,7 @@
           </n-space>
           <n-tag v-if="info.platforms.length > 0" type="success" size="large" round>
             <template #icon>
-              <n-icon><CheckIcon /></n-icon>
+              <n-icon><CheckCircleIcon /></n-icon>
             </template>
             多架构环境就绪
           </n-tag>
@@ -89,11 +89,7 @@ import {
   NGrid, NGi, NCard, NDescriptions, NDescriptionsItem,
   NText, NSpace, NButton, NEmpty, NSelect, NTag, NIcon, useMessage, useDialog
 } from 'naive-ui'
-import {
-  CheckCircleOutlined as CheckIcon,
-  BuildCircleOutlined as RepairIcon,
-  RefreshOutlined as RefreshIcon
-} from '@vicons/material'
+import { CheckCircleIcon } from '@heroicons/vue/24/outline'
 import axios from 'axios'
 
 const message = useMessage()

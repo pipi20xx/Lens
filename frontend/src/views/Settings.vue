@@ -65,9 +65,6 @@
 
             <!-- 2. 全局 API 服务集成 -->
             <n-card title="第三方 API 扩展集成" size="small" segmented>
-              <template #header-extra>
-                <n-icon size="20" color="var(--primary-color)"><ApiIcon /></n-icon>
-              </template>
               <n-form label-placement="left" label-width="140" size="small">
                 <n-form-item label="TMDB API Key">
                   <n-input-group>
@@ -97,9 +94,6 @@
 
             <!-- 3. HTTP 代理配置 -->
             <n-card title="网络代理设置" size="small" segmented>
-              <template #header-extra>
-                <n-icon size="20" color="var(--primary-color)"><ProxyIcon /></n-icon>
-              </template>
               <n-form label-placement="top" size="small">
                 <n-grid :cols="2" :x-gap="24">
                   <n-form-item-gi label="启用全局代理">
@@ -124,9 +118,6 @@
 
             <!-- 4. 会话管理配置 -->
             <n-card title="会话管理" size="small" segmented>
-              <template #header-extra>
-                <n-icon size="20" color="var(--primary-color)"><SessionIcon /></n-icon>
-              </template>
               <n-form label-placement="left" label-width="140" size="small">
                 <n-form-item label="会话永不过期">
                   <n-space vertical>
@@ -154,9 +145,6 @@
           <n-space vertical size="large">
             <!-- 5. 配置备份与恢复 -->
             <n-card title="数据备份与迁移" size="small" segmented>
-              <template #header-extra>
-                <n-icon size="20" color="var(--primary-color)"><BackupIcon /></n-icon>
-              </template>
               <n-text depth="3" style="font-size: 13px; display: block; margin-bottom: 16px;">
                 您可以导出当前的全局配置文件 (config.json) 进行备份，或在迁移环境时导入旧配置。
               </n-text>
@@ -201,25 +189,10 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { 
-  useMessage, NSpace, NH2, NText, NCard, NTag, NIcon, 
+  useMessage, NSpace, NH2, NText, NCard, NTag, 
   NForm, NGrid, NFormItemGi, NInput, NSwitch, NCode, 
   NButton, NFormItem, NTable, NEmpty, NPopconfirm, NDivider
 } from 'naive-ui'
-import { 
-  DnsOutlined as ServerIcon,
-  ApiOutlined as ApiIcon,
-  LanguageOutlined as ProxyIcon,
-  AddOutlined as AddIcon,
-  CloudDownloadOutlined as ExportIcon,
-  CloudUploadOutlined as ImportIcon,
-  SaveAsOutlined as BackupIcon,
-  EditOutlined as EditIcon,
-  CheckCircleOutlined as CheckIcon,
-  DeleteOutlined as DeleteIcon,
-  ContentCopyOutlined as CopyIcon,
-  SaveOutlined as SaveIcon,
-  DevicesOutlined as SessionIcon
-} from '@vicons/material'
 import { servers, activeServerId } from '../store/serverStore'
 import { copyElementContent, copyText } from '../utils/clipboard'
 import EmbyServerModal from '../components/EmbyServerModal.vue'

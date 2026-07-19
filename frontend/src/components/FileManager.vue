@@ -132,25 +132,20 @@ import {
   NSpace, NBreadcrumb, NBreadcrumbItem, NList, NListItem, NText, NButton, NButtonGroup,
   NIcon, NInput, NSpin, NModal, NDropdown
 } from 'naive-ui'
-import { 
-  FolderOutlined as FolderIcon,
-  InsertDriveFileOutlined as FileIcon,
-  SecurityOutlined as LockIcon,
-  EditOutlined as EditIcon,
-  DeleteOutlined as DeleteIcon,
-  DriveFileRenameOutlineOutlined as RenameIcon,
-  CreateNewFolderOutlined as FolderAddIcon,
-  NoteAddOutlined as FileAddIcon,
-  RefreshOutlined as RefreshIcon,
-  ArrowUpwardOutlined as ArrowUpIcon,
-  ContentCopyOutlined as CopyIcon,
-  ContentPasteOutlined as PasteIcon,
-  ContentCutOutlined as CutIcon,
-  LinkOutlined as LinkIcon,
-  FileUploadOutlined as UploadIcon,
-  FileDownloadOutlined as DownloadIcon
-} from '@vicons/material'
-
+import {
+  ArrowDownTrayIcon,
+  ArrowPathIcon,
+  ClipboardDocumentIcon,
+  DocumentDuplicateIcon,
+  DocumentPlusIcon,
+  FolderIcon,
+  FolderPlusIcon,
+  LinkIcon,
+  PencilIcon,
+  ScissorsIcon,
+  ShieldCheckIcon,
+  TrashIcon
+} from '@heroicons/vue/24/outline'
 import { useFileManager } from './file-manager/useFileManager'
 import PermissionModal from './file-manager/PermissionModal.vue'
 import EditorModal from './file-manager/EditorModal.vue'
@@ -225,11 +220,11 @@ const handleGlobalContextMenu = (e: MouseEvent) => {
 const contextMenuOptions = computed(() => {
   if (menuMode.value === 'global') {
     return [
-      { label: '新建文件夹', key: 'mkdir', icon: () => h(NIcon, null, { default: () => h(FolderAddIcon) }) },
-      { label: '新建文件', key: 'mkfile', icon: () => h(NIcon, null, { default: () => h(FileAddIcon) }) },
+      { label: '新建文件夹', key: 'mkdir', icon: () => h(NIcon, null, { default: () => h(FolderPlusIcon) }) },
+      { label: '新建文件', key: 'mkfile', icon: () => h(NIcon, null, { default: () => h(DocumentPlusIcon) }) },
       { type: 'divider', key: 'd0' },
-      { label: '粘贴', key: 'paste', disabled: !clipboard.path, icon: () => h(NIcon, null, { default: () => h(PasteIcon) }) },
-      { label: '刷新', key: 'refresh', icon: () => h(NIcon, null, { default: () => h(RefreshIcon) }) },
+      { label: '粘贴', key: 'paste', disabled: !clipboard.path, icon: () => h(NIcon, null, { default: () => h(ClipboardDocumentIcon) }) },
+      { label: '刷新', key: 'refresh', icon: () => h(NIcon, null, { default: () => h(ArrowPathIcon) }) },
     ]
   }
 
@@ -237,17 +232,17 @@ const contextMenuOptions = computed(() => {
   if (!item) return []
   
   return [
-    { label: item.is_dir ? '打开文件夹' : '编辑文件', key: 'open', icon: () => h(NIcon, null, { default: () => h(item.is_dir ? FolderIcon : EditIcon) }) },
+    { label: item.is_dir ? '打开文件夹' : '编辑文件', key: 'open', icon: () => h(NIcon, null, { default: () => h(item.is_dir ? FolderIcon : PencilIcon) }) },
     { type: 'divider', key: 'd1' },
-    { label: '复制', key: 'copy', icon: () => h(NIcon, null, { default: () => h(CopyIcon) }) },
-    { label: '剪切', key: 'cut', icon: () => h(NIcon, null, { default: () => h(CutIcon) }) },
+    { label: '复制', key: 'copy', icon: () => h(NIcon, null, { default: () => h(DocumentDuplicateIcon) }) },
+    { label: '剪切', key: 'cut', icon: () => h(NIcon, null, { default: () => h(ScissorsIcon) }) },
     { label: '复制完整路径', key: 'copyPath', icon: () => h(NIcon, null, { default: () => h(LinkIcon) }) },
-    { label: '下载文件', key: 'download', disabled: item.is_dir, icon: () => h(NIcon, null, { default: () => h(DownloadIcon) }) },
+    { label: '下载文件', key: 'download', disabled: item.is_dir, icon: () => h(NIcon, null, { default: () => h(ArrowDownTrayIcon) }) },
     { type: 'divider', key: 'd2' },
-    { label: '重命名', key: 'rename', icon: () => h(NIcon, null, { default: () => h(RenameIcon) }) },
-    { label: '权限设置', key: 'chmod', icon: () => h(NIcon, null, { default: () => h(LockIcon) }) },
+    { label: '重命名', key: 'rename', icon: () => h(NIcon, null, { default: () => h(PencilIcon) }) },
+    { label: '权限设置', key: 'chmod', icon: () => h(NIcon, null, { default: () => h(ShieldCheckIcon) }) },
     { type: 'divider', key: 'd3' },
-    { label: '删除', key: 'delete', icon: () => h(NIcon, null, { default: () => h(DeleteIcon) }) },
+    { label: '删除', key: 'delete', icon: () => h(NIcon, null, { default: () => h(TrashIcon) }) },
   ]
 })
 

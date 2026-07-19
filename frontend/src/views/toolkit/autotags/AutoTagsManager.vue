@@ -105,10 +105,6 @@
 <script setup lang="ts">
 import { ref, onMounted, reactive, computed } from 'vue'
 import { NCard, NSpace, NButton, NEmpty, NH3, NH2, NText, NIcon, useMessage, NForm, NFormItem, NInput, NInputGroup, NGrid, NGi, NFormItemGi, NSwitch, NInputNumber, NCheckbox, NSelect, NAlert } from 'naive-ui'
-import { 
-  AddOutlined as AddIcon,
-  ContentCopyOutlined as CopyIcon
-} from '@vicons/material'
 import axios from 'axios'
 import { copyText } from '@/utils/clipboard'
 

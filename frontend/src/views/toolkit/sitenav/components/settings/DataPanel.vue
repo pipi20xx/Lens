@@ -2,11 +2,6 @@
 import { 
   NSpace, NButton, NIcon, NText, NUpload, NCard
 } from 'naive-ui'
-import { 
-  CloudDownloadOutlined as ExportIcon,
-  CloudUploadOutlined as ImportIcon
-} from '@vicons/material'
-
 const emit = defineEmits(['export', 'import'])
 
 const handleImport = (options: { file: { file: File } }) => {

@@ -1,12 +1,11 @@
 import { h, Component } from 'vue'
 import { NText, NTag, NIcon, NSpace } from 'naive-ui'
-import { 
-  TvOutlined as SeriesIcon,
-  FolderOutlined as SeasonIcon,
-  MovieOutlined as MovieIcon,
-  InsertDriveFileOutlined as EpisodeIcon 
-} from '@vicons/material'
-
+import {
+  DocumentIcon,
+  FilmIcon,
+  FolderIcon,
+  TvIcon
+} from '@heroicons/vue/24/outline'
 function renderIcon(icon: Component) {
   return h(NIcon, { style: 'vertical-align: -3px; margin-right: 4px;' }, { default: () => h(icon) })
 }
@@ -18,19 +17,19 @@ export const getColumns = () => [
     key: 'name',
     width: 400,
     render(row: any) {
-      let icon = MovieIcon
+      let icon = FilmIcon
       let typeColor = 'default'
       let displayName = row.name
 
       // 根据类型分配图标和显示格式
-      if (row.item_type === 'Series') { icon = SeriesIcon; typeColor = 'primary' }
+      if (row.item_type === 'Series') { icon = TvIcon; typeColor = 'primary' }
       else if (row.item_type === 'Season') {
-        icon = SeasonIcon
+        icon = FolderIcon
         const idx = row.raw_data?.IndexNumber
         displayName = `第 ${String(idx || 0).padStart(2, '0')} 季`
       }
       else if (row.item_type === 'Episode') {
-        icon = EpisodeIcon
+        icon = DocumentIcon
         const s = row.raw_data?.ParentIndexNumber
         const e = row.raw_data?.IndexNumber
         displayName = `S${String(s || 0).padStart(2, '0')}E${String(e || 0).padStart(2, '0')} - ${row.name}`

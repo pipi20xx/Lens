@@ -35,8 +35,8 @@
           @keydown.enter="handleEnter"
           :disabled="loading"
         />
-        <n-button type="primary" circle @click="sendMessage" :loading="loading" class="send-btn">
-          <template #icon><n-icon><SendIcon /></n-icon></template>
+        <n-button type="primary" quaternary circle @click="sendMessage" :loading="loading" class="send-btn">
+          <template #icon><n-icon><PaperAirplaneIcon /></n-icon></template>
         </n-button>
       </div>
     </n-card>
@@ -45,10 +45,7 @@
 
 <script setup lang="ts">
 import { ref, nextTick } from 'vue'
-import { 
-  SendOutlined as SendIcon,
-  DeleteSweepOutlined as DeleteIcon
-} from '@vicons/material'
+import { PaperAirplaneIcon } from '@heroicons/vue/24/outline'
 import { useMessage, NCard, NEmpty, NInput, NButton, NIcon } from 'naive-ui'
 
 // 辅助函数：获取认证头

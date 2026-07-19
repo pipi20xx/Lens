@@ -32,11 +32,6 @@
 <script setup lang="ts">
 import { ref, watch, reactive } from 'vue'
 import { NModal, NButton, NIcon, useMessage, useDialog } from 'naive-ui'
-import { 
-  ManageSearchOutlined as ScanIcon,
-  CloudUploadOutlined as BackupIcon,
-  CancelOutlined as CancelIcon
-} from '@vicons/material'
 import axios from 'axios'
 import FileManager from '@/components/FileManager.vue'
 

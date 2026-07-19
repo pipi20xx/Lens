@@ -79,11 +79,6 @@
 <script setup lang="ts">
 import { ref, reactive, watch } from 'vue'
 import { NModal, NForm, NFormItem, NTabs, NTabPane, NAlert, NInput, NSelect, NSpace, NButton, NIcon } from 'naive-ui'
-import { 
-  CloseOutlined as CloseIcon,
-  SaveOutlined as SaveIcon
-} from '@vicons/material'
-
 const props = defineProps({
   show: Boolean,
   config: Object,
