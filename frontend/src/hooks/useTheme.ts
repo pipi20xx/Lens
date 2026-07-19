@@ -119,6 +119,7 @@ export function useTheme() {
     if (mode === 'dark') {
       // 夜晚模式变量
       root.style.setProperty('--primary-color', '#3B82F6')
+      root.style.setProperty('--primary-color-rgb', '59, 130, 246')
       root.style.setProperty('--primary-hover', '#2563EB')
       root.style.setProperty('--app-bg-color', '#0f0913')
       root.style.setProperty('--card-bg-color', '#1a1021')
@@ -147,6 +148,7 @@ export function useTheme() {
     } else {
       // 白天模式变量
       root.style.setProperty('--primary-color', '#3B82F6')
+      root.style.setProperty('--primary-color-rgb', '59, 130, 246')
       root.style.setProperty('--primary-hover', '#2563EB')
       root.style.setProperty('--app-bg-color', '#f8f7fa')
       root.style.setProperty('--card-bg-color', '#ffffff')

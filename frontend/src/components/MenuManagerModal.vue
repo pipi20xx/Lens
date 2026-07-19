@@ -77,7 +77,7 @@ const handleClose = () => {
       title="导航布局管理"
       bordered
       size="medium"
-      content-style="padding: 0; display: flex; flex-direction: column; overflow: hidden;"
+      content-style="padding: 0; display: flex; flex-direction: column; overflow: hidden; flex: 1 1 0; min-height: 0;"
     >
       <div class="editor-container">
         <!-- 左侧：功能池 -->
@@ -271,19 +271,32 @@ const handleClose = () => {
   width: 90vw;
   max-width: 1400px;
   height: 85vh;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden;
+}
+
+/* 让 n-card 内部 header/content/footer 正确分配高度 */
+.menu-manager-card :deep(.n-card-header),
+.menu-manager-card :deep(.n-card__header) {
+  flex-shrink: 0;
+}
+.menu-manager-card :deep(.n-card-footer),
+.menu-manager-card :deep(.n-card__footer) {
+  flex-shrink: 0;
 }
 
 .editor-container {
   display: flex;
   flex: 1;
-  background-color: var(--app-bg-color);
+  background-color: transparent;
   overflow: hidden;
 }
 
 .pool-container {
   width: 320px;
   border-right: 1px solid var(--border-color);
-  background-color: rgba(0, 0, 0, 0.05);
+  background-color: transparent;
   display: flex;
   flex-direction: column;
 }
@@ -304,7 +317,7 @@ const handleClose = () => {
   padding: 16px 24px;
   height: 72px;
   box-sizing: border-box;
-  background-color: rgba(255, 255, 255, 0.04);
+  background-color: transparent;
   border-bottom: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
@@ -351,9 +364,9 @@ const handleClose = () => {
 
 .pool-item {
   padding: 10px 16px;
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: var(--hover-bg);
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid var(--border-color);
   cursor: grab;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -376,7 +389,7 @@ const handleClose = () => {
   padding: 16px 24px;
   height: 72px;
   box-sizing: border-box;
-  background-color: rgba(255, 255, 255, 0.04);
+  background-color: transparent;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -397,8 +410,8 @@ const handleClose = () => {
 
 .primary-item-node {
   padding: 10px 16px !important;
-  background-color: rgba(255, 255, 255, 0.08) !important;
-  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  background-color: var(--hover-bg) !important;
+  border: 1px solid var(--border-color) !important;
   border-radius: 10px !important;
   transition: all 0.2s;
 }

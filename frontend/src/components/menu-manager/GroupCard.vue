@@ -99,7 +99,7 @@ const getItemLabel = (element: any) => {
 <style scoped>
 .group-card {
   background-color: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-color);
   border-radius: 16px;
   overflow: hidden;
   transition: all 0.2s;
@@ -110,16 +110,16 @@ const getItemLabel = (element: any) => {
 
 .group-header { 
   padding: 10px 20px; 
-  background-color: rgba(255, 255, 255, 0.04); 
+  background-color: transparent; 
   display: flex; 
   justify-content: space-between; 
   align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--border-color);
 }
 
-.group-drag-handle { color: rgba(255,255,255,0.2); cursor: grab; }
+.group-drag-handle { color: var(--text-color); opacity: 0.2; cursor: grab; }
 .group-label { cursor: pointer; padding: 4px 8px; border-radius: 6px; font-size: 15px; color: var(--primary-color); }
-.group-label:hover { background-color: rgba(255, 255, 255, 0.08); }
+.group-label:hover { background-color: var(--hover-bg); }
 .edit-icon { margin-left: 6px; opacity: 0.3; transition: opacity 0.2s; }
 .group-label:hover .edit-icon { opacity: 0.8; }
 
@@ -135,10 +135,10 @@ const getItemLabel = (element: any) => {
   display: flex; 
   align-items: center; 
   gap: 8px; 
-  background-color: rgba(255, 255, 255, 0.08) !important; 
+  background-color: var(--hover-bg) !important; 
   padding: 10px 16px !important; 
   border-radius: 10px !important; 
-  border: 1px solid rgba(255, 255, 255, 0.15) !important; 
+  border: 1px solid var(--border-color) !important; 
   cursor: grab;
   transition: all 0.2s;
 }
@@ -153,5 +153,5 @@ const getItemLabel = (element: any) => {
 
 .item-del-btn { opacity: 0; transition: opacity 0.2s; margin-left: 4px; }
 .sub-item:hover .item-del-btn { opacity: 1; }
-.empty-hint { width: 100%; text-align: center; color: rgba(255,255,255,0.1); font-size: 13px; padding: 20px; font-style: italic; }
+.empty-hint { width: 100%; text-align: center; color: var(--text-color); opacity: 0.15; font-size: 13px; padding: 20px; font-style: italic; }
 </style>
