@@ -15,14 +15,95 @@
         </n-space>
       </n-space>
 
-      <n-data-table
-        :columns="columns"
-        :data="projects"
-        :loading="loading"
-        :bordered="false"
-        size="small"
-        scroll-x="1200"
-      />
+      <!-- 项目卡片列表：一行一个 -->
+      <n-spin :show="loading">
+        <div v-if="projects.length" class="project-list-cards">
+          <div
+            v-for="row in projects"
+            :key="row.id"
+            class="project-card"
+          >
+            <!-- 卡片头部：项目名称 + 目标仓库 -->
+            <div class="card-header">
+              <div class="card-title">
+                <n-text strong class="project-name text-truncate">{{ row.name }}</n-text>
+              </div>
+              <n-tag v-if="getRegistry(row.registry_id)" size="small" type="warning" ghost>
+                {{ getRegistry(row.registry_id).name }}
+              </n-tag>
+              <n-tag v-else size="small" type="default" ghost>默认仓库</n-tag>
+            </div>
+
+            <!-- 远程镜像名 -->
+            <div class="card-desc">
+              <n-text depth="3" class="desc-text">远程镜像: {{ row.repo_image_name }}</n-text>
+            </div>
+
+            <!-- 平台标签 -->
+            <div class="card-platforms">
+              <n-tag
+                v-for="p in splitPlatforms(row.platforms)"
+                :key="p"
+                size="small"
+                type="info"
+                ghost
+              >{{ p }}</n-tag>
+            </div>
+
+            <!-- 构建区：Tag 输入 + 立即构建 -->
+            <div class="card-build">
+              <n-input-group>
+                <n-input
+                  v-model:value="projectTags[row.id]"
+                  size="small"
+                  placeholder="Tag"
+                  style="width: 120px; flex: 0 0 auto"
+                />
+                <n-button
+                  size="small"
+                  type="primary"
+                  @click="directBuild(row)"
+                >
+                  立即构建
+                </n-button>
+              </n-input-group>
+            </div>
+
+            <!-- 操作按钮 -->
+            <div class="card-actions">
+              <n-button
+                size="small"
+                @click="openHistory(row)"
+              >
+                查看历史
+              </n-button>
+              <n-button
+                size="small"
+                type="info"
+                ghost
+                @click="openEditModal(row)"
+              >
+                修改
+              </n-button>
+              <n-button
+                size="small"
+                type="error"
+                ghost
+                @click="deleteProject(row)"
+              >
+                删除
+              </n-button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 空状态 -->
+        <n-empty
+          v-else-if="!loading"
+          description="暂无项目"
+          style="padding: 60px 0"
+        />
+      </n-spin>
     </n-space>
 
     <!-- 项目编辑弹窗 -->
@@ -91,22 +172,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, h } from 'vue'
+import { ref, onMounted } from 'vue'
 import {
-  NSpace, NButton, NDataTable, NModal, NForm, NFormItem, NInput, NSelect,
-  NCheckbox, useMessage, useDialog, NTag, NCheckboxGroup, NInputGroup, NIcon
+  NSpace, NButton, NModal, NForm, NFormItem, NInput, NSelect,
+  NCheckbox, useMessage, useDialog, NTag, NCheckboxGroup, NInputGroup, NSpin, NEmpty, NText
 } from 'naive-ui'
-import { 
-  AddOutlined as AddIcon,
-  RefreshOutlined as RefreshIcon,
-  DeleteSweepOutlined as ClearIcon,
-  PlayArrowOutlined as BuildIcon,
-  HistoryOutlined as HistoryIcon,
-  EditOutlined as EditIcon,
-  DeleteOutlined as DeleteIcon,
-  SaveOutlined as SaveIcon,
-  CloseOutlined as CloseIcon
-} from '@vicons/material'
 import { imageBuilderApi } from '@/api/imageBuilder'
 import BuildHistory from './BuildHistory.vue'
 
@@ -116,14 +186,20 @@ import { useImageBuilder } from '../hooks/useImageBuilder'
 const message = useMessage()
 const dialog = useDialog()
 
-const renderIcon = (icon: any) => {
-  return () => h(NIcon, null, { default: () => h(icon) })
-}
-
 const {
   projects, registries, hostOptions, proxyOptions, registryOptions, loading, projectTags,
   fetchProjects, fetchOptions, directBuild, handleClearAllLogs, deleteProject: performDelete
 } = useImageBuilder()
+
+// 辅助函数：获取仓库信息
+const getRegistry = (id: string) => {
+  return registries.value.find((r: any) => r.id === id)
+}
+
+// 辅助函数：拆分平台字符串
+const splitPlatforms = (platforms: string) => {
+  return (platforms || '').split(',').filter((p: string) => p)
+}
 
 const showModal = ref(false)
 const editMode = ref(false)
@@ -139,68 +215,6 @@ const form = ref({
   local_image_name: '', repo_image_name: '', platforms: 'linux/amd64',
   registry_id: null, proxy_id: null, no_cache: false, auto_cleanup: true
 })
-
-const columns = [
-  { title: '项目名称', key: 'name', minWidth: 120 },
-  { title: '目标仓库', key: 'registry_id', width: 150, render(row: any) {
-    const reg = registries.value.find(r => r.id === row.registry_id)
-    return reg ? h(NTag, { size: 'small', type: 'warning', ghost: true }, { default: () => reg.name }) : h('span', { style: 'color: #666' }, '默认仓库')
-  }},
-  { title: '远程镜像名', key: 'repo_image_name', minWidth: 180 },
-  { title: '平台', key: 'platforms', width: 160, render(row: any) {
-    return h(NSpace, { size: 'small' }, {
-      default: () => (row.platforms || '').split(',').map((p: string) => h(NTag, { size: 'small', type: 'info', ghost: true }, { default: () => p }))
-    })
-  }},
-  {
-    title: '操作',
-    key: 'actions',
-    width: 440,
-    fixed: 'right',
-    render(row: any) {
-      if (!projectTags[row.id]) projectTags[row.id] = 'latest'
-      return h(NSpace, { align: 'center', wrap: false }, {
-        default: () => [
-          h(NInputGroup, null, {
-            default: () => [
-              h(NInput, {
-                size: 'small', value: projectTags[row.id], placeholder: 'Tag', style: { width: '80px' },
-                'onUpdate:value': (v) => { projectTags[row.id] = v }
-              }),
-              h(NButton, { 
-                size: 'small', 
-                type: 'primary', 
-                onClick: () => directBuild(row)
-              }, { 
-                default: () => '立即构建' 
-              })
-            ]
-          }),
-          h(NButton, { 
-            size: 'small', 
-            onClick: () => openHistory(row)
-          }, { 
-            default: () => '查看历史' 
-          }),
-          h(NButton, { 
-            size: 'small', 
-            onClick: () => openEditModal(row)
-          }, { 
-            default: () => '修改' 
-          }),
-          h(NButton, { 
-            size: 'small', 
-            type: 'error', 
-            ghost: true, 
-            onClick: () => deleteProject(row)
-          }, { 
-            default: () => '删除' 
-          }),
-        ]
-      })
-    }
-  }
-]
 
 const openCreateModal = () => {
   editMode.value = false
@@ -252,3 +266,109 @@ const openHistory = (row: any) => {
 
 onMounted(() => { fetchProjects(); fetchOptions() })
 </script>
+
+<style scoped>
+/* 卡片列表：一行一个卡片 */
+.project-list-cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm, 0.5rem);
+}
+
+.project-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 10px;
+  background: var(--card-bg-color, rgba(255, 255, 255, 0.03));
+  border: 1px solid rgba(64, 128, 240, 0.4);
+  transition: border-color var(--transition-normal, 250ms ease),
+              box-shadow var(--transition-normal, 250ms ease),
+              transform var(--transition-fast, 150ms ease);
+  position: relative;
+  overflow: hidden;
+}
+
+.project-card:hover {
+  border-color: rgba(64, 128, 240, 0.75);
+  box-shadow: var(--shadow-md, 0 4px 12px rgba(0, 0, 0, 0.3));
+}
+
+.project-card:active {
+  transform: scale(0.99);
+}
+
+/* 卡片头部 */
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.project-name {
+  font-size: var(--text-md, 0.9375rem);
+  max-width: 100%;
+}
+
+/* 描述 */
+.card-desc {
+  min-width: 0;
+}
+
+.desc-text {
+  font-size: 12px;
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+/* 平台标签 */
+.card-platforms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+/* 构建区 */
+.card-build {
+  padding-top: 6px;
+}
+
+/* 操作按钮 */
+.card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-light, rgba(255, 255, 255, 0.06));
+}
+
+.card-actions .n-button {
+  flex: 1 1 auto;
+  min-width: 56px;
+}
+
+/* 移动端适配 */
+@media (max-width: 767px) {
+  .card-actions .n-button {
+    flex: 1 1 calc(33.333% - 4px);
+    min-width: 0;
+  }
+}
+
+@media (max-width: 380px) {
+  .card-actions .n-button {
+    flex: 1 1 100%;
+  }
+}
+</style>

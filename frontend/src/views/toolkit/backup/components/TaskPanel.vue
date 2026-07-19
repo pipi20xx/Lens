@@ -184,7 +184,7 @@ onMounted(fetchTasks)
   padding: 14px;
   border-radius: 10px;
   background: var(--card-bg-color, rgba(255, 255, 255, 0.03));
-  border: 1px solid var(--border-light, rgba(255, 255, 255, 0.06));
+  border: 1px solid rgba(64, 128, 240, 0.4);
   transition: border-color var(--transition-normal), box-shadow var(--transition-normal), transform var(--transition-fast);
   position: relative;
   overflow: hidden;
@@ -204,7 +204,7 @@ onMounted(fetchTasks)
 }
 
 .task-card:hover {
-  border-color: var(--border-medium, rgba(255, 255, 255, 0.12));
+  border-color: rgba(64, 128, 240, 0.75);
   box-shadow: var(--shadow-md, 0 4px 12px rgba(0, 0, 0, 0.3));
 }
 

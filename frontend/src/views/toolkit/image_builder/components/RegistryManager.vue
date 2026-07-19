@@ -1,27 +1,121 @@
 <template>
   <div class="registry-manager">
-    <n-grid :cols="2" :x-gap="12">
-      <n-gi>
-        <n-card title="仓库配置" size="small">
-          <template #header-extra>
-            <n-button size="small" type="primary" @click="openRegistryModal()">
-              添加仓库
-            </n-button>
-          </template>
-          <n-data-table :columns="registryColumns" :data="registries" size="small" />
-        </n-card>
-      </n-gi>
-      <n-gi>
-        <n-card title="凭据管理" size="small">
-          <template #header-extra>
-            <n-button size="small" type="primary" @click="openCredModal()">
-              添加凭据
-            </n-button>
-          </template>
-          <n-data-table :columns="credColumns" :data="credentials" size="small" />
-        </n-card>
-      </n-gi>
-    </n-grid>
+    <n-space vertical :size="16">
+      <!-- 仓库配置卡片区块 -->
+      <n-card title="仓库配置" size="small">
+        <template #header-extra>
+          <n-button size="small" type="primary" @click="openRegistryModal()">
+            添加仓库
+          </n-button>
+        </template>
+        <n-spin :show="false">
+          <div v-if="registries.length" class="reg-list">
+            <div
+              v-for="row in registries"
+              :key="row.id"
+              class="reg-card"
+            >
+              <!-- 卡片头部：名称 + URL -->
+              <div class="card-header">
+                <div class="card-title">
+                  <n-text strong class="reg-name text-truncate">{{ row.name }}</n-text>
+                </div>
+                <n-tag v-if="row.is_https" size="small" type="success" ghost>HTTPS</n-tag>
+                <n-tag v-else size="small" type="warning" ghost>HTTP</n-tag>
+              </div>
+
+              <!-- URL -->
+              <div class="card-desc">
+                <n-text depth="3" class="desc-text">{{ row.url }}</n-text>
+              </div>
+
+              <!-- 操作按钮 -->
+              <div class="card-actions">
+                <n-button
+                  size="small"
+                  type="info"
+                  ghost
+                  :loading="testingId === row.id"
+                  @click="testRegistry(row)"
+                >
+                  测试
+                </n-button>
+                <n-button
+                  size="small"
+                  @click="openRegistryModal(row)"
+                >
+                  编辑
+                </n-button>
+                <n-button
+                  size="small"
+                  type="error"
+                  ghost
+                  @click="deleteRegistry(row.id)"
+                >
+                  删除
+                </n-button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 空状态 -->
+          <n-empty
+            v-else
+            description="暂无仓库配置"
+            style="padding: 40px 0"
+          />
+        </n-spin>
+      </n-card>
+
+      <!-- 凭据管理卡片区块 -->
+      <n-card title="凭据管理" size="small">
+        <template #header-extra>
+          <n-button size="small" type="primary" @click="openCredModal()">
+            添加凭据
+          </n-button>
+        </template>
+        <div v-if="credentials.length" class="cred-list">
+          <div
+            v-for="row in credentials"
+            :key="row.id"
+            class="cred-card"
+          >
+            <!-- 卡片头部：名称 + 用户名 -->
+            <div class="card-header">
+              <div class="card-title">
+                <n-text strong class="cred-name text-truncate">{{ row.name }}</n-text>
+              </div>
+              <n-tag size="small" type="info" ghost>{{ row.username }}</n-tag>
+            </div>
+
+            <!-- 操作按钮 -->
+            <div class="card-actions">
+              <n-button
+                size="small"
+                @click="openCredModal(row)"
+              >
+                编辑
+              </n-button>
+              <n-button
+                size="small"
+                type="error"
+                ghost
+                @click="deleteCredential(row.id)"
+              >
+                删除
+              </n-button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 空状态 -->
+        <n-empty
+          v-else
+          description="暂无凭据"
+          style="padding: 40px 0"
+        />
+      </n-card>
+    </n-space>
 
     <!-- Registry Modal -->
     <n-modal v-model:show="showRegistryModal" preset="card" :title="editRegistryMode ? '编辑仓库' : '添加仓库'" style="width: 450px">
@@ -75,27 +169,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, h } from 'vue'
-import { 
-  NGrid, NGi, NCard, NButton, NDataTable, NModal, NForm, NFormItem, 
-  NInput, NSelect, NSwitch, NSpace, useMessage, useDialog, NIcon 
-} from 'naive-ui'
+import { ref, onMounted } from 'vue'
 import {
-  AddOutlined as AddIcon,
-  EditOutlined as EditIcon,
-  DeleteOutlined as DeleteIcon,
-  SaveOutlined as SaveIcon,
-  CloseOutlined as CloseIcon,
-  SensorsOutlined as TestIcon
-} from '@vicons/material'
+  NCard, NButton, NModal, NForm, NFormItem,
+  NInput, NSelect, NSwitch, NSpace, useMessage, useDialog, NTag, NSpin, NEmpty, NText
+} from 'naive-ui'
 import axios from 'axios'
 
 const message = useMessage()
 const dialog = useDialog()
-
-const renderIcon = (icon: any) => {
-  return () => h(NIcon, null, { default: () => h(icon) })
-}
 
 const registries = ref([])
 const credentials = ref([])
@@ -121,73 +203,6 @@ const credForm = ref({
 })
 
 const credOptions = ref([])
-
-const registryColumns = [
-  { title: '名称', key: 'name' },
-  { title: 'URL', key: 'url' },
-  {
-    title: '操作',
-    key: 'actions',
-    render(row: any) {
-      return h(NSpace, { size: 'small' }, {
-        default: () => [
-          h(NButton, { 
-            size: 'small', 
-            type: 'info', 
-            ghost: true,
-            loading: testingId.value === row.id,
-            onClick: () => testRegistry(row) 
-          }, { 
-            default: () => '测试' 
-          }),
-          h(NButton, { 
-            size: 'small', 
-            onClick: () => openRegistryModal(row) 
-          }, { 
-            default: () => '编辑' 
-          }),
-          h(NButton, { 
-            size: 'small', 
-            type: 'error', 
-            ghost: true, 
-            onClick: () => deleteRegistry(row.id) 
-          }, { 
-            default: () => '删除' 
-          })
-        ]
-      })
-    }
-  }
-]
-
-const credColumns = [
-  { title: '名称', key: 'name' },
-  { title: '用户名', key: 'username' },
-  {
-    title: '操作',
-    key: 'actions',
-    render(row: any) {
-      return h(NSpace, { size: 'small' }, {
-        default: () => [
-          h(NButton, { 
-            size: 'small', 
-            onClick: () => openCredModal(row) 
-          }, { 
-            default: () => '编辑' 
-          }),
-          h(NButton, { 
-            size: 'small', 
-            type: 'error', 
-            ghost: true, 
-            onClick: () => deleteCredential(row.id) 
-          }, { 
-            default: () => '删除' 
-          })
-        ]
-      })
-    }
-  }
-]
 
 const fetchData = async () => {
   try {
@@ -307,3 +322,102 @@ const deleteCredential = async (id: string) => {
 
 onMounted(fetchData)
 </script>
+
+<style scoped>
+/* 卡片列表：一行一个卡片 */
+.reg-list,
+.cred-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm, 0.5rem);
+}
+
+.reg-card,
+.cred-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 10px;
+  background: var(--card-bg-color, rgba(255, 255, 255, 0.03));
+  border: 1px solid rgba(64, 128, 240, 0.4);
+  transition: border-color var(--transition-normal, 250ms ease),
+              box-shadow var(--transition-normal, 250ms ease),
+              transform var(--transition-fast, 150ms ease);
+  position: relative;
+  overflow: hidden;
+}
+
+.reg-card:hover,
+.cred-card:hover {
+  border-color: rgba(64, 128, 240, 0.75);
+  box-shadow: var(--shadow-md, 0 4px 12px rgba(0, 0, 0, 0.3));
+}
+
+.reg-card:active,
+.cred-card:active {
+  transform: scale(0.99);
+}
+
+/* 卡片头部 */
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.reg-name,
+.cred-name {
+  font-size: var(--text-md, 0.9375rem);
+  max-width: 100%;
+}
+
+/* 描述 */
+.card-desc {
+  min-width: 0;
+}
+
+.desc-text {
+  font-size: 12px;
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+/* 操作按钮 */
+.card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-light, rgba(255, 255, 255, 0.06));
+}
+
+.card-actions .n-button {
+  flex: 1 1 auto;
+  min-width: 56px;
+}
+
+/* 移动端适配 */
+@media (max-width: 767px) {
+  .card-actions .n-button {
+    flex: 1 1 calc(50% - 3px);
+    min-width: 0;
+  }
+}
+
+@media (max-width: 380px) {
+  .card-actions .n-button {
+    flex: 1 1 100%;
+  }
+}
+</style>
