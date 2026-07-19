@@ -6,11 +6,11 @@
         <n-text depth="3">扫描、分析并清理您的媒体库重复项，支持基于文件名与元数据的智能匹配。</n-text>
       </div>
 
-      <n-card embedded :bordered="false" size="small" style="margin-bottom: 8px">
-        <n-space justify="space-between" align="center">
-          <n-space align-center :size="20">
-            <n-input-group>
-              <n-input v-model:value="searchName" placeholder="搜索名称或 ID..." style="width: 20rem" @keypress.enter="loadItems" />
+      <n-card embedded :bordered="false" size="small" class="dedupe-toolbar">
+        <n-space justify="space-between" align="center" :wrap="true" :size="[12, 8]">
+          <n-space align="center" :size="12" :wrap="true">
+            <n-input-group class="search-group">
+              <n-input v-model:value="searchName" placeholder="搜索名称或 ID..." @keypress.enter="loadItems" />
               <n-button type="primary" secondary @click="loadItems">
                 执行搜索
               </n-button>
@@ -19,18 +19,18 @@
               仅显示重复项
             </n-checkbox>
           </n-space>
-          
-          <n-space>
-            <n-button type="warning" secondary @click="handleAutoSelect">
+
+          <n-space :size="8" :wrap="true">
+            <n-button type="warning" secondary size="small" @click="handleAutoSelect">
               执行分析
             </n-button>
-            <n-button type="primary" secondary @click="showConfig = true">
+            <n-button type="primary" secondary size="small" @click="showConfig = true">
               规则设置
             </n-button>
-            <n-button type="primary" secondary :loading="syncing" @click="syncMedia">
+            <n-button type="primary" secondary size="small" :loading="syncing" @click="syncMedia">
               执行同步
             </n-button>
-            <n-button v-if="selectedIds.length > 0" type="error" secondary @click="showConfirm = true">
+            <n-button v-if="selectedIds.length > 0" type="error" secondary size="small" @click="showConfirm = true">
               执行删除 ({{ selectedIds.length }})
             </n-button>
           </n-space>
@@ -41,7 +41,9 @@
         <n-data-table
           remote :columns="columns" :data="items" :loading="loading" :row-key="row => row.id"
           v-model:checked-row-keys="selectedIds" :pagination="false" size="small"
-          max-height="calc(100vh - 15rem)" virtual-scroll :cascade="false" @load="onLoadChildren"
+          :max-height="isMobile ? 'calc(100vh - 12rem)' : 'calc(100vh - 15rem)'"
+          :scroll-x="isMobile ? 520 : 0"
+          virtual-scroll :cascade="false" @load="onLoadChildren"
         />
       </n-card>
     </n-space>
@@ -64,14 +66,29 @@ import { getColumns } from './toolkit/dedupe/columns'
 import { useDedupe } from './toolkit/dedupe/useDedupe'
 import DedupeConfigModal from './toolkit/dedupe/DedupeConfigModal.vue'
 import DedupeConfirmModal from './toolkit/dedupe/DedupeConfirmModal.vue'
+import { usePWA } from '@/composables/usePWA'
 
+const { isMobile } = usePWA()
 const message = useMessage()
 const {
   loading, syncing, searchName, showOnlyDuplicates, items, selectedIds, suggestedItems, dedupeConfig,
   loadItems, onLoadChildren, toggleDuplicateMode, syncMedia, autoSelect, deleteItems, loadConfig, saveDedupeConfig
 } = useDedupe()
 
-const columns = getColumns()
+// 移动端隐藏 Emby ID / TMDB 列，并缩小名称、规格列宽，配合水平滚动
+const columns = computed(() => {
+  const cols = getColumns()
+  if (isMobile.value) {
+    return cols
+      .filter((c: any) => c.key !== 'id' && c.key !== 'tmdb_id')
+      .map((c: any) => {
+        if (c.key === 'name') return { ...c, width: 200 }
+        if (c.key === 'specs') return { ...c, width: 170 }
+        return c
+      })
+  }
+  return cols
+})
 const showConfig = ref(false)
 const showConfirm = ref(false)
 
@@ -123,16 +140,39 @@ const handleBulkDelete = () => {
 </script>
 
 <style scoped>
-.dedupe-layout { 
+.dedupe-layout {
   width: 100%;
 }
 :deep(.n-h2 .n-text--primary-type) {
   color: var(--primary-color);
 }
-:deep(.n-data-table-tr--with-children) { 
-  background-color: rgba(255, 255, 255, 0.02); 
+:deep(.n-data-table-tr--with-children) {
+  background-color: rgba(255, 255, 255, 0.02);
 }
 :deep(.n-data-table .n-data-table-td--selection) {
   color: var(--primary-color);
+}
+
+/* 搜索组：桌面端固定宽度，移动端自适应 */
+.search-group {
+  width: 20rem;
+  flex-shrink: 0;
+}
+
+@media (max-width: 767px) {
+  /* 搜索组移动端全宽，输入框弹性填充 */
+  .search-group {
+    width: 100%;
+    flex: 1 1 100%;
+  }
+  .search-group :deep(.n-input) {
+    flex: 1;
+    min-width: 0;
+    width: auto !important;
+  }
+  /* 工具栏内边距缩减 */
+  .dedupe-toolbar :deep(.n-card__content) {
+    padding: 8px !important;
+  }
 }
 </style>

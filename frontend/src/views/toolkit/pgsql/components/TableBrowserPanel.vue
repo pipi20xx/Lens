@@ -1,6 +1,15 @@
 <template>
-  <n-layout has-sider style="height: calc(100vh - 300px); min-height: 500px;" bordered>
-    <n-layout-sider bordered collapse-mode="width" :collapsed-width="48" :width="240" show-trigger>
+  <n-layout has-sider class="browser-layout" style="height: calc(100vh - 300px); min-height: 500px;" bordered>
+    <n-layout-sider
+      bordered
+      :collapse-mode="isMobile ? 'transform' : 'width'"
+      :collapsed-width="isMobile ? 0 : 48"
+      :width="240"
+      v-model:collapsed="siderCollapsed"
+      :show-trigger="!isMobile"
+      :position="isMobile ? 'absolute' : 'static'"
+      class="browser-sider"
+    >
       <div style="padding: 12px; border-bottom: 1px solid var(--border-color)">
         <n-space vertical size="small">
           <n-select
@@ -22,13 +31,25 @@
         @update:value="handleTableChange"
       />
     </n-layout-sider>
+
+    <!-- 移动端遮罩：sider 展开时点击关闭 -->
+    <div v-if="isMobile && !siderCollapsed" class="sider-mask" @click="siderCollapsed = true"></div>
+
     <n-layout-content content-style="padding: 16px; display: flex; flex-direction: column;">
+      <!-- 移动端:表列表触发按钮 -->
+      <div v-if="isMobile" class="mobile-table-trigger">
+        <n-button size="small" block secondary @click="siderCollapsed = false">
+          <template #icon><n-icon :component="TableCellsIcon" /></template>
+          {{ currentDb ? `${currentDb} / ${selectedTable || '选择表'}` : '选择数据库' }}
+        </n-button>
+      </div>
+
       <div v-if="!selectedTable" class="empty-state">
         <n-empty :description="currentDb ? '该库下没有发现公有表，或请从左侧选择' : '请先在上方选择一个数据库'" />
       </div>
-      <div v-else style="flex: 1; display: flex; flex-direction: column;">
-        <n-space justify="space-between" align="center" style="margin-bottom: 12px">
-          <n-space align="center">
+      <div v-else style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
+        <n-space justify="space-between" align="center" :wrap="true" :size="8" style="margin-bottom: 12px">
+          <n-space align="center" :wrap="true" :size="8">
             <n-icon size="20"><TableCellsIcon /></n-icon>
             <n-text strong style="font-size: 16px">{{ selectedTable }}</n-text>
             <n-tag size="small" type="info">{{ pagination.itemCount }} 条记录</n-tag>
@@ -63,9 +84,16 @@ import { NLayout, NLayoutSider, NLayoutContent, NMenu, NDataTable, NEmpty, NSpac
 import { TableCellsIcon } from '@heroicons/vue/24/outline'
 import axios from 'axios'
 import DataValueViewerModal from './DataValueViewerModal.vue'
+import { usePWA } from '@/composables/usePWA'
+
+const { isMobile } = usePWA()
 
 const props = defineProps<{ host: any }>()
 const message = useMessage()
+
+// 移动端 sider 默认折叠
+const siderCollapsed = ref(false)
+watch(isMobile, (mobile) => { siderCollapsed.value = mobile }, { immediate: true })
 
 const renderIcon = (icon: any) => {
   return () => h(NIcon, null, { default: () => h(icon) })
@@ -233,4 +261,37 @@ defineExpose({ refresh: fetchDatabases })
 
 <style scoped>
 .empty-state { height: 100%; display: flex; align-items: center; justify-content: center; }
+
+/* n-layout 设 position: relative，作为 absolute sider 和遮罩的定位参考 */
+.browser-layout {
+  position: relative;
+}
+
+/* 移动端 sider 浮层：高于 content */
+.browser-sider {
+  z-index: 101;
+}
+/* 遮罩层：sider 展开时覆盖 content，点击关闭 */
+.sider-mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 100;
+}
+.mobile-table-trigger {
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 767px) {
+  /* content 内边距缩减 */
+  :deep(.n-layout-content .n-layout-content__content) {
+    padding: 8px !important;
+  }
+  /* n-data-table 字体稍缩 */
+  :deep(.n-data-table .n-data-table-th),
+  :deep(.n-data-table .n-data-table-td) {
+    font-size: 12px;
+  }
+}
 </style>

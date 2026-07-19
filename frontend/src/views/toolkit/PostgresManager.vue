@@ -8,21 +8,21 @@
 
       <n-card size="small" segmented>
         <template #header>
-          <n-space align="center" justify="space-between" style="width: 100%">
-            <n-space align="center" size="large">
+          <n-space align="center" justify="space-between" style="width: 100%" :wrap="true" :size="[12, 8]">
+            <n-space align="center" :size="12" :wrap="true">
               <n-select
                 v-model:value="selectedHostId"
                 :options="hostOptions"
                 placeholder="选择数据库实例"
-                style="width: 220px"
+                class="host-select"
                 @update:value="handleHostChange"
               />
-              <n-button type="primary" secondary @click="showHostModal = true">
+              <n-button type="primary" secondary size="small" @click="showHostModal = true">
                 管理主机
               </n-button>
             </n-space>
-            <n-space>
-              <n-button :disabled="!selectedHost" ghost @click="refreshAll" :loading="refreshing">
+            <n-space :size="8">
+              <n-button :disabled="!selectedHost" ghost size="small" @click="refreshAll" :loading="refreshing">
                 全部刷新
               </n-button>
             </n-space>
@@ -100,3 +100,19 @@ const refreshAll = async () => {
 
 onMounted(fetchHosts)
 </script>
+
+<style scoped>
+/* 主机选择器：桌面端固定宽度，移动端弹性填充 */
+.host-select {
+  width: 220px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 767px) {
+  .host-select {
+    width: auto;
+    flex: 1 1 180px;
+    min-width: 0;
+  }
+}
+</style>

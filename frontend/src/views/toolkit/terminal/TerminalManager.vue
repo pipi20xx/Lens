@@ -3,11 +3,16 @@
     <!-- 顶部状态栏 -->
     <div class="terminal-top-bar">
       <div class="bar-left">
-        <n-button quaternary circle size="small" @click="collapsedSider = !collapsedSider">
+        <!-- 移动端:主机列表抽屉触发 -->
+        <n-button quaternary circle size="small" class="mobile-only" @click="showHostDrawer = true">
+          <template #icon><n-icon :component="ServerStackIcon" /></template>
+        </n-button>
+        <!-- 桌面端:折叠侧栏 -->
+        <n-button quaternary circle size="small" class="desktop-only" @click="collapsedSider = !collapsedSider">
           <template #icon><n-icon :component="Bars3Icon" /></template>
         </n-button>
         <n-divider vertical />
-        <n-breadcrumb>
+        <n-breadcrumb class="top-breadcrumb">
           <n-breadcrumb-item>终端管理</n-breadcrumb-item>
           <n-breadcrumb-item><n-text strong>{{ currentHostName }}</n-text></n-breadcrumb-item>
         </n-breadcrumb>
@@ -16,7 +21,11 @@
         </n-tag>
       </div>
       <div class="bar-right">
-        <n-space>
+        <n-space :size="2">
+          <!-- 移动端:快速命令抽屉触发 -->
+          <n-button quaternary circle size="small" class="mobile-only" @click="showCommandDrawer = true" title="快速命令">
+            <template #icon><n-icon :component="CodeBracketIcon" /></template>
+          </n-button>
           <n-button quaternary circle size="small" @click="showFileManager = true" title="文件管理">
             <template #icon><n-icon :component="FolderOpenIcon" /></template>
           </n-button>
@@ -30,8 +39,8 @@
       </div>
     </div>
 
-    <n-layout has-sider class="main-layout">
-      <!-- 主机列表 -->
+    <!-- 桌面端:三栏布局 -->
+    <n-layout v-if="!isMobile" has-sider class="main-layout">
       <n-layout-sider
         bordered
         collapse-mode="width"
@@ -39,15 +48,13 @@
         :width="220"
         :collapsed="collapsedSider"
       >
-        <HostPanel 
-          :active-host-id="currentHostId" 
-          @select="handleHostSelect" 
+        <HostPanel
+          :active-host-id="currentHostId"
+          @select="handleHostSelect"
         />
       </n-layout-sider>
 
-      <!-- 多会话终端容器 -->
       <n-layout-content class="terminal-workspace">
-        <!-- 会话页签 -->
         <div class="session-tabs" v-if="openSessions.length > 0">
           <n-tabs
             v-model:value="activeSessionId"
@@ -66,7 +73,6 @@
         </div>
 
         <div class="terminal-container">
-          <!-- 循环渲染所有已打开的会话，使用 v-show 保持连接 -->
           <TerminalInstance
             v-for="session in openSessions"
             :key="session.sessionId"
@@ -83,17 +89,71 @@
         </div>
       </n-layout-content>
 
-      <!-- 快速命令 -->
       <n-layout-sider bordered :width="240">
         <CommandPanel @send="sendToActiveTerm" />
       </n-layout-sider>
     </n-layout>
 
+    <!-- 移动端:单栏终端 -->
+    <div v-else class="mobile-workspace">
+      <div class="session-tabs" v-if="openSessions.length > 0">
+        <n-tabs
+          v-model:value="activeSessionId"
+          type="card"
+          closable
+          @close="handleCloseSession"
+          size="small"
+        >
+          <n-tab-pane
+            v-for="session in openSessions"
+            :key="session.sessionId"
+            :name="session.sessionId"
+            :tab="session.name"
+          />
+        </n-tabs>
+      </div>
+
+      <div class="terminal-container">
+        <TerminalInstance
+          v-for="session in openSessions"
+          :key="session.sessionId"
+          :ref="(el) => setInstanceRef(session.sessionId, el)"
+          :host-id="session.hostId"
+          :host-name="session.name"
+          :visible="activeSessionId === session.sessionId"
+          @connected="session.connected = true"
+          @disconnected="session.connected = false"
+        />
+        <div v-if="openSessions.length === 0" class="empty-terminal">
+          <n-button type="primary" secondary @click="showHostDrawer = true">
+            点击选择主机开启会话
+          </n-button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 移动端:主机列表抽屉 -->
+    <n-drawer v-model:show="showHostDrawer" :width="280" placement="left">
+      <n-drawer-content title="主机列表" closable>
+        <HostPanel
+          :active-host-id="currentHostId"
+          @select="handleHostSelectMobile"
+        />
+      </n-drawer-content>
+    </n-drawer>
+
+    <!-- 移动端:快速命令抽屉 -->
+    <n-drawer v-model:show="showCommandDrawer" :width="300" placement="right">
+      <n-drawer-content title="快速命令" closable>
+        <CommandPanel @send="handleSendCommandMobile" />
+      </n-drawer-content>
+    </n-drawer>
+
     <!-- 文件管理器弹窗 -->
-    <n-modal 
-      v-model:show="showFileManager" 
-      preset="card" 
-      :title="`文件管理: ${currentHostName}`" 
+    <n-modal
+      v-model:show="showFileManager"
+      preset="card"
+      :title="`文件管理: ${currentHostName}`"
       style="width: 90vw; max-width: 1200px"
       :segmented="{content: 'soft'}"
     >
@@ -105,15 +165,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, nextTick } from 'vue';
-import { 
-  NLayout, NLayoutSider, NLayoutContent, NButton, NSpace, NTag, 
-  NDivider, NBreadcrumb, NBreadcrumbItem, NText, NIcon, NModal, NTabs, NTabPane
+import { ref, onMounted, computed } from 'vue';
+import {
+  NLayout, NLayoutSider, NLayoutContent, NButton, NSpace, NTag,
+  NDivider, NBreadcrumb, NBreadcrumbItem, NText, NIcon, NModal,
+  NTabs, NTabPane, NDrawer, NDrawerContent
 } from 'naive-ui';
 import {
   ArrowPathIcon,
   Bars3Icon,
+  CodeBracketIcon,
   FolderOpenIcon,
+  ServerStackIcon,
   TrashIcon
 } from '@heroicons/vue/24/outline'
 
@@ -122,6 +185,9 @@ import CommandPanel from './components/CommandPanel.vue';
 import TerminalInstance from './components/TerminalInstance.vue';
 import FileManager from '@/components/FileManager.vue';
 import { terminalApi } from '@/api/terminal';
+import { usePWA } from '@/composables/usePWA';
+
+const { isMobile } = usePWA();
 
 interface Session {
   sessionId: string;
@@ -131,6 +197,8 @@ interface Session {
 }
 
 const collapsedSider = ref(false);
+const showHostDrawer = ref(false);
+const showCommandDrawer = ref(false);
 const activeSessionId = ref<string>('');
 const showFileManager = ref(false);
 const openSessions = ref<Session[]>([]);
@@ -164,7 +232,7 @@ const handleHostSelect = (host: any) => {
 
   // 1. 生成唯一会话 ID
   const sessionId = Date.now().toString() + Math.random().toString(36).substring(2, 5);
-  
+
   // 2. 计算会话名称（如果是同一个主机的第 N 个会话，加个后缀）
   const hostSessionCount = openSessions.value.filter(s => s.hostId === id).length;
   const sessionName = hostSessionCount > 0 ? `${name} #${hostSessionCount + 1}` : name;
@@ -176,9 +244,21 @@ const handleHostSelect = (host: any) => {
     name: sessionName,
     connected: false
   });
-  
+
   // 4. 激活新会话
   activeSessionId.value = sessionId;
+};
+
+// 移动端:选择主机后关闭抽屉
+const handleHostSelectMobile = (host: any) => {
+  handleHostSelect(host);
+  showHostDrawer.value = false;
+};
+
+// 移动端:发送命令后关闭命令抽屉
+const handleSendCommandMobile = (cmd: string, autoEnter: boolean) => {
+  sendToActiveTerm(cmd, autoEnter);
+  showCommandDrawer.value = false;
 };
 
 const handleCloseSession = (sessionId: string) => {
@@ -215,29 +295,30 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.terminal-manager-view { 
-  height: 100%; 
-  display: flex; 
-  flex-direction: column; 
-  background: var(--app-bg-color); 
-  overflow: hidden; 
+.terminal-manager-view {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--app-bg-color);
+  overflow: hidden;
 }
-.terminal-top-bar { 
-  height: 42px; 
+.terminal-top-bar {
+  height: 42px;
   flex-shrink: 0;
-  background: var(--card-bg-color); 
-  display: flex; 
-  justify-content: space-between; 
-  align-items: center; 
-  padding: 0 12px; 
-  border-bottom: 1px solid var(--border-color); 
+  background: var(--card-bg-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--border-color);
 }
-.bar-left { display: flex; align-items: center; gap: 8px; }
+.bar-left { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; }
+.top-breadcrumb { min-width: 0; overflow: hidden; }
 .main-layout { flex: 1; overflow: hidden; }
-.terminal-workspace { 
+.terminal-workspace {
   background: #000;
-  padding: 0; 
-  position: relative; 
+  padding: 0;
+  position: relative;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -253,5 +334,46 @@ onMounted(() => {
   flex: 1;
   overflow: hidden;
 }
-.empty-terminal { height: 100%; display: flex; align-items: center; justify-content: center; color: var(--text-color); opacity: 0.5; }
+.empty-terminal {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-color);
+  opacity: 0.5;
+}
+
+/* 移动端工作区 */
+.mobile-workspace {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: #000;
+  position: relative;
+}
+</style>
+
+<style scoped>
+/* 移动端状态栏压缩 */
+@media (max-width: 767px) {
+  .terminal-top-bar {
+    height: 44px;
+    padding: 0 8px;
+  }
+  .bar-left {
+    gap: 4px;
+  }
+  /* 面包屑只保留当前主机名 */
+  .top-breadcrumb :deep(.n-breadcrumb-item:first-child .n-breadcrumb-item__link) {
+    display: none;
+  }
+  .top-breadcrumb :deep(.n-breadcrumb-item:first-child .n-breadcrumb-item__separator) {
+    display: none;
+  }
+  /* 状态 tag 缩小 */
+  .status-dot {
+    transform: scale(0.9);
+  }
+}
 </style>

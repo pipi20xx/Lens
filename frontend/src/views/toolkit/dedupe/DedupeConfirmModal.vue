@@ -94,8 +94,10 @@ const formatEpisode = (item: any) => {
 .confirm-list-wrapper {
   max-height: 500px;
   overflow-y: auto;
+  overflow-x: auto;
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 8px;
+  -webkit-overflow-scrolling: touch;
 }
 .confirm-path-text {
   font-size: 10px;
@@ -103,5 +105,15 @@ const formatEpisode = (item: any) => {
   font-family: monospace;
   word-break: break-all;
   line-height: 1.2;
+}
+
+/* 移动端:解除 td 固定宽度，让表格自适应全屏宽度 */
+@media (max-width: 767px) {
+  .confirm-list-wrapper :deep(td[width]) {
+    width: auto !important;
+  }
+  .confirm-list-wrapper :deep(table) {
+    width: 100% !important;
+  }
 }
 </style>
