@@ -73,7 +73,7 @@
     v-model:show="showLog"
     preset="card"
     :title="logModalTitle"
-    style="width: 90%; max-width: 1200px; height: 90vh;"
+    style="width: 90%; max-width: 1200px;"
   >
     <div class="log-toolbar">
       <n-space align="center" size="small">
@@ -189,11 +189,11 @@ const splitPlatforms = (platforms: string) => {
   return (platforms || '').split(',').filter((p: string) => p.trim())
 }
 
-// 滚动日志到底部
+// 滚动日志到底部（使用 scrollIntoView 适配浏览器原生滚动）
 const scrollToBottom = () => {
   nextTick(() => {
     if (logContainerRef.value) {
-      logContainerRef.value.scrollTop = logContainerRef.value.scrollHeight
+      logContainerRef.value.scrollIntoView({ behavior: 'smooth', block: 'end' })
     }
   })
 }
@@ -269,13 +269,12 @@ const deleteLog = (taskId: string) => {
 </script>
 
 <style scoped>
-/* 卡片列表：一行一个卡片 */
+/* 卡片列表：一行一个卡片
+   不限制高度，内容自然撑开，超出由浏览器滚动条处理 */
 .history-list {
   display: flex;
   flex-direction: column;
   gap: var(--space-sm, 0.5rem);
-  max-height: 400px;
-  overflow-y: auto;
 }
 
 .history-card {
@@ -393,25 +392,22 @@ const deleteLog = (taskId: string) => {
   font-size: 12px;
 }
 
-/* 日志容器 */
+/* 日志容器：不限制高度，内容自然撑开，超出由浏览器滚动条处理 */
 .log-container-wrapper {
-  height: calc(90vh - 200px);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .log-container {
-  background: #1e1e1e;
-  color: #d4d4d4;
+  background: var(--code-bg-color, #1e1e1e);
+  color: var(--text-color, #d4d4d4);
   padding: 12px;
   border-radius: 4px;
-  height: 100%;
-  overflow-y: auto;
   font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
   font-size: 13px;
   line-height: 1.6;
   white-space: pre-wrap;
   word-break: break-word;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
 }
 
 .log-container pre {
