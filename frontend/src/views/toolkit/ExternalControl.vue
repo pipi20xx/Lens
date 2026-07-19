@@ -91,7 +91,9 @@
         <n-tab-pane name="logs" tab="访问日志">
           <div style="padding-top: 16px;">
             <n-card title="审计日志记录" size="small" segmented>
+              <!-- 桌面端:表格 -->
               <n-data-table
+                class="desktop-only"
                 remote
                 ref="table"
                 :columns="columns"
@@ -104,6 +106,49 @@
                 size="small"
                 :single-line="false"
               />
+              <!-- 移动端:卡片列表 -->
+              <div class="mobile-only">
+                <n-spin :show="loadingLogs">
+                  <div v-if="auditLogs.length" class="log-list">
+                    <div v-for="row in auditLogs" :key="row.id" class="log-card">
+                      <div class="log-card-top">
+                        <n-tag :type="row.method === 'GET' ? 'success' : 'info'" size="small" quaternary>
+                          {{ row.method }}
+                        </n-tag>
+                        <n-tag :type="row.status_code < 400 ? 'success' : 'error'" size="small" quaternary>
+                          {{ row.status_code }}
+                        </n-tag>
+                        <n-text depth="3" class="log-time">{{ new Date(row.timestamp).toLocaleString() }}</n-text>
+                      </div>
+                      <div class="log-path" :title="row.path">{{ row.path }}</div>
+                      <div class="log-card-bottom">
+                        <n-text depth="3" class="log-meta">IP: {{ row.client_ip }}</n-text>
+                        <n-text depth="3" class="log-meta">{{ row.process_time?.toFixed(1) }}ms</n-text>
+                        <n-button
+                          size="tiny"
+                          secondary
+                          :disabled="!row.payload"
+                          @click="showPayload(row)"
+                        >
+                          查看详情
+                        </n-button>
+                      </div>
+                    </div>
+                  </div>
+                  <n-empty v-else description="暂无审计日志" style="padding: 30px" />
+                </n-spin>
+                <n-pagination
+                  v-if="pagination.itemCount"
+                  :page="pagination.page"
+                  :page-size="pagination.pageSize"
+                  :item-count="pagination.itemCount"
+                  :page-sizes="pagination.pageSizes"
+                  show-size-picker
+                  @update:page="handlePageChange"
+                  @update:page-size="handlePageSizeChange"
+                  style="margin-top: 12px; justify-content: center; display: flex"
+                />
+              </div>
             </n-card>
           </div>
         </n-tab-pane>
@@ -146,7 +191,7 @@ import { ref, onMounted, h, watch, nextTick } from 'vue'
 import { 
   useMessage, NSpace, NH2, NText, NTabs, NTabPane, NCard, NAlert,
   NFormItem, NInput, NInputGroup, NButton, NGrid, NGi, NThing, NSwitch, NDivider,
-  NDataTable, NTag, NCode, NModal, NIcon
+  NDataTable, NTag, NCode, NModal, NIcon, NSpin, NEmpty, NPagination
 } from 'naive-ui'
 // 导入提取的逻辑
 import { useExternalControl } from './externalControl/hooks/useExternalControl'
@@ -162,6 +207,13 @@ const {
 
 const renderIcon = (icon: any) => {
   return () => h(NIcon, null, { default: () => h(icon) })
+}
+
+// 移动端卡片列表查看 payload 详情 (与 columns 操作列逻辑一致)
+const showPayload = (row: any) => {
+  try { currentPayload.value = JSON.stringify(JSON.parse(row.payload), null, 2) } 
+  catch { currentPayload.value = row.payload || '' }
+  showLogDetail.value = true
 }
 
 const docsIframe = ref<HTMLIFrameElement | null>(null)
@@ -250,4 +302,53 @@ onMounted(() => { loadConfig(); fetchLogs() })
 /* 彻底移除 Naive UI 内部的高度和滚动封印 */
 :deep(.n-tabs-content) { height: auto !important; }
 :deep(.n-tab-pane) { height: auto !important; overflow: visible !important; }
+
+/* ============== 移动端访问日志卡片列表 ============== */
+.log-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.log-card {
+  padding: 10px 12px;
+  background: var(--info-item-bg, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--info-item-border, rgba(255, 255, 255, 0.08));
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.log-card-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.log-time {
+  font-size: 12px;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.log-path {
+  font-family: 'Fira Code', monospace;
+  font-size: 12px;
+  color: var(--primary-color);
+  word-break: break-all;
+  line-height: 1.5;
+}
+
+.log-card-bottom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.log-meta {
+  font-size: 11px;
+}
 </style>

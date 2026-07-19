@@ -372,6 +372,66 @@
     flex-wrap: wrap !important;
     gap: 8px !important;
   }
+
+  /* —— NForm: label-placement="left" 时强制 label 垂直堆叠,
+     避免 label-width: 120/100 在窄屏挤压内容区 —— */
+  .n-form-item:not(.n-form-item--top-labelled) {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .n-form-item .n-form-item-label {
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    padding: 0 0 6px 2px !important;
+    text-align: left !important;
+  }
+
+  /* —— NInputGroup: label 固定宽度 (140px/100px) 改为内容自适应,
+     给 input 和 button 留出更多空间 —— */
+  .n-input-group > .n-input-group-label[style*="width"] {
+    width: auto !important;
+    min-width: 0 !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+    white-space: nowrap !important;
+  }
+
+  /* —— NDescriptions: table 强制变 block 单列堆叠,
+     覆盖 :column="2/3" 的多列布局 —— */
+  .n-descriptions .n-descriptions-table,
+  .n-descriptions .n-descriptions-table-wrapper {
+    display: block !important;
+    width: 100% !important;
+  }
+  .n-descriptions .n-descriptions-table tbody {
+    display: block !important;
+    width: 100% !important;
+  }
+  .n-descriptions .n-descriptions-table-row {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+  }
+  .n-descriptions .n-descriptions-table-content {
+    display: block !important;
+    width: auto !important;
+    min-width: 0 !important;
+    border-right: none !important;
+  }
+  /* label 行加粗,垂直堆叠时更易识别 */
+  .n-descriptions .n-descriptions-table-content__label {
+    font-weight: 600 !important;
+    padding-top: 10px !important;
+    padding-bottom: 4px !important;
+    background: var(--hover-bg, rgba(59, 130, 246, 0.06)) !important;
+    border-bottom: none !important;
+  }
+  .n-descriptions .n-descriptions-table-content__content {
+    padding-top: 2px !important;
+    padding-bottom: 10px !important;
+    border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.06)) !important;
+  }
 }
 
 /* ============================================

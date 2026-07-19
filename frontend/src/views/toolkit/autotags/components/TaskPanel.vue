@@ -1,9 +1,9 @@
 <template>
   <n-card title="一键打标签任务" size="small" segmented>
-    <template #header-extra>
-      <n-text depth="3" style="font-size: 12px">此功能将遍历媒体库，应用预设规则或自定义标签</n-text>
-    </template>
-    
+    <n-text depth="3" style="font-size: 12px; display: block; margin-bottom: 12px;">
+      此功能将遍历媒体库，应用预设规则或自定义标签
+    </n-text>
+
     <n-form label-placement="left" label-width="100" size="small">
       <n-grid :cols="2" :x-gap="24">
         <n-form-item-gi label="写入模式:">

@@ -29,11 +29,67 @@
                 </n-button>
               </template>
 
-              <n-data-table
-                :columns="columns"
-                :data="settings.bots"
-                :bordered="false"
-                size="small"
+              <div v-if="settings.bots?.length" class="bot-grid">
+                <div
+                  v-for="bot in settings.bots"
+                  :key="bot.id"
+                  class="bot-card"
+                  :class="{ 'disabled': !bot.enabled }"
+                >
+                  <div class="bot-card-header">
+                    <div class="bot-name" :title="bot.name">{{ bot.name }}</div>
+                    <n-tag
+                      :type="bot.enabled ? 'success' : 'default'"
+                      size="small"
+                      round
+                      quaternary
+                    >
+                      {{ bot.enabled ? '运行中' : '已停用' }}
+                    </n-tag>
+                  </div>
+
+                  <div class="bot-events">
+                    <n-text depth="3" class="events-label">订阅事件</n-text>
+                    <n-space v-if="bot.subscribed_events?.length" size="small">
+                      <n-tag
+                        v-for="ev in bot.subscribed_events"
+                        :key="ev"
+                        size="tiny"
+                        type="info"
+                        quaternary
+                      >
+                        {{ ev }}
+                      </n-tag>
+                    </n-space>
+                    <n-text v-else depth="3" style="font-size: 12px">未订阅任何事件</n-text>
+                  </div>
+
+                  <div class="bot-actions">
+                    <n-button size="tiny" type="info" secondary @click="handleTestBot(bot.id)">
+                      测试
+                    </n-button>
+                    <n-button size="tiny" secondary @click="handleEditBot(bot)">
+                      编辑
+                    </n-button>
+                    <n-popconfirm
+                      @positive-click="handleDeleteBot(bot.id)"
+                      positive-text="确认"
+                      negative-text="取消"
+                    >
+                      <template #trigger>
+                        <n-button size="tiny" type="error" secondary>
+                          删除
+                        </n-button>
+                      </template>
+                      确定删除该机器人吗？
+                    </n-popconfirm>
+                  </div>
+                </div>
+              </div>
+              <n-empty
+                v-else
+                description="尚未配置任何机器人"
+                style="padding: 30px"
               />
             </n-card>
           </n-space>
@@ -140,10 +196,10 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, h } from 'vue'
+import { onMounted } from 'vue'
 import { 
-  NButton, NSpace, NTag, NPopconfirm, NCard, NSwitch, NAlert, NDataTable, NModal, NForm, 
-  NFormItem, NInput, NSelect, NH2, NText, NGrid, NGi, DataTableColumns, useMessage, NIcon 
+  NButton, NSpace, NTag, NPopconfirm, NCard, NSwitch, NAlert, NModal, NForm, 
+  NFormItem, NInput, NSelect, NH2, NText, NGrid, NGi, NEmpty, useMessage 
 } from 'naive-ui'
 // 导入提取的逻辑
 import { useNotificationManager } from './notification/hooks/useNotificationManager'
@@ -172,69 +228,90 @@ const typeOptions = [
 
 const eventOptions = NOTIFICATION_EVENTS
 
-const renderIcon = (icon: any) => {
-  return () => h(NIcon, null, { default: () => h(icon) })
-}
-
-const columns: DataTableColumns<NotificationBot> = [
-  { title: '机器人名称', key: 'name' },
-  { 
-    title: '状态', 
-    key: 'enabled',
-    width: 100,
-    render(row) {
-      return h(NTag, { type: row.enabled ? 'success' : 'default', size: 'small', round: true, quaternary: true }, { default: () => row.enabled ? '运行中' : '已停用' })
-    }
-  },
-  {
-    title: '订阅事件',
-    key: 'subscribed_events',
-    render(row) {
-      return h(NSpace, { size: 'small' }, {
-        default: () => row.subscribed_events.map(ev => h(NTag, { size: 'tiny', bordered: false, type: 'info', quaternary: true }, { default: () => ev }))
-      })
-    }
-  },
-  {
-    title: '操作',
-    key: 'actions',
-    width: 240,
-    render(row) {
-      return h(NSpace, { justify: 'end' }, {
-        default: () => [
-          h(NButton, { 
-            size: 'tiny', 
-            type: 'info',
-            secondary: true, 
-            onClick: () => handleTestBot(row.id) 
-          }, { 
-            default: () => '测试' 
-          }),
-          h(NButton, { 
-            size: 'tiny', 
-            secondary: true,
-            onClick: () => handleEditBot(row) 
-          }, { 
-            default: () => '编辑' 
-          }),
-          h(NPopconfirm, { onPositiveClick: () => handleDeleteBot(row.id) }, {
-            trigger: () => h(NButton, { 
-              size: 'tiny', 
-              type: 'error', 
-              secondary: true 
-            }, { 
-              default: () => '删除' 
-            }),
-            default: () => '确定删除该机器人吗？'
-          })
-        ]
-      })
-    }
-  }
-]
-
 onMounted(fetchSettings)
 </script>
 
 <style scoped>
+/* 推送通道卡片列表 */
+.bot-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.bot-card {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 14px;
+  background: var(--info-item-bg, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--info-item-border, rgba(255, 255, 255, 0.08));
+  border-radius: 6px;
+  transition: border-color 200ms ease, background 200ms ease;
+}
+
+.bot-card:hover {
+  border-color: rgba(64, 128, 240, 0.3);
+}
+
+.bot-card.disabled {
+  opacity: 0.7;
+}
+
+.bot-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.bot-name {
+  font-size: 14px;
+  font-weight: 600;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bot-events {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+  min-width: 0;
+}
+
+.bot-events .events-label {
+  font-size: 12px;
+}
+
+.bot-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: auto;
+}
+
+/* ============== 移动端适配 ============== */
+@media (max-width: 767px) {
+  .bot-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 超窄屏 (≤380px) 兼容 */
+@media (max-width: 380px) {
+  .bot-card {
+    padding: 10px 12px;
+  }
+
+  .bot-actions {
+    flex-wrap: nowrap;
+  }
+  .bot-actions :deep(.n-button) {
+    flex: 1 1 0;
+    margin: 0 !important;
+  }
+}
 </style>
