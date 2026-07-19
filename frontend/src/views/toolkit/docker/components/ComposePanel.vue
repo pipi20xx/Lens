@@ -1,42 +1,157 @@
 <template>
   <div class="compose-panel">
-    <n-space vertical size="medium">
-      <n-space justify="space-between" v-if="hostId">
-        <n-space>
-          <n-button type="primary" @click="handleCreateProject">
-            新建项目
-          </n-button>
-          <n-input
-            v-model:value="searchQuery"
-            placeholder="搜索项目名称或路径..."
-            clearable
-            style="width: 250px"
-          >
-            <template #prefix>
-              <n-icon><SearchIcon /></n-icon>
-            </template>
-          </n-input>
-        </n-space>
-        <n-button-group>
-          <n-button type="info" ghost @click="fetchProjects(true)" :loading="loading">
-            刷新列表
-          </n-button>
-          <n-button type="success" secondary @click="handleBulkAction('up')">
-            全部启动/更新
-          </n-button>
-          <n-button type="error" secondary @click="handleBulkAction('down')">
-            全部停止
-          </n-button>
-        </n-button-group>
-      </n-space>
-      
-      <n-data-table
-        :columns="columns"
-        :data="filteredProjects"
-        :loading="loading"
-        :pagination="{ pageSize: 15 }"
+    <!-- 顶部工具栏 -->
+    <div class="toolbar-row" v-if="hostId">
+      <div class="toolbar-left">
+        <n-button type="primary" @click="handleCreateProject">
+          <template #icon><n-icon><AddIcon /></n-icon></template>
+          新建项目
+        </n-button>
+        <n-input
+          v-model:value="searchQuery"
+          placeholder="搜索项目名称或路径..."
+          clearable
+          class="search-input"
+        >
+          <template #prefix>
+            <n-icon><SearchIcon /></n-icon>
+          </template>
+        </n-input>
+      </div>
+      <n-button-group>
+        <n-button type="info" ghost @click="fetchProjects(true)" :loading="loading">
+          刷新
+        </n-button>
+        <n-button type="success" secondary @click="handleBulkAction('up')">
+          全部启动/更新
+        </n-button>
+        <n-button type="error" secondary @click="handleBulkAction('down')">
+          全部停止
+        </n-button>
+      </n-button-group>
+    </div>
+
+    <!-- 卡片网格 -->
+    <n-spin :show="loading">
+      <div v-if="filteredProjects.length" class="project-grid">
+        <div
+          v-for="row in filteredProjects"
+          :key="row.name"
+          class="project-card"
+          :class="{ 'is-running': row.status?.includes('running') }"
+        >
+          <!-- 卡片头部：名称 + 状态 -->
+          <div class="card-header">
+            <div class="card-title">
+              <n-text strong class="project-name text-truncate">{{ row.name }}</n-text>
+              <n-button
+                v-if="row.type === 'detected'"
+                size="tiny"
+                circle
+                quaternary
+                @click="pinProject(row)"
+                title="记忆项目路径"
+              >
+                <template #icon><n-icon><PushPinIcon /></n-icon></template>
+              </n-button>
+            </div>
+            <n-tag
+              :type="row.status?.includes('running') ? 'success' : 'default'"
+              size="small"
+              round
+            >
+              {{ formatStatus(row.status) }}
+            </n-tag>
+          </div>
+
+          <!-- 类型标签 -->
+          <div class="card-tags">
+            <n-tag
+              :type="row.type === 'scanned' ? 'info' : 'warning'"
+              size="tiny"
+              quaternary
+            >
+              {{ row.type === 'scanned' ? '已记忆' : '探测到' }}
+            </n-tag>
+          </div>
+
+          <!-- 配置文件路径 -->
+          <div class="card-path">
+            <n-text depth="3" class="path-text text-clamp-2">{{ row.config_file || row.path }}</n-text>
+            <n-button
+              size="tiny"
+              quaternary
+              circle
+              @click="emit('browse-path', row.path)"
+              title="浏览路径"
+            >
+              <template #icon><n-icon><FolderIcon /></n-icon></template>
+            </n-button>
+          </div>
+
+          <!-- 操作按钮 -->
+          <div class="card-actions">
+            <n-button
+              size="small"
+              type="primary"
+              secondary
+              :loading="loadingActions[row.name]"
+              @click="runComposeAction(row, 'up')"
+            >
+              启动/更新
+            </n-button>
+            <n-button
+              size="small"
+              type="warning"
+              secondary
+              :loading="loadingActions[row.name]"
+              @click="runComposeAction(row, 'pull')"
+            >
+              拉取
+            </n-button>
+            <n-button
+              size="small"
+              type="error"
+              secondary
+              :loading="loadingActions[row.name]"
+              @click="runComposeAction(row, 'down')"
+            >
+              停止
+            </n-button>
+            <n-button
+              size="small"
+              secondary
+              @click="editProject(row)"
+            >
+              编辑
+            </n-button>
+            <n-button
+              size="small"
+              type="error"
+              secondary
+              @click="deleteProject(row)"
+            >
+              删除
+            </n-button>
+            <n-button
+              size="small"
+              type="info"
+              quaternary
+              @click="createBackupTask(row)"
+            >
+              备份
+            </n-button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 空状态 -->
+      <n-empty
+        v-else-if="!loading"
+        description="暂无 Compose 项目"
+        style="padding: 60px 0"
       />
-    </n-space>
+    </n-spin>
 
     <!-- Compose 编辑/新建弹窗 -->
     <n-modal v-model:show="showComposeModal" preset="card" :title="isEditingProject ? '编辑项目: ' + currentProject.name : '新建 Compose 项目'" style="width: 800px">
@@ -44,7 +159,7 @@
         <n-form-item label="项目名称">
           <n-input v-model:value="currentProject.name" placeholder="例如: my-awesome-app" :disabled="isEditingProject" />
         </n-form-item>
-        
+
         <!-- 新建项目时的路径管理 -->
         <template v-if="!isEditingProject">
           <n-form-item label="基础保存路径">
@@ -99,27 +214,17 @@
 
 <script setup lang="ts">
 import { ref, watch, computed, h } from 'vue'
-import { 
-  NSpace, NButton, NButtonGroup, NDataTable, NTag, NIcon, NText, NEllipsis, 
-  NModal, NForm, NFormItem, NInput, NInputGroup, NCheckbox, useMessage, useDialog 
+import {
+  NSpace, NButton, NButtonGroup, NTag, NIcon, NText,
+  NModal, NForm, NFormItem, NInput, NInputGroup, NCheckbox, NSpin, NEmpty, useMessage, useDialog
 } from 'naive-ui'
-import { 
-  PushPinOutlined as PushPinIcon, 
+import {
+  PushPinOutlined as PushPinIcon,
   FolderOutlined as FolderIcon,
-  EditOutlined as EditIcon,
-  DeleteOutlined as DeleteIcon,
-  PlayCircleOutlined as StartIcon,
-  StopCircleOutlined as StopIcon,
-  CloudDownloadOutlined as PullIcon,
   SearchOutlined as SearchIcon,
-  BackupTableRound as BackupIcon,
-  AutorenewOutlined as RefreshIcon,
-  AddOutlined as AddIcon,
-  SaveOutlined as SaveIcon,
-  CloseOutlined as CloseIcon
+  AddOutlined as AddIcon
 } from '@vicons/material'
 import axios from 'axios'
-import type { DataTableColumns } from 'naive-ui'
 import yaml from 'js-yaml'
 import { useDockerStore } from '@/store/dockerStore'
 
@@ -145,8 +250,8 @@ const filteredProjects = computed(() => {
   const data = projects.value
   if (!searchQuery.value) return data
   const query = searchQuery.value.toLowerCase()
-  return data.filter((p: any) => 
-    p.name.toLowerCase().includes(query) || 
+  return data.filter((p: any) =>
+    p.name.toLowerCase().includes(query) ||
     (p.config_file || p.path || '').toLowerCase().includes(query)
   )
 })
@@ -169,7 +274,7 @@ const translateYamlError = (e: any) => {
     'unknown tag': '未知的标签',
     'missed comma between flow collection entries': '流集合条目之间缺少逗号',
   }
-  
+
   let msg = map[reason] || reason || 'YAML 格式错误'
   if (e.mark) {
     msg += ` (行 ${e.mark.line + 1}, 列 ${e.mark.column + 1})`
@@ -182,7 +287,7 @@ const handleYamlInput = (value: string) => {
     yamlError.value = null
     return
   }
-  
+
   try {
     yaml.load(value)
     yamlError.value = null
@@ -218,96 +323,6 @@ const fetchProjects = async (force = false) => {
   await dockerStore.fetchProjects(props.hostId, force)
 }
 
-// 表格列定义
-const columns: DataTableColumns<any> = [
-  {
-    title: '项目名称',
-    key: 'name',
-    width: 180,
-    render(row) {
-      return h(NSpace, { align: 'center', size: 'small' }, {
-        default: () => [
-          h('span', { style: 'font-weight: bold; color: var(--text-color)' }, row.name),
-          row.type === 'detected' ? h(NButton, {
-            size: 'tiny', circle: true, quaternary: true,
-            onClick: () => pinProject(row)
-          }, { default: () => h(NIcon, null, { default: () => h(PushPinIcon) }) }) : null
-        ]
-      })
-    }
-  },
-  {
-    title: '状态',
-    key: 'status',
-    width: 100,
-    render(row) {
-      const isRunning = row.status?.includes('running')
-      return h(NTag, {
-        type: isRunning ? 'success' : 'default',
-        size: 'small',
-        round: true
-      }, { default: () => formatStatus(row.status) })
-    }
-  },
-  {
-    title: '类型',
-    key: 'type',
-    width: 90,
-    render(row) {
-      return h(NTag, {
-        type: row.type === 'scanned' ? 'info' : 'warning',
-        size: 'small',
-        quaternary: true
-      }, { default: () => row.type === 'scanned' ? '已记忆' : '探测到' })
-    }
-  },
-  {
-    title: '配置文件路径',
-    key: 'path',
-    render(row) {
-      return h(NSpace, { align: 'center', size: 'small' }, {
-        default: () => [
-          h(NEllipsis, { style: 'max-width: 300px; font-size: 12px; color: var(--text-color); opacity: 0.6' }, { default: () => row.config_file || row.path }),
-          h(NButton, {
-            size: 'tiny', quaternary: true, circle: true,
-            onClick: () => emit('browse-path', row.path)
-          }, { default: () => h(NIcon, null, { default: () => h(FolderIcon) }) })
-        ]
-      })
-    }
-  },
-  {
-    title: '操作',
-    key: 'actions',
-    width: 420,
-    render(row) {
-      const isLoading = loadingActions.value[row.name]
-      return h(NSpace, { size: 'small' }, {
-        default: () => [
-          h(NButton, { size: 'tiny', type: 'primary', secondary: true, loading: isLoading, onClick: () => runComposeAction(row, 'up') }, { 
-            default: () => '启动/更新' 
-          }),
-          h(NButton, { size: 'tiny', type: 'warning', secondary: true, loading: isLoading, onClick: () => runComposeAction(row, 'pull') }, { 
-            default: () => '拉取' 
-          }),
-          h(NButton, { size: 'tiny', type: 'error', secondary: true, loading: isLoading, onClick: () => runComposeAction(row, 'down') }, { 
-            default: () => '停止' 
-          }),
-          h(NButton, { size: 'tiny', secondary: true, onClick: () => editProject(row) }, { 
-            default: () => '编辑' 
-          }),
-          h(NButton, { size: 'tiny', type: 'error', secondary: true, onClick: () => deleteProject(row) }, { 
-            default: () => '删除' 
-          }),
-          h(NButton, { size: 'tiny', type: 'info', quaternary: true, onClick: () => createBackupTask(row) }, { 
-            default: () => '备份' 
-          })
-        ]
-      })
-    }
-  }
-]
-
 const createBackupTask = (p: any) => {
   dialog.info({
     title: '创建备份任务',
@@ -316,10 +331,10 @@ const createBackupTask = (p: any) => {
     negativeText: '取消',
     onPositiveClick: async () => {
       try {
-        await axios.post(`/api/docker/compose/${props.hostId}/projects/${p.name}/create-backup-task`, { 
-          path: p.config_file || p.path 
+        await axios.post(`/api/docker/compose/${props.hostId}/projects/${p.name}/create-backup-task`, {
+          path: p.config_file || p.path
         })
-        message.success('备份任务已创建，可前往“数据备份管理”进行详细配置')
+        message.success('备份任务已创建，可前往"数据备份管理"进行详细配置')
       } catch (e: any) {
         message.error('创建失败: ' + (e.response?.data?.detail || '未知错误'))
       }
@@ -377,16 +392,16 @@ const handleBulkAction = (action: string) => {
   })
 }
 
-const handleCreateProject = () => { 
-  currentProject.value = { 
-    name: '', 
+const handleCreateProject = () => {
+  currentProject.value = {
+    name: '',
     content: `version: "3.8"\nservices:\n  app:\n    image: `,
-    path: '' 
+    path: ''
   }
   isEditingProject.value = false
   yamlError.value = null
   loadLastPath()
-  showComposeModal.value = true 
+  showComposeModal.value = true
   handleYamlInput(currentProject.value.content)
 }
 
@@ -394,39 +409,39 @@ const pickBasePath = () => {
   emit('request-pick-path', baseSavePath.value)
 }
 
-const editProject = async (p: any) => { 
+const editProject = async (p: any) => {
   const res = await axios.get(`/api/docker/compose/${props.hostId}/projects/${p.name}`, {
     params: { path: p.config_file || p.path }
   })
   currentProject.value = { ...res.data, path: p.config_file || p.path }
   isEditingProject.value = true
   yamlError.value = null
-  showComposeModal.value = true 
+  showComposeModal.value = true
   handleYamlInput(currentProject.value.content)
 }
 
-const saveProject = async () => { 
+const saveProject = async () => {
   if (!currentProject.value.name.trim()) {
     message.error('请输入项目名称')
     return
   }
 
   const savePath = isEditingProject.value ? currentProject.value.path : finalSavePath.value
-  
+
   try {
-    await axios.post(`/api/docker/compose/${props.hostId}/projects`, 
+    await axios.post(`/api/docker/compose/${props.hostId}/projects`,
       { name: currentProject.value.name, content: currentProject.value.content },
       { params: { path: savePath } }
     )
     message.success('保存成功')
-    
+
     // 记忆路径
     if (!isEditingProject.value) {
       localStorage.setItem(storageKey.value, baseSavePath.value)
     }
 
     showComposeModal.value = false
-    fetchProjects(true) 
+    fetchProjects(true)
     // 自动扫描新路径
     if (!isEditingProject.value) pinProject({ path: savePath.substring(0, savePath.lastIndexOf('/')) })
   } catch (e) {
@@ -436,14 +451,14 @@ const saveProject = async () => {
 
 const deleteProject = (p: any) => {
   const deleteFiles = ref(false)
-  
+
   dialog.error({
     title: '移除项目',
     content: () => h('div', null, [
       h('p', null, `确定要从视图中移除项目 ${p.name} 吗？`),
       h(NCheckbox, {
         checked: deleteFiles.value,
-        'onUpdate:checked': (val) => deleteFiles.value = val,
+        'onUpdate:checked': (val: boolean) => deleteFiles.value = val,
         style: 'margin-top: 10px; color: #ff4d4f'
       }, { default: () => '同时彻底删除磁盘上的文件夹及 YML 文件' })
     ]),
@@ -451,16 +466,16 @@ const deleteProject = (p: any) => {
     negativeText: '取消',
     onPositiveClick: async () => {
       try {
-        await axios.delete(`/api/docker/compose/${props.hostId}/projects/${p.name}`, { 
-          params: { 
+        await axios.delete(`/api/docker/compose/${props.hostId}/projects/${p.name}`, {
+          params: {
             path: p.config_file || p.path,
             delete_files: deleteFiles.value
-          } 
+          }
         })
         message.success(deleteFiles.value ? '项目及文件已删除' : '项目已从视图移除')
         fetchProjects(true)
       } catch (e) {
-        message.error('操作失败: ' + (e.response?.data?.detail || '未知错误'))
+        message.error('操作失败: ' + ((e as any).response?.data?.detail || '未知错误'))
       }
     }
   })
@@ -470,14 +485,14 @@ const runComposeAction = async (p: any, action: string) => {
   loadingActions.value[p.name] = true
   try {
     const res = await axios.post(`/api/docker/compose/${props.hostId}/projects/${p.name}/action`, { action, path: p.config_file || p.path })
-    
+
     if (res.data.success) {
       const noise = ['Started', 'Stopped', 'Stopping', 'Removing', 'Removed', 'Network', 'default']
       const stderr = res.data.stderr || ''
       const isNoise = noise.some(n => stderr.includes(n))
-      
+
       const hasRealOutput = res.data.stdout?.trim() || (stderr.trim() && !isNoise)
-      
+
       if (!hasRealOutput) {
         message.success('操作成功')
       } else {
@@ -515,3 +530,168 @@ const pinProject = async (p: any) => {
 
 defineExpose({ refresh: fetchProjects })
 </script>
+
+<style scoped>
+.compose-panel {
+  width: 100%;
+}
+
+/* 工具栏 */
+.toolbar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.search-input {
+  width: 250px;
+  flex-shrink: 1;
+  min-width: 180px;
+}
+
+/* 卡片网格：统一一行一个卡片 */
+.project-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm, 0.5rem);
+  margin-top: 4px;
+}
+
+.project-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 10px;
+  background: var(--card-bg-color, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--border-light, rgba(255, 255, 255, 0.06));
+  transition: border-color var(--transition-normal), box-shadow var(--transition-normal), transform var(--transition-fast);
+  position: relative;
+  overflow: hidden;
+}
+
+.project-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: transparent;
+  transition: background var(--transition-normal);
+}
+
+.project-card.is-running::before {
+  background: var(--color-success, #10B981);
+}
+
+.project-card:hover {
+  border-color: var(--border-medium, rgba(255, 255, 255, 0.12));
+  box-shadow: var(--shadow-md, 0 4px 12px rgba(0, 0, 0, 0.3));
+}
+
+.project-card:active {
+  transform: scale(0.99);
+}
+
+/* 卡片头部 */
+.card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+
+.project-name {
+  font-size: var(--text-md, 0.9375rem);
+  max-width: 100%;
+}
+
+.card-tags {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+/* 路径行 */
+.card-path {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+}
+
+.path-text {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  opacity: 0.6;
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+/* 操作按钮 */
+.card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-light, rgba(255, 255, 255, 0.06));
+}
+
+.card-actions .n-button {
+  flex: 1 1 auto;
+  min-width: 56px;
+}
+
+/* 移动端适配 */
+@media (max-width: 767px) {
+  .toolbar-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .toolbar-left {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-input {
+    width: 100%;
+  }
+
+  .project-card {
+    padding: 12px;
+  }
+
+  .card-actions .n-button {
+    flex: 1 1 calc(50% - 3px);
+    min-width: 0;
+  }
+}
+
+@media (max-width: 380px) {
+  .card-actions .n-button {
+    flex: 1 1 100%;
+  }
+}
+</style>

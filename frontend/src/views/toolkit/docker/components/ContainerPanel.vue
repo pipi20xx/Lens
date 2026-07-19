@@ -1,14 +1,16 @@
 <template>
   <div class="container-panel">
-    <n-space style="margin-bottom: 12px" align="center" justify="space-between">
-      <n-space>
+    <!-- 顶部工具栏 -->
+    <div class="toolbar-row">
+      <div class="toolbar-left">
         <n-button type="primary" secondary @click="fetchContainers(true)" :loading="loading">
-          刷新列表
+          <template #icon><n-icon><RefreshIcon /></n-icon></template>
+          刷新
         </n-button>
         <n-button type="error" secondary @click="handlePruneContainers" :loading="loadingPrune">
           清理停止的容器
         </n-button>
-        <n-space align="center" style="margin-left: 12px">
+        <div class="enhanced-toggle">
           <n-text depth="3">增强监控</n-text>
           <n-switch v-model:value="enhancedMode" size="small" />
           <n-tooltip trigger="hover">
@@ -17,34 +19,211 @@
             </template>
             开启后将实时获取 CPU、内存占用、IP 及运行时间。关闭可降低服务器负担。
           </n-tooltip>
-        </n-space>
-      </n-space>
-      
+        </div>
+      </div>
+
       <n-input
         v-model:value="searchQuery"
         placeholder="搜索容器名称或镜像..."
         clearable
-        style="width: 250px"
+        class="search-input"
       >
         <template #prefix>
           <n-icon><SearchIcon /></n-icon>
         </template>
       </n-input>
-    </n-space>
+    </div>
 
-    <n-data-table
-      :columns="columns"
-      :data="filteredContainers"
-      :loading="loading"
-      :pagination="{ pageSize: 15 }"
-      :scroll-x="1300"
-    />
+    <!-- 卡片网格 -->
+    <n-spin :show="loading">
+      <div v-if="filteredContainers.length" class="container-grid">
+        <div
+          v-for="row in filteredContainers"
+          :key="row.id"
+          class="container-card"
+          :class="{ 'is-running': row.status === 'running' }"
+        >
+          <!-- 卡片头部：名称 + 状态 -->
+          <div class="card-header">
+            <div class="card-title">
+              <n-text strong class="container-name text-truncate">{{ row.name }}</n-text>
+              <n-tooltip v-if="containerSettings[row.name]?.auto_update" trigger="hover">
+                <template #trigger>
+                  <n-icon size="16" color="#18a058" class="auto-update-icon"><AutoModeIcon /></n-icon>
+                </template>
+                已开启自动更新
+              </n-tooltip>
+            </div>
+            <n-tag
+              :type="row.status === 'running' ? 'success' : 'error'"
+              size="small"
+              round
+            >
+              {{ statusMap[row.status] || row.status }}
+            </n-tag>
+          </div>
+
+          <!-- 容器 ID -->
+          <div class="card-id text-truncate">{{ row.id }}</div>
+
+          <!-- 镜像信息 -->
+          <div class="card-row">
+            <span class="row-label">镜像</span>
+            <div class="row-value image-value">
+              <n-text
+                depth="3"
+                class="image-name text-truncate"
+                style="cursor: pointer"
+                @click="checkSingleUpdate(row.image)"
+              >
+                {{ row.image }}
+              </n-text>
+              <n-tag
+                v-if="updateInfo[row.image]?.has_update"
+                size="tiny"
+                type="error"
+                quaternary
+              >
+                NEW
+              </n-tag>
+              <n-button
+                v-else-if="!updateInfo[row.image] && !loadingActions[row.image]"
+                size="tiny"
+                quaternary
+                circle
+                class="check-update-btn"
+                @click="checkSingleUpdate(row.image)"
+              >
+                <template #icon><n-icon size="14"><UpdateIcon /></n-icon></template>
+              </n-button>
+              <n-text v-else-if="loadingActions[row.image]" depth="3" style="font-size: 10px">...</n-text>
+            </div>
+          </div>
+
+          <!-- 增强监控信息 -->
+          <template v-if="enhancedMode">
+            <div class="card-row" v-if="row.status === 'running' && containerStats[row.name]">
+              <span class="row-label">资源</span>
+              <div class="row-value">
+                <div class="stats-bar">
+                  <span class="stat-item">CPU: {{ containerStats[row.name].cpu }}</span>
+                  <span class="stat-item">内存: {{ containerStats[row.name].mem_perc }}</span>
+                </div>
+                <n-text depth="3" style="font-size: 10px">{{ containerStats[row.name].mem }}</n-text>
+              </div>
+            </div>
+            <div class="card-row">
+              <span class="row-label">IP</span>
+              <n-text depth="2" class="mono-text">{{ row.ip || '--' }}</n-text>
+            </div>
+            <div class="card-row">
+              <span class="row-label">运行</span>
+              <n-text depth="3" style="font-size: 12px">{{ formatUptime(row.uptime) }}</n-text>
+            </div>
+          </template>
+
+          <!-- 端口映射 -->
+          <div class="card-row" v-if="getPortBindings(row).length || containerSettings[row.name]?.custom_port">
+            <span class="row-label">端口</span>
+            <div class="row-value port-list">
+              <n-button
+                v-for="(port, idx) in getPortBindings(row)"
+                :key="idx"
+                size="tiny"
+                type="primary"
+                quaternary
+                @click="openPort(getTargetIp(), port.hostPort)"
+              >
+                {{ port.label }}
+              </n-button>
+              <n-button
+                v-if="containerSettings[row.name]?.custom_port"
+                size="tiny"
+                type="warning"
+                secondary
+                @click="openPort(getTargetIp(), containerSettings[row.name].custom_port)"
+              >
+                {{ containerSettings[row.name].custom_port }} (自定)
+              </n-button>
+            </div>
+          </div>
+
+          <!-- 无端口时的设置入口 -->
+          <div class="card-row" v-if="!getPortBindings(row).length && !containerSettings[row.name]?.custom_port">
+            <span class="row-label">端口</span>
+            <n-text depth="3" style="font-size: 11px">无映射</n-text>
+          </div>
+
+          <!-- 操作按钮 -->
+          <div class="card-actions">
+            <n-button
+              size="small"
+              :type="row.status === 'running' ? 'error' : 'primary'"
+              secondary
+              :loading="loadingActions[row.id]"
+              @click="handleAction(row.id, row.status === 'running' ? 'stop' : 'start')"
+            >
+              {{ row.status === 'running' ? '停止' : '启动' }}
+            </n-button>
+            <n-button
+              size="small"
+              :type="updateInfo[row.image]?.has_update ? 'error' : 'warning'"
+              :secondary="!updateInfo[row.image]?.has_update"
+              :pulse="!!updateInfo[row.image]?.has_update"
+              :loading="loadingActions[row.id]"
+              @click="handleAction(row.id, 'recreate')"
+            >
+              {{ updateInfo[row.image]?.has_update ? '发现新镜像' : '更新' }}
+            </n-button>
+            <n-button
+              size="small"
+              type="error"
+              secondary
+              :loading="loadingActions[row.id]"
+              @click="handleDelete(row)"
+            >
+              删除
+            </n-button>
+            <n-button
+              size="small"
+              type="info"
+              secondary
+              @click="showLogs(row.id, row.name)"
+            >
+              日志
+            </n-button>
+            <n-button
+              size="small"
+              type="info"
+              secondary
+              @click="openTerminal(row)"
+            >
+              终端
+            </n-button>
+            <n-button
+              size="small"
+              secondary
+              @click="openSettingsModal(row.name)"
+            >
+              设置
+            </n-button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 空状态 -->
+      <n-empty
+        v-else-if="!loading"
+        description="暂无容器"
+        style="padding: 60px 0"
+      />
+    </n-spin>
 
     <!-- 日志弹窗 -->
     <n-modal v-model:show="showLogsModal" preset="card" title="查看日志" style="width: 80vw">
       <pre class="logs-container">{{ containerLogs }}</pre>
     </n-modal>
-    
+
     <!-- 容器设置弹窗 -->
     <n-modal v-model:show="showSettingsModal" preset="card" title="容器设置" style="width: 400px">
       <n-space vertical>
@@ -78,25 +257,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, h, reactive, computed } from 'vue'
-import { NDataTable, NTag, NButton, NSpace, NIcon, NModal, NText, NFormItem, NInput, useMessage, useDialog, NDropdown, NRadioGroup, NRadioButton, NSwitch, NTooltip } from 'naive-ui'
-import { 
-  EditOutlined as EditIcon,
-  PlayCircleOutlined as StartIcon,
-  StopCircleOutlined as StopIcon,
-  RefreshOutlined as RecreateIcon,
-  DeleteOutlined as DeleteIcon,
-  TerminalOutlined as LogIcon,
-  CodeOutlined as TerminalIcon,
-  AutorenewOutlined as RefreshIcon,
+import { ref, watch, h, computed } from 'vue'
+import { NTag, NButton, NSpace, NIcon, NModal, NText, NFormItem, NInput, NSpin, NEmpty, useMessage, useDialog, NRadioGroup, NRadioButton, NSwitch, NTooltip } from 'naive-ui'
+import {
+  RefreshOutlined as RefreshIcon,
   SystemUpdateAltOutlined as UpdateIcon,
   SearchOutlined as SearchIcon,
-  UpdateOutlined as AutoModeIcon,
-  CloseOutlined as CloseIcon,
-  SaveOutlined as SaveIcon
+  UpdateOutlined as AutoModeIcon
 } from '@vicons/material'
 import axios from 'axios'
-import type { DataTableColumns } from 'naive-ui'
 import TerminalModal from './TerminalModal.vue'
 import { useDockerStore } from '@/store/dockerStore'
 
@@ -124,8 +293,8 @@ const filteredContainers = computed(() => {
   const data = containers.value
   if (!searchQuery.value) return data
   const query = searchQuery.value.toLowerCase()
-  return data.filter((c: any) => 
-    c.name.toLowerCase().includes(query) || 
+  return data.filter((c: any) =>
+    c.name.toLowerCase().includes(query) ||
     c.image.toLowerCase().includes(query)
   )
 })
@@ -159,6 +328,50 @@ const statusMap: Record<string, string> = {
   'created': '已创建',
   'removing': '移除中',
   'dead': '已失效'
+}
+
+// 辅助函数：获取目标 IP
+const getTargetIp = () => {
+  const hostsList = Array.isArray(props.hosts) ? props.hosts : []
+  const currentHost = hostsList.find(h => h && h.id === props.hostId)
+  return (!currentHost?.ssh_host || currentHost.ssh_host === '127.0.0.1') ? window.location.hostname : currentHost.ssh_host
+}
+
+// 辅助函数：获取端口绑定
+const getPortBindings = (row: any) => {
+  const tags: { label: string; hostPort: string }[] = []
+  if (row.ports) {
+    for (const [containerPort, bindings] of Object.entries(row.ports)) {
+      if (bindings && Array.isArray(bindings)) {
+        bindings.forEach((b: any) => {
+          tags.push({ label: `${b.HostPort}->${containerPort}`, hostPort: b.HostPort })
+        })
+      }
+    }
+  }
+  return tags
+}
+
+// 辅助函数：打开端口
+const openPort = (ip: string, port: string) => {
+  window.open(`http://${ip}:${port}`, '_blank')
+}
+
+// 辅助函数：格式化运行时间
+const formatUptime = (uptime: string) => {
+  if (!uptime) return '--'
+  if (uptime.startsWith('Up ')) {
+    return uptime.replace('Up ', '已运行 ')
+      .replace(' days', ' 天')
+      .replace(' day', ' 天')
+      .replace(' hours', ' 小时')
+      .replace(' hour', ' 小时')
+      .replace(' minutes', ' 分钟')
+      .replace(' minute', ' 分钟')
+      .replace(' seconds', ' 秒')
+      .replace(' second', ' 秒')
+  }
+  return uptime
 }
 
 const fetchContainers = async (force = false) => {
@@ -251,7 +464,7 @@ const openTerminal = (row: any) => {
     message.warning('只有运行中的容器可以进入终端')
     return
   }
-  
+
   const selectedShell = ref('/bin/bash')
   const shellOptions = [
     { label: 'bash', value: '/bin/bash' },
@@ -277,10 +490,10 @@ const openTerminal = (row: any) => {
     positiveText: '进入终端',
     negativeText: '取消',
     onPositiveClick: () => {
-      currentContainer.value = { 
-        id: row.full_id || row.id, 
-        name: row.name, 
-        shell: selectedShell.value 
+      currentContainer.value = {
+        id: row.full_id || row.id,
+        name: row.name,
+        shell: selectedShell.value
       }
       showTerminalModal.value = true
     }
@@ -289,8 +502,8 @@ const openTerminal = (row: any) => {
 
 const openSettingsModal = (name: string) => {
   const current = containerSettings.value[name] || {}
-  settingsForm.value = { 
-    name, 
+  settingsForm.value = {
+    name,
     custom_port: current.custom_port || '',
     auto_update: current.auto_update || false
   }
@@ -298,164 +511,15 @@ const openSettingsModal = (name: string) => {
 }
 
 const saveSettings = async () => {
-  await axios.post(`/api/docker/container-settings/${settingsForm.value.name}`, { 
+  await axios.post(`/api/docker/container-settings/${settingsForm.value.name}`, {
     custom_port: settingsForm.value.custom_port,
     auto_update: settingsForm.value.auto_update,
-    host_id: props.hostId // 新增：记录主机 ID
+    host_id: props.hostId
   })
   message.success('设置已保存')
   showSettingsModal.value = false
   fetchContainers(true)
 }
-
-const columns = computed<DataTableColumns<any>>(() => {
-  const cols: DataTableColumns<any> = [
-    { title: '名称', key: 'name', minWidth: 150, fixed: 'left', render(row) {
-        const isAuto = containerSettings.value[row.name]?.auto_update
-        return h(NSpace, { vertical: true, size: 2 }, {
-          default: () => [
-            h(NSpace, { size: 4, align: 'center' }, {
-              default: () => [
-                h(NText, { strong: true }, { default: () => row.name }),
-                isAuto ? h(NTooltip, null, {
-                  trigger: () => h(NIcon, { size: 16, color: '#18a058', style: 'margin-left: 2px' }, { default: () => h(AutoModeIcon) }),
-                  default: () => '已开启自动更新'
-                }) : null
-              ]
-            }),
-            h(NText, { depth: 3, style: 'font-size: 10px' }, { default: () => row.id })
-          ]
-        })
-      }
-    },
-    { title: '状态', key: 'status', width: 90, render(row) {
-        const text = statusMap[row.status] || row.status
-        return h(NTag, { type: row.status === 'running' ? 'success' : 'error', size: 'small', round: true }, { default: () => text })
-      }
-    }
-  ]
-
-  if (enhancedMode.value) {
-    cols.push(
-      { title: '资源占用', key: 'stats', width: 180, render(row) {
-          const stats = containerStats.value[row.name]
-          if (!stats || row.status !== 'running') return h(NText, { depth: 3 }, { default: () => '--' })
-          return h(NSpace, { vertical: true, size: 2 }, {
-            default: () => [
-              h(NSpace, { justify: 'space-between', style: 'width: 100%' }, {
-                default: () => [
-                  h(NText, { depth: 3, style: 'font-size: 11px' }, { default: () => `CPU: ${stats.cpu}` }),
-                  h(NText, { depth: 3, style: 'font-size: 11px' }, { default: () => `内存: ${stats.mem_perc}` })
-                ]
-              }),
-              h(NText, { depth: 3, style: 'font-size: 10px' }, { default: () => stats.mem })
-            ]
-          })
-        }
-      },
-      { title: 'IP 地址', key: 'ip', width: 120, render(row) {
-          return h(NText, { depth: 2, style: 'font-family: monospace' }, { default: () => row.ip || '--' })
-        }
-      },
-      { title: '运行时间', key: 'uptime', width: 140, render(row) {
-          let uptime = row.uptime || '--'
-          // 处理通过 SSH/Shell 获取的英文状态
-          if (uptime.startsWith('Up ')) {
-            uptime = uptime.replace('Up ', '已运行 ')
-              .replace(' days', ' 天')
-              .replace(' day', ' 天')
-              .replace(' hours', ' 小时')
-              .replace(' hour', ' 小时')
-              .replace(' minutes', ' 分钟')
-              .replace(' minute', ' 分钟')
-              .replace(' seconds', ' 秒')
-              .replace(' second', ' 秒')
-          }
-          return h(NText, { depth: 3, style: 'font-size: 12px' }, { default: () => uptime })
-        }
-      }
-    )
-  }
-
-  cols.push(
-    { title: '端口映射', key: 'ports', minWidth: 150, render(row) {
-        const tags: any[] = []
-        const hostsList = Array.isArray(props.hosts) ? props.hosts : []
-        const currentHost = hostsList.find(h => h && h.id === props.hostId)
-        const targetIp = (!currentHost?.ssh_host || currentHost.ssh_host === '127.0.0.1') ? window.location.hostname : currentHost.ssh_host
-        if (row.ports) {
-          for (const [containerPort, bindings] of Object.entries(row.ports)) {
-            if (bindings && Array.isArray(bindings)) {
-              bindings.forEach((b: any) => {
-                tags.push(h(NButton, { size: 'tiny', type: 'primary', quaternary: true, onClick: () => window.open(`http://${targetIp}:${b.HostPort}`, '_blank') }, { default: () => `${b.HostPort}->${containerPort}` }))
-              })
-            }
-          }
-        }
-        const customPort = containerSettings.value[row.name]?.custom_port
-        if (customPort) {
-          tags.push(h(NButton, { size: 'tiny', type: 'warning', secondary: true, onClick: () => window.open(`http://${targetIp}:${customPort}`, '_blank') }, { default: () => `${customPort} (自定)` }))
-        }
-        tags.push(h(NButton, { size: 'tiny', circle: true, quaternary: true, onClick: () => openSettingsModal(row.name) }, { default: () => h(NIcon, null, { default: () => h(EditIcon) }) }))
-        return h(NSpace, { size: [4, 4], align: 'center' }, { default: () => tags })
-      }
-    },
-    { title: '镜像', key: 'image', ellipsis: true, render(row) {
-        const info = updateInfo.value[row.image]
-        const isChecking = loadingActions.value[row.image]
-        
-        const elements = [
-          h(NText, { 
-            depth: 3, 
-            style: 'max-width: 150px; cursor: pointer;',
-            onClick: () => checkSingleUpdate(row.image)
-          }, { default: () => row.image })
-        ]
-
-        if (info?.has_update) {
-          elements.push(h(NTag, { size: 'tiny', type: 'error', quaternary: true, style: 'margin-left: 4px' }, { default: () => 'NEW' }))
-        } else if (!info && !isChecking) {
-          elements.push(h(NButton, { 
-            size: 'tiny', 
-            quaternary: true, 
-            circle: true,
-            style: 'margin-left: 4px; opacity: 0.5',
-            onClick: () => checkSingleUpdate(row.image)
-          }, { default: () => h(NIcon, { size: 14 }, { default: () => h(UpdateIcon) }) }))
-        } else if (isChecking) {
-          elements.push(h(NText, { depth: 3, style: 'margin-left: 4px; font-size: 10px' }, { default: () => '...' }))
-        }
-
-        return h(NSpace, { align: 'center', size: 0 }, { default: () => elements })
-      }
-    },
-    { title: '操作', key: 'actions', width: 380, render(row) {
-        const isRunning = row.status === 'running'
-        const hasUpdate = updateInfo.value[row.image]?.has_update
-        return h(NSpace, { size: 'small' }, {
-          default: () => [
-            h(NButton, { size: 'tiny', type: isRunning ? 'error' : 'primary', secondary: true, loading: loadingActions.value[row.id], onClick: () => handleAction(row.id, isRunning ? 'stop' : 'start') }, { 
-              default: () => isRunning ? '停止' : '启动' 
-            }),
-            h(NButton, { size: 'tiny', type: hasUpdate ? 'error' : 'warning', secondary: !hasUpdate, pulse: hasUpdate, loading: loadingActions.value[row.id], onClick: () => handleAction(row.id, 'recreate') }, { 
-              default: () => hasUpdate ? '发现新镜像' : '更新' 
-            }),
-            h(NButton, { size: 'tiny', type: 'error', secondary: true, loading: loadingActions.value[row.id], onClick: () => handleDelete(row) }, { 
-              default: () => '删除' 
-            }),
-            h(NButton, { size: 'tiny', type: 'info', secondary: true, onClick: () => showLogs(row.id, row.name) }, { 
-              default: () => '日志' 
-            }),
-            h(NButton, { size: 'tiny', type: 'info', secondary: true, onClick: () => openTerminal(row) }, { 
-              default: () => '终端' 
-            })
-          ]
-        })
-      }
-    }
-  )
-  return cols
-})
 
 const checkSingleUpdate = async (image: string) => {
   if (!props.hostId || !image) return
@@ -475,14 +539,238 @@ defineExpose({ refresh: fetchContainers })
 </script>
 
 <style scoped>
-.logs-container { 
-  background-color: rgba(0, 0, 0, 0.3); 
-  color: var(--text-color); 
-  padding: 12px; 
-  max-height: 500px; 
-  overflow: auto; 
-  font-size: 12px; 
-  font-family: 'Fira Code', 'JetBrains Mono', monospace; 
+.container-panel {
+  width: 100%;
+}
+
+/* 工具栏 */
+.toolbar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.enhanced-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 8px;
+}
+
+.search-input {
+  width: 250px;
+  flex-shrink: 1;
+  min-width: 180px;
+}
+
+/* 卡片网格：统一一行一个卡片 */
+.container-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm, 0.5rem);
+  margin-top: 4px;
+}
+
+.container-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 10px;
+  background: var(--card-bg-color, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--border-light, rgba(255, 255, 255, 0.06));
+  transition: border-color var(--transition-normal), box-shadow var(--transition-normal), transform var(--transition-fast);
+  position: relative;
+  overflow: hidden;
+}
+
+.container-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: transparent;
+  transition: background var(--transition-normal);
+}
+
+.container-card.is-running::before {
+  background: var(--color-success, #10B981);
+}
+
+.container-card:hover {
+  border-color: var(--border-medium, rgba(255, 255, 255, 0.12));
+  box-shadow: var(--shadow-md, 0 4px 12px rgba(0, 0, 0, 0.3));
+}
+
+.container-card:active {
+  transform: scale(0.99);
+}
+
+/* 卡片头部 */
+.card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+
+.container-name {
+  font-size: var(--text-md, 0.9375rem);
+  max-width: 100%;
+}
+
+.auto-update-icon {
+  flex-shrink: 0;
+}
+
+.card-id {
+  font-size: 10px;
+  opacity: 0.5;
+  font-family: var(--font-mono, monospace);
+  margin-top: -4px;
+}
+
+/* 卡片行 */
+.card-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  min-width: 0;
+}
+
+.row-label {
+  flex-shrink: 0;
+  width: 36px;
+  color: var(--text-color, #fff);
+  opacity: 0.5;
+  font-size: 11px;
+  line-height: 22px;
+}
+
+.row-value {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.image-value {
+  gap: 6px;
+}
+
+.image-name {
+  max-width: 100%;
+  font-size: 12px;
+}
+
+.image-name:hover {
+  opacity: 0.8;
+}
+
+.check-update-btn {
+  opacity: 0.5;
+}
+
+.stats-bar {
+  display: flex;
+  gap: 12px;
+  font-size: 11px;
+  opacity: 0.7;
+  width: 100%;
+}
+
+.mono-text {
+  font-family: var(--font-mono, monospace);
+  font-size: 12px;
+}
+
+.port-list {
+  gap: 4px;
+}
+
+/* 操作按钮 */
+.card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-light, rgba(255, 255, 255, 0.06));
+}
+
+.card-actions .n-button {
+  flex: 1 1 auto;
+  min-width: 56px;
+}
+
+/* 日志 */
+.logs-container {
+  background-color: rgba(0, 0, 0, 0.3);
+  color: var(--text-color);
+  padding: 12px;
+  max-height: 500px;
+  overflow: auto;
+  font-size: 12px;
+  font-family: var(--font-mono, 'Fira Code', 'JetBrains Mono', monospace);
   border-radius: 4px;
+}
+
+/* 移动端适配 */
+@media (max-width: 767px) {
+  .toolbar-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .toolbar-left {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .enhanced-toggle {
+    margin-left: 0;
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .search-input {
+    width: 100%;
+  }
+
+  .container-card {
+    padding: 12px;
+  }
+
+  .card-actions .n-button {
+    flex: 1 1 calc(50% - 3px);
+    min-width: 0;
+  }
+}
+
+@media (max-width: 380px) {
+  .card-actions .n-button {
+    flex: 1 1 100%;
+  }
 }
 </style>
