@@ -154,4 +154,37 @@ const getItemLabel = (element: any) => {
 .item-del-btn { opacity: 0; transition: opacity 0.2s; margin-left: 4px; }
 .sub-item:hover .item-del-btn { opacity: 1; }
 .empty-hint { width: 100%; text-align: center; color: var(--text-color); opacity: 0.15; font-size: 13px; padding: 20px; font-style: italic; }
+
+/* ============================================
+   移动端适配 (≤768px)
+   ============================================ */
+@media (max-width: 768px) {
+  /* 头部允许换行，防止溢出 */
+  .group-header {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 14px !important;
+  }
+
+  /* 编辑框宽度自适应 */
+  .group-header .n-input {
+    width: 100% !important;
+    max-width: 200px;
+  }
+
+  /* 子项删除按钮：移动端无 hover，常驻可见 */
+  .item-del-btn {
+    opacity: 1 !important;
+  }
+
+  /* 子项内容内边距收紧 */
+  .group-content {
+    padding: 10px !important;
+    gap: 8px !important;
+  }
+
+  .sub-item {
+    padding: 8px 12px !important;
+  }
+}
 </style>

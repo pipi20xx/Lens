@@ -618,6 +618,27 @@
 }
 
 /* ============================================
+   13.2 例外: 导航布局管理弹框 (menu-manager-card)
+   该弹框内容量大且需要浏览器原生页面滚动(非内部滚动),
+   排除上方 13 的全屏+内部滚动强制规则。
+   ============================================ */
+@media (max-width: 768px) {
+  .n-modal-container .n-card.menu-manager-card {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  .n-modal-container .n-card.menu-manager-card > .n-card-content,
+  .n-modal-container .n-card.menu-manager-card > .n-card__content {
+    flex: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    padding: 0 !important;
+  }
+}
+
+/* ============================================
    13.1 Modal 内 NTabs 移动端优化
    ============================================ */
 @media (max-width: 768px) {

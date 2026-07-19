@@ -4,7 +4,6 @@ import {
   NCard, 
   NSpace, 
   NButton,
-  NScrollbar,
   NIcon,
   NTag,
   NSwitch,
@@ -18,7 +17,8 @@ import {
   ArrowTopRightOnSquareIcon,
   Bars3Icon,
   MapPinIcon,
-  TrashIcon
+  TrashIcon,
+  XMarkIcon
 } from '@heroicons/vue/24/outline'
 import draggable from 'vuedraggable'
 
@@ -77,8 +77,13 @@ const handleClose = () => {
       title="导航布局管理"
       bordered
       size="medium"
-      content-style="padding: 0; display: flex; flex-direction: column; overflow: hidden; flex: 1 1 0; min-height: 0;"
+      content-style="padding: 0;"
     >
+      <template #header-extra>
+        <n-button quaternary circle size="small" @click="handleClose" title="关闭">
+          <template #icon><n-icon><XMarkIcon /></n-icon></template>
+        </n-button>
+      </template>
       <div class="editor-container">
         <!-- 左侧：功能池 -->
         <div class="pool-container">
@@ -87,8 +92,7 @@ const handleClose = () => {
             <div class="section-desc">可直接拖拽或点击快速添加</div>
           </div>
           
-          <div class="pool-scroll-wrapper">
-            <n-scrollbar trigger="none" class="custom-scrollbar">
+          <div class="pool-scroll-wrapper native-scroll">
               <draggable
                 v-model="unallocatedItems"
                 :group="{ name: 'menu-items', pull: 'clone', put: false }"
@@ -136,7 +140,6 @@ const handleClose = () => {
               <div v-if="unallocatedItems.length === 0" class="pool-empty">
                 所有功能已分配
               </div>
-            </n-scrollbar>
           </div>
         </div>
 
@@ -167,8 +170,7 @@ const handleClose = () => {
             </n-space>
           </div>
 
-          <div class="editor-scroll-wrapper">
-            <n-scrollbar trigger="none" class="custom-scrollbar">
+          <div class="editor-scroll-wrapper native-scroll">
               <div class="editor-content-wrapper">
                 <draggable
                   v-model="menuLayout"
@@ -230,7 +232,6 @@ const handleClose = () => {
                   <div class="empty-subtext">请从左侧拖入功能或添加新分类</div>
                 </div>
               </div>
-            </n-scrollbar>
           </div>
         </div>
       </div>
@@ -248,7 +249,7 @@ const handleClose = () => {
             </n-space>
 
             <n-space align="center">
-              <n-text depth="3" size="small" style="margin-right: 12px;">提示：更改会实时自动同步至云端配置</n-text>
+              <n-text depth="3" size="small" style="margin-right: 12px;" class="footer-hint-text">提示：更改会实时自动同步至云端配置</n-text>
               <n-button 
                 type="primary" 
                 size="large" 
@@ -270,52 +271,26 @@ const handleClose = () => {
 .menu-manager-card {
   width: 90vw;
   max-width: 1400px;
-  height: 85vh;
-  display: flex !important;
-  flex-direction: column !important;
-  overflow: hidden;
-}
-
-/* 让 n-card 内部 header/content/footer 正确分配高度 */
-.menu-manager-card :deep(.n-card-header),
-.menu-manager-card :deep(.n-card__header) {
-  flex-shrink: 0;
-}
-.menu-manager-card :deep(.n-card-footer),
-.menu-manager-card :deep(.n-card__footer) {
-  flex-shrink: 0;
 }
 
 .editor-container {
   display: flex;
-  flex: 1;
   background-color: transparent;
-  overflow: hidden;
 }
 
 .pool-container {
   width: 320px;
   border-right: 1px solid var(--border-color);
   background-color: transparent;
-  display: flex;
-  flex-direction: column;
+  flex-shrink: 0;
 }
 
 .pool-scroll-wrapper, .editor-scroll-wrapper {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.custom-scrollbar {
-  flex: 1;
-  height: 100%;
+  /* 不限制高度，内容自然撑开，由浏览器页面滚动 */
 }
 
 .section-header {
   padding: 16px 24px;
-  height: 72px;
   box-sizing: border-box;
   background-color: transparent;
   border-bottom: 1px solid var(--border-color);
@@ -381,13 +356,10 @@ const handleClose = () => {
 
 .structure-editor {
   flex: 1;
-  display: flex;
-  flex-direction: column;
 }
 
 .editor-header {
   padding: 16px 24px;
-  height: 72px;
   box-sizing: border-box;
   background-color: transparent;
   display: flex;
@@ -433,4 +405,80 @@ const handleClose = () => {
 }
 .primary-drag-handle { color: var(--text-color); opacity: 0.2; cursor: grab; font-size: 22px; }
 .primary-drag-handle:hover { color: var(--primary-color); opacity: 1; }
+
+/* ============================================
+   移动端适配 (≤768px)
+   - 左右分栏 → 纵向堆叠
+   - hover 专属交互 → 常驻显示
+   - footer → 纵向堆叠
+   ============================================ */
+@media (max-width: 768px) {
+  /* 左右分栏改为纵向堆叠 */
+  .editor-container {
+    flex-direction: column !important;
+  }
+
+  /* 功能池全宽，纵向排列 */
+  .pool-container {
+    width: 100% !important;
+    flex-shrink: 0;
+    border-right: none !important;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  /* 区块头部允许内容换行 */
+  .section-header,
+  .editor-header {
+    padding: 12px 16px !important;
+  }
+
+  /* 编辑器头部按钮行换行 */
+  .editor-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* 列表内边距收紧 */
+  .pool-list,
+  .editor-content-wrapper {
+    padding: 12px !important;
+  }
+
+  /* 快速添加按钮：移动端无 hover，常驻可见 */
+  .quick-add-btn {
+    opacity: 1 !important;
+  }
+
+  /* 禁用 hover 位移效果（触屏无意义且影响拖拽） */
+  .pool-item:hover {
+    transform: none;
+  }
+
+  /* footer 纵向堆叠 */
+  .modal-footer :deep(.n-space),
+  .modal-footer .n-space {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+    width: 100% !important;
+  }
+
+  .footer-setting-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  /* 保存按钮全宽 */
+  .modal-footer .n-button--primary-type {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* 隐藏提示文字（移动端空间有限） */
+  .modal-footer .footer-hint-text {
+    display: none !important;
+  }
+}
 </style>
