@@ -1,14 +1,68 @@
 <template>
-  <n-space vertical>
-    <n-space justify="space-between" align="center">
+  <div class="database-panel">
+    <!-- 工具栏 -->
+    <div class="toolbar-row">
       <n-button type="primary" @click="showCreateModal = true">
         创建数据库
       </n-button>
       <n-button @click="fetchDatabases" :loading="loading">
-        刷新列表
+        刷新
       </n-button>
-    </n-space>
-    <n-data-table :columns="columns" :data="dbList" :loading="loading" />
+    </div>
+
+    <!-- 卡片列表 -->
+    <n-spin :show="loading">
+      <div v-if="dbList.length" class="db-list">
+        <div
+          v-for="row in dbList"
+          :key="row.name"
+          class="db-card"
+        >
+          <!-- 卡片头部：库名 + 所有者 -->
+          <div class="card-header">
+            <div class="card-title">
+              <n-text strong class="db-name text-truncate">{{ row.name }}</n-text>
+            </div>
+            <n-tag size="small" quaternary type="info">{{ row.owner }}</n-tag>
+          </div>
+
+          <!-- 描述 -->
+          <div class="card-desc" v-if="row.description">
+            <n-text depth="3" class="desc-text text-clamp-2">{{ row.description }}</n-text>
+          </div>
+          <div class="card-desc" v-else>
+            <n-text depth="3" style="font-size: 11px; opacity: 0.5">无描述</n-text>
+          </div>
+
+          <!-- 操作按钮 -->
+          <div class="card-actions">
+            <n-button
+              size="small"
+              type="info"
+              secondary
+              @click="openEditModal(row)"
+            >
+              编辑
+            </n-button>
+            <n-button
+              size="small"
+              type="error"
+              secondary
+              @click="handleDrop(row.name)"
+            >
+              删除
+            </n-button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 空状态 -->
+      <n-empty
+        v-else-if="!loading"
+        description="暂无数据库"
+        style="padding: 60px 0"
+      />
+    </n-spin>
 
     <!-- 创建模态框 -->
     <n-modal v-model:show="showCreateModal" preset="card" title="创建数据库" style="width: 450px">
@@ -58,29 +112,17 @@
         </n-space>
       </template>
     </n-modal>
-  </n-space>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, reactive, h, computed } from 'vue'
-import { NSpace, NButton, NDataTable, NModal, NForm, NFormItem, NInput, NSelect, useMessage, useDialog, NIcon } from 'naive-ui'
-import {
-  AddOutlined as AddIcon,
-  RefreshOutlined as RefreshIcon,
-  EditOutlined as EditIcon,
-  DeleteOutlined as DeleteIcon,
-  SaveOutlined as SaveIcon,
-  CloseOutlined as CloseIcon
-} from '@vicons/material'
+import { ref, watch, reactive, computed } from 'vue'
+import { NSpace, NButton, NModal, NForm, NFormItem, NInput, NSelect, NSpin, NEmpty, NText, NTag, useMessage, useDialog } from 'naive-ui'
 import request from '@/utils/request'
 
 const props = defineProps<{ host: any }>()
 const message = useMessage()
 const dialog = useDialog()
-
-const renderIcon = (icon: any) => {
-  return () => h(NIcon, null, { default: () => h(icon) })
-}
 
 const dbList = ref<any[]>([])
 const userList = ref<any[]>([])
@@ -107,37 +149,6 @@ const editForm = reactive({
 })
 
 const userOptions = computed(() => userList.value.map(u => ({ label: u.username, value: u.username })))
-
-const columns = [
-  { title: '数据库名称', key: 'name', width: 150 },
-  { title: '所有者', key: 'owner', width: 120 },
-  { title: '描述', key: 'description', ellipsis: { tooltip: true } },
-  {
-    title: '操作',
-    key: 'actions',
-    width: 220,
-    render: (row: any) => h(NSpace, {}, {
-      default: () => [
-        h(NButton, {
-          size: 'small',
-          secondary: true,
-          type: 'info',
-          onClick: () => openEditModal(row)
-        }, { 
-          default: () => '编辑' 
-        }),
-        h(NButton, {
-          size: 'small',
-          type: 'error',
-          secondary: true,
-          onClick: () => handleDrop(row.name)
-        }, { 
-          default: () => '删除' 
-        })
-      ]
-    })
-  }
-]
 
 const fetchDatabases = async () => {
   if (!props.host) return
@@ -191,7 +202,7 @@ const handleCreate = async () => {
   try {
     await request.post('/api/pgsql/databases/create', {
       config: props.host,
-      req: { 
+      req: {
         dbname: newDbName.value,
         owner: newDbOwner.value
       }
@@ -202,7 +213,7 @@ const handleCreate = async () => {
     newDbOwner.value = null
     fetchDatabases()
   } catch (e: any) {
-    // 
+    //
   } finally { creating.value = false }
 }
 
@@ -217,7 +228,7 @@ const handleDrop = (name: string) => {
         message.success('已删除')
         fetchDatabases()
       } catch (e: any) {
-        // 
+        //
       }
     }
   })
@@ -226,3 +237,108 @@ const handleDrop = (name: string) => {
 watch(() => props.host, fetchDatabases, { immediate: true })
 defineExpose({ refresh: fetchDatabases })
 </script>
+
+<style scoped>
+.database-panel {
+  width: 100%;
+}
+
+/* 工具栏 */
+.toolbar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm, 0.5rem);
+  margin-bottom: var(--space-md, 1rem);
+  flex-wrap: wrap;
+}
+
+/* 卡片列表：一行一个卡片 */
+.db-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm, 0.5rem);
+}
+
+.db-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 10px;
+  background: var(--card-bg-color, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--border-light, rgba(255, 255, 255, 0.06));
+  transition: border-color var(--transition-normal, 250ms ease), box-shadow var(--transition-normal, 250ms ease), transform var(--transition-fast, 150ms ease);
+  position: relative;
+  overflow: hidden;
+}
+
+.db-card:hover {
+  border-color: var(--border-medium, rgba(255, 255, 255, 0.12));
+  box-shadow: var(--shadow-md, 0 4px 12px rgba(0, 0, 0, 0.3));
+}
+
+.db-card:active {
+  transform: scale(0.99);
+}
+
+/* 卡片头部 */
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.db-name {
+  font-size: var(--text-md, 0.9375rem);
+  max-width: 100%;
+}
+
+/* 描述 */
+.card-desc {
+  min-width: 0;
+}
+
+.desc-text {
+  font-size: 12px;
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+/* 操作按钮 */
+.card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-light, rgba(255, 255, 255, 0.06));
+}
+
+.card-actions .n-button {
+  flex: 1 1 auto;
+  min-width: 56px;
+}
+
+/* 移动端适配 */
+@media (max-width: 767px) {
+  .card-actions .n-button {
+    flex: 1 1 calc(50% - 3px);
+    min-width: 0;
+  }
+}
+
+@media (max-width: 380px) {
+  .card-actions .n-button {
+    flex: 1 1 100%;
+  }
+}
+</style>

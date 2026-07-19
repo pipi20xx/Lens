@@ -1,29 +1,86 @@
 <template>
-  <n-space vertical>
-    <n-space justify="space-between" align="center">
-      <n-space>
+  <div class="backup-panel">
+    <!-- 工具栏 -->
+    <div class="toolbar-row">
+      <div class="toolbar-left">
         <n-button type="primary" @click="openCreateModal" :disabled="!host">
           创建新备份
         </n-button>
         <n-button @click="fetchBackups" :loading="loading">
-          刷新列表
+          刷新
         </n-button>
-      </n-space>
-      <n-alert type="info" size="small" :show-icon="false">
+      </div>
+      <n-alert type="info" size="small" :show-icon="false" class="storage-hint">
         备份文件存储在 data/backups/pg 目录下
       </n-alert>
-    </n-space>
+    </div>
 
-    <n-data-table :columns="columns" :data="backupList" :loading="loading" />
+    <!-- 卡片列表 -->
+    <n-spin :show="loading">
+      <div v-if="backupList.length" class="backup-list">
+        <div
+          v-for="row in backupList"
+          :key="row.filename"
+          class="backup-card"
+        >
+          <!-- 卡片头部：文件名 + 原数据库 -->
+          <div class="card-header">
+            <div class="card-title">
+              <n-text strong class="filename text-truncate">{{ row.filename }}</n-text>
+            </div>
+            <n-tag size="small" type="info" quaternary>{{ row.db_name }}</n-tag>
+          </div>
+
+          <!-- 信息行 -->
+          <div class="card-info">
+            <div class="info-item">
+              <span class="info-label">大小</span>
+              <n-text depth="3" style="font-size: 12px">{{ formatSize(row.size) }}</n-text>
+            </div>
+            <div class="info-item">
+              <span class="info-label">创建时间</span>
+              <n-text depth="3" style="font-size: 12px">{{ formatDate(row.created_at) }}</n-text>
+            </div>
+          </div>
+
+          <!-- 操作按钮 -->
+          <div class="card-actions">
+            <n-button
+              size="small"
+              type="warning"
+              secondary
+              @click="openRestoreModal(row)"
+            >
+              还原
+            </n-button>
+            <n-button
+              size="small"
+              type="error"
+              secondary
+              @click="handleDelete(row.filename)"
+            >
+              删除
+            </n-button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 空状态 -->
+      <n-empty
+        v-else-if="!loading"
+        description="暂无备份文件"
+        style="padding: 60px 0"
+      />
+    </n-spin>
 
     <!-- 创建备份模态框 -->
     <n-modal v-model:show="showCreateModal" preset="card" title="创建数据库备份" style="width: 450px">
       <n-form label-placement="left" label-width="100">
         <n-form-item label="选择数据库">
-          <n-select 
-            v-model:value="selectedDbToBackup" 
-            :options="dbOptions" 
-            placeholder="请选择要备份的数据库" 
+          <n-select
+            v-model:value="selectedDbToBackup"
+            :options="dbOptions"
+            placeholder="请选择要备份的数据库"
           />
         </n-form-item>
         <n-p depth="3">
@@ -46,10 +103,10 @@
     <n-modal v-model:show="showRestoreModal" preset="card" :title="`还原备份: ${selectedBackup?.filename}`" style="width: 450px">
       <n-form label-placement="left" label-width="100">
         <n-form-item label="目标数据库">
-          <n-select 
-            v-model:value="selectedDbToRestore" 
-            :options="dbOptions" 
-            placeholder="选择要还原到的目标数据库" 
+          <n-select
+            v-model:value="selectedDbToRestore"
+            :options="dbOptions"
+            placeholder="选择要还原到的目标数据库"
           />
         </n-form-item>
         <n-alert type="warning" title="危险警告">
@@ -71,31 +128,20 @@
         </n-space>
       </template>
     </n-modal>
-  </n-space>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, h, computed } from 'vue'
-import { 
-  NSpace, NButton, NDataTable, NModal, NForm, NFormItem, NSelect, 
-  useMessage, useDialog, NAlert, NP, NText, NIcon 
-} from 'naive-ui'
+import { ref, watch, computed } from 'vue'
 import {
-  BackupOutlined as BackupIcon,
-  RefreshOutlined as RefreshIcon,
-  RestoreOutlined as HistoryIcon,
-  DeleteOutlined as DeleteIcon,
-  CloseOutlined as CloseIcon
-} from '@vicons/material'
+  NSpace, NButton, NModal, NForm, NFormItem, NSelect,
+  useMessage, useDialog, NAlert, NP, NSpin, NEmpty, NText, NTag
+} from 'naive-ui'
 import axios from 'axios'
 
 const props = defineProps<{ host: any }>()
 const message = useMessage()
 const dialog = useDialog()
-
-const renderIcon = (icon: any) => {
-  return () => h(NIcon, null, { default: () => h(icon) })
-}
 
 const backupList = ref<any[]>([])
 const dbList = ref<any[]>([])
@@ -124,48 +170,6 @@ const formatSize = (bytes: number) => {
 const formatDate = (dateStr: string) => {
   return new Date(dateStr).toLocaleString()
 }
-
-const columns = [
-  { title: '备份文件', key: 'filename', ellipsis: { tooltip: true } },
-  { title: '原数据库', key: 'db_name', width: 120 },
-  { 
-    title: '大小', 
-    key: 'size', 
-    width: 100,
-    render: (row: any) => formatSize(row.size)
-  },
-  { 
-    title: '创建时间', 
-    key: 'created_at', 
-    width: 180,
-    render: (row: any) => formatDate(row.created_at)
-  },
-  {
-    title: '操作',
-    key: 'actions',
-    width: 220,
-    render: (row: any) => h(NSpace, {}, {
-      default: () => [
-        h(NButton, {
-          size: 'small',
-          type: 'warning',
-          secondary: true,
-          onClick: () => openRestoreModal(row)
-        }, { 
-          default: () => '还原' 
-        }),
-        h(NButton, {
-          size: 'small',
-          type: 'error',
-          secondary: true,
-          onClick: () => handleDelete(row.filename)
-        }, { 
-          default: () => '删除' 
-        })
-      ]
-    })
-  }
-]
 
 const fetchBackups = async () => {
   loading.value = true
@@ -219,7 +223,7 @@ const openRestoreModal = (row: any) => {
 
 const handleRestore = async () => {
   if (!selectedBackup.value || !selectedDbToRestore.value || !props.host) return
-  
+
   actionLoading.value = true
   try {
     await axios.post(`/api/pgsql/backups/restore/${selectedBackup.value.filename}`, props.host, {
@@ -259,3 +263,140 @@ watch(() => props.host, () => {
 
 defineExpose({ refresh: fetchBackups })
 </script>
+
+<style scoped>
+.backup-panel {
+  width: 100%;
+}
+
+/* 工具栏 */
+.toolbar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm, 0.5rem);
+  margin-bottom: var(--space-md, 1rem);
+  flex-wrap: wrap;
+}
+
+.toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm, 0.5rem);
+  flex-wrap: wrap;
+}
+
+.storage-hint {
+  flex-shrink: 1;
+}
+
+/* 卡片列表：一行一个卡片 */
+.backup-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm, 0.5rem);
+}
+
+.backup-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 10px;
+  background: var(--card-bg-color, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--border-light, rgba(255, 255, 255, 0.06));
+  transition: border-color var(--transition-normal, 250ms ease), box-shadow var(--transition-normal, 250ms ease), transform var(--transition-fast, 150ms ease);
+  position: relative;
+  overflow: hidden;
+}
+
+.backup-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--color-info, #3B82F6);
+  transition: background var(--transition-normal, 250ms ease);
+}
+
+.backup-card:hover {
+  border-color: var(--border-medium, rgba(255, 255, 255, 0.12));
+  box-shadow: var(--shadow-md, 0 4px 12px rgba(0, 0, 0, 0.3));
+}
+
+.backup-card:active {
+  transform: scale(0.99);
+}
+
+/* 卡片头部 */
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.filename {
+  font-size: var(--text-md, 0.9375rem);
+  max-width: 100%;
+  font-family: var(--font-mono, monospace);
+}
+
+/* 信息行 */
+.card-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  font-size: 12px;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.info-label {
+  color: var(--text-color, #fff);
+  opacity: 0.5;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+/* 操作按钮 */
+.card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-light, rgba(255, 255, 255, 0.06));
+}
+
+.card-actions .n-button {
+  flex: 1 1 auto;
+  min-width: 56px;
+}
+
+/* 移动端适配 */
+@media (max-width: 767px) {
+  .card-actions .n-button {
+    flex: 1 1 calc(50% - 3px);
+    min-width: 0;
+  }
+}
+
+@media (max-width: 380px) {
+  .card-actions .n-button {
+    flex: 1 1 100%;
+  }
+}
+</style>

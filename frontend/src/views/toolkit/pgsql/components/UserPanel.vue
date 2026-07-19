@@ -1,14 +1,89 @@
 <template>
-  <n-space vertical>
-    <n-space justify="space-between" align="center">
+  <div class="user-panel">
+    <!-- 工具栏 -->
+    <div class="toolbar-row">
       <n-button type="primary" @click="showCreateModal = true">
         创建用户
       </n-button>
       <n-button @click="fetchUsers" :loading="loading">
-        刷新列表
+        刷新
       </n-button>
-    </n-space>
-    <n-data-table :columns="columns" :data="userList" :loading="loading" />
+    </div>
+
+    <!-- 卡片列表 -->
+    <n-spin :show="loading">
+      <div v-if="userList.length" class="user-list">
+        <div
+          v-for="row in userList"
+          :key="row.username"
+          class="user-card"
+          :class="{ 'is-super': row.is_superuser, 'is-login': row.can_login && !row.is_superuser }"
+        >
+          <!-- 卡片头部：用户名 + 登录状态 -->
+          <div class="card-header">
+            <div class="card-title">
+              <n-text strong class="username text-truncate">{{ row.username }}</n-text>
+              <n-tag v-if="row.is_superuser" type="error" size="tiny" quaternary>超级用户</n-tag>
+            </div>
+            <n-tag
+              :type="row.can_login ? 'success' : 'default'"
+              size="small"
+              round
+            >
+              {{ row.can_login ? '可登录' : '不可登录' }}
+            </n-tag>
+          </div>
+
+          <!-- 权限标签 -->
+          <div class="card-perms" v-if="getPermTags(row).length">
+            <n-tag
+              v-for="perm in getPermTags(row)"
+              :key="perm.label"
+              :type="perm.type"
+              size="tiny"
+              quaternary
+            >
+              {{ perm.label }}
+            </n-tag>
+          </div>
+
+          <!-- 连接限制 -->
+          <div class="card-info" v-if="row.connection_limit !== undefined && row.connection_limit !== null">
+            <span class="info-label">连接限制</span>
+            <n-text depth="3" style="font-size: 12px">
+              {{ row.connection_limit === -1 ? '无限制' : row.connection_limit }}
+            </n-text>
+          </div>
+
+          <!-- 操作按钮 -->
+          <div class="card-actions">
+            <n-button
+              size="small"
+              type="info"
+              secondary
+              @click="openEditModal(row)"
+            >
+              编辑
+            </n-button>
+            <n-button
+              size="small"
+              type="error"
+              secondary
+              @click="handleDrop(row.username)"
+            >
+              删除
+            </n-button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 空状态 -->
+      <n-empty
+        v-else-if="!loading"
+        description="暂无用户"
+        style="padding: 60px 0"
+      />
+    </n-spin>
 
     <!-- 创建模态框 -->
     <n-modal v-model:show="showCreateModal" preset="card" title="创建数据库用户/角色" style="width: 550px">
@@ -80,30 +155,17 @@
         </n-space>
       </template>
     </n-modal>
-  </n-space>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, reactive, h } from 'vue'
-import { NSpace, NButton, NDataTable, NModal, NForm, NFormItem, NInput, NCheckbox, NIcon, NDatePicker, NInputNumber, NGrid, NGi, NDivider, useMessage, useDialog, NTag } from 'naive-ui'
-import {
-  CheckCircleOutlined as SuccessIcon,
-  AddOutlined as AddIcon,
-  RefreshOutlined as RefreshIcon,
-  EditOutlined as EditIcon,
-  DeleteOutlined as DeleteIcon,
-  SaveOutlined as SaveIcon,
-  CloseOutlined as CloseIcon
-} from '@vicons/material'
+import { ref, watch, reactive } from 'vue'
+import { NSpace, NButton, NModal, NForm, NFormItem, NInput, NCheckbox, NDatePicker, NInputNumber, NGrid, NGi, NDivider, NSpin, NEmpty, NText, NTag, useMessage, useDialog } from 'naive-ui'
 import axios from 'axios'
 
 const props = defineProps<{ host: any }>()
 const message = useMessage()
 const dialog = useDialog()
-
-const renderIcon = (icon: any) => {
-  return () => h(NIcon, null, { default: () => h(icon) })
-}
 
 const userList = ref<any[]>([])
 const loading = ref(false)
@@ -141,39 +203,17 @@ const editForm = reactive({
   valid_until: null as string | null
 })
 
-const columns = [
-  { title: '角色名/用户名', key: 'username' },
-  { 
-    title: '允许登录', 
-    key: 'can_login', 
-    render: (row: any) => row.can_login ? 'YES' : 'NO' 
-  },
-  {
-    title: '操作',
-    key: 'actions',
-    width: 220,
-    render: (row: any) => h(NSpace, {}, {
-      default: () => [
-        h(NButton, { 
-          size: 'small', 
-          secondary: true, 
-          type: 'info', 
-          onClick: () => openEditModal(row) 
-        }, { 
-          default: () => '编辑' 
-        }),
-        h(NButton, { 
-          size: 'small', 
-          secondary: true, 
-          type: 'error', 
-          onClick: () => handleDrop(row.username) 
-        }, { 
-          default: () => '删除' 
-        })
-      ]
-    })
-  }
-]
+// 辅助函数：获取权限标签
+const getPermTags = (row: any) => {
+  const tags: { label: string; type: string }[] = []
+  if (row.is_superuser) tags.push({ label: 'SUPERUSER', type: 'error' })
+  if (row.can_create_db) tags.push({ label: 'CREATEDB', type: 'info' })
+  if (row.can_create_role) tags.push({ label: 'CREATEROLE', type: 'info' })
+  if (row.replication) tags.push({ label: 'REPLICATION', type: 'warning' })
+  if (row.bypass_rls) tags.push({ label: 'BYPASSRLS', type: 'warning' })
+  if (row.inherit) tags.push({ label: 'INHERIT', type: 'default' })
+  return tags
+}
 
 const fetchUsers = async () => {
   if (!props.host) return
@@ -256,3 +296,136 @@ const handleDrop = (username: string) => {
 watch(() => props.host, fetchUsers, { immediate: true })
 defineExpose({ refresh: fetchUsers })
 </script>
+
+<style scoped>
+.user-panel {
+  width: 100%;
+}
+
+/* 工具栏 */
+.toolbar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm, 0.5rem);
+  margin-bottom: var(--space-md, 1rem);
+  flex-wrap: wrap;
+}
+
+/* 卡片列表：一行一个卡片 */
+.user-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm, 0.5rem);
+}
+
+.user-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 10px;
+  background: var(--card-bg-color, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--border-light, rgba(255, 255, 255, 0.06));
+  transition: border-color var(--transition-normal, 250ms ease), box-shadow var(--transition-normal, 250ms ease), transform var(--transition-fast, 150ms ease);
+  position: relative;
+  overflow: hidden;
+}
+
+.user-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: transparent;
+  transition: background var(--transition-normal, 250ms ease);
+}
+
+.user-card.is-super::before {
+  background: var(--color-error, #EF4444);
+}
+
+.user-card.is-login::before {
+  background: var(--color-success, #10B981);
+}
+
+.user-card:hover {
+  border-color: var(--border-medium, rgba(255, 255, 255, 0.12));
+  box-shadow: var(--shadow-md, 0 4px 12px rgba(0, 0, 0, 0.3));
+}
+
+.user-card:active {
+  transform: scale(0.99);
+}
+
+/* 卡片头部 */
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.username {
+  font-size: var(--text-md, 0.9375rem);
+  max-width: 100%;
+}
+
+/* 权限标签 */
+.card-perms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+/* 信息行 */
+.card-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.info-label {
+  color: var(--text-color, #fff);
+  opacity: 0.5;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+/* 操作按钮 */
+.card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-light, rgba(255, 255, 255, 0.06));
+}
+
+.card-actions .n-button {
+  flex: 1 1 auto;
+  min-width: 56px;
+}
+
+/* 移动端适配 */
+@media (max-width: 767px) {
+  .card-actions .n-button {
+    flex: 1 1 calc(50% - 3px);
+    min-width: 0;
+  }
+}
+
+@media (max-width: 380px) {
+  .card-actions .n-button {
+    flex: 1 1 100%;
+  }
+}
+</style>
