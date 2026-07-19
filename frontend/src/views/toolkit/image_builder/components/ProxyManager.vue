@@ -6,7 +6,7 @@
           添加代理
         </n-button>
       </template>
-      <n-text depth="3">配置 HTTP/HTTPS 代理，用于在构建过程中加速下载基础镜像或依赖包。</n-text>
+      <n-text >配置 HTTP/HTTPS 代理，用于在构建过程中加速下载基础镜像或依赖包。</n-text>
       <div style="margin-top: 12px">
         <!-- 代理卡片列表：一行一个 -->
         <div v-if="proxies.length" class="proxy-list">
@@ -25,7 +25,7 @@
 
             <!-- 代理地址 -->
             <div class="card-desc">
-              <n-text depth="3" class="desc-text">{{ row.url }}</n-text>
+              <n-text  class="desc-text">{{ row.url }}</n-text>
             </div>
 
             <!-- 操作按钮 -->

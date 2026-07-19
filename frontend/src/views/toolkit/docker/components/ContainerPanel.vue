@@ -10,11 +10,11 @@
           清理停止的容器
         </n-button>
         <div class="enhanced-toggle">
-          <n-text depth="3">增强监控</n-text>
+          <n-text >增强监控</n-text>
           <n-switch v-model:value="enhancedMode" size="small" />
           <n-tooltip trigger="hover">
             <template #trigger>
-              <n-icon size="16" depth="3" style="cursor: help"><MagnifyingGlassIcon /></n-icon>
+              <n-icon size="16"  style="cursor: help"><MagnifyingGlassIcon /></n-icon>
             </template>
             开启后将实时获取 CPU、内存占用、IP 及运行时间。关闭可降低服务器负担。
           </n-tooltip>
@@ -70,7 +70,7 @@
             <span class="row-label">镜像</span>
             <div class="row-value image-value">
               <n-text
-                depth="3"
+                
                 class="image-name text-truncate"
                 style="cursor: pointer"
                 @click="checkSingleUpdate(row.image)"
@@ -95,7 +95,7 @@
               >
                 <template #icon><n-icon size="14"><ArrowDownTrayIcon /></n-icon></template>
               </n-button>
-              <n-text v-else-if="loadingActions[row.image]" depth="3" style="font-size: 10px">...</n-text>
+              <n-text v-else-if="loadingActions[row.image]"  style="font-size: 10px">...</n-text>
             </div>
           </div>
 
@@ -108,16 +108,16 @@
                   <span class="stat-item">CPU: {{ containerStats[row.name].cpu }}</span>
                   <span class="stat-item">内存: {{ containerStats[row.name].mem_perc }}</span>
                 </div>
-                <n-text depth="3" style="font-size: 10px">{{ containerStats[row.name].mem }}</n-text>
+                <n-text  style="font-size: 10px">{{ containerStats[row.name].mem }}</n-text>
               </div>
             </div>
             <div class="card-row">
               <span class="row-label">IP</span>
-              <n-text depth="2" class="mono-text">{{ row.ip || '--' }}</n-text>
+              <n-text  class="mono-text">{{ row.ip || '--' }}</n-text>
             </div>
             <div class="card-row">
               <span class="row-label">运行</span>
-              <n-text depth="3" style="font-size: 12px">{{ formatUptime(row.uptime) }}</n-text>
+              <n-text  style="font-size: 12px">{{ formatUptime(row.uptime) }}</n-text>
             </div>
           </template>
 
@@ -150,7 +150,7 @@
           <!-- 无端口时的设置入口 -->
           <div class="card-row" v-if="!getPortBindings(row).length && !containerSettings[row.name]?.custom_port">
             <span class="row-label">端口</span>
-            <n-text depth="3" style="font-size: 11px">无映射</n-text>
+            <n-text  style="font-size: 11px">无映射</n-text>
           </div>
 
           <!-- 操作按钮 -->

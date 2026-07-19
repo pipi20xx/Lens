@@ -120,29 +120,29 @@ const isEmoji = (str: string) => {
 }
 
 .site-card.style-liquid {
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--card-bg-color, rgba(128, 128, 128, 0.05));
   backdrop-filter: blur(4px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-top: 1.5px solid rgba(255, 255, 255, 0.4);
-  border-left: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--border-color, rgba(128, 128, 128, 0.2));
+  border-top: 1.5px solid var(--border-light, rgba(255, 255, 255, 0.2));
+  border-left: 1px solid var(--border-light, rgba(255, 255, 255, 0.1));
   box-shadow: 0 8px 32px -12px rgba(0, 0, 0, 0.2);
 }
 
 .site-card.style-liquid:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--hover-bg, rgba(128, 128, 128, 0.1));
   transform: translateY(-8px) scale(1.04);
-  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(128, 128, 128, 0.1);
 }
 
 /* --- 3. 极简风格 (Pure) --- */
 .site-card.style-pure {
   background: transparent;
   backdrop-filter: none;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-color, rgba(128, 128, 128, 0.15));
 }
 .site-card.style-pure:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: var(--hover-bg, rgba(128, 128, 128, 0.08));
+  border-color: var(--border-medium, rgba(128, 128, 128, 0.3));
   transform: translateY(-4px);
 }
 
@@ -151,14 +151,14 @@ const isEmoji = (str: string) => {
 
 .site-icon-wrapper {
   width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
-  background: rgba(255, 255, 255, 0.1); margin-right: 14px; flex-shrink: 0;
+  background: var(--hover-bg, rgba(128, 128, 128, 0.15)); margin-right: 14px; flex-shrink: 0;
   border-radius: 12px; overflow: hidden; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 1;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-color, rgba(128, 128, 128, 0.2));
 }
 .site-card:hover .site-icon-wrapper { 
   transform: scale(1.1) rotate(6deg); 
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--hover-bg-light, rgba(128, 128, 128, 0.25));
   box-shadow: 0 8px 16px rgba(0,0,0,0.3);
 }
 .image-icon { width: 100%; height: 100%; object-fit: cover; }

@@ -236,7 +236,7 @@ const columns = [
             {{ cat.name }}
           </n-tag>
         </n-space>
-        <div v-else style="text-align: center; color: #999">暂无分类</div>
+        <div v-else style="text-align: center; opacity: 0.6">暂无分类</div>
       </n-space>
     </n-modal>
   </div>
@@ -244,8 +244,8 @@ const columns = [
 
 <style scoped>
 .icon-preview-box {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px dashed rgba(255, 255, 255, 0.1);
+  background: var(--card-bg-color, rgba(255, 255, 255, 0.03));
+  border: 1px dashed var(--border-color, rgba(128, 128, 128, 0.3));
   border-radius: 8px;
   padding: 12px;
   display: flex;
@@ -256,7 +256,7 @@ const columns = [
 
 .preview-label {
   font-size: 12px;
-  color: #999;
+  opacity: 0.7;
   width: 100%;
 }
 
@@ -266,7 +266,7 @@ const columns = [
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--hover-bg, rgba(128, 128, 128, 0.15));
   border-radius: 12px;
   overflow: hidden;
 }
@@ -285,7 +285,7 @@ const columns = [
   display: flex;
   flex-direction: column;
   align-items: center;
-  color: #666;
+  opacity: 0.5;
   font-size: 10px;
 }
 

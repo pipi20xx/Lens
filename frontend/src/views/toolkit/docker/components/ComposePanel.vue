@@ -76,7 +76,7 @@
 
           <!-- 配置文件路径 -->
           <div class="card-path">
-            <n-text depth="3" class="path-text text-clamp-2">{{ row.config_file || row.path }}</n-text>
+            <n-text  class="path-text text-clamp-2">{{ row.config_file || row.path }}</n-text>
             <n-button
               size="tiny"
               quaternary
@@ -170,7 +170,7 @@
             </n-input-group>
           </n-form-item>
           <n-form-item label="完整保存路径">
-            <n-text depth="3" code style="word-break: break-all">
+            <n-text  code style="word-break: break-all">
               {{ finalSavePath }}
             </n-text>
           </n-form-item>

@@ -46,7 +46,7 @@
         <n-gi :span="2">
           <n-card title="多架构构建支持" size="small">
             <template #header-extra>
-              <n-text v-if="info.platforms.length" type="success" depth="2">多架构环境已就绪</n-text>
+              <n-text v-if="info.platforms.length" type="success">多架构环境已就绪</n-text>
             </template>
             <n-space v-if="info.platforms.length">
               <n-tag v-for="plat in info.platforms" :key="plat" type="info" size="small" ghost>
@@ -67,7 +67,7 @@
       </n-grid>
       <n-space vertical size="small" align="center" style="margin-top: 20px">
         <n-space align="center">
-          <n-text depth="3">初始化环境时绑定代理:</n-text>
+          <n-text style="opacity: 0.8;">初始化环境时绑定代理:</n-text>
           <n-select v-model:value="selectedProxyId" :options="proxyOptions" placeholder="不使用代理" clearable style="width: 200px" size="small" />
         </n-space>
         <n-space justify="center" size="large">

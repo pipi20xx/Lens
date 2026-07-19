@@ -3,7 +3,7 @@
     <n-space vertical size="large">
       <div class="page-header">
         <n-h2 prefix="bar" align-text><n-text type="primary">系统集成配置</n-text></n-h2>
-        <n-text depth="3">统一管理您的 Emby 核心凭据与第三方扩展 API 密钥。</n-text>
+        <n-text >统一管理您的 Emby 核心凭据与第三方扩展 API 密钥。</n-text>
       </div>
 
       <n-grid :x-gap="12" :y-gap="12" :cols="24" item-responsive responsive="screen">
@@ -30,10 +30,10 @@
                 <tbody>
                   <tr v-for="s in servers" :key="s.id" :class="{ 'active-row': s.id === activeServerId }">
                     <td><strong>{{ s.name }}</strong></td>
-                    <td><n-text depth="3">{{ s.url }}</n-text></td>
+                    <td><n-text >{{ s.url }}</n-text></td>
                     <td>
                       <n-tag v-if="s.id === activeServerId" type="success" size="small" round quaternary>当前激活</n-tag>
-                      <n-tag v-else depth="3" size="small" round quaternary>闲置</n-tag>
+                      <n-tag v-else  size="small" round quaternary>闲置</n-tag>
                     </td>
                     <td>
                       <n-space>
@@ -122,7 +122,7 @@
                 <n-form-item label="会话永不过期">
                   <n-space vertical>
                     <n-switch v-model:value="globalConfig.session_never_expire" />
-                    <n-text depth="3" style="font-size: 12px">
+                    <n-text  style="font-size: 12px">
                       开启后，登录会话将不会自动过期，直到用户主动登出或被管理员踢出。
                       <br>关闭后，会话将在 24 小时后自动过期。
                     </n-text>
@@ -145,7 +145,7 @@
           <n-space vertical size="large">
             <!-- 5. 配置备份与恢复 -->
             <n-card title="数据备份与迁移" size="small" segmented>
-              <n-text depth="3" style="font-size: 13px; display: block; margin-bottom: 16px;">
+              <n-text  style="font-size: 13px; display: block; margin-bottom: 16px;">
                 您可以导出当前的全局配置文件 (config.json) 进行备份，或在迁移环境时导入旧配置。
               </n-text>
               <n-space vertical>
@@ -166,7 +166,7 @@
             </n-card>
 
             <n-card title="配置贴士" size="small" segmented>
-              <n-text depth="3" style="font-size: 13px; line-height: 1.8">
+              <n-text  style="font-size: 13px; line-height: 1.8">
                 <div style="margin-bottom: 8px">• <b>TMDB</b>：元数据抓取的核心，建议配置 V3 Key。</div>
                 <div style="margin-bottom: 8px">• <b>代理</b>：如果您无法连接外网，请在此配置 HTTP/SOCKS 代理。</div>
                 <div>• <b>多服务器</b>：Lens 支持多实例管理，您可以随时切换当前激活的服务器。</div>

@@ -70,7 +70,7 @@ const handleUploadBg = (options: { file: { file: File } }) => {
       <!-- 核心图片上传区 -->
       <n-card embedded :bordered="false" size="small">
         <template #header>
-          <n-text depth="3" style="font-size: 13px;">背景资源</n-text>
+          <n-text style="font-size: 13px; opacity: 0.8;">背景资源</n-text>
         </template>
         <n-space vertical size="medium">
           <n-radio-group 
@@ -105,7 +105,7 @@ const handleUploadBg = (options: { file: { file: File } }) => {
           </div>
           <div v-else-if="settings.wallpaper_mode === 'unsplash'">
             <n-space vertical size="medium">
-              <n-text depth="3" style="font-size: 12px;">
+              <n-text  style="font-size: 12px;">
                 从高质量随机库获取摄影或动漫作品。
               </n-text>
               <div class="setting-item">
@@ -156,7 +156,7 @@ const handleUploadBg = (options: { file: { file: File } }) => {
           </div>
           <div v-else>
             <n-space vertical size="medium">
-              <n-text depth="3" style="font-size: 12px;">
+              <n-text  style="font-size: 12px;">
                 已启用必应每日壁纸。您可以自定义地区和历史日期。
               </n-text>
 
@@ -188,7 +188,7 @@ const handleUploadBg = (options: { file: { file: File } }) => {
               <div class="setting-item">
                 <div class="label-row">
                   <span class="label-small">历史日期偏移</span>
-                  <n-text depth="3" size="small">{{ settings.bing_index === 0 ? '今天' : settings.bing_index + ' 天前' }}</n-text>
+                  <n-text  size="small">{{ settings.bing_index === 0 ? '今天' : settings.bing_index + ' 天前' }}</n-text>
                 </div>
                 <n-slider 
                   :value="settings.bing_index" 
@@ -225,7 +225,7 @@ const handleUploadBg = (options: { file: { file: File } }) => {
       <!-- 样式精调区 -->
       <n-card embedded :bordered="false" size="small">
         <template #header>
-          <n-text depth="3" style="font-size: 13px;">背景样式</n-text>
+          <n-text  style="font-size: 13px;">背景样式</n-text>
         </template>
         
         <n-space vertical size="large">
@@ -242,7 +242,7 @@ const handleUploadBg = (options: { file: { file: File } }) => {
           <div v-if="settings.enable_background_color" class="setting-item">
             <div class="label-row">
               <span class="label">背景底色</span>
-              <n-text depth="3" size="small">无图片或图片透明时显示的颜色</n-text>
+              <n-text  size="small">无图片或图片透明时显示的颜色</n-text>
             </div>
             <n-color-picker 
               :value="settings.background_color" 
@@ -267,7 +267,7 @@ const handleUploadBg = (options: { file: { file: File } }) => {
               <div class="setting-item">
                 <div class="label-row">
                   <span class="label">填充模式</span>
-                  <n-text depth="3" size="small">决定图片如何适配屏幕</n-text>
+                  <n-text  size="small">决定图片如何适配屏幕</n-text>
                 </div>
                 <n-select 
                   :value="settings.background_size" 
@@ -279,7 +279,7 @@ const handleUploadBg = (options: { file: { file: File } }) => {
               <div class="setting-item">
                 <div class="label-row">
                   <span class="label">背景透明度</span>
-                  <n-text depth="3" size="small">{{ Math.round(settings.background_opacity * 100) }}%</n-text>
+                  <n-text  size="small">{{ Math.round(settings.background_opacity * 100) }}%</n-text>
                 </div>
                 <n-slider 
                   :value="settings.background_opacity" 
@@ -291,7 +291,7 @@ const handleUploadBg = (options: { file: { file: File } }) => {
               <div class="setting-item">
                 <div class="label-row">
                   <span class="label">背景模糊度</span>
-                  <n-text depth="3" size="small">{{ settings.background_blur }}px</n-text>
+                  <n-text  size="small">{{ settings.background_blur }}px</n-text>
                 </div>
                 <n-slider 
                   :value="settings.background_blur" 
@@ -310,7 +310,7 @@ const handleUploadBg = (options: { file: { file: File } }) => {
       <!-- 内容文本 -->
       <n-card embedded :bordered="false" size="small">
         <template #header>
-          <n-text depth="3" style="font-size: 13px;">内容组件</n-text>
+          <n-text  style="font-size: 13px;">内容组件</n-text>
         </template>
         <n-space vertical>
           <div class="setting-item">
@@ -402,7 +402,7 @@ const handleUploadBg = (options: { file: { file: File } }) => {
       <!-- 布局调整 -->
       <n-card embedded :bordered="false" size="small">
         <template #header>
-          <n-text depth="3" style="font-size: 13px;">布局调整</n-text>
+          <n-text  style="font-size: 13px;">布局调整</n-text>
         </template>
         <n-space vertical size="large">
           <div class="setting-item">
@@ -442,7 +442,7 @@ const handleUploadBg = (options: { file: { file: File } }) => {
           <div class="setting-item">
             <div class="label-row">
               <span class="label">页面内容宽度</span>
-              <n-text depth="3" size="small">{{ settings.content_max_width }}%</n-text>
+              <n-text  size="small">{{ settings.content_max_width }}%</n-text>
             </div>
             <n-slider 
               :value="settings.content_max_width" 
@@ -456,7 +456,7 @@ const handleUploadBg = (options: { file: { file: File } }) => {
           <div class="setting-item">
             <div class="label-row">
               <span class="label">标题顶部边距 (MT)</span>
-              <n-text depth="3" size="small">{{ settings.header_margin_top }}px</n-text>
+              <n-text  size="small">{{ settings.header_margin_top }}px</n-text>
             </div>
             <n-slider 
               :value="settings.header_margin_top" 
@@ -468,7 +468,7 @@ const handleUploadBg = (options: { file: { file: File } }) => {
           <div class="setting-item">
             <div class="label-row">
               <span class="label">标题行间距</span>
-              <n-text depth="3" size="small">{{ settings.header_item_spacing }}px</n-text>
+              <n-text  size="small">{{ settings.header_item_spacing }}px</n-text>
             </div>
             <n-slider 
               :value="settings.header_item_spacing" 
@@ -480,7 +480,7 @@ const handleUploadBg = (options: { file: { file: File } }) => {
           <div class="setting-item">
             <div class="label-row">
               <span class="label">标题底部边距 (MB)</span>
-              <n-text depth="3" size="small">{{ settings.header_margin_bottom }}px</n-text>
+              <n-text  size="small">{{ settings.header_margin_bottom }}px</n-text>
             </div>
             <n-slider 
               :value="settings.header_margin_bottom" 
@@ -494,7 +494,7 @@ const handleUploadBg = (options: { file: { file: File } }) => {
       <!-- 卡片样式高级设置 -->
       <n-card embedded :bordered="false" size="small">
         <template #header>
-          <n-text depth="3" style="font-size: 13px;">卡片风格</n-text>
+          <n-text  style="font-size: 13px;">卡片风格</n-text>
         </template>
         <n-space vertical size="large">
           <div class="setting-item">
@@ -516,7 +516,7 @@ const handleUploadBg = (options: { file: { file: File } }) => {
       <!-- 卡片样式高级设置 -->
       <n-card embedded :bordered="false" size="small">
         <template #header>
-          <n-text depth="3" style="font-size: 13px;">卡片高级样式</n-text>
+          <n-text  style="font-size: 13px;">卡片高级样式</n-text>
         </template>
 
         <n-space vertical size="large">
@@ -574,7 +574,7 @@ const handleUploadBg = (options: { file: { file: File } }) => {
           <div class="setting-item">
             <div class="label-row">
               <span class="label">卡片模糊度 (Glassmorphism)</span>
-              <n-text depth="3" size="small">{{ settings.card_blur }}px</n-text>
+              <n-text  size="small">{{ settings.card_blur }}px</n-text>
             </div>
             <n-slider 
               :value="settings.card_blur" 

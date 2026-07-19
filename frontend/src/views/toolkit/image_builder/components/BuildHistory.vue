@@ -22,7 +22,7 @@
 
           <!-- 执行时间 -->
           <div class="card-desc">
-            <n-text depth="3" class="desc-text">执行时间: {{ formatDate(row.created_at) }}</n-text>
+            <n-text  class="desc-text">执行时间: {{ formatDate(row.created_at) }}</n-text>
           </div>
 
           <!-- 操作按钮 -->

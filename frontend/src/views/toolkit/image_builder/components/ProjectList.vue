@@ -36,7 +36,7 @@
 
             <!-- 远程镜像名 -->
             <div class="card-desc">
-              <n-text depth="3" class="desc-text">远程镜像: {{ row.repo_image_name }}</n-text>
+              <n-text  class="desc-text">远程镜像: {{ row.repo_image_name }}</n-text>
             </div>
 
             <!-- 平台标签 -->

@@ -66,7 +66,7 @@
 
               <!-- 媒体库 ID -->
               <div class="card-desc">
-                <n-text depth="3" class="desc-text">
+                <n-text class="desc-text">
                   ID: <code class="library-id-code">{{ row.Id }}</code>
                 </n-text>
               </div>
@@ -336,9 +336,13 @@ onMounted(async () => {
 }
 
 .library-id-code {
-  font-size: 11px;
-  opacity: 0.6;
-  font-family: monospace;
+  font-size: 12px;
+  opacity: 0.85;
+  color: var(--color-info, #3B82F6);
+  font-family: var(--font-mono, monospace);
+  background: rgba(59,130,246,0.08);
+  padding: 1px 6px;
+  border-radius: 4px;
 }
 
 /* 操作按钮 */

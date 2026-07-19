@@ -8,7 +8,7 @@
               <n-button size="tiny" quaternary type="primary" @click="openRawEdit">
                 直接编辑 JSON
               </n-button>
-              <n-text depth="3" type="warning" style="font-size: 12px">
+              <n-text  type="warning" style="font-size: 12px">
                 <n-icon><ExclamationTriangleIcon /></n-icon> 需要 Root 权限的 SSH 账户
               </n-text>
             </n-space>
@@ -123,7 +123,7 @@
       <n-gi>
         <n-card title="镜像清理" size="small">
           <n-space vertical size="large">
-            <n-text depth="3">清理无用的 Docker 镜像以释放磁盘空间。</n-text>
+            <n-text >清理无用的 Docker 镜像以释放磁盘空间。</n-text>
             <n-space item-style="display: flex; align-items: center">
               <n-checkbox v-model:checked="imageOptions.dangling">
                 清理未标签镜像 (Dangling)
@@ -142,7 +142,7 @@
       <n-gi>
         <n-card title="构建缓存清理" size="small">
           <n-space vertical size="large">
-            <n-text depth="3">清理 Docker Buildx 或 BuildKit 的构建缓存。</n-text>
+            <n-text >清理 Docker Buildx 或 BuildKit 的构建缓存。</n-text>
             <div style="height: 24px"></div> <!-- 保持高度对齐 -->
             <n-button type="warning" secondary :loading="loading.cache" @click="handlePruneCache">
               开始清理构建缓存
@@ -154,7 +154,7 @@
       <n-gi>
         <n-card title="容器清理" size="small">
           <n-space vertical size="large">
-            <n-text depth="3">清理所有处于停止状态 de Docker 容器。</n-text>
+            <n-text >清理所有处于停止状态 de Docker 容器。</n-text>
             <div style="height: 24px"></div> <!-- 保持高度对齐 -->
             <n-button type="error" secondary :loading="loading.containers" @click="handlePruneContainers">
               开始清理停止的容器

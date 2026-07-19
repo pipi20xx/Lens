@@ -26,7 +26,7 @@
 
               <!-- URL -->
               <div class="card-desc">
-                <n-text depth="3" class="desc-text">{{ row.url }}</n-text>
+                <n-text  class="desc-text">{{ row.url }}</n-text>
               </div>
 
               <!-- 操作按钮 -->
