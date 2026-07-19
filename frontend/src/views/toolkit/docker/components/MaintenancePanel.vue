@@ -120,45 +120,83 @@
         </n-card>
       </n-gi>
 
-      <n-gi>
-        <n-card title="镜像清理" size="small">
+      <n-gi :span="2">
+        <n-card title="Docker 资源清理" size="small">
+          <template #header-extra>
+            <n-text type="warning" style="font-size: 12px">
+              <n-icon><ExclamationTriangleIcon /></n-icon> 勾选项越多，清理越彻底，请谨慎选择
+            </n-text>
+          </template>
           <n-space vertical size="large">
-            <n-text >清理无用的 Docker 镜像以释放磁盘空间。</n-text>
-            <n-space item-style="display: flex; align-items: center">
-              <n-checkbox v-model:checked="imageOptions.dangling">
-                清理未标签镜像 (Dangling)
-              </n-checkbox>
-              <n-checkbox v-model:checked="imageOptions.all">
-                清理所有未使用镜像 (Unused)
-              </n-checkbox>
+            <n-text>勾选需要清理的资源类型，点击下方按钮将根据勾选项组合命令一次性执行。</n-text>
+
+            <n-space vertical>
+              <!-- 镜像类 -->
+              <div class="prune-group">
+                <n-text strong depth="2">镜像 (Images)</n-text>
+                <n-space item-style="display: flex; align-items: center; margin-left: 8px">
+                  <n-checkbox v-model:checked="pruneOptions.images_dangling" :disabled="pruneOptions.images_unused">
+                    清理未标签镜像 (Dangling)
+                    <n-text depth="3" style="margin-left: 6px; font-size: 12px">— docker image prune -f</n-text>
+                  </n-checkbox>
+                  <n-checkbox v-model:checked="pruneOptions.images_unused">
+                    清理所有未使用镜像 (Unused)
+                    <n-text depth="3" style="margin-left: 6px; font-size: 12px">— docker image prune -a -f</n-text>
+                  </n-checkbox>
+                </n-space>
+                <n-alert type="info" size="small" :show-icon="false" style="margin-left: 8px">
+                  勾选「所有未使用镜像」时已包含未标签镜像，将自动禁用上方的 Dangling 选项。
+                </n-alert>
+              </div>
+
+              <!-- 构建缓存 -->
+              <div class="prune-group">
+                <n-text strong depth="2">构建缓存 (Build Cache)</n-text>
+                <n-space item-style="display: flex; align-items: center; margin-left: 8px">
+                  <n-checkbox v-model:checked="pruneOptions.build_cache">
+                    清理 BuildKit / Buildx 构建缓存
+                    <n-text depth="3" style="margin-left: 6px; font-size: 12px">— docker builder prune -f</n-text>
+                  </n-checkbox>
+                </n-space>
+              </div>
+
+              <!-- 容器 -->
+              <div class="prune-group">
+                <n-text strong depth="2">容器 (Containers)</n-text>
+                <n-space item-style="display: flex; align-items: center; margin-left: 8px">
+                  <n-checkbox v-model:checked="pruneOptions.containers">
+                    清理所有停止状态的容器
+                    <n-text depth="3" style="margin-left: 6px; font-size: 12px">— docker container prune -f</n-text>
+                  </n-checkbox>
+                </n-space>
+              </div>
+
+              <!-- 网络 -->
+              <div class="prune-group">
+                <n-text strong depth="2">网络 (Networks)</n-text>
+                <n-space item-style="display: flex; align-items: center; margin-left: 8px">
+                  <n-checkbox v-model:checked="pruneOptions.networks">
+                    清理未被容器使用的网络
+                    <n-text depth="3" style="margin-left: 6px; font-size: 12px">— docker network prune -f</n-text>
+                  </n-checkbox>
+                </n-space>
+              </div>
             </n-space>
-            <n-button type="primary" secondary :loading="loading.images" @click="handlePruneImages">
-              开始清理镜像
-            </n-button>
-          </n-space>
-        </n-card>
-      </n-gi>
 
-      <n-gi>
-        <n-card title="构建缓存清理" size="small">
-          <n-space vertical size="large">
-            <n-text >清理 Docker Buildx 或 BuildKit 的构建缓存。</n-text>
-            <div style="height: 24px"></div> <!-- 保持高度对齐 -->
-            <n-button type="warning" secondary :loading="loading.cache" @click="handlePruneCache">
-              开始清理构建缓存
-            </n-button>
-          </n-space>
-        </n-card>
-      </n-gi>
+            <!-- 将执行的命令预览 -->
+            <div v-if="previewCommand" class="cmd-preview">
+              <n-text depth="3" style="font-size: 12px; margin-bottom: 4px; display: block">将要执行的命令：</n-text>
+              <code>{{ previewCommand }}</code>
+            </div>
 
-      <n-gi>
-        <n-card title="容器清理" size="small">
-          <n-space vertical size="large">
-            <n-text >清理所有处于停止状态 de Docker 容器。</n-text>
-            <div style="height: 24px"></div> <!-- 保持高度对齐 -->
-            <n-button type="error" secondary :loading="loading.containers" @click="handlePruneContainers">
-              开始清理停止的容器
-            </n-button>
+            <n-space align="center" justify="space-between">
+              <n-text depth="3" style="font-size: 12px">
+                共勾选 {{ selectedCount }} 项
+              </n-text>
+              <n-button type="error" :loading="loading.prune" :disabled="!selectedCount" @click="handlePruneAll">
+                开始清理
+              </n-button>
+            </n-space>
           </n-space>
         </n-card>
       </n-gi>
@@ -210,7 +248,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, h } from 'vue'
+import { ref, computed, onMounted, watch, h } from 'vue'
 import { NGrid, NGi, NCard, NSpace, NText, NCheckbox, NSwitch, NButton, NModal, NForm, NFormItem, NInput, NInputNumber, NAlert, NIcon, useMessage, useDialog, NTag } from 'naive-ui'
 import { ExclamationTriangleIcon } from '@heroicons/vue/24/outline'
 import axios from 'axios'
@@ -221,16 +259,44 @@ const props = defineProps({
 
 const message = useMessage()
 const dialog = useDialog()
-const loading = ref({ images: false, cache: false, containers: false, daemon: false })
+const loading = ref({ daemon: false, prune: false })
 const showResult = ref(false)
 const showRawModal = ref(false)
 const rawJsonContent = ref('')
 const rawJsonError = ref<string | null>(null)
 const resultOutput = ref('')
 
-const imageOptions = ref({
-  dangling: true,
-  all: false
+const pruneOptions = ref({
+  images_dangling: false,
+  images_unused: false,
+  build_cache: false,
+  containers: false,
+  networks: false
+})
+
+// 已选清理项数量
+const selectedCount = computed(() => {
+  const o = pruneOptions.value
+  // images_unused 勾选时已包含 dangling，dangling 不单独计数
+  let count = 0
+  if (o.images_unused) count += 1
+  else if (o.images_dangling) count += 1
+  if (o.build_cache) count += 1
+  if (o.containers) count += 1
+  if (o.networks) count += 1
+  return count
+})
+
+// 命令预览：根据勾选项组合出将要执行的命令
+const previewCommand = computed(() => {
+  const o = pruneOptions.value
+  const parts: string[] = []
+  if (o.images_unused) parts.push('docker image prune -a -f')
+  else if (o.images_dangling) parts.push('docker image prune -f')
+  if (o.build_cache) parts.push('docker builder prune -f')
+  if (o.containers) parts.push('docker container prune -f')
+  if (o.networks) parts.push('docker network prune -f')
+  return parts.join(' && ')
 })
 
 const daemonForm = ref({
@@ -411,65 +477,71 @@ const handleSaveDaemonConfig = async () => {
   })
 }
 
-const handlePruneImages = async () => {
+const handlePruneAll = async () => {
   if (!props.hostId) return
-  if (!imageOptions.value.dangling && !imageOptions.value.all) {
+  if (!selectedCount.value) {
     message.warning('请至少选择一个清理选项')
     return
   }
 
+  const cmd = previewCommand.value
   dialog.warning({
-    title: '确认清理镜像',
-    content: '此操作将永久删除满足条件的本地镜像。',
-    positiveText: '确认',
+    title: '确认执行资源清理',
+    content: () => h('div', null, [
+      h('p', null, '此操作将根据勾选项组合命令一次性执行，被删除的资源不可恢复。'),
+      h('p', { style: 'margin-top: 8px; color: #f0a020; font-weight: bold;' }, `将执行命令：${cmd}`),
+      h('p', { style: 'margin-top: 8px; color: #d03050; font-size: 12px;' }, '⚠️ 特别注意：清理「所有未使用镜像」会删除所有未被容器引用的镜像；清理「停止的容器」会丢失其配置；请确认无误后再继续。')
+    ]),
+    positiveText: '确认清理',
     negativeText: '取消',
     onPositiveClick: async () => {
-      loading.value.images = true
+      loading.value.prune = true
       try {
-        const res = await axios.post(`/api/docker/${props.hostId}/prune-images`, {
-          dangling: imageOptions.value.dangling,
-          all_unused: imageOptions.value.all
+        const res = await axios.post(`/api/docker/${props.hostId}/prune`, {
+          images_dangling: pruneOptions.value.images_dangling,
+          images_unused: pruneOptions.value.images_unused,
+          build_cache: pruneOptions.value.build_cache,
+          containers: pruneOptions.value.containers,
+          networks: pruneOptions.value.networks
         })
-        message.success(res.data.message || '镜像清理任务已启动')
+        message.success(res.data.message || '资源清理任务已启动')
       } catch (e) { message.error('请求失败') }
-      finally { loading.value.images = false }
-    }
-  })
-}
-
-const handlePruneCache = async () => {
-  if (!props.hostId) return
-  dialog.warning({
-    title: '确认清理构建缓存',
-    content: '此操作将清理所有未使用的构建缓存。',
-    positiveText: '确认',
-    negativeText: '取消',
-    onPositiveClick: async () => {
-      loading.value.cache = true
-      try {
-        const res = await axios.post(`/api/docker/${props.hostId}/prune-cache`)
-        message.success(res.data.message || '缓存清理任务已启动')
-      } catch (e) { message.error('请求失败') }
-      finally { loading.value.cache = false }
-    }
-  })
-}
-
-const handlePruneContainers = async () => {
-  if (!props.hostId) return
-  dialog.warning({
-    title: '确认清理容器',
-    content: '此操作将永久删除所有处于停止状态的容器。',
-    positiveText: '确认',
-    negativeText: '取消',
-    onPositiveClick: async () => {
-      loading.value.containers = true
-      try {
-        const res = await axios.post(`/api/docker/${props.hostId}/prune-containers`)
-        message.success(res.data.message || '容器清理任务已启动')
-      } catch (e) { message.error('请求失败') }
-      finally { loading.value.containers = false }
+      finally { loading.value.prune = false }
     }
   })
 }
 </script>
+
+<style scoped>
+.prune-group {
+  padding: 8px 12px;
+  border-left: 3px solid var(--n-border-color, #333);
+  background: var(--n-card-color, transparent);
+  border-radius: 0 4px 4px 0;
+}
+
+.prune-group + .prune-group {
+  margin-top: 8px;
+}
+
+.cmd-preview {
+  padding: 10px 12px;
+  background: #1e1e1e;
+  border-radius: 4px;
+  border: 1px solid #333;
+  overflow-x: auto;
+}
+
+.cmd-preview code {
+  color: #7ec699;
+  font-family: 'Fira Code', Consolas, Monaco, monospace;
+  font-size: 13px;
+  white-space: nowrap;
+  display: block;
+}
+
+.maintenance-panel :deep(.n-checkbox .n-checkbox__label) {
+  display: inline-flex;
+  align-items: center;
+}
+</style>

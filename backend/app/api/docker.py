@@ -334,7 +334,7 @@ async def run_cleanup_background(host_id: str, cmd: str, task_name: str):
 
 @router.post("/{host_id}/prune-images")
 async def prune_images(host_id: str, dangling: bool = Body(True, embed=True), all_unused: bool = Body(False, embed=True)):
-    """清理镜像"""
+    """清理镜像（保留接口以兼容旧版调用）"""
     # 构建命令
     cmd = "docker image prune -f"
     if all_unused:
@@ -347,15 +347,61 @@ async def prune_images(host_id: str, dangling: bool = Body(True, embed=True), al
 
 @router.post("/{host_id}/prune-cache")
 async def prune_cache(host_id: str):
-    """清理构建缓存"""
+    """清理构建缓存（保留接口以兼容旧版调用）"""
     asyncio.create_task(run_cleanup_background(host_id, "docker builder prune -f", "构建缓存清理"))
     return {"message": "构建缓存清理任务已在后台启动，完成后将通过通知告知您"}
 
 @router.post("/{host_id}/prune-containers")
 async def prune_containers(host_id: str):
-    """清理停止的容器"""
+    """清理停止的容器（保留接口以兼容旧版调用）"""
     asyncio.create_task(run_cleanup_background(host_id, "docker container prune -f", "容器清理"))
     return {"message": "容器清理任务已在后台启动，完成后将通过通知告知您"}
+
+@router.post("/{host_id}/prune")
+async def prune_all(
+    host_id: str,
+    images_dangling: bool = Body(False, embed=True),
+    images_unused: bool = Body(False, embed=True),
+    build_cache: bool = Body(False, embed=True),
+    containers: bool = Body(False, embed=True),
+    networks: bool = Body(False, embed=True),
+):
+    """
+    统一清理接口：根据勾选项组合清理命令一次性执行。
+    - images_dangling: 清理未标签镜像 (Dangling) -> docker image prune -f
+    - images_unused:   清理所有未使用镜像 (Unused) -> docker image prune -a -f
+                      （与 images_dangling 互斥，勾选此项时已包含 dangling）
+    - build_cache:    清理 BuildKit/Buildx 构建缓存 -> docker builder prune -f
+    - containers:     清理所有停止的容器 -> docker container prune -f
+    - networks:       清理未被容器使用的网络 -> docker network prune -f
+    """
+    # 至少要选一项
+    if not any([images_dangling, images_unused, build_cache, containers, networks]):
+        return {"message": "未选择清理选项"}
+
+    cmd_parts = []
+
+    # 镜像清理：unused 已包含 dangling，二者只取其一
+    if images_unused:
+        cmd_parts.append("docker image prune -a -f")
+    elif images_dangling:
+        cmd_parts.append("docker image prune -f")
+
+    if build_cache:
+        cmd_parts.append("docker builder prune -f")
+
+    if containers:
+        cmd_parts.append("docker container prune -f")
+
+    if networks:
+        cmd_parts.append("docker network prune -f")
+
+    if not cmd_parts:
+        return {"message": "未选择清理选项"}
+
+    cmd = " && ".join(cmd_parts)
+    asyncio.create_task(run_cleanup_background(host_id, cmd, "资源清理"))
+    return {"message": "资源清理任务已在后台启动，完成后将通过通知告知您", "command": cmd}
 
 @router.get("/{host_id}/system-info")
 async def get_system_info(host_id: str):
