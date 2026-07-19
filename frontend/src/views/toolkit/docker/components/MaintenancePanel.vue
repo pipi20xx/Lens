@@ -4,14 +4,14 @@
       <n-gi :span="2">
         <n-card title="Docker Daemon 配置" size="small">
           <template #header-extra>
-            <n-space align="center">
+            <div class="daemon-header-actions">
               <n-button size="tiny" quaternary type="primary" @click="openRawEdit">
                 直接编辑 JSON
               </n-button>
-              <n-text  type="warning" style="font-size: 12px">
+              <n-text  type="warning" class="daemon-header-hint">
                 <n-icon><ExclamationTriangleIcon /></n-icon> 需要 Root 权限的 SSH 账户
               </n-text>
-            </n-space>
+            </div>
           </template>
 
           <n-alert type="info" size="small" style="margin-bottom: 16px" :show-icon="true">
@@ -19,7 +19,7 @@
           </n-alert>
           
           <n-form label-placement="top" :disabled="loading.daemon">
-            <n-grid :cols="2" :x-gap="24">
+            <n-grid :cols="{ xs: 1, s: 2, m: 2, l: 2, xl: 2 }" :x-gap="24" :y-gap="12">
               <n-gi>
                 <n-form-item label="镜像加速器 (Registry Mirrors)">
                   <n-input
@@ -38,8 +38,8 @@
                   />
                 </n-form-item>
                 
-                <n-space vertical style="border: 1px solid #333; padding: 12px; border-radius: 4px">
-                  <n-space align="center" justify="space-between">
+                <n-space vertical class="proxy-box">
+                  <n-space align="center" justify="space-between" class="proxy-header">
                     <n-space align="center" size="small">
                       <n-text strong>代理设置 (Proxies)</n-text>
                       <n-tag size="tiny" :type="daemonForm.proxyEnabled ? 'success' : 'default'">
@@ -53,19 +53,19 @@
                     <n-alert type="warning" size="small" :show-icon="false">
                       注意：Docker 守护进程通常仅支持 HTTP/HTTPS 协议代理，暂不支持 SOCKS5。
                     </n-alert>
-                    <n-grid :cols="4" :x-gap="8">
-                      <n-gi :span="3">
+                    <n-grid :cols="{ xs: 1, s: 2, m: 4, l: 4, xl: 4 }" :x-gap="8" :y-gap="8">
+                      <n-gi :span="{ xs: 1, s: 2, m: 3, l: 3, xl: 3 }">
                         <n-form-item label="服务器地址" size="small">
                           <n-input v-model:value="daemonForm.proxyHost" placeholder="例如: 192.168.50.66" />
                         </n-form-item>
                       </n-gi>
-                      <n-gi>
+                      <n-gi :span="1">
                         <n-form-item label="端口" size="small">
                           <n-input v-model:value="daemonForm.proxyPort" placeholder="7890" />
                         </n-form-item>
                       </n-gi>
                     </n-grid>
-                    <n-grid :cols="2" :x-gap="8">
+                    <n-grid :cols="{ xs: 1, s: 2, m: 2, l: 2, xl: 2 }" :x-gap="8" :y-gap="8">
                       <n-gi>
                         <n-form-item label="用户名 (可选)" size="small">
                           <n-input v-model:value="daemonForm.proxyUser" placeholder="可选" />
@@ -84,7 +84,7 @@
                 </n-space>
               </n-gi>
               <n-gi>
-                <n-grid :cols="2" :x-gap="12">
+                <n-grid :cols="{ xs: 1, s: 2, m: 2, l: 2, xl: 2 }" :x-gap="12" :y-gap="8">
                   <n-gi>
                     <n-form-item label="日志单文件大小">
                       <n-input v-model:value="daemonForm.logSize" placeholder="例如: 100m" />
@@ -111,7 +111,7 @@
                 </n-space>
               </n-gi>
             </n-grid>
-            <n-space justify="end" style="margin-top: 12px">
+            <n-space justify="end" class="daemon-footer-actions" style="margin-top: 12px">
               <n-button type="primary" :loading="loading.daemon" @click="handleSaveDaemonConfig">
                 保存并应用配置
               </n-button>
@@ -543,5 +543,77 @@ const handlePruneAll = async () => {
 .maintenance-panel :deep(.n-checkbox .n-checkbox__label) {
   display: inline-flex;
   align-items: center;
+}
+
+/* ============ Daemon 配置区样式 ============ */
+/* 顶部 header 操作区：PC 端横向，移动端垂直堆叠 */
+.daemon-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.daemon-header-hint {
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* 代理设置容器 */
+.proxy-box {
+  border: 1px solid var(--n-border-color, #333);
+  padding: 12px;
+  border-radius: 4px;
+}
+
+/* 代理设置头部（标题 + 开关） */
+.proxy-header {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* 底部保存按钮区 */
+.daemon-footer-actions {
+  width: 100%;
+}
+
+/* ============== 移动端适配 ============== */
+@media (max-width: 767px) {
+  /* 顶部操作区：按钮和提示垂直堆叠 */
+  .daemon-header-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+  }
+  .daemon-header-actions :deep(.n-button) {
+    width: 100%;
+    margin: 0 !important;
+  }
+  .daemon-header-hint {
+    white-space: normal;
+    text-align: center;
+  }
+
+  /* 代理设置头部：移动端紧凑 */
+  .proxy-box {
+    padding: 10px;
+  }
+
+  /* 底部保存按钮占满整行 */
+  .daemon-footer-actions :deep(.n-button) {
+    width: 100%;
+    margin: 0 !important;
+  }
+  .daemon-footer-actions :deep(.n-space-item) {
+    width: 100%;
+    flex: 1 1 100% !important;
+  }
+}
+
+/* 超窄屏 (≤380px) */
+@media (max-width: 380px) {
+  .proxy-box {
+    padding: 8px;
+  }
 }
 </style>

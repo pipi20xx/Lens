@@ -4,7 +4,7 @@
       <n-gi :span="2">
         <n-card title="环境检测" size="small">
           <template #header-extra>
-            <n-space>
+            <div class="header-actions">
               <n-button 
                 type="warning" size="tiny" secondary 
                 @click="showRepairModal = true" 
@@ -15,28 +15,35 @@
               <n-button size="tiny" quaternary @click="fetchInfo" :loading="loading">
                 重新检测
               </n-button>
-            </n-space>
+            </div>
           </template>
           
           <n-skeleton v-if="loading" text :repeat="4" />
-          <n-descriptions v-else bordered label-placement="left" :column="2">
-            <n-descriptions-item label="Docker 版本">
-              <n-tag :type="info.docker === '未安装' ? 'error' : 'success'" size="small">
-                {{ info.docker }}
-              </n-tag>
-            </n-descriptions-item>
-            <n-descriptions-item label="Compose 版本">
-              <n-tag :type="info.compose === '未安装' ? 'error' : 'success'" size="small">
-                {{ info.compose }}
-              </n-tag>
-            </n-descriptions-item>
-            <n-descriptions-item label="服务状态">
-              <n-space align="center">
+          <div v-else class="info-grid">
+            <div class="info-item">
+              <div class="info-label">Docker 版本</div>
+              <div class="info-value">
+                <n-tag :type="info.docker === '未安装' ? 'error' : 'success'" size="small">
+                  {{ info.docker }}
+                </n-tag>
+              </div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Compose 版本</div>
+              <div class="info-value">
+                <n-tag :type="info.compose === '未安装' ? 'error' : 'success'" size="small">
+                  {{ info.compose }}
+                </n-tag>
+              </div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">服务状态</div>
+              <div class="info-value">
                 <n-badge 
                   :value="info.status === 'active' ? '运行中' : (info.status === 'inactive' ? '已停止' : '未知')" 
                   :type="info.status === 'active' ? 'success' : 'error'" 
                 />
-                <n-button-group size="tiny" style="margin-left: 12px">
+                <n-button-group size="tiny" class="service-actions">
                   <n-button 
                     v-if="info.status !== 'active'" 
                     type="success" ghost 
@@ -61,12 +68,15 @@
                     重启
                   </n-button>
                 </n-button-group>
-              </n-space>
-            </n-descriptions-item>
-            <n-descriptions-item label="操作系统">
-              {{ info.os }}
-            </n-descriptions-item>
-          </n-descriptions>
+              </div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">操作系统</div>
+              <div class="info-value">
+                {{ info.os }}
+              </div>
+            </div>
+          </div>
         </n-card>
       </n-gi>
 
@@ -123,7 +133,7 @@
 
 <script setup lang="ts">
 import { ref, watch, reactive } from 'vue'
-import { NGrid, NGi, NCard, NDescriptions, NDescriptionsItem, NTag, NBadge, NSkeleton, NButton, NIcon, NAlert, NSpace, NModal, useMessage, useDialog, NForm, NFormItem, NInput, NSwitch, NButtonGroup } from 'naive-ui'
+import { NGrid, NGi, NCard, NTag, NBadge, NSkeleton, NButton, NAlert, NSpace, NModal, useMessage, useDialog, NForm, NFormItem, NInput, NSwitch, NButtonGroup } from 'naive-ui'
 import axios from 'axios'
 
 const props = defineProps<{ hostId: string | null }>()
@@ -200,3 +210,84 @@ const handleRepair = async () => {
 
 watch(() => props.hostId, fetchInfo, { immediate: true })
 </script>
+
+<style scoped>
+/* 头部操作区 */
+.header-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* 信息卡片网格 */
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.info-item {
+  padding: 10px 12px;
+  background: var(--info-item-bg, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--info-item-border, rgba(255, 255, 255, 0.08));
+  border-radius: 6px;
+  transition: border-color 200ms ease, background 200ms ease;
+}
+
+.info-item:hover {
+  border-color: rgba(64, 128, 240, 0.4);
+  background: rgba(64, 128, 240, 0.05);
+}
+
+.info-label {
+  font-size: 12px;
+  opacity: 0.65;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.info-value {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.service-actions {
+  margin-left: 4px;
+}
+
+/* ============== 移动端适配 ============== */
+@media (max-width: 767px) {
+  /* 信息网格变单列 */
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* 头部操作区按钮垂直堆叠 */
+  .header-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+  }
+  .header-actions :deep(.n-button) {
+    width: 100%;
+    margin: 0 !important;
+  }
+}
+
+/* 超窄屏 (≤380px) 兼容 */
+@media (max-width: 380px) {
+  .info-item {
+    padding: 8px 10px;
+  }
+  .info-label {
+    font-size: 11px;
+  }
+  /* 超窄屏下服务状态按钮也变宽 */
+  .service-actions :deep(.n-button) {
+    flex: 1 1 0;
+  }
+}
+</style>

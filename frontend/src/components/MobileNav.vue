@@ -6,6 +6,7 @@ import {
   ArrowRightOnRectangleIcon,
   Bars3Icon,
   CameraIcon,
+  ChevronDownIcon,
   CodeBracketIcon,
   Cog6ToothIcon,
   MagnifyingGlassIcon,
@@ -239,9 +240,10 @@ onUnmounted(() => {
     <div class="mobile-header-center">
       <!-- 服务器选择器 -->
       <n-dropdown trigger="click" :options="serverOptions" @select="handleServerSelect">
-        <n-button quaternary size="small" class="server-btn">
-          <n-icon size="16"><ServerStackIcon /></n-icon>
+        <n-button quaternary size="small" class="server-btn" :title="activeServerName">
+          <n-icon size="16" class="server-icon"><ServerStackIcon /></n-icon>
           <span class="server-name">{{ activeServerName }}</span>
+          <n-icon size="14" class="server-arrow"><ChevronDownIcon /></n-icon>
         </n-button>
       </n-dropdown>
     </div>
@@ -419,15 +421,43 @@ onUnmounted(() => {
 
 .server-btn {
   max-width: 100%;
+  height: 30px;
+  padding: 0 10px !important;
   font-weight: 600;
   font-size: 0.8rem;
+  border-radius: 999px !important;
+  background-color: transparent !important;
+  border: 1px solid var(--border-color) !important;
+  transition: background-color 0.2s ease, border-color 0.2s ease !important;
 }
-
+.server-btn:hover {
+  background-color: var(--hover-bg) !important;
+  border-color: var(--primary-color) !important;
+}
+.server-btn :deep(.n-button__content) {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+}
+.server-btn .server-icon {
+  color: var(--primary-color);
+  flex-shrink: 0;
+}
 .server-btn .server-name {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 30vw;
+}
+.server-btn .server-arrow {
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+.server-btn:hover .server-arrow {
+  color: var(--primary-color);
+  transform: translateY(1px);
 }
 
 /* ============ 浮动底部 Tab 导航 (胶囊式) ============ */

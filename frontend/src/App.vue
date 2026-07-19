@@ -45,6 +45,7 @@ import { usePWA } from './composables/usePWA'
 import { viewMap } from './config/views'
 import { allMenuItems, Cog6ToothIcon, DocumentTextIcon } from './config/menu'
 import {
+  ChevronDownIcon,
   MoonIcon,
   ServerStackIcon,
   SunIcon,
@@ -222,8 +223,10 @@ const currentView = computed(() => {
                   </div>
 
                   <n-dropdown v-if="isLoggedIn" trigger="click" :options="serverOptions" @select="handleServerSelect">
-                    <n-button quaternary size="small" class="server-btn">
-                      {{ activeServerName }}
+                    <n-button quaternary size="small" class="server-btn" :title="activeServerName">
+                      <n-icon size="16" class="server-icon"><ServerStackIcon /></n-icon>
+                      <span class="server-name-text">{{ activeServerName }}</span>
+                      <n-icon size="14" class="server-arrow"><ChevronDownIcon /></n-icon>
                     </n-button>
                   </n-dropdown>
                 </div>
@@ -381,7 +384,50 @@ const currentView = computed(() => {
 .header-left { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
 .logo-box { display: flex; align-items: center; gap: 8px; cursor: pointer; }
 .header-title { font-size: 1.2rem; font-weight: 900; letter-spacing: 1px; color: var(--primary-color); }
-.server-btn { font-weight: 600; max-width: 150px; }
+
+/* 服务器切换按钮 - 胶囊式 */
+.server-btn {
+  font-weight: 600;
+  max-width: 220px;
+  height: 32px;
+  padding: 0 12px !important;
+  border-radius: 999px !important;
+  background-color: transparent !important;
+  border: 1px solid var(--border-color) !important;
+  transition: background-color 0.2s ease, border-color 0.2s ease !important;
+}
+.server-btn:hover {
+  background-color: var(--hover-bg) !important;
+  border-color: var(--primary-color) !important;
+}
+.server-btn :deep(.n-button__content) {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+}
+.server-btn .server-icon {
+  color: var(--primary-color);
+  flex-shrink: 0;
+}
+.server-btn .server-name-text {
+  font-size: 0.82rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 140px;
+}
+.server-btn .server-arrow {
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+.server-btn:hover .server-arrow {
+  color: var(--primary-color);
+  transform: translateY(1px);
+}
+
 .header-center { flex: 1; display: flex; justify-content: center; }
 
 .nav-group-btn {

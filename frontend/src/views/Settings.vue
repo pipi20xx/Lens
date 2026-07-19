@@ -17,50 +17,68 @@
                   添加服务器
                 </n-button>
               </template>
-              
-              <n-table :single-line="false" size="small">
-                <thead>
-                  <tr>
-                    <th>名称</th>
-                    <th>服务器地址</th>
-                    <th>状态</th>
-                    <th style="width: 160px">操作</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="s in servers" :key="s.id" :class="{ 'active-row': s.id === activeServerId }">
-                    <td><strong>{{ s.name }}</strong></td>
-                    <td><n-text >{{ s.url }}</n-text></td>
-                    <td>
-                      <n-tag v-if="s.id === activeServerId" type="success" size="small" round quaternary>当前激活</n-tag>
-                      <n-tag v-else  size="small" round quaternary>闲置</n-tag>
-                    </td>
-                    <td>
-                      <n-space>
-                        <n-button size="tiny" secondary @click="openEditModal(s)">
-                          配置
+
+              <n-empty
+                v-if="servers.length === 0"
+                description="暂无服务器配置"
+                style="padding: 30px"
+              />
+              <div v-else class="server-grid">
+                <div
+                  v-for="s in servers"
+                  :key="s.id"
+                  class="server-card"
+                  :class="{ 'active': s.id === activeServerId }"
+                >
+                  <div class="server-card-header">
+                    <div class="server-name" :title="s.name">
+                      {{ s.name }}
+                    </div>
+                    <n-tag
+                      v-if="s.id === activeServerId"
+                      type="success"
+                      size="small"
+                      round
+                      quaternary
+                    >
+                      当前激活
+                    </n-tag>
+                    <n-tag v-else size="small" round quaternary>闲置</n-tag>
+                  </div>
+
+                  <div class="server-url">
+                    <n-text depth="3" class="url-label">服务器地址</n-text>
+                    <n-text class="url-value" :title="s.url">{{ s.url }}</n-text>
+                  </div>
+
+                  <div class="server-actions">
+                    <n-button size="tiny" secondary @click="openEditModal(s)">
+                      配置
+                    </n-button>
+                    <n-button
+                      v-if="s.id !== activeServerId"
+                      size="tiny"
+                      type="primary"
+                      secondary
+                      @click="handleActivate(s.id)"
+                    >
+                      激活
+                    </n-button>
+                    <n-popconfirm
+                      @positive-click="handleDelete(s.id)"
+                      positive-text="确认"
+                      negative-text="取消"
+                    >
+                      <template #trigger>
+                        <n-button size="tiny" type="error" quaternary>
+                          删除
                         </n-button>
-                        <n-button v-if="s.id !== activeServerId" size="tiny" type="primary" secondary @click="handleActivate(s.id)">
-                          激活
-                        </n-button>
-                        <n-popconfirm @positive-click="handleDelete(s.id)" positive-text="确认" negative-text="取消">
-                          <template #trigger>
-                            <n-button size="tiny" type="error" quaternary>
-                              删除
-                            </n-button>
-                          </template>
-                          确定删除？
-                        </n-popconfirm>
-                      </n-space>
-                    </td>
-                  </tr>
-                  <tr v-if="servers.length === 0">
-                    <td colspan="4" style="text-align: center; padding: 30px">
-                      <n-empty description="暂无服务器配置" />
-                    </td>
-                  </tr>
-                </tbody>
-              </n-table>
+                      </template>
+                      确定删除？
+                    </n-popconfirm>
+                  </div>
+                </div>
+              </div>
             </n-card>
 
             <!-- 2. 全局 API 服务集成 -->
@@ -191,7 +209,7 @@ import { onMounted } from 'vue'
 import { 
   useMessage, NSpace, NH2, NText, NCard, NTag, 
   NForm, NGrid, NFormItemGi, NInput, NSwitch, NCode, 
-  NButton, NFormItem, NTable, NEmpty, NPopconfirm, NDivider
+  NButton, NFormItem, NEmpty, NPopconfirm, NDivider
 } from 'naive-ui'
 import { servers, activeServerId } from '../store/serverStore'
 import { copyElementContent, copyText } from '../utils/clipboard'
@@ -229,7 +247,94 @@ const handleCopy = async (text: string) => {
 </script>
 
 <style scoped>
-.active-row {
-  background-color: rgba(var(--primary-color-rgb), 0.1);
+/* Emby 服务端卡片列表 */
+.server-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.server-card {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 14px;
+  background: var(--info-item-bg, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--info-item-border, rgba(255, 255, 255, 0.08));
+  border-radius: 6px;
+  transition: border-color 200ms ease, background 200ms ease;
+}
+
+.server-card.active {
+  border-color: rgba(64, 128, 240, 0.4);
+  background: rgba(64, 128, 240, 0.06);
+}
+
+.server-card:hover {
+  border-color: rgba(64, 128, 240, 0.3);
+}
+
+.server-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.server-name {
+  font-size: 14px;
+  font-weight: 600;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.server-url {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 12px;
+  min-width: 0;
+}
+
+.server-url .url-label {
+  font-size: 12px;
+}
+
+.server-url .url-value {
+  word-break: break-all;
+  font-size: 13px;
+}
+
+.server-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: auto;
+}
+
+/* ============== 移动端适配 ============== */
+@media (max-width: 767px) {
+  /* 卡片列表变为单列 */
+  .server-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 超窄屏 (≤380px) 兼容 */
+@media (max-width: 380px) {
+  .server-card {
+    padding: 10px 12px;
+  }
+
+  /* 操作按钮撑满宽度，更易点击 */
+  .server-actions {
+    flex-wrap: nowrap;
+  }
+  .server-actions :deep(.n-button) {
+    flex: 1 1 0;
+    margin: 0 !important;
+  }
 }
 </style>

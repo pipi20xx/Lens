@@ -577,7 +577,7 @@ code, pre, .n-code {
 /* Step 2: 覆盖 Naive UI 的 --n-* CSS 变量 (仅作用于文字按钮)
    关键: 用 :has(.n-button__content) 限定只对有文字内容的按钮加底色,
    纯图标按钮(无 content)不被匹配, 由图标按钮规则处理为透明无边框 */
-.n-button:has(.n-button__content):not(.n-button--quaternary):not(.n-button--text-type):not(.n-button--text):not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button) {
+.n-button:has(.n-button__content):not(.n-button--quaternary):not(.n-button--text-type):not(.n-button--text):not(.nav-group-btn):not(.server-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button) {
   --n-color: var(--btn-bg, #3B82F6) !important;
   --n-color-hover: var(--btn-bg-hover, #2563EB) !important;
   --n-color-pressed: var(--btn-bg-pressed, #1D4ED8) !important;
@@ -599,13 +599,13 @@ code, pre, .n-code {
   border: 1px solid var(--btn-bg, #3B82F6) !important;
 }
 
-.n-button:has(.n-button__content):not(.n-button--quaternary):not(.n-button--text-type):not(.n-button--text):not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button):hover {
+.n-button:has(.n-button__content):not(.n-button--quaternary):not(.n-button--text-type):not(.n-button--text):not(.nav-group-btn):not(.server-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button):hover {
   background-color: var(--btn-bg-hover, #2563EB) !important;
   color: #ffffff !important;
   border-color: var(--btn-bg-hover, #2563EB) !important;
 }
 
-.n-button:has(.n-button__content):not(.n-button--quaternary):not(.n-button--text-type):not(.n-button--text):not(.nav-group-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button):active {
+.n-button:has(.n-button__content):not(.n-button--quaternary):not(.n-button--text-type):not(.n-button--text):not(.nav-group-btn):not(.server-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button):active {
   background-color: var(--btn-bg-pressed, #1D4ED8) !important;
   color: #ffffff !important;
   border-color: var(--btn-bg-pressed, #1D4ED8) !important;
