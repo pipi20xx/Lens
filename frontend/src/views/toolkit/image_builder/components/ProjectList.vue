@@ -57,11 +57,12 @@
                   v-model:value="projectTags[row.id]"
                   size="small"
                   placeholder="Tag"
-                  style="width: 120px; flex: 0 0 auto"
+                  class="tag-input"
                 />
                 <n-button
                   size="small"
                   type="primary"
+                  class="build-btn"
                   @click="directBuild(row)"
                 >
                   立即构建
@@ -344,6 +345,16 @@ onMounted(() => { fetchProjects(); fetchOptions() })
   padding-top: 6px;
 }
 
+/* PC 端：Tag 输入框固定 120px，按钮自适应 */
+.card-build :deep(.tag-input) {
+  width: 120px;
+  flex: 0 0 auto;
+}
+
+.card-build :deep(.n-input-group) {
+  flex-wrap: nowrap;
+}
+
 /* 操作按钮 */
 .card-actions {
   display: flex;
@@ -360,6 +371,21 @@ onMounted(() => { fetchProjects(); fetchOptions() })
 
 /* 移动端适配 */
 @media (max-width: 767px) {
+  /* 构建区：Tag 输入框与立即构建按钮各占一半 */
+  .card-build :deep(.n-input-group) {
+    display: flex;
+    width: 100%;
+  }
+  .card-build :deep(.tag-input) {
+    flex: 1 1 50% !important;
+    width: auto !important;
+    min-width: 0;
+  }
+  .card-build :deep(.build-btn) {
+    flex: 1 1 50%;
+    min-width: 0;
+  }
+
   .card-actions .n-button {
     flex: 1 1 calc(33.333% - 4px);
     min-width: 0;
