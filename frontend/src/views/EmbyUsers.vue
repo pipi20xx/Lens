@@ -15,22 +15,22 @@
       <n-card size="small" segmented :bordered="false" class="main-card">
         <template #header>
           <n-space align="center">
-            <n-button 
-              strong 
-              secondary 
-              type="primary" 
-              size="small" 
-              @click="loadUsers" 
+            <n-button
+              strong
+              secondary
+              type="primary"
+              size="small"
+              @click="loadUsers"
               :loading="loading"
             >
               刷新用户列表
             </n-button>
-            <n-button 
-              strong 
-              secondary 
-              type="warning" 
-              size="small" 
-              @click="handleBackupAll" 
+            <n-button
+              strong
+              secondary
+              type="warning"
+              size="small"
+              @click="handleBackupAll"
               :loading="backingUpAll"
             >
               一键备份所有用户
@@ -47,14 +47,88 @@
           </n-input-group>
         </template>
 
-        <n-data-table
-          :columns="columns"
-          :data="users"
-          :loading="loading"
-          size="small"
-          :bordered="false"
-          :pagination="{ pageSize: 10 }"
-        />
+        <!-- 用户卡片列表：一行一个 -->
+        <n-spin :show="loading">
+          <div v-if="users.length" class="user-list">
+            <div
+              v-for="row in users"
+              :key="row.Id"
+              class="user-card"
+            >
+              <!-- 卡片头部：用户名 + 状态标签 -->
+              <div class="card-header">
+                <div class="card-title">
+                  <n-text strong class="user-name text-truncate">{{ row.Name }}</n-text>
+                </div>
+                <n-space :size="4" class="card-tags">
+                  <n-tag v-if="row.Policy?.IsDisabled" type="error" size="small" round quaternary>禁用</n-tag>
+                  <n-tag v-if="row.Policy?.IsAdministrator" type="warning" size="small" round quaternary>管理员</n-tag>
+                  <n-tag v-if="row.Policy?.IsHidden" type="default" size="small" round quaternary>隐藏</n-tag>
+                  <n-tag
+                    v-if="!row.Policy?.IsDisabled && !row.Policy?.IsAdministrator && !row.Policy?.IsHidden"
+                    type="success"
+                    size="small"
+                    round
+                    quaternary
+                  >正常</n-tag>
+                </n-space>
+              </div>
+
+              <!-- 用户 ID -->
+              <div class="card-desc">
+                <n-text depth="3" class="desc-text">
+                  ID: <code class="user-id-code">{{ row.Id }}</code>
+                </n-text>
+              </div>
+
+              <!-- 操作按钮 -->
+              <div class="card-actions">
+                <n-button
+                  size="small"
+                  type="info"
+                  secondary
+                  strong
+                  @click="openEdit(row)"
+                >
+                  设置
+                </n-button>
+                <n-button
+                  size="small"
+                  type="warning"
+                  secondary
+                  strong
+                  @click="handleDirectBackup(row)"
+                >
+                  备份
+                </n-button>
+                <n-popconfirm
+                  @positive-click="handleDeleteUser(row.Id)"
+                  positive-text="确认删除"
+                  negative-text="取消"
+                >
+                  <template #trigger>
+                    <n-button
+                      size="small"
+                      type="error"
+                      secondary
+                      strong
+                    >
+                      删除
+                    </n-button>
+                  </template>
+                  确定删除用户 {{ row.Name }}？
+                </n-popconfirm>
+              </div>
+            </div>
+          </div>
+
+          <!-- 空状态 -->
+          <n-empty
+            v-else-if="!loading"
+            description="暂无用户"
+            style="padding: 60px 0"
+          />
+        </n-spin>
       </n-card>
     </n-space>
 
@@ -229,8 +303,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, h } from 'vue'
-import { NButton, NSpace, NTag, NPopconfirm, useMessage, NIcon, NInput, NInputGroup, NCard, NDataTable, NModal, NTabs, NTabPane, NForm, NFormItem, NSwitch, NInputNumber, NDivider, NAlert, NText } from 'naive-ui'
+import { ref, onMounted } from 'vue'
+import { NButton, NSpace, NTag, NPopconfirm, useMessage, NInput, NInputGroup, NCard, NModal, NTabs, NTabPane, NForm, NFormItem, NSwitch, NInputNumber, NDivider, NAlert, NText, NSpin, NEmpty } from 'naive-ui'
 import { 
   listEmbyUsers, 
   createEmbyUser, 
@@ -242,15 +316,6 @@ import {
 import { createEmbyBackup, createAllEmbyBackups } from '@/api/embyBackup'
 import { servers, activeServerId, fetchServers } from '@/store/serverStore'
 import EmbyConfigBackupManager from '@/components/EmbyConfigBackupManager.vue'
-import { 
-  RefreshOutlined as RefreshIcon,
-  BackupOutlined as BackupIcon,
-  SettingsOutlined as EditIcon,
-  DeleteOutlined as DeleteIcon,
-  PersonAddOutlined as UserAddIcon,
-  SaveOutlined as SaveIcon,
-  CloseOutlined as CloseIcon
-} from '@vicons/material'
 
 const message = useMessage()
 const loading = ref(false)
@@ -274,66 +339,15 @@ const handleJsonInput = (value: string) => {
   } catch (e) { }
 }
 
-const columns = [
-  { title: '用户名', key: 'Name' },
-  { 
-    title: '状态', 
-    key: 'Policy',
-    render(row: any) {
-      const tags = []
-      if (row.Policy?.IsDisabled) tags.push(h(NTag, { type: 'error', size: 'small', round: true, quaternary: true }, { default: () => '禁用' }))
-      if (row.Policy?.IsAdministrator) tags.push(h(NTag, { type: 'warning', size: 'small', round: true, quaternary: true }, { default: () => '管理员' }))
-      if (row.Policy?.IsHidden) tags.push(h(NTag, { type: 'default', size: 'small', round: true, quaternary: true }, { default: () => '隐藏' }))
-      
-      if (tags.length === 0) tags.push(h(NTag, { type: 'success', size: 'small', round: true, quaternary: true }, { default: () => '正常' }))
-      
-      return h(NSpace, null, { default: () => tags })
-    }
-  },
-  {
-    title: '操作',
-    key: 'actions',
-    render(row: any) {
-      return h(NSpace, null, {
-        default: () => [
-          h(NButton, { 
-            size: 'tiny', 
-            strong: true,
-            secondary: true, 
-            type: 'info',
-            onClick: () => openEdit(row)
-          }, { 
-            default: () => '设置'
-          }),
-          h(NButton, {
-            size: 'tiny',
-            strong: true,
-            secondary: true,
-            type: 'warning',
-            onClick: () => handleDirectBackup(row)
-          }, { 
-            default: () => '备份'
-          }),
-          h(NPopconfirm, {
-            onPositiveClick: () => handleDeleteUser(row.Id),
-            positiveText: '确认删除',
-            negativeText: '取消'
-          }, {
-            trigger: () => h(NButton, { 
-              size: 'tiny', 
-              strong: true,
-              secondary: true,
-              type: 'error'
-            }, { 
-              default: () => '删除'
-            }),
-            default: () => `确定删除用户 ${row.Name}？`
-          })
-        ]
-      })
-    }
+const handleDeleteUser = async (id: string) => {
+  try {
+    await deleteEmbyUser(id, activeServerId.value)
+    message.success('删除成功')
+    loadUsers()
+  } catch (e) {
+    console.error(e)
   }
-]
+}
 
 const loadUsers = async () => {
   if (!activeServerId.value) return
@@ -454,4 +468,107 @@ onMounted(async () => {
 .emby-users-container { padding: 10px; }
 .page-header { margin-bottom: 20px; }
 .main-card { margin-top: 12px; }
+
+/* 卡片列表：一行一个卡片 */
+.user-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm, 0.5rem);
+  margin-top: 4px;
+}
+
+.user-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 10px;
+  background: var(--card-bg-color, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--border-light, rgba(255, 255, 255, 0.06));
+  transition: border-color var(--transition-normal, 250ms ease),
+              box-shadow var(--transition-normal, 250ms ease),
+              transform var(--transition-fast, 150ms ease);
+  position: relative;
+  overflow: hidden;
+}
+
+.user-card:hover {
+  border-color: var(--border-medium, rgba(255, 255, 255, 0.12));
+  box-shadow: var(--shadow-md, 0 4px 12px rgba(0, 0, 0, 0.3));
+}
+
+.user-card:active {
+  transform: scale(0.99);
+}
+
+/* 卡片头部 */
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.user-name {
+  font-size: var(--text-md, 0.9375rem);
+  max-width: 100%;
+}
+
+.card-tags {
+  flex-shrink: 0;
+}
+
+/* 描述 */
+.card-desc {
+  min-width: 0;
+}
+
+.desc-text {
+  font-size: 12px;
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+.user-id-code {
+  font-size: 11px;
+  opacity: 0.6;
+  font-family: monospace;
+}
+
+/* 操作按钮 */
+.card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-light, rgba(255, 255, 255, 0.06));
+}
+
+.card-actions .n-button {
+  flex: 1 1 auto;
+  min-width: 56px;
+}
+
+/* 移动端适配 */
+@media (max-width: 767px) {
+  .card-actions .n-button {
+    flex: 1 1 calc(50% - 3px);
+    min-width: 0;
+  }
+}
+
+@media (max-width: 380px) {
+  .card-actions .n-button {
+    flex: 1 1 100%;
+  }
+}
 </style>

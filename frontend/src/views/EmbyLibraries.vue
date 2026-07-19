@@ -15,22 +15,22 @@
       <n-card size="small" segmented :bordered="false" class="main-card">
         <template #header>
           <n-space align="center">
-            <n-button 
-              strong 
-              secondary 
-              type="primary" 
-              size="small" 
-              @click="loadLibraries" 
+            <n-button
+              strong
+              secondary
+              type="primary"
+              size="small"
+              @click="loadLibraries"
               :loading="loading"
             >
               刷新媒体库列表
             </n-button>
-            <n-button 
-              strong 
-              secondary 
-              type="warning" 
-              size="small" 
-              @click="handleBackupAll" 
+            <n-button
+              strong
+              secondary
+              type="warning"
+              size="small"
+              @click="handleBackupAll"
               :loading="backingUpAll"
             >
               一键备份所有媒体库
@@ -39,22 +39,86 @@
           </n-space>
         </template>
         <template #header-extra>
-          <n-button 
-            type="primary" 
-            size="small" 
+          <n-button
+            type="primary"
+            size="small"
             @click="showAddModal = true"
           >
             新增媒体库
           </n-button>
         </template>
 
-        <n-data-table
-          :columns="columns"
-          :data="libraries"
-          :loading="loading"
-          size="small"
-          :bordered="false"
-        />
+        <!-- 媒体库卡片列表：一行一个 -->
+        <n-spin :show="loading">
+          <div v-if="libraries.length" class="library-list">
+            <div
+              v-for="row in libraries"
+              :key="row.Id"
+              class="library-card"
+            >
+              <!-- 卡片头部：名称 + 类型 -->
+              <div class="card-header">
+                <div class="card-title">
+                  <n-text strong class="library-name text-truncate">{{ row.Name }}</n-text>
+                </div>
+                <n-tag type="info" size="small" round quaternary>{{ row.CollectionType }}</n-tag>
+              </div>
+
+              <!-- 媒体库 ID -->
+              <div class="card-desc">
+                <n-text depth="3" class="desc-text">
+                  ID: <code class="library-id-code">{{ row.Id }}</code>
+                </n-text>
+              </div>
+
+              <!-- 操作按钮 -->
+              <div class="card-actions">
+                <n-button
+                  size="small"
+                  type="info"
+                  secondary
+                  strong
+                  @click="openEdit(row)"
+                >
+                  设置
+                </n-button>
+                <n-button
+                  size="small"
+                  type="warning"
+                  secondary
+                  strong
+                  @click="handleDirectBackup(row)"
+                >
+                  备份
+                </n-button>
+                <n-popconfirm
+                  @positive-click="handleRemoveLibrary(row.Name, row.Id)"
+                  positive-text="确认移除"
+                  negative-text="取消"
+                >
+                  <template #trigger>
+                    <n-button
+                      size="small"
+                      type="error"
+                      secondary
+                      strong
+                    >
+                      移除
+                    </n-button>
+                  </template>
+                  确定移除媒体库 {{ row.Name }}？
+                </n-popconfirm>
+              </div>
+            </div>
+          </div>
+
+          <!-- 空状态 -->
+          <n-empty
+            v-else-if="!loading"
+            description="暂无媒体库"
+            style="padding: 60px 0"
+          />
+        </n-spin>
       </n-card>
     </n-space>
 
@@ -94,8 +158,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive, h } from 'vue'
-import { NButton, NSpace, NTag, NPopconfirm, useMessage, NIcon, NInput, NSelect, NCard, NDataTable, NModal, NForm, NFormItem, NAlert, NText } from 'naive-ui'
+import { ref, onMounted, reactive } from 'vue'
+import { NButton, NSpace, NTag, NPopconfirm, useMessage, NInput, NSelect, NCard, NModal, NForm, NFormItem, NAlert, NText, NSpin, NEmpty } from 'naive-ui'
 import { 
   listEmbyLibraries, 
   addEmbyLibrary, 
@@ -105,15 +169,6 @@ import { createEmbyBackup, createAllEmbyBackups } from '@/api/embyBackup'
 import { servers, activeServerId, fetchServers } from '@/store/serverStore'
 import LibraryEditModal from './emby-library/LibraryEditModal.vue'
 import EmbyConfigBackupManager from '@/components/EmbyConfigBackupManager.vue'
-import { 
-  RefreshOutlined as RefreshIcon,
-  BackupOutlined as BackupIcon,
-  SettingsOutlined as EditIcon,
-  DeleteOutlined as DeleteIcon,
-  LibraryAddOutlined as LibAddIcon,
-  CheckOutlined as CheckIcon,
-  CloseOutlined as CloseIcon
-} from '@vicons/material'
 
 const message = useMessage()
 const loading = ref(false)
@@ -137,63 +192,6 @@ const collectionTypeOptions = [
 
 const showEditModal = ref(false)
 const editingLib = ref<any>(null)
-
-const columns = [
-  { title: '名称', key: 'Name' },
-  { 
-    title: '类型', 
-    key: 'CollectionType', 
-    render: (row: any) => h(NTag, { type: 'info', size: 'small', round: true, quaternary: true }, { default: () => row.CollectionType }) 
-  },
-  { 
-    title: 'ID', 
-    key: 'Id', 
-    render: (row: any) => h('code', { style: 'font-size: 12px; opacity: 0.6' }, row.Id) 
-  },
-  {
-    title: '操作',
-    key: 'actions',
-    render(row: any) {
-      return h(NSpace, null, {
-        default: () => [
-          h(NButton, { 
-            size: 'tiny', 
-            strong: true,
-            secondary: true, 
-            type: 'info',
-            onClick: () => openEdit(row) 
-          }, { 
-            default: () => '设置'
-          }),
-          h(NButton, { 
-            size: 'tiny', 
-            strong: true,
-            secondary: true, 
-            type: 'warning',
-            onClick: () => handleDirectBackup(row) 
-          }, { 
-            default: () => '备份'
-          }),
-          h(NPopconfirm, {
-            onPositiveClick: () => handleRemoveLibrary(row.Name, row.Id),
-            positiveText: '确认移除',
-            negativeText: '取消'
-          }, {
-            trigger: () => h(NButton, { 
-              size: 'tiny', 
-              strong: true,
-              secondary: true, 
-              type: 'error'
-            }, { 
-              default: () => '移除'
-            }),
-            default: () => `确定移除媒体库 ${row.Name}？`
-          })
-        ]
-      })
-    }
-  }
-]
 
 const loadLibraries = async () => {
   if (!activeServerId.value) return
@@ -271,4 +269,103 @@ onMounted(async () => {
 .emby-libraries-container { padding: 10px; }
 .page-header { margin-bottom: 20px; }
 .main-card { margin-top: 12px; }
+
+/* 卡片列表：一行一个卡片 */
+.library-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm, 0.5rem);
+  margin-top: 4px;
+}
+
+.library-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 10px;
+  background: var(--card-bg-color, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--border-light, rgba(255, 255, 255, 0.06));
+  transition: border-color var(--transition-normal, 250ms ease),
+              box-shadow var(--transition-normal, 250ms ease),
+              transform var(--transition-fast, 150ms ease);
+  position: relative;
+  overflow: hidden;
+}
+
+.library-card:hover {
+  border-color: var(--border-medium, rgba(255, 255, 255, 0.12));
+  box-shadow: var(--shadow-md, 0 4px 12px rgba(0, 0, 0, 0.3));
+}
+
+.library-card:active {
+  transform: scale(0.99);
+}
+
+/* 卡片头部 */
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.library-name {
+  font-size: var(--text-md, 0.9375rem);
+  max-width: 100%;
+}
+
+/* 描述 */
+.card-desc {
+  min-width: 0;
+}
+
+.desc-text {
+  font-size: 12px;
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+.library-id-code {
+  font-size: 11px;
+  opacity: 0.6;
+  font-family: monospace;
+}
+
+/* 操作按钮 */
+.card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-light, rgba(255, 255, 255, 0.06));
+}
+
+.card-actions .n-button {
+  flex: 1 1 auto;
+  min-width: 56px;
+}
+
+/* 移动端适配 */
+@media (max-width: 767px) {
+  .card-actions .n-button {
+    flex: 1 1 calc(50% - 3px);
+    min-width: 0;
+  }
+}
+
+@media (max-width: 380px) {
+  .card-actions .n-button {
+    flex: 1 1 100%;
+  }
+}
 </style>
