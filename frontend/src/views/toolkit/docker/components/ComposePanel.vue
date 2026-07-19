@@ -4,7 +4,6 @@
     <div class="toolbar-row" v-if="hostId">
       <div class="toolbar-left">
         <n-button type="primary" @click="handleCreateProject">
-          <template #icon><n-icon><AddIcon /></n-icon></template>
           新建项目
         </n-button>
         <n-input
@@ -221,8 +220,7 @@ import {
 import {
   PushPinOutlined as PushPinIcon,
   FolderOutlined as FolderIcon,
-  SearchOutlined as SearchIcon,
-  AddOutlined as AddIcon
+  SearchOutlined as SearchIcon
 } from '@vicons/material'
 import axios from 'axios'
 import yaml from 'js-yaml'
@@ -576,7 +574,7 @@ defineExpose({ refresh: fetchProjects })
   padding: 14px;
   border-radius: 10px;
   background: var(--card-bg-color, rgba(255, 255, 255, 0.03));
-  border: 1px solid rgba(64, 128, 240, 0.4);
+  border: 1px solid var(--border-light, rgba(255, 255, 255, 0.06));
   transition: border-color var(--transition-normal), box-shadow var(--transition-normal), transform var(--transition-fast);
   position: relative;
   overflow: hidden;
@@ -596,7 +594,7 @@ defineExpose({ refresh: fetchProjects })
 }
 
 .project-card:hover {
-  border-color: rgba(64, 128, 240, 0.75);
+  border-color: var(--border-medium, rgba(255, 255, 255, 0.12));
   box-shadow: var(--shadow-md, 0 4px 12px rgba(0, 0, 0, 0.3));
 }
 
