@@ -21,14 +21,14 @@
           </n-space>
 
           <n-space :size="8" :wrap="true">
-            <n-button type="warning" secondary size="small" @click="handleAutoSelect">
+            <n-button type="warning" secondary size="small" :loading="analyzing" @click="handleAutoSelect">
               执行分析
             </n-button>
             <n-button type="primary" secondary size="small" @click="showConfig = true">
               规则设置
             </n-button>
-            <n-button type="primary" secondary size="small" :loading="syncing" @click="syncMedia">
-              执行同步
+            <n-button type="primary" secondary size="small" :disabled="syncing" @click="syncMedia">
+              {{ syncing ? '同步中...' : '执行同步' }}
             </n-button>
             <n-button v-if="selectedIds.length > 0" type="error" secondary size="small" @click="showConfirm = true">
               执行删除 ({{ selectedIds.length }})
@@ -71,7 +71,7 @@ import { usePWA } from '@/composables/usePWA'
 const { isMobile } = usePWA()
 const message = useMessage()
 const {
-  loading, syncing, searchName, showOnlyDuplicates, items, selectedIds, suggestedItems, dedupeConfig,
+  loading, syncing, analyzing, searchName, showOnlyDuplicates, items, selectedIds, suggestedItems, dedupeConfig,
   loadItems, onLoadChildren, toggleDuplicateMode, syncMedia, autoSelect, deleteItems, loadConfig, saveDedupeConfig
 } = useDedupe()
 

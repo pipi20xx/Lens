@@ -8,6 +8,7 @@ export function useDedupe() {
 
   const loading = ref(false)
   const syncing = ref(false)
+  const analyzing = ref(false)
   const searchName = ref('')
   const showOnlyDuplicates = ref(false)
   const items = ref<any[]>([])
@@ -86,12 +87,12 @@ export function useDedupe() {
     
     try {
       syncing.value = true
-      message.info('同步任务已在后台启动...', { duration: 3000 })
+      message.info('同步任务已在后台启动，完成后将自动刷新列表', { duration: 3000 })
       
       // 1. 发起触发请求 (后端会立即返回 sync_started)
       await axios.post('/api/dedupe/sync')
       
-      // 2. 开始轮询状态
+      // 2. 静默轮询状态，仅用于完成后刷新 + 提示
       const poll = setInterval(async () => {
         try {
           const statusRes = await axios.get('/api/dedupe/sync/status')
@@ -100,7 +101,7 @@ export function useDedupe() {
           if (!is_syncing) {
             clearInterval(poll)
             syncing.value = false
-            message.success('Emby 媒体库同步已完成')
+            message.success('Emby 媒体库同步已完成，列表已自动刷新')
             
             // 同步完成后刷新视图
             if (showOnlyDuplicates.value) {
@@ -108,14 +109,12 @@ export function useDedupe() {
             } else {
               loadItems()
             }
-          } else if (progress) {
-            // 可选：如果需要在界面显示具体进度，可以在这里更新一个 ref
-            console.log('Sync Progress:', progress)
           }
+          // 静默忽略 progress，不打扰用户
         } catch (e) {
           clearInterval(poll)
           syncing.value = false
-          message.error('检查同步进度时出错')
+          // 轮询出错不弹窗，避免无意义的错误反馈
         }
       }, 2000) // 每 2 秒轮询一次
       
@@ -127,10 +126,12 @@ export function useDedupe() {
 
   // --- 智能选中重构 ---
   const autoSelect = async () => {
-    loading.value = true
+    analyzing.value = true
+    // 不设置 loading，避免遮罩整个表格
     try {
       // 不传任何参数，让后端全库扫描
-      const res = await axios.post('/api/dedupe/smart-select')
+      // 同步阻塞接口，覆盖全局 20s 超时为永不超时，避免大库分析被误判失败
+      const res = await axios.post('/api/dedupe/smart-select', null, { timeout: 0 })
       const data = Array.isArray(res.data) ? res.data : []
       suggestedItems.value = data
       selectedIds.value = data.map((i: any) => i.id)
@@ -144,7 +145,7 @@ export function useDedupe() {
       message.error('算法执行失败')
       return []
     } finally {
-      loading.value = false
+      analyzing.value = false
     }
   }
 
@@ -162,7 +163,7 @@ export function useDedupe() {
   }
 
   return {
-    loading, syncing, searchName, showOnlyDuplicates, items, selectedIds, suggestedItems, dedupeConfig,
+    loading, syncing, analyzing, searchName, showOnlyDuplicates, items, selectedIds, suggestedItems, dedupeConfig,
     loadItems, onLoadChildren, toggleDuplicateMode, syncMedia, autoSelect, deleteItems, loadConfig, saveDedupeConfig
   }
 }

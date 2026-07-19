@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { 
-  NCard, NSpace, NButton, NIcon, NTag, NSwitch, NVirtualList, NSelect, NSpin, NText
+  NCard, NSpace, NButton, NTag, NSwitch, NVirtualList, NSelect, NSpin, NText
 } from 'naive-ui'
 import axios from 'axios'
-import { CodeBracketIcon } from '@heroicons/vue/24/outline'
 const props = defineProps({
   // 组件放置在 NModal 里
 })
@@ -154,7 +153,6 @@ onUnmounted(() => {
   <div class="console-wrapper">
     <div class="console-header">
       <n-space align="center" :size="12">
-        <n-icon size="20" color="var(--primary-color)"><CodeBracketIcon /></n-icon>
         <span class="header-title">{{ selectedDate ? `历史记录: ${selectedDate}` : '实时系统日志 (Live)' }}</span>
         <n-tag v-if="!selectedDate" :type="socketStatus === 'connected' ? 'success' : 'error'" size="tiny" round>
           <template #icon>
@@ -264,6 +262,14 @@ onUnmounted(() => {
 
 .log-list {
   height: 100%;
+}
+
+/* 清除 n-virtual-list 内部容器的默认主题背景色，避免灰色底 */
+.log-list :deep(.n-virtual-list),
+.log-list :deep(.n-scrollbar),
+.log-list :deep(.n-scrollbar-container),
+.log-list :deep(.n-scrollbar-content) {
+  background-color: transparent !important;
 }
 
 .log-line {
