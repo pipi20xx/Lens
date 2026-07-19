@@ -109,6 +109,10 @@ class TaskLogBase(BaseModel):
 class TaskLog(TaskLogBase):
     id: str
     created_at: datetime
+    image_name: Optional[str] = None
+    platforms: Optional[str] = None
+    host_name: Optional[str] = None
+    completed_at: Optional[datetime] = None
     class Config:
         from_attributes = True
 

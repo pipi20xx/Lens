@@ -11,7 +11,7 @@ import requests
 from pathlib import Path
 from datetime import datetime
 from typing import List, Optional, Dict, Any
-from sqlalchemy import select, delete, update
+from sqlalchemy import select, delete, update, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from urllib.parse import urlparse, urlunparse
 
@@ -356,16 +356,21 @@ class ImageBuilderService:
         return result.scalars().all()
 
     @staticmethod
-    async def create_task_log(db: AsyncSession, project_id: str, tag: str) -> str:
+    async def create_task_log(db: AsyncSession, project_id: str, tag: str, image_name: str = None, platforms: str = None, host_name: str = None) -> str:
         task_id = str(uuid.uuid4())
-        db_task = models.BuildTaskLog(id=task_id, project_id=project_id, tag=tag)
+        db_task = models.BuildTaskLog(
+            id=task_id, project_id=project_id, tag=tag,
+            image_name=image_name, platforms=platforms, host_name=host_name
+        )
         db.add(db_task)
         await db.commit()
         return task_id
 
     @staticmethod
     async def update_task_status(db: AsyncSession, task_id: str, status: str):
-        await db.execute(update(models.BuildTaskLog).where(models.BuildTaskLog.id == task_id).values(status=status))
+        await db.execute(update(models.BuildTaskLog).where(models.BuildTaskLog.id == task_id).values(
+            status=status, completed_at=func.now()
+        ))
         await db.commit()
 
     @staticmethod
@@ -522,7 +527,28 @@ class ImageBuilderService:
         registry = await ImageBuilderService.get_registry(None, project.get("registry_id")) if project.get("registry_id") else None
         credential = await ImageBuilderService.get_credential(None, registry.get("credential_id")) if registry and registry.get("credential_id") else None
         proxy = await ImageBuilderService.get_proxy(None, project.get("proxy_id")) if project.get("proxy_id") else None
-        task_id = await ImageBuilderService.create_task_log(db, project_id, tag)
+        # 计算完整镜像地址（与 run_docker_task_sync 中的逻辑保持一致）
+        reg_url = registry["url"] if registry else "docker.io"
+        if "://" in reg_url:
+            reg_host = urlparse(reg_url).netloc
+        else:
+            reg_host = urlparse(f"https://{reg_url}").netloc
+            if not reg_host:
+                reg_host = reg_url.split('/')[0]
+        if reg_host in ["docker.io", "index.docker.io", "registry-1.docker.io", ""]:
+            repo_base = project["repo_image_name"]
+        else:
+            repo_base = f"{reg_host}/{project['repo_image_name']}".replace("//", "/")
+        # 支持多 Tag：取第一个作为展示用完整镜像地址
+        first_tag = [t.strip() for t in re.split(r'[,，|]', tag) if t.strip()]
+        display_tag = first_tag[0] if first_tag else tag
+        full_image_name = f"{repo_base}:{display_tag}"
+        platforms_str = project.get("platforms", "linux/amd64")
+        host_name = host_config.get("name", "Local Host")
+
+        task_id = await ImageBuilderService.create_task_log(
+            db, project_id, tag, image_name=full_image_name, platforms=platforms_str, host_name=host_name
+        )
         project_dict = {
             "name": project["name"], "build_context": project["build_context"], "dockerfile_path": project["dockerfile_path"],
             "local_image_name": project["local_image_name"], "repo_image_name": project["repo_image_name"],

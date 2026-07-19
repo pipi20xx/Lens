@@ -90,8 +90,10 @@ html, body, #app {
   letter-spacing: 0.01em;
 }
 
-/* 统一行高与文本渲染 */
-p, div, span, label {
+/* 统一行高与文本渲染
+   使用 :where() 降低特异性为 0,使任何 scoped 样式或组件级样式
+   都能轻松覆盖,避免影响站点导航等有独立样式设置的页面 */
+:where(p, div, span, label) {
   line-height: 1.6;
 }
 
@@ -224,13 +226,14 @@ a[n-button--error-type] .n-icon,
 
 /* ============================================
    卡片边框统一 - 所有卡片边框使用主色蓝
+   排除: 站点导航设置弹框 (.category-manager-modal) 有独立样式系统
    ============================================ */
-.n-card {
+.n-card:not(.category-manager-modal):not(.category-manager-modal .n-card) {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
   border-color: rgba(59, 130, 246, 0.25) !important;
 }
-.n-card:hover,
-.n-card--hoverable:hover {
+.n-card:not(.category-manager-modal):not(.category-manager-modal .n-card):hover,
+.n-card--hoverable:not(.category-manager-modal):not(.category-manager-modal .n-card--hoverable):hover {
   border-color: rgba(59, 130, 246, 0.5) !important;
 }
 
@@ -239,23 +242,24 @@ a[n-button--error-type] .n-icon,
    Naive UI 默认用 depth-1/2/3 区分层级,
    在卡片内部所有可见文字都应为主色(不透明),
    避免出现灰色次要字体。
+   排除: 站点导航设置弹框有独立样式系统
    ============================================ */
-.n-card .n-text--depth-2,
-.n-card .n-text--depth-3,
-.n-card [class*="depth"] {
+.n-card:not(.category-manager-modal):not(.category-manager-modal .n-card) .n-text--depth-2,
+.n-card:not(.category-manager-modal):not(.category-manager-modal .n-card) .n-text--depth-3,
+.n-card:not(.category-manager-modal):not(.category-manager-modal .n-card) [class*="depth"] {
   opacity: 1 !important;
   color: var(--text-color, #fff) !important;
 }
 /* 卡片内的描述/副标题也保持较高可读性 */
-.n-card .n-descriptions-table-content,
-.n-card .n-descriptions .n-descriptions-table-content__content {
+.n-card:not(.category-manager-modal):not(.category-manager-modal .n-card) .n-descriptions-table-content,
+.n-card:not(.category-manager-modal):not(.category-manager-modal .n-card) .n-descriptions .n-descriptions-table-content__content {
   opacity: 0.9 !important;
   color: var(--text-color, #fff) !important;
 }
 /* 列表项/thing 组件内文字 */
-.n-card .n-list-item__main__description,
-.n-card .n-thing-main__description,
-.n-card .n-thing-description {
+.n-card:not(.category-manager-modal):not(.category-manager-modal .n-card) .n-list-item__main__description,
+.n-card:not(.category-manager-modal):not(.category-manager-modal .n-card) .n-thing-main__description,
+.n-card:not(.category-manager-modal):not(.category-manager-modal .n-card) .n-thing-description {
   opacity: 0.85 !important;
   color: var(--text-color, #fff) !important;
 }
@@ -476,8 +480,9 @@ code, pre, .n-code {
   opacity: 0.7;
 }
 
-/* 卡片样式 - 已在上方统一定义蓝色边框, 此处仅保留 hover 动画 */
-.n-card--hoverable:hover {
+/* 卡片样式 - 已在上方统一定义蓝色边框, 此处仅保留 hover 动画
+   排除: 站点导航设置弹框 */
+.n-card--hoverable:not(.category-manager-modal):not(.category-manager-modal .n-card--hoverable):hover {
   transform: translateY(-2px);
   box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.5) !important;
 }
@@ -579,8 +584,9 @@ code, pre, .n-code {
 
 /* Step 2: 覆盖 Naive UI 的 --n-* CSS 变量 (仅作用于文字按钮)
    关键: 用 :has(.n-button__content) 限定只对有文字内容的按钮加底色,
-   纯图标按钮(无 content)不被匹配, 由图标按钮规则处理为透明无边框 */
-.n-button:has(.n-button__content):not(.n-button--quaternary):not(.n-button--text-type):not(.n-button--text):not(.nav-group-btn):not(.server-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button) {
+   纯图标按钮(无 content)不被匹配, 由图标按钮规则处理为透明无边框
+   排除: 站点导航设置弹框 (.category-manager-modal) 有独立样式系统 */
+.n-button:has(.n-button__content):not(.n-button--quaternary):not(.n-button--text-type):not(.n-button--text):not(.nav-group-btn):not(.server-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button):not(.category-manager-modal .n-button):not(.category-manager-modal.n-button) {
   --n-color: var(--btn-bg, #3B82F6) !important;
   --n-color-hover: var(--btn-bg-hover, #2563EB) !important;
   --n-color-pressed: var(--btn-bg-pressed, #1D4ED8) !important;
@@ -602,13 +608,13 @@ code, pre, .n-code {
   border: 1px solid var(--btn-bg, #3B82F6) !important;
 }
 
-.n-button:has(.n-button__content):not(.n-button--quaternary):not(.n-button--text-type):not(.n-button--text):not(.nav-group-btn):not(.server-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button):hover {
+.n-button:has(.n-button__content):not(.n-button--quaternary):not(.n-button--text-type):not(.n-button--text):not(.nav-group-btn):not(.server-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button):not(.category-manager-modal .n-button):not(.category-manager-modal.n-button):hover {
   background-color: var(--btn-bg-hover, #2563EB) !important;
   color: #ffffff !important;
   border-color: var(--btn-bg-hover, #2563EB) !important;
 }
 
-.n-button:has(.n-button__content):not(.n-button--quaternary):not(.n-button--text-type):not(.n-button--text):not(.nav-group-btn):not(.server-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button):active {
+.n-button:has(.n-button__content):not(.n-button--quaternary):not(.n-button--text-type):not(.n-button--text):not(.nav-group-btn):not(.server-btn):not(.nav-bar .n-button):not(.top-nav .n-button):not(.header .n-button):not(.category-manager-modal .n-button):not(.category-manager-modal.n-button):active {
   background-color: var(--btn-bg-pressed, #1D4ED8) !important;
   color: #ffffff !important;
   border-color: var(--btn-bg-pressed, #1D4ED8) !important;

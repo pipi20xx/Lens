@@ -1,6 +1,6 @@
 <template>
+  <!-- 构建历史弹框 -->
   <n-modal v-model:show="show" preset="card" :title="`构建历史 - ${projectName}`" style="width: 800px">
-    <!-- 构建历史卡片列表：一行一个 -->
     <n-spin :show="loading">
       <div v-if="tasks.length" class="history-list">
         <div
@@ -8,10 +8,10 @@
           :key="row.id"
           class="history-card"
         >
-          <!-- 卡片头部：状态标签 + Tag -->
+          <!-- 卡片头部：完整镜像地址 + 状态标签 -->
           <div class="card-header">
             <div class="card-title">
-              <n-text strong class="history-tag">{{ row.tag || '-' }}</n-text>
+              <n-text strong class="history-image-name text-truncate">{{ row.image_name || row.tag || '-' }}</n-text>
             </div>
             <n-tag
               size="small"
@@ -20,16 +20,30 @@
             >{{ getStatusConfig(row.status).label }}</n-tag>
           </div>
 
-          <!-- 执行时间 -->
-          <div class="card-desc">
-            <n-text  class="desc-text">执行时间: {{ formatDate(row.created_at) }}</n-text>
+          <!-- 构建平台标签 -->
+          <div v-if="row.platforms" class="card-platforms">
+            <n-tag
+              v-for="p in splitPlatforms(row.platforms)"
+              :key="p"
+              size="small"
+              type="info"
+              ghost
+            >{{ p }}</n-tag>
+          </div>
+
+          <!-- 执行信息 -->
+          <div class="card-meta">
+            <n-text class="meta-text" v-if="row.host_name">🖥️ 构建主机: {{ row.host_name }}</n-text>
+            <n-text class="meta-text">⏱️ 开始: {{ formatDate(row.created_at) }}</n-text>
+            <n-text class="meta-text" v-if="row.completed_at">🏁 完成: {{ formatDate(row.completed_at) }}</n-text>
+            <n-text class="meta-text" v-if="row.completed_at && row.created_at">⚡ 耗时: {{ formatDuration(row.created_at, row.completed_at) }}</n-text>
           </div>
 
           <!-- 操作按钮 -->
           <div class="card-actions">
             <n-button
               size="small"
-              @click="viewLog(row.id)"
+              @click="viewLog(row)"
             >
               查看日志
             </n-button>
@@ -52,27 +66,53 @@
         style="padding: 40px 0"
       />
     </n-spin>
-    
-    <!-- 内层日志查看器 -->
-    <n-modal v-model:show="showLog" preset="card" title="详细日志" style="width: 90%; max-width: 1200px; height: 96vh;">
-      <div class="log-container-wrapper">
-        <div class="log-container">
-          <pre>{{ currentLog }}</pre>
+  </n-modal>
+
+  <!-- 日志查看器弹框（独立于历史弹框，避免嵌套层级问题） -->
+  <n-modal
+    v-model:show="showLog"
+    preset="card"
+    :title="logModalTitle"
+    style="width: 90%; max-width: 1200px; height: 90vh;"
+  >
+    <div class="log-toolbar">
+      <n-space align="center" size="small">
+        <n-tag v-if="currentTaskStatus" size="small" :type="getStatusConfig(currentTaskStatus).type" ghost>
+          {{ getStatusConfig(currentTaskStatus).label }}
+        </n-tag>
+        <n-text depth="3" class="log-toolbar-hint">
+          <span v-if="logLoading">正在加载日志...</span>
+          <span v-else>共 {{ currentLog ? currentLog.split('\n').length : 0 }} 行</span>
+        </n-text>
+      </n-space>
+      <n-space size="small">
+        <n-button size="small" :loading="logLoading" @click="refreshLog">
+          刷新
+        </n-button>
+        <n-button size="small" @click="scrollToBottom">
+          滚动到底部
+        </n-button>
+      </n-space>
+    </div>
+    <div class="log-container-wrapper">
+      <n-spin :show="logLoading">
+        <div ref="logContainerRef" class="log-container">
+          <pre>{{ currentLog || '暂无日志内容' }}</pre>
         </div>
-      </div>
-      <template #footer>
-        <n-space justify="end">
-          <n-button type="primary" @click="showLog = false">
-            关闭
-          </n-button>
-        </n-space>
-      </template>
-    </n-modal>
+      </n-spin>
+    </div>
+    <template #footer>
+      <n-space justify="end">
+        <n-button type="primary" @click="showLog = false">
+          关闭
+        </n-button>
+      </n-space>
+    </template>
   </n-modal>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, nextTick, computed } from 'vue'
 import { NModal, NButton, NSpace, NTag, NSpin, NEmpty, NText, useMessage, useDialog } from 'naive-ui'
 import axios from 'axios'
 
@@ -85,13 +125,24 @@ const props = defineProps<{
 const emit = defineEmits(['update:show'])
 
 const show = ref(false)
-const tasks = ref([])
+const tasks = ref<any[]>([])
 const loading = ref(false)
+
+// 日志查看相关状态
 const showLog = ref(false)
+const logLoading = ref(false)
 const currentLog = ref('')
+const currentTaskId = ref('')
+const currentTaskStatus = ref('')
+const logContainerRef = ref<HTMLElement | null>(null)
 
 const message = useMessage()
 const dialog = useDialog()
+
+// 日志弹框标题
+const logModalTitle = computed(() => {
+  return currentTaskId.value ? `构建日志` : '详细日志'
+})
 
 // 辅助函数：状态映射
 const getStatusConfig = (status: string) => {
@@ -118,6 +169,35 @@ const formatDate = (createdAt: string) => {
   })
 }
 
+// 辅助函数：耗时格式化
+const formatDuration = (start: string, end: string) => {
+  const startTime = new Date(start).getTime()
+  const endTime = new Date(end).getTime()
+  if (isNaN(startTime) || isNaN(endTime) || endTime < startTime) return '-'
+  const seconds = Math.floor((endTime - startTime) / 1000)
+  if (seconds < 60) return `${seconds}秒`
+  const minutes = Math.floor(seconds / 60)
+  const remainSeconds = seconds % 60
+  if (minutes < 60) return `${minutes}分${remainSeconds}秒`
+  const hours = Math.floor(minutes / 60)
+  const remainMinutes = minutes % 60
+  return `${hours}小时${remainMinutes}分${remainSeconds}秒`
+}
+
+// 辅助函数：拆分平台字符串
+const splitPlatforms = (platforms: string) => {
+  return (platforms || '').split(',').filter((p: string) => p.trim())
+}
+
+// 滚动日志到底部
+const scrollToBottom = () => {
+  nextTick(() => {
+    if (logContainerRef.value) {
+      logContainerRef.value.scrollTop = logContainerRef.value.scrollHeight
+    }
+  })
+}
+
 watch(() => props.show, (val) => {
   show.value = val
   if (val) fetchHistory()
@@ -140,14 +220,33 @@ const fetchHistory = async () => {
   }
 }
 
-const viewLog = async (taskId: string) => {
+// 查看日志：传入整行数据，记录任务状态用于展示
+const viewLog = async (row: any) => {
+  currentTaskId.value = row.id
+  currentTaskStatus.value = row.status || ''
+  showLog.value = true
+  await fetchLog()
+}
+
+// 拉取日志内容
+const fetchLog = async () => {
+  if (!currentTaskId.value) return
+  logLoading.value = true
   try {
-    const res = await axios.get(`/api/image-builder/tasks/${taskId}/log`)
-    currentLog.value = res.data.content
-    showLog.value = true
+    const res = await axios.get(`/api/image-builder/tasks/${currentTaskId.value}/log`)
+    currentLog.value = res.data.content || ''
+    // 日志加载后自动滚动到底部（最新输出）
+    scrollToBottom()
   } catch (e) {
     message.error('读取日志失败')
+  } finally {
+    logLoading.value = false
   }
+}
+
+// 刷新日志（对正在构建中的任务特别有用）
+const refreshLog = () => {
+  fetchLog()
 }
 
 const deleteLog = (taskId: string) => {
@@ -220,17 +319,33 @@ const deleteLog = (taskId: string) => {
   flex: 1;
 }
 
-.history-tag {
+.history-image-name {
   font-size: var(--text-md, 0.9375rem);
   max-width: 100%;
 }
 
-/* 描述 */
-.card-desc {
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 平台标签 */
+.card-platforms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+/* 元信息 */
+.card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
   min-width: 0;
 }
 
-.desc-text {
+.meta-text {
   font-size: 12px;
   line-height: 1.5;
   word-break: break-all;
@@ -264,9 +379,23 @@ const deleteLog = (taskId: string) => {
   }
 }
 
+/* 日志工具栏 */
+.log-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.log-toolbar-hint {
+  font-size: 12px;
+}
+
 /* 日志容器 */
 .log-container-wrapper {
-  height: calc(96vh - 180px); /* 减去 Header, Footer 和 Padding 的高度 */
+  height: calc(90vh - 200px);
   overflow: hidden;
 }
 
@@ -277,8 +406,18 @@ const deleteLog = (taskId: string) => {
   border-radius: 4px;
   height: 100%;
   overflow-y: auto;
-  font-family: monospace;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.6;
   white-space: pre-wrap;
+  word-break: break-word;
   border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.log-container pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: inherit;
 }
 </style>
