@@ -1,11 +1,43 @@
 import { api } from './client'
 
 export const pgsqlApi = {
-  getStatus: () => api.get('/api/pgsql/status'),
-  getDatabases: () => api.get('/api/pgsql/databases'),
-  getTables: (db: string) => api.get(`/api/pgsql/databases/${db}/tables`),
-  executeQuery: (query: string, db?: string) => api.post('/api/pgsql/query', { query, db }),
+  // ========== 主机管理 ==========
+  getHosts: () => api.get('/api/pgsql/hosts'),
+  addHost: (host: any, name: string) =>
+    api.post('/api/pgsql/hosts', host, { params: { name } }),
+  updateHost: (id: string, host: any, name: string) =>
+    api.put(`/api/pgsql/hosts/${id}`, host, { params: { name } }),
+  deleteHost: (id: string) => api.delete(`/api/pgsql/hosts/${id}`),
+  testConnection: (config: any) => api.post('/api/pgsql/test', config),
+
+  // ========== 数据库操作 ==========
+  getDatabases: (config: any) => api.post('/api/pgsql/databases', config),
+  createDatabase: (config: any, req: { dbname: string; owner?: string }) =>
+    api.post('/api/pgsql/databases/create', { ...req, ...config }),
+  updateDatabase: (dbname: string, config: any, req: { owner?: string; description?: string }) =>
+    api.patch(`/api/pgsql/databases/${dbname}`, { ...req, ...config }),
+  dropDatabase: (dbname: string, config: any) =>
+    api.delete(`/api/pgsql/databases/${dbname}`, { body: config }),
+
+  // ========== 用户/角色操作 ==========
+  getUsers: (config: any) => api.post('/api/pgsql/users', config),
+  createUser: (config: any, req: any) =>
+    api.post('/api/pgsql/users/create', { ...req, ...config }),
+  updateUser: (username: string, config: any, req: any) =>
+    api.patch(`/api/pgsql/users/${username}`, { ...req, ...config }),
+  dropUser: (username: string, config: any) =>
+    api.delete(`/api/pgsql/users/${username}`, { body: config }),
+
+  // ========== 数据/表操作 ==========
+  getTables: (config: any) => api.post('/api/pgsql/tables', config),
+  getTableData: (config: any, params: { table_name: string; page: number; page_size: number }) =>
+    api.post('/api/pgsql/data', { ...config, ...params }),
+
+  // ========== 备份管理 ==========
   getBackups: () => api.get('/api/pgsql/backups'),
-  createBackup: (data: any) => api.post('/api/pgsql/backups', data),
-  restoreBackup: (id: string) => api.post(`/api/pgsql/backups/${id}/restore`),
+  createBackup: (config: any, dbname: string) =>
+    api.post('/api/pgsql/backups/create', { ...config, dbname }),
+  restoreBackup: (filename: string, config: any, dbname: string) =>
+    api.post(`/api/pgsql/backups/restore/${filename}`, { ...config, dbname }),
+  deleteBackup: (filename: string) => api.delete(`/api/pgsql/backups/${filename}`),
 }

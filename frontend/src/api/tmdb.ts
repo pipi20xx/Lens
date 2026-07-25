@@ -1,8 +1,10 @@
 import { api } from './client'
 
 export const tmdbApi = {
-  search: (query: string, type?: string) => api.get('/api/tmdb/search', { params: { query, type } }),
-  getDetails: (id: number, type: string) => api.get(`/api/tmdb/${type}/${id}`),
-  reverseLookup: (name: string) => api.get('/api/tmdb/reverse-lookup', { params: { name } }),
-  idSearch: (id: number, type: string) => api.get('/api/tmdb/id-search', { params: { id, type } }),
+  search: (params: any) => api.get('/api/tmdb-lab/search', { params }),
+  fetch: (params: any) => api.get('/api/tmdb-lab/fetch', { params }),
+  fetchSeason: (params: any) => api.get('/api/tmdb-lab/fetch-season', { params }),
+  fetchEpisode: (params: any) => api.get('/api/tmdb-lab/fetch-episode', { params }),
+  lookup: (params: any) => api.get('/api/tmdb', { params }),
+  searchById: (params: any) => api.post('/api/tmdb-search/search-by-id', params),
 }

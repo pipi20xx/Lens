@@ -1,5 +1,5 @@
 # Stage 1: Build Frontend
-FROM node:20-slim as frontend-builder
+FROM node:22-slim as frontend-builder
 WORKDIR /frontend
 
 # 设置 NPM 国内镜像源

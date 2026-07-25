@@ -103,5 +103,11 @@ export const api = {
   post: <T>(endpoint: string, body?: any, options?: ApiOptions) => apiFetch<T>(endpoint, { ...options, method: 'POST', body }),
   put: <T>(endpoint: string, body?: any, options?: ApiOptions) => apiFetch<T>(endpoint, { ...options, method: 'PUT', body }),
   patch: <T>(endpoint: string, body?: any, options?: ApiOptions) => apiFetch<T>(endpoint, { ...options, method: 'PATCH', body }),
-  delete: <T>(endpoint: string, options?: ApiOptions) => apiFetch<T>(endpoint, { ...options, method: 'DELETE' }),
+  delete: <T>(endpoint: string, bodyOrOptions?: any | ApiOptions, options?: ApiOptions) => {
+    // 支持 api.delete(url, body, options) 和 api.delete(url, options) 两种调用方式
+    if (bodyOrOptions && typeof bodyOrOptions === 'object' && ('method' in bodyOrOptions || 'params' in bodyOrOptions || 'headers' in bodyOrOptions)) {
+      return apiFetch<T>(endpoint, { ...bodyOrOptions, method: 'DELETE' })
+    }
+    return apiFetch<T>(endpoint, { ...options, method: 'DELETE', body: bodyOrOptions })
+  },
 }

@@ -35,7 +35,10 @@ export const useSystemStore = defineStore('system', () => {
     if (socket) return
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
     const host = window.location.host
-    socket = new WebSocket(`${protocol}//${host}/ws`)
+    const token = localStorage.getItem('lens_access_token') || ''
+    // 后端 WebSocket 路径: /ws/system/logs?token=xxx
+    const wsUrl = `${protocol}//${host}/ws/system/logs?token=${encodeURIComponent(token)}`
+    socket = new WebSocket(wsUrl)
 
     socket.onopen = () => {
       isConnected.value = true
@@ -44,16 +47,10 @@ export const useSystemStore = defineStore('system', () => {
 
     socket.onmessage = (event) => {
       try {
-        const payload = JSON.parse(event.data)
-        if (payload.type === 'progress') {
-          const task = payload.task
-          if (task === 'scan') {
-            scanProgress.value = payload.data
-          } else {
-            downloadProgress.value = payload.data
-          }
-        } else if (payload.type === 'log') {
-          const entry = parseLogLine(payload.data)
+        const data = event.data
+        if (typeof data === 'string') {
+          // 后端发送纯文本日志
+          const entry = parseLogLine(data)
           logs.value.push(entry)
           if (logs.value.length > 2000) logs.value.shift()
         }

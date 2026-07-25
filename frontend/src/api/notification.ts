@@ -1,9 +1,12 @@
 import { api } from './client'
 
 export const notificationApi = {
-  getChannels: () => api.get('/api/notification/channels'),
-  createChannel: (data: any) => api.post('/api/notification/channels', data),
-  updateChannel: (id: string, data: any) => api.put(`/api/notification/channels/${id}`, data),
-  deleteChannel: (id: string) => api.delete(`/api/notification/channels/${id}`),
-  testChannel: (id: string) => api.post(`/api/notification/channels/${id}/test`),
+  getSettings: () => api.get('/api/notification/settings'),
+  saveSettings: (data: any) => api.post('/api/notification/settings', data),
+  getBots: () => api.get('/api/notification/bots'),
+  createBot: (data: any) => api.post('/api/notification/bots', data),
+  updateBot: (id: string, data: any) => api.put(`/api/notification/bots/${id}`, data),
+  deleteBot: (id: string) => api.delete(`/api/notification/bots/${id}`),
+  testBot: (data: { bot_id: string; message: string }) =>
+    api.post('/api/notification/test', data),
 }
