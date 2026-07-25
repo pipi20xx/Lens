@@ -1,31 +1,13 @@
-import request from '@/utils/request'
-
-export interface BackupTask {
-  id?: string
-  name: string
-  mode: string
-  storage_type: string
-  sync_strategy: string
-  compression_level: number
-  src_path: string
-  dst_path: string
-  password?: string
-  enabled: boolean
-  schedule_type: string
-  schedule_value: string
-  ignore_patterns: string[]
-  host_id: string
-}
+import { api } from './client'
 
 export const backupApi = {
-  getTasks: () => request.get<BackupTask[]>('/api/backup/tasks'),
-  saveTask: (task: BackupTask) => {
-    if (task.id) {
-      return request.put(`/api/backup/tasks/${task.id}`, task)
-    } else {
-      return request.post('/api/backup/tasks', task)
-    }
-  },
-  runTask: (id: string) => request.post(`/api/backup/tasks/${id}/run`),
-  getHistory: (taskId?: string) => request.get('/api/backup/history', { params: { task_id: taskId } })
+  getBackups: () => api.get('/api/backup'),
+  createBackup: (data: any) => api.post('/api/backup', data),
+  restoreBackup: (id: string) => api.post(`/api/backup/${id}/restore`),
+  deleteBackup: (id: string) => api.delete(`/api/backup/${id}`),
+  downloadBackup: (id: string) => api.get(`/api/backup/${id}/download`),
+  getEmbyBackups: () => api.get('/api/emby-config-backup'),
+  createEmbyBackup: () => api.post('/api/emby-config-backup'),
+  restoreEmbyBackup: (id: string) => api.post(`/api/emby-config-backup/${id}/restore`),
+  deleteEmbyBackup: (id: string) => api.delete(`/api/emby-config-backup/${id}`),
 }

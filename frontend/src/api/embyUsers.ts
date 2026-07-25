@@ -1,51 +1,10 @@
-import request from '@/utils/request'
+import { api } from './client'
 
-export function listEmbyUsers(serverId?: string) {
-  return request({
-    url: '/api/emby-users/list',
-    method: 'get',
-    params: { server_id: serverId }
-  })
-}
-
-export function createEmbyUser(name: string, serverId?: string) {
-  return request({
-    url: '/api/emby-users/create',
-    method: 'post',
-    params: { name, server_id: serverId }
-  })
-}
-
-export function deleteEmbyUser(userId: string, serverId?: string) {
-  return request({
-    url: `/api/emby-users/${userId}`,
-    method: 'delete',
-    params: { server_id: serverId }
-  })
-}
-
-export function getEmbyUserInfo(userId: string, serverId?: string) {
-  return request({
-    url: `/api/emby-users/${userId}/info`,
-    method: 'get',
-    params: { server_id: serverId }
-  })
-}
-
-export function updateEmbyUserPolicy(userId: string, policy: any, serverId?: string) {
-  return request({
-    url: `/api/emby-users/${userId}/policy`,
-    method: 'post',
-    data: policy,
-    params: { server_id: serverId }
-  })
-}
-
-export function updateEmbyUserPassword(userId: string, password: string, serverId?: string) {
-  return request({
-    url: `/api/emby-users/${userId}/password`,
-    method: 'post',
-    data: { password },
-    params: { server_id: serverId }
-  })
+export const embyUsersApi = {
+  getUsers: () => api.get('/api/emby/users'),
+  getUser: (id: string) => api.get(`/api/emby/users/${id}`),
+  deleteUser: (id: string) => api.delete(`/api/emby/users/${id}`),
+  updateUser: (id: string, data: any) => api.put(`/api/emby/users/${id}`, data),
+  updateUserPolicy: (id: string, policy: any) => api.post(`/api/emby/users/${id}/policy`, policy),
+  resetPassword: (id: string) => api.post(`/api/emby/users/${id}/reset-password`),
 }

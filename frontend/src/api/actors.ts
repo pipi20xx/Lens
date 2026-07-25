@@ -1,10 +1,9 @@
-import request from '@/utils/request'
+import { api } from './client'
 
 export const actorsApi = {
-  searchEmby: (query: string) => request.get('/api/actors/search-emby', { params: { query } }),
-  searchTmdb: (query: string) => request.get('/api/actors/search-tmdb', { params: { query } }),
-  updateName: (embyId: string, newName: string) => 
-    request.post('/api/actors/update-actor-name', { emby_id: embyId, new_name: newName }),
-  syncActor: (embyId: string, data: any) => 
-    request.post('/api/actors/update-emby-actor', { emby_id: embyId, data })
+  getActors: (params?: any) => api.get('/api/actors', { params }),
+  getActor: (id: string) => api.get(`/api/actors/${id}`),
+  updateActor: (id: string, data: any) => api.put(`/api/actors/${id}`, data),
+  deleteActor: (id: string) => api.delete(`/api/actors/${id}`),
+  refreshActor: (id: string) => api.post(`/api/actors/${id}/refresh`),
 }

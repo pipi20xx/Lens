@@ -1,8 +1,9 @@
-import request from '@/utils/request'
+import { api } from './client'
 
 export const systemApi = {
-  getConfig: () => request.get('/api/system/config'),
-  saveConfig: (configs: any[]) => request.post('/api/system/config', { configs }),
-  generateToken: () => request.post('/api/system/token/generate'),
-  getAuditLogs: (params: any) => request.get('/api/system/audit/logs', { params })
+  getConfig: () => api.get('/api/system/config'),
+  updateConfig: (configs: any[]) => api.post('/api/system/config', { configs }),
+  getVersion: () => api.get('/api/system/version'),
+  getStats: () => api.get('/api/stats'),
+  getDocs: () => api.get('/api/system/docs'),
 }

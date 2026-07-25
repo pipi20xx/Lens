@@ -1,179 +1,221 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { isLoggedIn } from '@/store/navigationStore'
+import type { RouteRecordRaw } from 'vue-router'
+
+const routes: RouteRecordRaw[] = [
+  {
+    path: '/login',
+    name: 'login',
+    component: () => import('@/views/LoginView.vue'),
+    meta: { requiresAuth: false },
+  },
+  // ── 仪表盘 ──
+  {
+    path: '/',
+    name: 'dashboard',
+    component: () => import('@/views/DashboardView.vue'),
+    meta: { requiresAuth: true, title: '管理仪表盘', icon: 'mdi-view-dashboard-outline' },
+  },
+  // ── Emby 核心运维 ──
+  {
+    path: '/emby/users',
+    name: 'embyUsers',
+    component: () => import('@/views/emby/EmbyUsersView.vue'),
+    meta: { requiresAuth: true, title: 'Emby 用户', group: 'emby-core' },
+  },
+  {
+    path: '/emby/libraries',
+    name: 'embyLibraries',
+    component: () => import('@/views/emby/EmbyLibrariesView.vue'),
+    meta: { requiresAuth: true, title: 'Emby 媒体库', group: 'emby-core' },
+  },
+  {
+    path: '/emby/tasks',
+    name: 'embyTasks',
+    component: () => import('@/views/emby/EmbyTasksView.vue'),
+    meta: { requiresAuth: true, title: 'Emby 定时任务', group: 'emby-core' },
+  },
+  {
+    path: '/emby/playback-report',
+    name: 'playbackReport',
+    component: () => import('@/views/emby/PlaybackReportView.vue'),
+    meta: { requiresAuth: true, title: '播放报告', group: 'emby-core' },
+  },
+  // ── Emby 媒体工具 ──
+  {
+    path: '/toolkit/emby-item-query',
+    name: 'embyItemQuery',
+    component: () => import('@/views/toolkit/EmbyItemQueryView.vue'),
+    meta: { requiresAuth: true, title: 'Emby 条目查询', group: 'emby-tools' },
+  },
+  {
+    path: '/toolkit/tmdb-reverse-lookup',
+    name: 'tmdbReverseLookup',
+    component: () => import('@/views/toolkit/TmdbReverseLookupView.vue'),
+    meta: { requiresAuth: true, title: 'TMDB 反向匹配', group: 'emby-tools' },
+  },
+  {
+    path: '/toolkit/tmdb-id-search',
+    name: 'tmdbIdSearch',
+    component: () => import('@/views/toolkit/TmdbIdSearchView.vue'),
+    meta: { requiresAuth: true, title: 'TMDB ID 搜索', group: 'emby-tools' },
+  },
+  {
+    path: '/toolkit/dedupe',
+    name: 'dedupe',
+    component: () => import('@/views/toolkit/DedupeView.vue'),
+    meta: { requiresAuth: true, title: '重复检测', group: 'emby-tools' },
+  },
+  {
+    path: '/toolkit/type-manager',
+    name: 'typeManager',
+    component: () => import('@/views/toolkit/TypeManagerView.vue'),
+    meta: { requiresAuth: true, title: '类型管理', group: 'emby-tools' },
+  },
+  {
+    path: '/toolkit/cleanup',
+    name: 'cleanup',
+    component: () => import('@/views/toolkit/CleanupView.vue'),
+    meta: { requiresAuth: true, title: '清理工具', group: 'emby-tools' },
+  },
+  {
+    path: '/toolkit/lock-manager',
+    name: 'lockManager',
+    component: () => import('@/views/toolkit/LockManagerView.vue'),
+    meta: { requiresAuth: true, title: '锁定管理', group: 'emby-tools' },
+  },
+  {
+    path: '/toolkit/autotags',
+    name: 'autotags',
+    component: () => import('@/views/toolkit/autotags/AutoTagsView.vue'),
+    meta: { requiresAuth: true, title: '自动标签', group: 'emby-tools' },
+  },
+  {
+    path: '/toolkit/actor-manager',
+    name: 'actorManager',
+    component: () => import('@/views/toolkit/actor/ActorManagerView.vue'),
+    meta: { requiresAuth: true, title: '演员管理', group: 'emby-tools' },
+  },
+  // ── 实验室 ──
+  {
+    path: '/toolkit/tmdb-lab',
+    name: 'tmdbLab',
+    component: () => import('@/views/toolkit/tmdb/TmdbLabView.vue'),
+    meta: { requiresAuth: true, title: 'TMDB 实验室', group: 'labs' },
+  },
+  {
+    path: '/toolkit/bangumi-lab',
+    name: 'bangumiLab',
+    component: () => import('@/views/toolkit/bangumi/BangumiLabView.vue'),
+    meta: { requiresAuth: true, title: 'Bangumi 实验室', group: 'labs' },
+  },
+  {
+    path: '/toolkit/ai-lab',
+    name: 'aiLab',
+    component: () => import('@/views/toolkit/ai/AILabView.vue'),
+    meta: { requiresAuth: true, title: 'AI 实验室', group: 'labs' },
+  },
+  {
+    path: '/toolkit/actor-lab',
+    name: 'actorLab',
+    component: () => import('@/views/toolkit/actorLab/ActorLabView.vue'),
+    meta: { requiresAuth: true, title: '演员实验室', group: 'labs' },
+  },
+  // ── 系统与容器 ──
+  {
+    path: '/toolkit/terminal',
+    name: 'terminal',
+    component: () => import('@/views/toolkit/terminal/TerminalView.vue'),
+    meta: { requiresAuth: true, title: '终端', group: 'system' },
+  },
+  {
+    path: '/toolkit/docker-manager',
+    name: 'dockerManager',
+    component: () => import('@/views/toolkit/docker/DockerManagerView.vue'),
+    meta: { requiresAuth: true, title: 'Docker 管理', group: 'system' },
+  },
+  {
+    path: '/toolkit/image-builder',
+    name: 'imageBuilder',
+    component: () => import('@/views/toolkit/image_builder/ImageBuilderView.vue'),
+    meta: { requiresAuth: true, title: '镜像构建', group: 'system' },
+  },
+  {
+    path: '/toolkit/postgres-manager',
+    name: 'postgresManager',
+    component: () => import('@/views/toolkit/pgsql/PgsqlManagerView.vue'),
+    meta: { requiresAuth: true, title: 'PostgreSQL 管理', group: 'system' },
+  },
+  {
+    path: '/toolkit/backup-manager',
+    name: 'backupManager',
+    component: () => import('@/views/toolkit/backup/BackupManagerView.vue'),
+    meta: { requiresAuth: true, title: '备份管理', group: 'system' },
+  },
+  // ── 配置与控制 ──
+  {
+    path: '/toolkit/webhook-receiver',
+    name: 'webhookReceiver',
+    component: () => import('@/views/toolkit/webhook/WebhookReceiverView.vue'),
+    meta: { requiresAuth: true, title: 'Webhook 接收器', group: 'config' },
+  },
+  {
+    path: '/toolkit/notification-manager',
+    name: 'notificationManager',
+    component: () => import('@/views/toolkit/notification/NotificationManagerView.vue'),
+    meta: { requiresAuth: true, title: '通知管理', group: 'config' },
+  },
+  {
+    path: '/toolkit/account-manager',
+    name: 'accountManager',
+    component: () => import('@/views/toolkit/auth/AccountManagerView.vue'),
+    meta: { requiresAuth: true, title: '账户管理', group: 'config' },
+  },
+  {
+    path: '/toolkit/external-control',
+    name: 'externalControl',
+    component: () => import('@/views/toolkit/externalControl/ExternalControlView.vue'),
+    meta: { requiresAuth: true, title: '外部控制', group: 'config' },
+  },
+  // ── 站点导航 ──
+  {
+    path: '/toolkit/site-nav',
+    name: 'siteNav',
+    component: () => import('@/views/toolkit/sitenav/SiteNavView.vue'),
+    meta: { requiresAuth: true, title: '站点导航', icon: 'mdi-compass-outline' },
+  },
+  {
+    path: '/toolkit/bookmark-manager',
+    name: 'bookmarkManager',
+    component: () => import('@/views/toolkit/bookmark/BookmarkManagerView.vue'),
+    meta: { requiresAuth: true, title: '书签管理', group: 'config' },
+  },
+  // ── 设置 ──
+  {
+    path: '/settings',
+    name: 'settings',
+    component: () => import('@/views/settings/SettingsView.vue'),
+    meta: { requiresAuth: true, title: '系统设置', icon: 'mdi-cog-outline' },
+  },
+  // ── 404 ──
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: '/',
+  },
+]
 
 const router = createRouter({
   history: createWebHistory(),
-  routes: [
-    {
-      path: '/login',
-      name: 'Login',
-      component: () => import('../views/Login.vue'),
-      meta: { public: true }
-    },
-    {
-      path: '/',
-      name: 'Dashboard',
-      component: () => import('../views/Dashboard.vue'),
-    },
-    {
-      path: '/dedupe',
-      name: 'Dedupe',
-      component: () => import('../views/Dedupe.vue'),
-    },
-    {
-      path: '/toolkit/type-manager',
-      name: 'TypeManager',
-      component: () => import('../views/toolkit/TypeManager.vue'),
-    },
-    {
-      path: '/toolkit/cleanup',
-      name: 'Cleanup',
-      component: () => import('../views/toolkit/CleanupTools.vue'),
-    },
-    {
-      path: '/toolkit/lock-manager',
-      name: 'LockManager',
-      component: () => import('../views/toolkit/LockManager.vue'),
-    },
-    {
-      path: '/toolkit/docker-manager',
-      name: 'DockerManager',
-      component: () => import('../views/toolkit/DockerManager.vue'),
-    },
-    {
-      path: '/toolkit/image-builder',
-      name: 'ImageBuilderView',
-      component: () => import('../views/toolkit/ImageBuilder.vue'),
-    },
-    {
-      path: '/toolkit/tmdb-lab',
-      name: 'TmdbLab',
-      component: () => import('../views/toolkit/TmdbLab.vue'),
-    },
-    {
-      path: '/toolkit/bangumi-lab',
-      name: 'BangumiLab',
-      component: () => import('../views/toolkit/BangumiLab.vue'),
-    },
-    {
-      path: '/toolkit/ai-lab',
-      name: 'AILabView',
-      component: () => import('../views/toolkit/AILab.vue'),
-    },
-    {
-      path: '/toolkit/actor-lab',
-      name: 'ActorLab',
-      component: () => import('../views/toolkit/ActorLab.vue'),
-    },
-    {
-      path: '/toolkit/terminal',
-      name: 'TerminalManager',
-      component: () => import('../views/toolkit/terminal/TerminalManager.vue'),
-      meta: { title: '终端管理', icon: 'TerminalOutlined' }
-    },
-    {
-      path: '/toolkit/actor-manager',
-      name: 'ActorManager',
-      component: () => import('../views/toolkit/ActorManager.vue'),
-    },
-    {
-      path: '/toolkit/emby-item-query',
-      name: 'EmbyItemQuery',
-      component: () => import('../views/toolkit/EmbyItemQuery.vue'),
-    },
-    {
-      path: '/toolkit/tmdb-reverse-lookup',
-      name: 'TmdbReverseLookup',
-      component: () => import('../views/toolkit/TmdbReverseLookup.vue'),
-    },
-    {
-      path: '/toolkit/tmdb-id-search',
-      name: 'TmdbIdSearch',
-      component: () => import('../views/toolkit/TmdbIdSearch.vue'),
-    },
-    {
-      path: '/toolkit/webhook-receiver',
-      name: 'WebhookReceiver',
-      component: () => import('../views/toolkit/WebhookReceiver.vue'),
-    },
-    {
-      path: '/toolkit/autotags',
-      name: 'AutoTags',
-      component: () => import('../views/toolkit/autotags/AutoTagsManager.vue'),
-    },
-    {
-      path: '/toolkit/postgres-manager',
-      name: 'PostgresManager',
-      component: () => import('../views/toolkit/PostgresManager.vue'),
-    },
-    {
-      path: '/toolkit/backup-manager',
-      name: 'BackupManager',
-      component: () => import('../views/toolkit/BackupManager.vue'),
-    },
-    {
-      path: '/toolkit/notification-manager',
-      name: 'NotificationManager',
-      component: () => import('../views/toolkit/NotificationManager.vue'),
-    },
-    {
-      path: '/toolkit/site-nav',
-      name: 'SiteNav',
-      component: () => import('../views/toolkit/sitenav/SiteManager.vue'),
-    },
-    {
-      path: '/toolkit/bookmark-manager',
-      name: 'BookmarkManagerView',
-      component: () => import('../views/toolkit/BookmarkManager.vue'),
-    },
-    {
-      path: '/toolkit/external-control',
-      name: 'ExternalControl',
-      component: () => import('../views/toolkit/ExternalControl.vue'),
-    },
-    {
-      path: '/emby-users',
-      name: 'EmbyUsers',
-      component: () => import('../views/EmbyUsers.vue'),
-    },
-    {
-      path: '/emby-libraries',
-      name: 'EmbyLibraries',
-      component: () => import('../views/EmbyLibraries.vue'),
-    },
-    {
-      path: '/toolkit/emby-scheduled-tasks',
-      name: 'EmbyScheduledTasks',
-      component: () => import('../views/toolkit/emby-tasks/EmbyScheduledTasks.vue'),
-    },
-    {
-      path: '/toolkit/playback-report',
-      name: 'PlaybackReport',
-      component: () => import('../views/toolkit/playback-report/PlaybackReport.vue'),
-    },
-    {
-      path: '/settings',
-      name: 'Settings',
-      component: () => import('../views/Settings.vue'),
-    },
-  ]
+  routes,
 })
 
-// 导航守卫
-router.beforeEach((to, from, next) => {
-  // 鉴权逻辑 - 强制要求登录
-  if (!isLoggedIn.value && !to.meta.public) {
-    next({ name: 'Login' })
-    return
+// 导航守卫：未登录时跳转 login
+router.beforeEach((to) => {
+  const token = localStorage.getItem('lens_access_token')
+  if (to.meta.requiresAuth !== false && !token) {
+    return { name: 'login' }
+  } else if (to.name === 'login' && token) {
+    return { name: 'dashboard' }
   }
-
-  if (to.name === 'Login' && isLoggedIn.value) {
-    // 如果已经在登录页，但已登录，则跳回首页
-    next({ name: 'Dashboard' })
-    return
-  }
-
-  next()
 })
 
 export default router

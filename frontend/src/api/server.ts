@@ -1,10 +1,9 @@
-import request from '@/utils/request'
+import { api } from './client'
 
 export const serverApi = {
-  getLibraries: () => request.get('/api/server/libraries'),
-  getUsers: () => request.get('/api/server/users'),
-  syncUsers: () => request.post('/api/server/users/sync'),
-  deleteServer: (id: string) => request.delete(`/api/server/${id}`),
-  saveGlobal: (data: any) => request.post('/api/server/save', data),
-  getCurrent: () => request.get('/api/server/current')
+  getServers: () => api.get('/api/server'),
+  addServer: (data: any) => api.post('/api/server', data),
+  updateServer: (id: string, data: any) => api.put(`/api/server/${id}`, data),
+  deleteServer: (id: string) => api.delete(`/api/server/${id}`),
+  activateServer: (id: string) => api.post(`/api/server/${id}/activate`),
 }

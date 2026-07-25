@@ -1,0 +1,1878 @@
+/**
+ * 全局样式 — Apple Liquid Glass 设计系统
+ *
+ * 流动玻璃：半透明 + 高斯模糊 + 饱和度增强 + 彩虹折射边框 + 流体动画
+ * 霓虹描边文字：text-stroke 配合青色发光
+ * 渐变填充文字：紫色到品红的渐变填充 + 3D阴影
+ * 彩虹折射边缘：棱镜光谱渐变
+ * 流体形变：圆角随交互产生液态变形
+ * 多层深度：3+ 层玻璃堆叠
+ * 高饱和度：backdrop-saturate-180
+ */
+
+/* ============================================================
+ * 0. Liquid Glass 工具类
+ * ============================================================ */
+
+/* Liquid Glass 卡片 — 彩虹折射边框 + 玻璃面板 */
+.liquid-glass-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(40px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+  border: none !important;
+  border-radius: 24px !important;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+  transition: all 0.5s ease-out !important;
+  overflow: hidden;
+}
+
+.liquid-glass-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 24px;
+  padding: 1px;
+  background: linear-gradient(135deg, #ff6b6b, #4ecdc4, #a855f7, #ff6b6b);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.liquid-glass-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  border-radius: 24px 24px 0 0;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.12), transparent);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Liquid Glass 面板 — 较浅的玻璃（用于内嵌区域） */
+.liquid-glass-panel {
+  position: relative;
+  background: rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(30px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(150%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 20px !important;
+  transition: all 0.5s ease-out !important;
+}
+
+/* Liquid Glass 按钮 — 强调色 */
+.liquid-glass-btn {
+  position: relative;
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(255, 45, 146, 0.2)) !important;
+  backdrop-filter: blur(40px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+  border: none !important;
+  border-radius: 20px !important;
+  color: white !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em;
+  overflow: hidden;
+  transition: all 0.5s ease-out !important;
+}
+
+.liquid-glass-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  padding: 1px;
+  background: linear-gradient(135deg, #ff6b6b, #4ecdc4, #a855f7);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.liquid-glass-btn:hover {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.35), rgba(255, 45, 146, 0.3)) !important;
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.3) !important;
+}
+
+/* Liquid Glass 标题文字 — 渐变填充 + 青色描边 + 3D阴影 */
+.liquid-glass-title {
+  background: linear-gradient(to right, #a855f7, #ff2d92, #a855f7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  -webkit-text-stroke: 2px #4ecdc4;
+  text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.4), 0 0 15px rgba(78, 205, 196, 0.4);
+  filter: drop-shadow(0 0 10px rgba(78, 205, 196, 0.3));
+}
+
+/* Liquid Glass Hero 标题 — 更粗描边 */
+.liquid-glass-hero {
+  background: linear-gradient(to right, #a855f7, #ff2d92, #a855f7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  -webkit-text-stroke: 3px #4ecdc4;
+  text-shadow: 4px 4px 0 rgba(0, 0, 0, 0.5), 0 0 20px rgba(78, 205, 196, 0.5), 0 0 40px rgba(168, 85, 247, 0.3);
+  filter: drop-shadow(0 0 15px rgba(78, 205, 196, 0.4));
+}
+
+/* Liquid Glass 副标题 — 青色发光 */
+.liquid-glass-subtitle {
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 0 20px rgba(78, 205, 196, 0.6), 0 0 40px rgba(78, 205, 196, 0.3), 2px 2px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* 噪点颗粒纹理 */
+.glass-grain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.015;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* 兼容旧 class 名 */
+.glass-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(40px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 24px !important;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+  transition: all 0.5s ease-out !important;
+  overflow: hidden;
+}
+
+.glass-panel {
+  position: relative;
+  background: rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(30px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(150%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 20px !important;
+  transition: all 0.5s ease-out !important;
+}
+
+.glass-btn {
+  transition: all 0.5s ease-out !important;
+}
+
+.glass-btn-accent {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.3), rgba(255, 45, 146, 0.25)) !important;
+  backdrop-filter: blur(40px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+  color: white !important;
+  font-weight: 600 !important;
+  transition: all 0.5s ease-out !important;
+}
+
+.glass-btn-accent:hover {
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.35) !important;
+}
+
+.text-accent-gold {
+  color: #4ecdc4 !important;
+}
+
+
+/* ============================================================
+ * 1. 全局基础
+ * ============================================================ */
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── 全局滚动条 — Liquid Glass 风格 ── */
+html, body, .v-main, .v-main__scroller {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(168, 85, 247, 0.25) transparent;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+.v-main::-webkit-scrollbar,
+.v-main__scroller::-webkit-scrollbar { width: 8px; }
+
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track,
+.v-main::-webkit-scrollbar-track,
+.v-main__scroller::-webkit-scrollbar-track { background: transparent; }
+
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb,
+.v-main::-webkit-scrollbar-thumb,
+.v-main__scroller::-webkit-scrollbar-thumb {
+  background: rgba(168, 85, 247, 0.25);
+  border-radius: 4px;
+}
+
+html::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover,
+.v-main::-webkit-scrollbar-thumb:hover,
+.v-main__scroller::-webkit-scrollbar-thumb:hover {
+  background: rgba(168, 85, 247, 0.4);
+}
+
+/* ============================================================
+ * 2. 亮色主题 — Liquid Glass Light
+ * ============================================================ */
+.v-theme--light .v-application {
+  background: #F0F0F5 !important;
+}
+
+.v-theme--light .v-main {
+  background: #F5F5FA !important;
+}
+
+.v-theme--light .v-navigation-drawer {
+  background: rgba(255, 255, 255, 0.75) !important;
+  backdrop-filter: blur(40px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+  border-right: 1px solid rgba(0, 0, 0, 0.06) !important;
+}
+
+.v-theme--light .v-app-bar {
+  background: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(40px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+}
+
+.v-theme--light .v-navigation-drawer .v-list-item--active .v-list-item-title {
+  font-weight: 600;
+  color: #a855f7 !important;
+}
+
+.v-theme--light .v-navigation-drawer .v-list-item--active .v-icon {
+  color: #a855f7 !important;
+}
+
+/* ============================================================
+ * 3. 暗色主题 — Liquid Glass Dark
+ * ============================================================ */
+.v-theme--dark .v-application {
+  background: #0a0a1a !important;
+}
+
+.v-theme--dark .v-main {
+  background: linear-gradient(135deg, #0a0a1a 0%, #0f0f2a 50%, #0a0a1a 100%) !important;
+  position: relative;
+}
+
+.v-theme--dark .v-navigation-drawer {
+  background: rgba(10, 10, 30, 0.85) !important;
+  backdrop-filter: blur(40px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+.v-theme--dark .v-app-bar {
+  background: rgba(15, 15, 42, 0.75) !important;
+  backdrop-filter: blur(40px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+/* 侧边栏导航项 — Liquid Glass 风格 */
+.v-theme--dark .v-navigation-drawer .v-list-item {
+  border-radius: 16px !important;
+  transition: all 0.5s ease-out !important;
+}
+
+.v-theme--dark .v-navigation-drawer .v-list-item:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
+.v-theme--dark .v-navigation-drawer .v-list-item--active {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(78, 205, 196, 0.1)) !important;
+}
+
+.v-theme--dark .v-navigation-drawer .v-list-item--active .v-list-item-title {
+  font-weight: 600;
+  color: #4ecdc4 !important;
+  text-shadow: 0 0 12px rgba(78, 205, 196, 0.4);
+}
+
+.v-theme--dark .v-navigation-drawer .v-list-item--active .v-icon {
+  color: #4ecdc4 !important;
+  filter: drop-shadow(0 0 6px rgba(78, 205, 196, 0.4));
+}
+
+/* 激活项指示条 — 彩虹渐变 */
+.v-navigation-drawer .v-list-item--active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 20%;
+  bottom: 20%;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: linear-gradient(to bottom, #ff6b6b, #4ecdc4, #a855f7);
+}
+
+.v-theme--dark .v-navigation-drawer .v-list-item--active::before {
+  background: linear-gradient(to bottom, #ff6b6b, #4ecdc4, #a855f7);
+  box-shadow: 0 0 8px rgba(78, 205, 196, 0.4);
+}
+
+/* ── 侧边导航栏滚动条 — Liquid Glass 风格 ── */
+.v-navigation-drawer,
+.v-navigation-drawer .v-navigation-drawer__content,
+.v-navigation-drawer .v-list {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(168, 85, 247, 0.25) transparent;
+}
+
+.v-navigation-drawer::-webkit-scrollbar,
+.v-navigation-drawer .v-navigation-drawer__content::-webkit-scrollbar,
+.v-navigation-drawer .v-list::-webkit-scrollbar { width: 6px; }
+
+.v-navigation-drawer::-webkit-scrollbar-track,
+.v-navigation-drawer .v-navigation-drawer__content::-webkit-scrollbar-track,
+.v-navigation-drawer .v-list::-webkit-scrollbar-track { background: transparent; }
+
+.v-navigation-drawer::-webkit-scrollbar-thumb,
+.v-navigation-drawer .v-navigation-drawer__content::-webkit-scrollbar-thumb,
+.v-navigation-drawer .v-list::-webkit-scrollbar-thumb {
+  background: rgba(168, 85, 247, 0.25);
+  border-radius: 3px;
+}
+
+.v-navigation-drawer::-webkit-scrollbar-thumb:hover,
+.v-navigation-drawer .v-navigation-drawer__content::-webkit-scrollbar-thumb:hover,
+.v-navigation-drawer .v-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(168, 85, 247, 0.4);
+}
+
+/* ============================================================
+ * 4. 卡片 — Liquid Glass：半透明 + 模糊 + 饱和度 + 彩虹边框
+ * ============================================================ */
+
+/* 亮色卡片 */
+.v-theme--light .v-card {
+  background: rgba(255, 255, 255, 0.65) !important;
+  backdrop-filter: blur(40px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+  transition: all 0.5s ease-out !important;
+  border-radius: 24px !important;
+}
+
+.v-theme--light .v-card--variant-elevated {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+}
+
+.v-theme--light .v-card--variant-outlined {
+  background: rgba(255, 255, 255, 0.55) !important;
+  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+}
+
+.v-theme--light .v-card--link:hover,
+.v-theme--light .v-card[link]:hover {
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.1), 0 0 20px rgba(168, 85, 247, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+  transform: translateY(-2px);
+}
+
+/* 暗色卡片 — Liquid Glass 核心 */
+.v-theme--dark .v-card {
+  background: rgba(255, 255, 255, 0.10) !important;
+  backdrop-filter: blur(40px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+  transition: all 0.5s ease-out !important;
+  border-radius: 24px !important;
+}
+
+.v-theme--dark .v-card--variant-elevated {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+}
+
+.v-theme--dark .v-card--variant-outlined {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+.v-theme--dark .v-card--variant-tonal {
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* 卡片内部透明 */
+.v-card-text,
+.v-card-title,
+.v-card-actions,
+.v-card-item {
+  background: transparent !important;
+}
+
+/* hover — 液态形变效果 */
+.v-theme--dark .v-card--link:hover,
+.v-theme--dark .v-card[link]:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3), 0 0 24px rgba(168, 85, 247, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  transform: translateY(-2px);
+}
+
+/* ============================================================
+ * 5. 对话框 — Liquid Glass 弹窗
+ * ============================================================ */
+.v-dialog > .v-card {
+  border-radius: 24px !important;
+}
+
+.v-theme--light .v-dialog .v-card,
+.v-theme--light .v-overlay__content .v-card {
+  background: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(40px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+.v-theme--dark .v-dialog .v-card,
+.v-theme--dark .v-overlay__content .v-card {
+  background: rgba(20, 20, 50, 0.95) !important;
+  backdrop-filter: blur(40px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5), 0 0 30px rgba(78, 205, 196, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+/* 对话框遮罩 */
+.v-overlay__scrim {
+  background: rgba(0, 0, 0, 0.4) !important;
+  backdrop-filter: blur(4px) !important;
+  -webkit-backdrop-filter: blur(4px) !important;
+}
+
+.v-theme--dark .v-overlay__scrim {
+  background: rgba(0, 0, 0, 0.6) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
+/* ── 对话框内滚动条 — Liquid Glass 风格 ── */
+.v-dialog .v-card-text {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(168, 85, 247, 0.25) transparent;
+}
+
+.v-dialog .v-card-text::-webkit-scrollbar { width: 6px; }
+.v-dialog .v-card-text::-webkit-scrollbar-track { background: transparent; }
+.v-dialog .v-card-text::-webkit-scrollbar-thumb {
+  background: rgba(168, 85, 247, 0.25);
+  border-radius: 3px;
+}
+.v-dialog .v-card-text::-webkit-scrollbar-thumb:hover {
+  background: rgba(168, 85, 247, 0.4);
+}
+
+/* ============================================================
+ * 6. 下拉菜单 / Select / Autocomplete — Liquid Glass 菜单
+ * ============================================================ */
+
+/* ── 通用下拉面板（v-menu / v-select / v-autocomplete / v-combobox 共用） ── */
+
+/* 亮色下拉面板 — 实心白底 + 紫色边框，确保清晰可读 */
+.v-theme--light .v-overlay .v-list,
+.v-theme--light .v-menu .v-card,
+.v-theme--light .v-menu .v-list {
+  background: #FFFFFF !important;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(124, 58, 237, 0.18) !important;
+  border: none !important;
+  border-radius: 20px !important;
+}
+
+/* 亮色下拉列表项文字 */
+.v-theme--light .v-overlay .v-list .v-list-item-title {
+  color: rgba(0, 0, 0, 0.87) !important;
+}
+
+/* 暗色下拉面板 — 深蓝底 + 青色边框 */
+.v-theme--dark .v-overlay .v-list,
+.v-theme--dark .v-menu .v-card,
+.v-theme--dark .v-menu .v-list {
+  background: #1a1a3e !important;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(78, 205, 196, 0.18) !important;
+  border: none !important;
+  border-radius: 20px !important;
+}
+
+/* 暗色下拉列表项文字 */
+.v-theme--dark .v-overlay .v-list .v-list-item-title {
+  color: rgba(255, 255, 255, 0.87) !important;
+}
+
+/* ── 下拉列表项 — Liquid Glass hover / 选中 ── */
+
+/* 侧边栏导航列表保持透明（继承导航栏的毛玻璃背景） */
+.v-navigation-drawer .v-list {
+  background: transparent !important;
+}
+
+.v-theme--light .v-list-item:hover {
+  background: rgba(168, 85, 247, 0.06) !important;
+}
+
+.v-theme--light .v-list-item--active {
+  background: rgba(168, 85, 247, 0.1) !important;
+  color: #a855f7 !important;
+}
+
+.v-theme--dark .v-list-item:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
+.v-theme--dark .v-list-item--active {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(78, 205, 196, 0.08)) !important;
+  color: #4ecdc4 !important;
+}
+
+.v-theme--dark .v-list-item--active .v-list-item-title {
+  text-shadow: 0 0 8px rgba(78, 205, 196, 0.3);
+}
+
+/* ── 下拉菜单内容容器 — 圆角裁剪 + 滚动 ── */
+.v-menu .v-overlay__content {
+  border-radius: 20px !important;
+  overflow: hidden !important;
+}
+
+.v-select .v-overlay__content,
+.v-autocomplete .v-overlay__content,
+.v-combobox .v-overlay__content {
+  border-radius: 20px !important;
+  overflow: hidden !important;
+}
+
+/* 下拉面板内 list — 去掉默认 padding，用 item margin 替代 */
+.v-select .v-list,
+.v-autocomplete .v-list,
+.v-combobox .v-list,
+.v-menu .v-list {
+  padding: 6px !important;
+}
+
+/* ── 下拉列表项 — Liquid Glass 圆角 + 间距 ── */
+.v-select .v-list-item,
+.v-autocomplete .v-list-item,
+.v-combobox .v-list-item,
+.v-menu .v-list-item {
+  border-radius: 12px !important;
+  margin: 2px 0 !important;
+  min-height: 38px !important;
+  transition: all 0.2s ease-out !important;
+}
+
+/* 亮色下拉列表项 hover */
+.v-theme--light .v-select .v-list-item:hover,
+.v-theme--light .v-autocomplete .v-list-item:hover,
+.v-theme--light .v-combobox .v-list-item:hover,
+.v-theme--light .v-menu .v-list-item:hover {
+  background: rgba(168, 85, 247, 0.08) !important;
+}
+
+/* 亮色下拉列表项选中 */
+.v-theme--light .v-select .v-list-item--active,
+.v-theme--light .v-autocomplete .v-list-item--active,
+.v-theme--light .v-combobox .v-list-item--active,
+.v-theme--light .v-menu .v-list-item--active {
+  background: rgba(168, 85, 247, 0.12) !important;
+  color: #a855f7 !important;
+}
+
+/* 暗色下拉列表项 hover */
+.v-theme--dark .v-select .v-list-item:hover,
+.v-theme--dark .v-autocomplete .v-list-item:hover,
+.v-theme--dark .v-combobox .v-list-item:hover,
+.v-theme--dark .v-menu .v-list-item:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* 暗色下拉列表项选中 */
+.v-theme--dark .v-select .v-list-item--active,
+.v-theme--dark .v-autocomplete .v-list-item--active,
+.v-theme--dark .v-combobox .v-list-item--active,
+.v-theme--dark .v-menu .v-list-item--active {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.18), rgba(78, 205, 196, 0.1)) !important;
+  color: #4ecdc4 !important;
+}
+
+/* ── 下拉选中项的文字颜色（select 输入框内） ── */
+.v-theme--light .v-select .v-field__input,
+.v-theme--light .v-autocomplete .v-field__input,
+.v-theme--light .v-combobox .v-field__input {
+  color: rgba(0, 0, 0, 0.87) !important;
+}
+
+.v-theme--dark .v-select .v-field__input,
+.v-theme--dark .v-autocomplete .v-field__input,
+.v-theme--dark .v-combobox .v-field__input {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* ── 下拉箭头图标颜色 ── */
+.v-theme--light .v-select .v-field__append-inner .v-icon {
+  color: rgba(0, 0, 0, 0.4) !important;
+}
+
+.v-theme--dark .v-select .v-field__append-inner .v-icon {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.v-select .v-field__append-inner .v-icon {
+  transition: transform 0.3s ease-out !important;
+}
+
+.v-select--active .v-field__append-inner .v-icon {
+  transform: rotate(180deg) !important;
+}
+
+/* ── 自定义滚动条 — 下拉列表 ── */
+.v-select .v-list,
+.v-autocomplete .v-list,
+.v-combobox .v-list,
+.v-menu .v-list {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(168, 85, 247, 0.3) transparent;
+}
+
+.v-select .v-list::-webkit-scrollbar,
+.v-autocomplete .v-list::-webkit-scrollbar,
+.v-combobox .v-list::-webkit-scrollbar,
+.v-menu .v-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.v-select .v-list::-webkit-scrollbar-track,
+.v-autocomplete .v-list::-webkit-scrollbar-track,
+.v-combobox .v-list::-webkit-scrollbar-track,
+.v-menu .v-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.v-select .v-list::-webkit-scrollbar-thumb,
+.v-autocomplete .v-list::-webkit-scrollbar-thumb,
+.v-combobox .v-list::-webkit-scrollbar-thumb,
+.v-menu .v-list::-webkit-scrollbar-thumb {
+  background: rgba(168, 85, 247, 0.25);
+  border-radius: 3px;
+}
+
+.v-select .v-list::-webkit-scrollbar-thumb:hover,
+.v-autocomplete .v-list::-webkit-scrollbar-thumb:hover,
+.v-combobox .v-list::-webkit-scrollbar-thumb:hover,
+.v-menu .v-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(168, 85, 247, 0.4);
+}
+
+/* ── Autocomplete / Combobox 输入态 ── */
+.v-theme--light .v-autocomplete .v-field--variant-outlined.v-field--focused,
+.v-theme--light .v-combobox .v-field--variant-outlined.v-field--focused {
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.15), inset 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+}
+
+.v-theme--dark .v-autocomplete .v-field--variant-outlined.v-field--focused,
+.v-theme--dark .v-combobox .v-field--variant-outlined.v-field--focused {
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2), 0 0 20px rgba(168, 85, 247, 0.1) !important;
+}
+
+/* ── 多选 chips 在 select 内的样式 ── */
+.v-select .v-chip {
+  margin: 2px 4px 2px 0 !important;
+}
+
+.v-theme--light .v-select .v-chip--variant-tonal {
+  background: rgba(168, 85, 247, 0.1) !important;
+  color: #7c3aed !important;
+}
+
+.v-theme--dark .v-select .v-chip--variant-tonal {
+  background: rgba(78, 205, 196, 0.12) !important;
+  color: #4ecdc4 !important;
+}
+
+/* ============================================================
+ * 7. Sheet
+ * ============================================================ */
+.v-theme--light .v-sheet {
+  background: rgba(255, 255, 255, 0.65) !important;
+  border-color: rgba(0, 0, 0, 0.06) !important;
+}
+
+.v-theme--dark .v-sheet {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* ============================================================
+ * 8. 输入框 — Liquid Glass 风格
+ * ============================================================ */
+.v-theme--light .v-field--variant-outlined {
+  background: rgba(255, 255, 255, 0.75) !important;
+  border-radius: 16px !important;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.06) !important;
+}
+
+.v-theme--light .v-field--variant-outlined .v-field__outline__start,
+.v-theme--light .v-field--variant-outlined .v-field__outline__notch::before,
+.v-theme--light .v-field--variant-outlined .v-field__outline__notch::after,
+.v-theme--light .v-field--variant-outlined .v-field__outline__end {
+  border-color: rgba(124, 58, 237, 0.28) !important;
+}
+
+.v-theme--light .v-field--variant-outlined:hover .v-field__outline__start,
+.v-theme--light .v-field--variant-outlined:hover .v-field__outline__notch::before,
+.v-theme--light .v-field--variant-outlined:hover .v-field__outline__notch::after,
+.v-theme--light .v-field--variant-outlined:hover .v-field__outline__end {
+  border-color: rgba(124, 58, 237, 0.45) !important;
+}
+
+.v-theme--light .v-field--variant-outlined.v-field--focused .v-field__outline__start,
+.v-theme--light .v-field--variant-outlined.v-field--focused .v-field__outline__notch::before,
+.v-theme--light .v-field--variant-outlined.v-field--focused .v-field__outline__notch::after,
+.v-theme--light .v-field--variant-outlined.v-field--focused .v-field__outline__end {
+  border-color: #a855f7 !important;
+}
+
+.v-theme--light .v-field--variant-outlined.v-field--focused {
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.15), inset 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+  background: rgba(255, 255, 255, 0.85) !important;
+}
+
+/* 亮色输入框 — label 和文字确保清晰 */
+.v-theme--light .v-field .v-label {
+  color: rgba(0, 0, 0, 0.55) !important;
+}
+
+.v-theme--light .v-field--focused .v-label {
+  color: #a855f7 !important;
+}
+
+.v-theme--light .v-field__input {
+  color: rgba(0, 0, 0, 0.87) !important;
+}
+
+.v-theme--light .v-input input,
+.v-theme--light .v-input textarea {
+  color: rgba(0, 0, 0, 0.87) !important;
+}
+
+/* 暗色输入框 — Liquid Glass */
+.v-theme--dark .v-field--variant-outlined {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-radius: 16px !important;
+}
+
+.v-theme--dark .v-field--variant-outlined .v-field__outline__start,
+.v-theme--dark .v-field--variant-outlined .v-field__outline__notch::before,
+.v-theme--dark .v-field--variant-outlined .v-field__outline__notch::after,
+.v-theme--dark .v-field--variant-outlined .v-field__outline__end {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.v-theme--dark .v-field--variant-outlined:hover .v-field__outline__start,
+.v-theme--dark .v-field--variant-outlined:hover .v-field__outline__notch::before,
+.v-theme--dark .v-field--variant-outlined:hover .v-field__outline__notch::after,
+.v-theme--dark .v-field--variant-outlined:hover .v-field__outline__end {
+  border-color: rgba(255, 255, 255, 0.25) !important;
+}
+
+.v-theme--dark .v-field--variant-outlined.v-field--focused .v-field__outline__start,
+.v-theme--dark .v-field--variant-outlined.v-field--focused .v-field__outline__notch::before,
+.v-theme--dark .v-field--variant-outlined.v-field--focused .v-field__outline__notch::after,
+.v-theme--dark .v-field--variant-outlined.v-field--focused .v-field__outline__end {
+  border-color: #4ecdc4 !important;
+}
+
+.v-theme--dark .v-field--variant-outlined.v-field--focused {
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2), 0 0 20px rgba(168, 85, 247, 0.1) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* ============================================================
+ * 9. 分割线 — Liquid Glass 极淡
+ * ============================================================ */
+.v-theme--light .v-divider {
+  border-color: rgba(0, 0, 0, 0.06) !important;
+}
+
+.v-theme--dark .v-divider {
+  border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* ============================================================
+ * 10. 表格
+ * ============================================================ */
+.v-theme--light .v-table {
+  background: rgba(255, 255, 255, 0.5) !important;
+}
+
+.v-theme--dark .v-table {
+  background: rgba(255, 255, 255, 0.03) !important;
+}
+
+.v-theme--light .v-table tr:hover {
+  background: rgba(168, 85, 247, 0.04) !important;
+}
+
+.v-theme--dark .v-table tr:hover {
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+
+/* ============================================================
+ * 11. 标签页 — Liquid Glass 青/紫
+ * ============================================================ */
+.v-theme--light .v-tab--selected .v-tab__slider {
+  color: #a855f7 !important;
+}
+
+.v-theme--light .v-tab--selected {
+  color: #a855f7 !important;
+}
+
+.v-theme--dark .v-tab--selected .v-tab__slider {
+  color: #4ecdc4 !important;
+}
+
+.v-theme--dark .v-tab--selected {
+  color: #4ecdc4 !important;
+  text-shadow: 0 0 12px rgba(78, 205, 196, 0.3);
+}
+
+/* ============================================================
+ * 11b. 图标-文字对齐修复
+ *     Vuetify 3 中 MDI 图标字体与文本字体的行盒高度不一致，
+ *     导致 prepend-icon / append-icon 与文字垂直不对齐。
+ *     注意：不能用 line-height:1 压文字行高（会在缩放时子像素取整导致偏移），
+ *     正确做法是纯 flexbox 居中，不改变任何盒子的固有高度。
+ * ============================================================ */
+
+/* ── 按钮内图标与文字垂直居中 ── */
+.v-btn {
+  align-items: center !important;
+}
+
+.v-btn .v-btn__prepend,
+.v-btn .v-btn__append {
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+}
+
+.v-btn .v-btn__content {
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+}
+
+.v-btn .v-btn__prepend .v-icon,
+.v-btn .v-btn__append .v-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── 列表项内图标与文字垂直居中 ── */
+.v-list-item .v-list-item__prepend,
+.v-list-item .v-list-item__append {
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+}
+
+/* ── 芯片内图标与文字垂直居中 ── */
+.v-chip .v-chip__prepend,
+.v-chip .v-chip__append {
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+}
+
+.v-chip .v-chip__content {
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+}
+
+/* ── Alert / Banner 内图标对齐 ── */
+.v-alert .v-alert__prepend {
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+}
+
+/* ============================================================
+ * 12. 按钮 — Liquid Glass
+ * ============================================================ */
+
+/* ── flat 按钮 — 强调色渐变 ── */
+.v-theme--light .v-btn--variant-flat {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(255, 45, 146, 0.1)) !important;
+  color: #7c3aed !important;
+  font-weight: 600;
+  transition: all 0.5s ease-out !important;
+}
+
+.v-theme--light .v-btn--variant-flat:hover {
+  box-shadow: 0 0 16px rgba(168, 85, 247, 0.25) !important;
+}
+
+.v-theme--dark .v-btn--variant-flat {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(255, 45, 146, 0.12)) !important;
+  backdrop-filter: blur(20px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(150%) !important;
+  color: white !important;
+  font-weight: 600;
+  transition: all 0.5s ease-out !important;
+}
+
+.v-theme--dark .v-btn--variant-flat:hover {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.3), rgba(255, 45, 146, 0.2)) !important;
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.3) !important;
+}
+
+/* ── tonal 按钮 — 半透明玻璃 ── */
+.v-theme--light .v-btn--variant-tonal {
+  font-weight: 500;
+  transition: all 0.5s ease-out !important;
+}
+
+.v-theme--light .v-btn--variant-tonal:hover {
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.15) !important;
+}
+
+.v-theme--dark .v-btn--variant-tonal .v-btn__overlay {
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
+.v-theme--dark .v-btn--variant-tonal:hover .v-btn__overlay {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.v-theme--dark .v-btn--variant-tonal {
+  font-weight: 500;
+  transition: all 0.5s ease-out !important;
+}
+
+.v-theme--dark .v-btn--variant-tonal:hover {
+  box-shadow: 0 0 14px rgba(168, 85, 247, 0.2) !important;
+}
+
+/* ── text 按钮 ── */
+.v-btn--variant-text {
+  font-weight: 500;
+  transition: all 0.5s ease-out !important;
+}
+
+/* ── outlined 按钮 ── */
+.v-theme--dark .v-btn--variant-outlined {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  transition: all 0.5s ease-out !important;
+}
+
+.v-theme--dark .v-btn--variant-outlined:hover {
+  border-color: rgba(78, 205, 196, 0.4) !important;
+  box-shadow: 0 0 14px rgba(78, 205, 196, 0.15) !important;
+}
+
+.v-theme--light .v-btn--variant-outlined {
+  border-color: rgba(0, 0, 0, 0.12) !important;
+  transition: all 0.5s ease-out !important;
+}
+
+/* ── 按钮按下态 — 液态压缩 ── */
+.v-btn:active {
+  transform: scale(0.98);
+}
+
+/* ============================================================
+ * 12b. Checkbox / Radio — Liquid Glass
+ * ============================================================ */
+
+/* ── Checkbox — 暗色选中状态 ── */
+.v-theme--dark .v-checkbox .v-selection-control--dirty .v-checkbox-btn__icon {
+  color: #4ecdc4 !important;
+  text-shadow: 0 0 6px rgba(78, 205, 196, 0.4);
+}
+
+.v-theme--dark .v-checkbox .v-selection-control--dirty .v-icon {
+  color: #4ecdc4 !important;
+}
+
+/* ── Checkbox — 亮色选中状态 ── */
+.v-theme--light .v-checkbox .v-selection-control--dirty .v-checkbox-btn__icon {
+  color: #a855f7 !important;
+}
+
+.v-theme--light .v-checkbox .v-selection-control--dirty .v-icon {
+  color: #a855f7 !important;
+}
+
+/* ── Radio — 暗色选中状态 ── */
+.v-theme--dark .v-radio .v-selection-control--dirty .v-radio-btn__icon {
+  color: #4ecdc4 !important;
+}
+
+.v-theme--dark .v-radio .v-selection-control--dirty .v-icon {
+  color: #4ecdc4 !important;
+}
+
+/* ── Radio — 亮色选中状态 ── */
+.v-theme--light .v-radio .v-selection-control--dirty .v-radio-btn__icon {
+  color: #a855f7 !important;
+}
+
+.v-theme--light .v-radio .v-selection-control--dirty .v-icon {
+  color: #a855f7 !important;
+}
+
+/* ============================================================
+ * 12c. BtnToggle — Liquid Glass
+ * ============================================================ */
+.v-theme--dark .v-btn-toggle {
+background: rgba(255, 255, 255, 0.05) !important;
+border: none !important;
+border-radius: 16px !important;
+}
+
+.v-theme--dark .v-btn-toggle .v-btn--active {
+background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(78, 205, 196, 0.1)) !important;
+box-shadow: 0 0 10px rgba(78, 205, 196, 0.15) !important;
+}
+
+.v-theme--light .v-btn-toggle {
+background: rgba(0, 0, 0, 0.03) !important;
+border: none !important;
+border-radius: 16px !important;
+}
+
+.v-theme--light .v-btn-toggle .v-btn--active {
+background: rgba(168, 85, 247, 0.1) !important;
+}
+
+/* ============================================================
+ * 12d. Slider — Liquid Glass
+ * ============================================================ */
+.v-theme--dark .v-slider .v-slider-track {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.v-theme--dark .v-slider .v-slider-track__fill {
+  background: linear-gradient(90deg, #a855f7, #4ecdc4) !important;
+  box-shadow: 0 0 8px rgba(78, 205, 196, 0.3);
+}
+
+.v-theme--dark .v-slider .v-slider-thumb__surface {
+  background: white !important;
+  box-shadow: 0 0 10px rgba(78, 205, 196, 0.4) !important;
+}
+
+.v-theme--light .v-slider .v-slider-track__fill {
+  background: linear-gradient(90deg, #a855f7, #4ecdc4) !important;
+}
+
+/* ============================================================
+ * 12e. ProgressCircular — Liquid Glass
+ * ============================================================ */
+.v-theme--dark .v-progress-circular__overlay {
+  stroke: #4ecdc4 !important;
+  filter: drop-shadow(0 0 4px rgba(78, 205, 196, 0.3));
+}
+
+/* ============================================================
+ * 12f. Avatar — Liquid Glass
+ * ============================================================ */
+.v-theme--dark .v-avatar--variant-tonal {
+  background: rgba(78, 205, 196, 0.12) !important;
+  backdrop-filter: blur(20px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(150%) !important;
+}
+
+/* ============================================================
+ * 12g. Code 标签 — Liquid Glass
+ * ============================================================ */
+code {
+  background: rgba(168, 85, 247, 0.1) !important;
+  color: #4ecdc4 !important;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 0.85em;
+}
+
+.v-theme--light code {
+  background: rgba(168, 85, 247, 0.06) !important;
+  color: #7c3aed !important;
+}
+
+/* ============================================================
+ * 12h. 亮色模式补丁 — 工作流参数区 / 日志窗口 等
+ * ============================================================ */
+.v-theme--light .workflow-task-params {
+  background: rgba(0, 0, 0, 0.02) !important;
+  border-color: rgba(0, 0, 0, 0.06) !important;
+}
+
+.v-theme--light .log-window {
+  background: rgba(0, 0, 0, 0.02) !important;
+}
+
+.v-theme--light .drop-zone {
+  border-color: rgba(0, 0, 0, 0.15) !important;
+}
+
+.v-theme--light .merge-table th {
+  color: rgba(0, 0, 0, 0.85) !important;
+  text-shadow: none;
+}
+
+.v-theme--light .liquid-avatar {
+  background: rgba(168, 85, 247, 0.1) !important;
+  border-color: rgba(168, 85, 247, 0.2) !important;
+  color: #a855f7 !important;
+  backdrop-filter: blur(20px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(150%) !important;
+}
+
+.v-theme--light .liquid-avatar:hover {
+  background: rgba(168, 85, 247, 0.18) !important;
+  border-color: rgba(168, 85, 247, 0.35) !important;
+  box-shadow: 0 0 14px rgba(168, 85, 247, 0.2) !important;
+}
+
+.v-theme--light .media-liquid-card:hover {
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.08), 0 0 16px rgba(168, 85, 247, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+  background: rgba(255, 255, 255, 0.75) !important;
+}
+
+/* 亮色下 glass-btn-accent 可读性修正 */
+.v-theme--light .glass-btn-accent {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(255, 45, 146, 0.1)) !important;
+  color: #7c3aed !important;
+}
+
+/* 亮色下副标题不用 text-shadow（白底看不清） */
+.v-theme--light .liquid-glass-subtitle {
+  color: rgba(0, 0, 0, 0.8) !important;
+  text-shadow: none;
+}
+
+/* ============================================================
+ * 13. 芯片 — Liquid Glass
+ * ============================================================ */
+.v-chip {
+  font-weight: 500;
+}
+
+/* x-small chip 太小，统一限制最小字号 */
+.v-chip--size-x-small {
+  font-size: 0.75rem !important;
+  min-height: 24px !important;
+  padding: 0 8px !important;
+}
+
+.v-chip--size-x-small .v-chip__content {
+  font-size: 0.75rem !important;
+}
+
+/* x-small chip 太小，统一限制最小字号 */
+.v-chip--size-x-small {
+  font-size: 0.75rem !important;
+  min-height: 24px !important;
+  padding: 0 8px !important;
+}
+
+.v-chip--size-x-small .v-chip__content {
+  font-size: 0.75rem !important;
+}
+
+.v-theme--dark .v-chip--variant-tonal {
+  backdrop-filter: blur(10px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(150%) !important;
+}
+
+/* ============================================================
+ * 14. SnackBar — Liquid Glass
+ * ============================================================ */
+.v-theme--light .v-snackbar {
+  background: rgba(30, 30, 40, 0.9) !important;
+  backdrop-filter: blur(40px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12) !important;
+}
+
+.v-theme--dark .v-snackbar {
+  background: rgba(30, 30, 60, 0.9) !important;
+  backdrop-filter: blur(40px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* ============================================================
+ * 15. Alert — Liquid Glass
+ * ============================================================ */
+.v-theme--light .v-alert--variant-tonal {
+  background: rgba(168, 85, 247, 0.06) !important;
+  border: none !important;
+}
+
+.v-theme--dark .v-alert--variant-tonal {
+  background: rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(20px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(150%) !important;
+  border: none !important;
+}
+
+/* ============================================================
+ * 16. Expansion Panel — Liquid Glass
+ * ============================================================ */
+.v-theme--light .v-expansion-panel {
+  background: rgba(255, 255, 255, 0.5) !important;
+  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+  border-radius: 16px !important;
+}
+
+.v-theme--dark .v-expansion-panel {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border-radius: 16px !important;
+}
+
+.v-expansion-panel-text {
+  background: transparent !important;
+}
+
+/* ============================================================
+ * 17. Progress — Liquid Glass 青/紫
+ * ============================================================ */
+.v-theme--light .v-progress-linear__determinate {
+  background: linear-gradient(90deg, #a855f7, #4ecdc4) !important;
+}
+
+.v-theme--dark .v-progress-linear__determinate {
+  background: linear-gradient(90deg, #a855f7, #4ecdc4) !important;
+  box-shadow: 0 0 12px rgba(78, 205, 196, 0.4);
+}
+
+/* ============================================================
+ * 18. Switch — Liquid Glass
+ *     关闭状态：滑轨半透明 + 滑块可见
+ *     开启状态：滑轨青/紫发光 + 滑块白色带光晕
+ * ============================================================ */
+
+/* ── 关闭状态（默认） ── */
+.v-theme--light .v-switch .v-switch__track {
+  background: rgba(0, 0, 0, 0.12) !important;
+  border-radius: 999px !important;
+}
+
+.v-theme--light .v-switch .v-switch__thumb {
+  background: #FFFFFF !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15) !important;
+}
+
+.v-theme--dark .v-switch .v-switch__track {
+  background: rgba(255, 255, 255, 0.18) !important;
+  border-radius: 999px !important;
+}
+
+.v-theme--dark .v-switch .v-switch__thumb {
+  background: rgba(255, 255, 255, 0.7) !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* ── 开启状态（.v-selection-control--dirty） ── */
+.v-theme--light .v-switch .v-selection-control--dirty .v-switch__track {
+  background: rgba(168, 85, 247, 0.45) !important;
+}
+
+.v-theme--light .v-switch .v-selection-control--dirty .v-switch__thumb {
+  background: #FFFFFF !important;
+  box-shadow: 0 0 8px rgba(168, 85, 247, 0.4) !important;
+}
+
+.v-theme--dark .v-switch .v-selection-control--dirty .v-switch__track {
+  background: rgba(78, 205, 196, 0.45) !important;
+  box-shadow: 0 0 10px rgba(78, 205, 196, 0.2) !important;
+}
+
+.v-theme--dark .v-switch .v-selection-control--dirty .v-switch__thumb {
+  background: #FFFFFF !important;
+  box-shadow: 0 0 10px rgba(78, 205, 196, 0.5) !important;
+}
+
+/* ============================================================
+ * 19. Tooltip — Liquid Glass
+ * ============================================================ */
+.v-theme--light .v-tooltip .v-overlay__content {
+  background: rgba(30, 30, 40, 0.9) !important;
+  backdrop-filter: blur(20px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(150%) !important;
+}
+
+.v-theme--dark .v-tooltip .v-overlay__content {
+  background: rgba(30, 30, 60, 0.92) !important;
+  backdrop-filter: blur(20px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(150%) !important;
+}
+
+/* ============================================================
+ * 20. 全局过渡 — Liquid Glass 流体 500ms
+ * ============================================================ */
+.v-card,
+.v-btn,
+.v-list-item,
+.v-chip {
+  transition: all 0.5s ease-out !important;
+}
+
+/* ============================================================
+ * 21. 功能性样式
+ * ============================================================ */
+.v-tab .v-btn__content {
+  overflow: visible !important;
+}
+
+.content-scrollable {
+  height: var(--scrollable-height, calc(85vh - 250px));
+  max-height: var(--scrollable-max, 600px);
+  overflow-y: auto;
+}
+
+.v-card-text .v-text-field,
+.v-card-text .v-select,
+.v-card-text .v-textarea,
+.v-card-text .v-combobox,
+.v-card-text .v-autocomplete {
+  margin-top: 4px;
+  margin-bottom: 8px;
+}
+
+.v-card-text .v-input--persistent-hint {
+  margin-top: 4px;
+  margin-bottom: 12px;
+}
+
+/* ── v-switch 对齐修复 ── */
+/* v-switch 的 .v-input__control 缺少 margin-inline（对比 v-slider 有 8px），
+   导致 switch 开关和 label 比上方 v-select / v-slider 偏左，超出卡片内容区 */
+.v-card-text .v-switch .v-input__control {
+  margin-inline: 8px;
+}
+
+.v-card-title + .v-card-text {
+  padding-top: 12px;
+}
+
+.v-window-item > .v-form > :first-child,
+.v-window-item > :first-child {
+  padding-top: 8px;
+}
+
+/* ============================================================
+ * 22. 页面级样式 — 从各 .vue scoped 迁移至此
+ *     以后改样式只改 global.css 即可，不用翻 .vue 文件
+ * ============================================================ */
+
+/* ── 选中边框 — 统一青色发光 (原 CoverGenerator / Preview / Actors) ── */
+.border-primary {
+  border-color: #4ecdc4 !important;
+  border-width: 2px;
+  box-shadow: 0 0 12px rgba(78, 205, 196, 0.3);
+}
+
+.border-success {
+  border-color: #4ecdc4 !important;
+  border-width: 2px;
+  box-shadow: 0 0 12px rgba(78, 205, 196, 0.3);
+}
+
+/* ── 合并表格 — ActorsView ── */
+.merge-table th {
+  font-weight: 600;
+  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 0 8px rgba(78, 205, 196, 0.2);
+}
+
+/* ── 日志终端 — LogTerminal / BangumiView 通用 ── */
+
+/* 容器 */
+.log-terminal {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+  font-size: 12px;
+  line-height: 1.7;
+  max-height: 500px;
+  overflow-y: auto;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 0 0 24px 24px;
+
+  /* 统一滚动条 — 紫色半透明 */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(168, 85, 247, 0.25) transparent;
+}
+
+.log-terminal::-webkit-scrollbar { width: 6px; }
+.log-terminal::-webkit-scrollbar-track { background: transparent; }
+.log-terminal::-webkit-scrollbar-thumb { background: rgba(168, 85, 247, 0.25); border-radius: 3px; }
+.log-terminal::-webkit-scrollbar-thumb:hover { background: rgba(168, 85, 247, 0.4); }
+
+.v-theme--light .log-terminal { background: rgba(0, 0, 0, 0.02); }
+.v-theme--dark .log-terminal { background: rgba(255, 255, 255, 0.02); }
+
+/* 日志行 */
+.log-entry {
+  display: flex;
+  gap: 8px;
+  padding: 2px 4px;
+  border-radius: 8px;
+  transition: background 0.2s ease-out;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.log-entry:hover { background: rgba(255, 255, 255, 0.04); }
+.v-theme--light .log-entry:hover { background: rgba(0, 0, 0, 0.03); }
+
+/* 时间列 */
+.log-entry__time {
+  flex-shrink: 0;
+  font-size: 11px;
+  opacity: 0.45;
+  min-width: 56px;
+}
+
+/* 级别列 — Liquid Glass 强调色 */
+.log-entry__level {
+  flex-shrink: 0;
+  font-weight: 700;
+  font-size: 11px;
+  min-width: 48px;
+  letter-spacing: 0.02em;
+}
+
+/* 暗色模式级别色 — 青色/紫色系 */
+.log-entry__level[data-level="info"]    { color: #4ecdc4; }
+.log-entry__level[data-level="warn"],
+.log-entry__level[data-level="warning"]  { color: #FFB74D; }
+.log-entry__level[data-level="error"]    { color: #EF5350; }
+.log-entry__level[data-level="critical"] { color: #F48FB1; }
+.log-entry__level[data-level="debug"]    { color: rgba(255, 255, 255, 0.4); }
+.log-entry__level[data-level="success"]  { color: #81C784; }
+
+/* 亮色模式级别色 — 紫色系 */
+.v-theme--light .log-entry__level[data-level="info"]    { color: #7c3aed; }
+.v-theme--light .log-entry__level[data-level="warn"],
+.v-theme--light .log-entry__level[data-level="warning"]  { color: #E65100; }
+.v-theme--light .log-entry__level[data-level="error"]    { color: #C62828; }
+.v-theme--light .log-entry__level[data-level="critical"] { color: #AD1457; }
+.v-theme--light .log-entry__level[data-level="debug"]    { color: rgba(0, 0, 0, 0.35); }
+.v-theme--light .log-entry__level[data-level="success"]  { color: #2E7D32; }
+
+/* 消息列 */
+.log-entry__msg {
+  flex: 1;
+  word-break: break-all;
+  white-space: pre-wrap;
+}
+
+/* 行级别着色 (ERROR / WARN 背景) */
+.log-entry--error { background: rgba(239, 83, 80, 0.06); }
+.log-entry--warn  { background: rgba(255, 183, 77, 0.05); }
+
+.v-theme--light .log-entry--error { background: rgba(198, 40, 40, 0.04); }
+.v-theme--light .log-entry--warn  { background: rgba(230, 81, 0, 0.04); }
+
+/* 兼容旧 log-window / log-line (BangumiView 等) */
+.log-window {
+  overflow-y: auto;
+  max-height: 500px;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 12px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.log-line {
+  margin-bottom: 2px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* ── 登录页 — LoginView ── */
+.login-container {
+  background:
+    radial-gradient(ellipse 800px 600px at 85% 15%, rgba(168, 85, 247, 0.2) 0%, transparent 70%),
+    radial-gradient(ellipse 600px 500px at 10% 85%, rgba(78, 205, 196, 0.2) 0%, transparent 70%),
+    radial-gradient(ellipse 400px 300px at 50% 50%, rgba(255, 45, 146, 0.1) 0%, transparent 70%),
+    linear-gradient(135deg, #0a0a1a 0%, #0f0f2a 50%, #0a0a1a 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.login-light-wells {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 500px 400px at 80% 20%, rgba(78, 205, 196, 0.15) 0%, transparent 70%),
+    radial-gradient(ellipse 400px 300px at 15% 80%, rgba(168, 85, 247, 0.1) 0%, transparent 70%),
+    radial-gradient(ellipse 300px 200px at 50% 50%, rgba(255, 45, 146, 0.06) 0%, transparent 70%);
+  animation: login-breathe 8s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+@keyframes login-breathe {
+  0% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+.login-card {
+  position: relative;
+  z-index: 1;
+}
+
+.login-btn {
+  font-weight: 600;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+}
+
+/* ── Liquid Glass Avatar — DefaultLayout / LoginView ── */
+.liquid-avatar {
+  background: rgba(78, 205, 196, 0.15) !important;
+  backdrop-filter: blur(40px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+  border: 1px solid rgba(78, 205, 196, 0.3) !important;
+  color: #4ecdc4 !important;
+  transition: all 0.5s ease-out;
+}
+
+.liquid-avatar:hover {
+  background: rgba(78, 205, 196, 0.25) !important;
+  border-color: rgba(78, 205, 196, 0.5) !important;
+  box-shadow: 0 0 16px rgba(78, 205, 196, 0.3) !important;
+}
+
+/* ── 媒体卡片 — MediaCard ── */
+.media-liquid-card {
+  transition: all 0.5s ease-out !important;
+  overflow: hidden;
+}
+
+.media-liquid-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2), 0 0 24px rgba(168, 85, 247, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.media-liquid-card .v-img {
+  position: relative;
+}
+
+.media-liquid-card .v-img::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40%;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.08), transparent);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ── 预览图 — CoverGeneratorView ── */
+.preview-img {
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), 0 0 16px rgba(78, 205, 196, 0.1);
+}
+
+/* ── 工作流任务参数区 — HomeView ── */
+.workflow-task-params {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ── 拖拽上传区 — BangumiImportModal ── */
+.drop-zone {
+  border: 2px dashed rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+}
+
+/* ── AI 测试结果 / 当前会话高亮 — SettingsView ── */
+.bg-success-darken-4 {
+  background: rgba(78, 205, 196, 0.08) !important;
+  border: 1px solid rgba(78, 205, 196, 0.15) !important;
+  border-radius: 16px !important;
+}
+
+/* ── 通用边框面板（日志面板、会话列表等） ── */
+.border.rounded {
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 16px !important;
+}
+
+/* ── 季/集卡片 — DetailsSeasons — Liquid Glass 风格 ── */
+
+/* 季度卡片 */
+.season-card {
+  transition: all 0.5s ease-out !important;
+}
+
+.v-theme--light .season-card:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1), 0 0 20px rgba(168, 85, 247, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+  transform: translateY(-2px);
+}
+
+.v-theme--dark .season-card:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3), 0 0 24px rgba(168, 85, 247, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+  transform: translateY(-2px);
+}
+
+/* 剧集卡片 */
+.episode-card {
+  transition: all 0.5s ease-out !important;
+}
+
+.v-theme--light .episode-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08), 0 0 16px rgba(168, 85, 247, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+  transform: translateY(-1px);
+}
+
+.v-theme--dark .episode-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25), 0 0 20px rgba(168, 85, 247, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+  transform: translateY(-1px);
+}
+
+/* 多行文本截断（通用工具类） */
+.text-truncate-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 剧集缩略图容器 */
+.episode-thumb-wrap {
+  overflow: hidden;
+}
+
+/* 季度海报容器 */
+.season-poster-wrap {
+  overflow: hidden;
+}
+
+/* 季度海报响应式宽度 */
+@media (min-width: 600px) {
+  .episode-thumb-wrap {
+    width: 200px;
+    min-width: 200px;
+    max-width: 240px;
+  }
+  .season-poster-wrap {
+    width: 160px;
+    min-width: 160px;
+    max-width: 180px;
+  }
+}
+
+.v-theme--light .border.rounded {
+  border-color: rgba(0, 0, 0, 0.06) !important;
+}
+
+.v-theme--light .bg-success-darken-4 {
+  background: rgba(78, 205, 196, 0.06) !important;
+  border-color: rgba(78, 205, 196, 0.1) !important;
+}
+
+/* ============================================================
+ * 23. prefers-reduced-motion
+ * ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .login-light-wells {
+    animation: none;
+  }
+}
+
+/* ============================================================
+ * 24. 高级筛选按钮 — 激活态
+ * ============================================================ */
+.filter-btn-active {
+  border-color: rgba(168, 85, 247, 0.3) !important;
+}
+
+.v-theme--dark .filter-btn-active {
+  background: rgba(168, 85, 247, 0.12) !important;
+  box-shadow: 0 0 8px rgba(78, 205, 196, 0.15) !important;
+}
+
+.v-theme--light .filter-btn-active {
+  background: rgba(168, 85, 247, 0.08) !important;
+  box-shadow: 0 0 8px rgba(168, 85, 247, 0.12) !important;
+}
+
+/* ============================================================
+ * 25. 标签规则匹配说明文档
+ * ============================================================ */
+.tag-rules-explanation h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.tag-rules-explanation h4 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-top: 20px;
+  margin-bottom: 8px;
+}
+
+.tag-rules-explanation p {
+  margin-bottom: 6px;
+  line-height: 1.7;
+}
+
+.tag-rules-explanation ul {
+  margin-left: 20px;
+  margin-bottom: 10px;
+}
+
+.tag-rules-explanation li {
+  margin-bottom: 4px;
+  line-height: 1.6;
+}
+
+.tag-rules-explanation .explanation-keyword {
+  font-weight: bold;
+  color: rgb(var(--v-theme-primary));
+}
+
+.tag-rules-explanation .explanation-positive {
+  color: #4caf50;
+  font-weight: bold;
+}
+
+.tag-rules-explanation .explanation-negative {
+  color: #f44336;
+  font-weight: bold;
+}
+
+.tag-rules-explanation .explanation-note {
+  font-style: italic;
+  opacity: 0.75;
+  font-size: 0.9em;
+}
+
+.v-theme--dark .tag-rules-explanation .explanation-positive {
+  color: #66bb6a;
+}
+
+.v-theme--dark .tag-rules-explanation .explanation-negative {
+  color: #ef5350;
+}
+
+/* ============================================================
+ * 26. 可选缩略图 — 选中态（Liquid Glass 风格）
+ * 用于 PreviewGeneratorView / CoverGeneratorView 等
+ * ============================================================ */
+
+/* ── 通用缩略图容器 ── */
+.thumb-select-wrapper {
+  position: relative;
+  border-radius: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.25s ease-out;
+  overflow: hidden;
+}
+
+.thumb-select-wrapper:hover {
+  border-color: rgba(168, 85, 247, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+/* ── 选中态 — 发光边框 + 微放大 ── */
+.thumb-select--selected {
+  border-color: rgba(78, 205, 196, 0.8) !important;
+  box-shadow:
+    0 0 0 2px rgba(78, 205, 196, 0.3),
+    0 0 18px rgba(78, 205, 196, 0.25),
+    0 4px 16px rgba(0, 0, 0, 0.3) !important;
+  transform: translateY(-2px) scale(1.02);
+}
+
+.v-theme--light .thumb-select--selected {
+  border-color: rgba(124, 58, 237, 0.7) !important;
+  box-shadow:
+    0 0 0 2px rgba(124, 58, 237, 0.2),
+    0 0 18px rgba(124, 58, 237, 0.15),
+    0 4px 16px rgba(0, 0, 0, 0.12) !important;
+}
+
+/* ── 选中勾选角标 ── */
+.thumb-select-check {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(78, 205, 196, 0.9);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(78, 205, 196, 0.4);
+}
+
+.v-theme--light .thumb-select-check {
+  background: rgba(124, 58, 237, 0.9);
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
+}
+
+/* ── 小尺寸角标变体（用于 CoverGeneratorView 样式卡片） ── */
+.thumb-select-check--sm {
+  width: 24px;
+  height: 24px;
+  top: 4px;
+  right: 4px;
+}
+
+/* ── 勾选角标动画 ── */
+.fade-check-enter-active {
+  transition: all 0.2s ease-out;
+}
+.fade-check-leave-active {
+  transition: all 0.15s ease-in;
+}
+.fade-check-enter-from {
+  opacity: 0;
+  transform: scale(0.5);
+}
+.fade-check-leave-to {
+  opacity: 0;
+  transform: scale(0.5);
+}

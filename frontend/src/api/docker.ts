@@ -1,18 +1,13 @@
-import request from '@/utils/request'
-import { DockerHost, AutoUpdateSettings } from '@/types/docker'
+import { api } from './client'
 
 export const dockerApi = {
-  // Hosts
-  getHosts: () => request.get<DockerHost[]>('/api/docker/hosts'),
-  updateHost: (id: string, data: DockerHost) => request.put(`/api/docker/hosts/${id}`, data),
-  
-  // Settings
-  getAutoUpdateSettings: () => request.get<AutoUpdateSettings>('/api/docker/auto-update/settings'),
-  saveAutoUpdateSettings: (data: AutoUpdateSettings) => request.post('/api/docker/auto-update/settings', data),
-  
-  // Containers & Compose
-  getContainers: (hostId: string, details = true) => 
-    request.get(`/api/docker/${hostId}/containers`, { params: { details } }),
-  getStats: (hostId: string) => request.get(`/api/docker/${hostId}/containers/stats`),
-  getProjects: (hostId: string) => request.get(`/api/docker/compose/${hostId}/projects`)
+  getContainers: () => api.get('/api/docker/containers'),
+  getContainer: (id: string) => api.get(`/api/docker/containers/${id}`),
+  startContainer: (id: string) => api.post(`/api/docker/containers/${id}/start`),
+  stopContainer: (id: string) => api.post(`/api/docker/containers/${id}/stop`),
+  restartContainer: (id: string) => api.post(`/api/docker/containers/${id}/restart`),
+  removeContainer: (id: string) => api.delete(`/api/docker/containers/${id}`),
+  getImages: () => api.get('/api/docker/images'),
+  getImageBuildHistory: () => api.get('/api/image-builder/builds'),
+  startBuild: (data: any) => api.post('/api/image-builder/build', data),
 }

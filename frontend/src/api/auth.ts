@@ -1,14 +1,10 @@
-import request from '@/utils/request'
+import { api } from './client'
+import type { LoginParams, LoginResponse } from '@/types'
 
 export const authApi = {
-  getMe: () => request.get('/api/auth/me'),
-  setup2fa: () => request.get('/api/auth/2fa/setup'),
-  enable2fa: (code: string) => request.post(`/api/auth/2fa/enable?code=${code}`),
-  disable2fa: () => request.post('/api/auth/2fa/disable'),
-  updateSystemConfig: (configs: any[]) => request.post('/api/system/config', { configs }),
-  changePassword: (data: any) => request.post('/api/auth/password', data),
-  getSessions: () => request.get('/api/auth/sessions'),
-  revokeSession: (sessionId: string) => request.delete(`/api/auth/sessions/${sessionId}`),
-  revokeAllSessions: () => request.delete('/api/auth/sessions'),
-  getSessionConfig: () => request.get('/api/server/current')
+  login: (data: LoginParams) => api.post<LoginResponse>('/api/auth/login', data),
+  changePassword: (data: { old_password: string; new_password: string }) => api.post('/api/auth/change-password', data),
+  get2faSetup: () => api.get<{ secret: string; qr_code: string }>('/api/auth/2fa/setup'),
+  enable2fa: (code: string) => api.post('/api/auth/2fa/enable', { code }),
+  disable2fa: (code: string) => api.post('/api/auth/2fa/disable', { code }),
 }
