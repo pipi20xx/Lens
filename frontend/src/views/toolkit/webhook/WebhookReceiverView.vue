@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { webhookApi } from '@/api/webhook'
-import { useNotification } from '@/composables'
+import { useNotification, useClipboard } from '@/composables'
 import { useConfirm } from '@/composables'
 
 const { success, error: showError } = useNotification()
+const { copy: copyToClipboard } = useClipboard()
 const { confirm } = useConfirm()
 
 const logs = ref<any[]>([])
@@ -16,11 +17,7 @@ const webhookBaseUrl = computed(() => {
 })
 
 function copyUrl() {
-  navigator.clipboard.writeText(webhookBaseUrl.value).then(() => {
-    success('Webhook URL 已复制到剪贴板')
-  }).catch(() => {
-    showError('复制失败，请手动选取')
-  })
+  copyToClipboard(webhookBaseUrl.value, 'Webhook URL 已复制到剪贴板')
 }
 
 // ========== 日志管理 ==========

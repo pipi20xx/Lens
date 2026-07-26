@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { ref, reactive, computed } from 'vue'
 import { toolkitApi } from '@/api/toolkit'
-import { useNotification } from '@/composables'
+import { useNotification, useClipboard } from '@/composables'
 import GlassDialog from '@/components/common/GlassDialog.vue'
 
 const { success, error: showError, warning } = useNotification()
+const { copy: copyToClipboard } = useClipboard()
 
 // ========== Tab 控制 ==========
 const activeTab = ref('search')
@@ -195,8 +196,7 @@ function showJson(data: any, type: 'main' | 'season' | 'episode' = 'main', isDee
 }
 
 function copyJsonData() {
-  navigator.clipboard.writeText(JSON.stringify(jsonModal.data, null, 2))
-  success('已复制到剪贴板')
+  copyToClipboard(JSON.stringify(jsonModal.data, null, 2))
 }
 </script>
 

@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { embyApi } from '@/api/emby'
-import { useNotification } from '@/composables'
+import { useNotification, useClipboard } from '@/composables'
 
 const { success, error: showError } = useNotification()
+const { copy: copyToClipboard } = useClipboard()
 
 const itemId = ref('')
 const itemData = ref<any>(null)
@@ -29,12 +30,7 @@ async function fetchInfo() {
 
 function copyData() {
   if (!itemData.value) return
-  const text = JSON.stringify(itemData.value, null, 2)
-  navigator.clipboard.writeText(text).then(() => {
-    success('JSON 已复制到剪贴板')
-  }).catch(() => {
-    showError('复制失败')
-  })
+  copyToClipboard(JSON.stringify(itemData.value, null, 2), 'JSON 已复制到剪贴板')
 }
 </script>
 

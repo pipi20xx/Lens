@@ -3,6 +3,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { systemApi } from '@/api/system'
 import { useNotification } from '@/composables'
 import GlassDialog from '@/components/common/GlassDialog.vue'
+import SecretField from '@/components/common/SecretField.vue'
 
 const { success, error: showError } = useNotification()
 
@@ -12,7 +13,6 @@ const config = reactive<any>({
   auth_enabled: true,
   audit_enabled: false,
 })
-const showFullToken = ref(false)
 const loading = ref(false)
 const loadingLogs = ref(false)
 const auditLogs = ref<any[]>([])
@@ -55,13 +55,6 @@ async function generateNewToken() {
     success('Token 已重新生成')
   } catch {
     showError('生成 Token 失败')
-  }
-}
-
-function copyToken() {
-  if (config.api_token) {
-    navigator.clipboard.writeText(config.api_token)
-    success('Token 已复制到剪贴板')
   }
 }
 
@@ -128,18 +121,13 @@ onMounted(() => {
               <v-card-title class="pa-4">令牌管理</v-card-title>
               <v-divider />
               <v-card-text class="pa-4">
-                <v-text-field
-                  v-model="config.api_token"
-                  :type="showFullToken ? 'text' : 'password'"
-                  :append-inner-icon="showFullToken ? 'mdi-eye-off' : 'mdi-eye'"
-                  @click:append-inner="showFullToken = !showFullToken"
+                <SecretField
+                  :model-value="config.api_token"
                   label="当前生效的 API Token"
-                  variant="outlined"
                   readonly
                   class="mb-3"
                 />
                 <div class="d-flex ga-2">
-                  <v-btn color="primary" variant="tonal" prepend-icon="mdi-content-copy" @click="copyToken" :disabled="!config.api_token">复制数据</v-btn>
                   <v-btn variant="tonal" color="warning" prepend-icon="mdi-refresh" @click="generateNewToken">重新生成</v-btn>
                 </div>
                 <p class="text-caption text-medium-emphasis mt-3">

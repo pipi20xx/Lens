@@ -5,6 +5,7 @@ import { dockerApi } from '@/api/docker'
 import { useNotification } from '@/composables'
 import { useConfirm } from '@/composables'
 import GlassDialog from '@/components/common/GlassDialog.vue'
+import SecretField from '@/components/common/SecretField.vue'
 
 const { success, error: showError, info } = useNotification()
 const { confirm } = useConfirm()
@@ -900,8 +901,8 @@ onMounted(() => {
   <v-text-field v-model="credForm.name" label="名称" variant="outlined" density="compact"
             hint="例如: my-docker-hub-login" persistent-hint class="mb-3" />
           <v-text-field v-model="credForm.username" label="用户名" variant="outlined" density="compact" class="mb-3" />
-          <v-text-field v-model="credForm.password" label="密码/Token" variant="outlined" density="compact"
-            hint="请输入密码或仓库 Token" persistent-hint class="mb-3" type="password" />
+<SecretField v-model="credForm.password" label="密码/Token"
+  hint="请输入密码或仓库 Token" persistent-hint class="mb-3" :show-copy="false" />
   <template #actions>
     <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveCredential">保存</v-btn>
   </template>
@@ -915,8 +916,8 @@ onMounted(() => {
             hint="例如: http://192.168.1.5:7890" persistent-hint class="mb-3" />
           <v-text-field v-model="proxyForm.username" label="用户名" variant="outlined" density="compact"
             hint="可选" persistent-hint class="mb-3" />
-          <v-text-field v-model="proxyForm.password" label="密码" variant="outlined" density="compact"
-            hint="可选" persistent-hint type="password" class="mb-3" />
+<SecretField v-model="proxyForm.password" label="密码"
+  hint="可选" persistent-hint class="mb-3" :show-copy="false" />
   <template #actions>
     <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveProxy">保存</v-btn>
   </template>

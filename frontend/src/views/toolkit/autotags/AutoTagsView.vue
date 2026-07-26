@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { toolkitApi } from '@/api/toolkit'
-import { useNotification } from '@/composables'
+import { useNotification, useClipboard } from '@/composables'
 import { useConfirm } from '@/composables'
 import GlassDialog from '@/components/common/GlassDialog.vue'
 
 const { success, error: showError } = useNotification()
+const { copy: copyToClipboard } = useClipboard()
 const { confirm } = useConfirm()
 
 // ========== 规则管理 ==========
@@ -67,11 +68,7 @@ async function saveWH() {
 }
 
 function copyUrl() {
-  navigator.clipboard.writeText(webhookUrl.value).then(() => {
-    success('URL 已成功复制到剪贴板')
-  }).catch(() => {
-    showError('复制失败，请手动选取')
-  })
+  copyToClipboard(webhookUrl.value, 'URL 已成功复制到剪贴板')
 }
 
 // ========== 规则编辑 ==========

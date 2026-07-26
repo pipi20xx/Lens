@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
 import { toolkitApi } from '@/api/toolkit'
-import { useNotification } from '@/composables'
+import { useNotification, useClipboard } from '@/composables'
 import GlassDialog from '@/components/common/GlassDialog.vue'
 
 const { success, error: showError } = useNotification()
+const { copy: copyToClipboard } = useClipboard()
 
 const loading = ref(false)
 const searched = ref(false)
@@ -38,12 +39,7 @@ function showJson(item: any) {
 }
 
 function copyRawJson() {
-  const text = JSON.stringify(jsonModal.data, null, 2)
-  navigator.clipboard.writeText(text).then(() => {
-    success('数据已复制到剪贴板')
-  }).catch(() => {
-    showError('复制失败')
-  })
+  copyToClipboard(JSON.stringify(jsonModal.data, null, 2), '数据已复制到剪贴板')
 }
 
 function formatRuntime(ticks: number) {

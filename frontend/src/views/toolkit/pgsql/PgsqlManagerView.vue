@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { pgsqlApi } from '@/api/pgsql'
-import { useNotification } from '@/composables'
+import { useNotification, useClipboard } from '@/composables'
 import { useConfirm } from '@/composables'
 import GlassDialog from '@/components/common/GlassDialog.vue'
+import SecretField from '@/components/common/SecretField.vue'
 
 const { success, error: showError, info } = useNotification()
+const { copy: copyToClipboard } = useClipboard()
 const { confirm } = useConfirm()
 
 // ========== 主机选择 ==========
@@ -220,12 +222,7 @@ const formattedViewerContent = computed(() => {
 })
 
 async function copyViewerContent() {
-  try {
-    await navigator.clipboard.writeText(formattedViewerContent.value)
-    success('已复制到剪贴板')
-  } catch {
-    showError('复制失败')
-  }
+  await copyToClipboard(formattedViewerContent.value)
 }
 
 // ========== 数据库列表 Tab ==========
@@ -817,7 +814,7 @@ onMounted(fetchHosts)
             </v-col>
           </v-row>
           <v-text-field v-model="hostForm.username" label="用户名" variant="outlined" density="compact" class="mb-3" />
-          <v-text-field v-model="hostForm.password" label="密码" type="password" variant="outlined" density="compact" class="mb-3" />
+          <SecretField v-model="hostForm.password" label="密码" class="mb-3" :show-copy="false" />
           <v-text-field v-model="hostForm.database" label="默认数据库" variant="outlined" density="compact" />
   <template #actions>
     <v-btn color="warning" variant="tonal" prepend-icon="mdi-lan-connect" :loading="hostTesting" @click="testHostConnection">测试连接</v-btn>
@@ -860,7 +857,7 @@ onMounted(fetchHosts)
     <!-- ==================== 创建用户弹窗 ==================== -->
     <GlassDialog v-model="showCreateUserDialog" :max-width="550" title="创建数据库用户/角色">
   <v-text-field v-model="userForm.username" label="用户名/角色名" variant="outlined" density="compact" class="mb-3" />
-          <v-text-field v-model="userForm.password" label="密码" type="password" variant="outlined" density="compact" class="mb-3" />
+          <SecretField v-model="userForm.password" label="密码" class="mb-3" :show-copy="false" />
           <v-text-field v-model="userForm.connection_limit" label="连接限制" type="number" variant="outlined" density="compact"
             hint="输入 -1 表示无限制" persistent-hint class="mb-3" />
 
@@ -881,8 +878,8 @@ onMounted(fetchHosts)
 
     <!-- ==================== 编辑用户弹窗 ==================== -->
     <GlassDialog v-model="showEditUserDialog" :max-width="550" :title="'编辑数据库用户:' + (editingUser?.username)">
-  <v-text-field v-model="editUserForm.password" label="重置密码" type="password" variant="outlined" density="compact"
-            hint="留空则不修改" persistent-hint class="mb-3" />
+  <SecretField v-model="editUserForm.password" label="重置密码"
+            hint="留空则不修改" persistent-hint class="mb-3" :show-copy="false" />
           <v-text-field v-model="editUserForm.connection_limit" label="连接限制" type="number" variant="outlined" density="compact"
             hint="输入 -1 表示无限制" persistent-hint class="mb-3" />
 

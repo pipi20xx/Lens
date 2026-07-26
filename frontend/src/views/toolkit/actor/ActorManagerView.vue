@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { ref, reactive, watch } from 'vue'
 import { actorsApi } from '@/api/actors'
-import { useNotification } from '@/composables'
+import { useNotification, useClipboard } from '@/composables'
 import GlassDialog from '@/components/common/GlassDialog.vue'
 
 const { success, error: showError } = useNotification()
+const { copy: copyToClipboard } = useClipboard()
 
 // ========== 搜索相关 ==========
 const embyMode = ref('name')
@@ -60,12 +61,7 @@ function showJson(item: any) {
 }
 
 function copyRawJson() {
-  const text = JSON.stringify(jsonModal.data, null, 2)
-  navigator.clipboard.writeText(text).then(() => {
-    success('已复制到剪贴板')
-  }).catch(() => {
-    showError('复制失败')
-  })
+  copyToClipboard(JSON.stringify(jsonModal.data, null, 2))
 }
 
 function getEmbyAvatar(person: any) {

@@ -7,6 +7,7 @@ import { dockerApi } from '@/api/docker'
 import { useNotification } from '@/composables'
 import { useConfirm } from '@/composables'
 import GlassDialog from '@/components/common/GlassDialog.vue'
+import SecretField from '@/components/common/SecretField.vue'
 
 const { success, error: showError, info } = useNotification()
 const { confirm } = useConfirm()
@@ -754,11 +755,8 @@ onUnmounted(() => {
           </div>
 
           <!-- 加密密码 (7z) -->
-          <v-text-field v-if="editTask.mode === '7z'" v-model="editTask.password"
-            label="加密密码" type="password" variant="outlined" density="compact"
-            placeholder="可选" :append-inner-icon="editTask.password ? 'mdi-eye-off' : 'mdi-eye'"
-            @click:append-inner="editTask.password = editTask.password ? '' : ' '"
-            class="mb-3" />
+          <SecretField v-if="editTask.mode === '7z'" v-model="editTask.password"
+            label="加密密码" placeholder="可选" :show-copy="false" class="mb-3" />
 
           <!-- ====== 自动化运行计划 ====== -->
           <v-divider class="mb-3" />

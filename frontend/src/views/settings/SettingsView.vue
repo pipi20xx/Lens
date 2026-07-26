@@ -3,10 +3,12 @@ import { ref, onMounted } from 'vue'
 import { serverApi } from '@/api/server'
 import { configApi } from '@/api/config'
 import { systemApi } from '@/api/system'
-import { useNotification } from '@/composables'
+import { useNotification, useClipboard } from '@/composables'
 import GlassDialog from '@/components/common/GlassDialog.vue'
+import SecretField from '@/components/common/SecretField.vue'
 
 const { success, error: showError } = useNotification()
+const { copy: copyToClipboard } = useClipboard()
 const activeTab = ref('general')
 const loading = ref(true)
 const savingGlobal = ref(false)
@@ -220,8 +222,7 @@ async function upgradeSystem() {
 }
 
 function copyText(text: string) {
-  navigator.clipboard.writeText(text)
-  success('已复制到剪贴板')
+  copyToClipboard(text)
 }
 
 onMounted(loadAll)
@@ -295,13 +296,11 @@ onMounted(loadAll)
               </v-card-title>
               <v-divider />
               <v-card-text class="pa-4">
-                <v-text-field v-model="globalConfig.tmdb_api_key" label="TMDB API Key" type="password"
-                  variant="outlined" density="compact" class="mb-3"
-                  append-inner-icon="mdi-content-copy" @click:append-inner="copyText(globalConfig.tmdb_api_key)"
+                <SecretField v-model="globalConfig.tmdb_api_key" label="TMDB API Key"
+                  class="mb-3"
                   hint="The Movie Database V3 Key" persistent-hint />
-                <v-text-field v-model="globalConfig.bangumi_api_token" label="Bangumi API Token" type="password"
-                  variant="outlined" density="compact" class="mb-3"
-                  append-inner-icon="mdi-content-copy" @click:append-inner="copyText(globalConfig.bangumi_api_token)"
+                <SecretField v-model="globalConfig.bangumi_api_token" label="Bangumi API Token"
+                  class="mb-3"
                   hint="Bangumi Access Token" persistent-hint />
               </v-card-text>
               <v-divider />
@@ -352,14 +351,6 @@ onMounted(loadAll)
                   开启后，登录会话将不会自动过期，直到用户主动登出或被管理员踢出。<br />
                   关闭后，会话将在 24 小时后自动过期。
                 </p>
-                <v-divider class="my-4" />
-                <h3 class="text-subtitle-2 font-weight-bold mb-3">API Token</h3>
-                <div class="d-flex align-center ga-3">
-                  <v-text-field :model-value="systemConfig.api_token" label="API Token" variant="outlined" density="compact"
-                    readonly append-inner-icon="mdi-content-copy" @click:append-inner="copyText(systemConfig.api_token)"
-                    class="flex-grow-1" />
-                  <v-btn color="primary" variant="tonal" prepend-icon="mdi-refresh" @click="generateToken">重新生成</v-btn>
-                </div>
                 <v-divider class="my-4" />
                 <v-row>
                   <v-col cols="6">
@@ -439,9 +430,9 @@ onMounted(loadAll)
   <v-text-field v-model="serverForm.name" label="名称" variant="outlined" density="compact" class="mb-3" />
           <v-text-field v-model="serverForm.url" label="Emby 地址" variant="outlined" density="compact"
             hint="如 http://192.168.1.100:8096" persistent-hint class="mb-3" />
-          <v-text-field v-model="serverForm.api_key" label="API Key" variant="outlined" density="compact" class="mb-3" />
+          <SecretField v-model="serverForm.api_key" label="API Key" class="mb-3" />
           <v-text-field v-model="serverForm.username" label="用户名 (用于登录)" variant="outlined" density="compact" class="mb-3" />
-          <v-text-field v-model="serverForm.password" label="密码" type="password" variant="outlined" density="compact" class="mb-3" />
+          <SecretField v-model="serverForm.password" label="密码" class="mb-3" />
   <template #actions>
     <v-btn variant="text" prepend-icon="mdi-lan-connect" @click="testConnection">测试连接</v-btn>
     <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveServer">保存</v-btn>

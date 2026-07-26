@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useAuth } from '@/composables'
 import { useNotification } from '@/composables'
+import SecretField from '@/components/common/SecretField.vue'
 
 const { formValue, loading, handleLogin } = useAuth()
 const { error: showError } = useNotification()
@@ -38,13 +39,13 @@ async function onSubmit() {
           class="mb-2"
           autocomplete="username"
         />
-        <v-text-field
+        <SecretField
           v-model="formValue.password"
           label="密码"
-          type="password"
           prepend-inner-icon="mdi-lock-outline"
-          variant="outlined"
+          density="default"
           class="mb-6"
+          :show-copy="false"
           autocomplete="current-password"
         />
 

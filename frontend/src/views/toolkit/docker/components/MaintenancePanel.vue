@@ -4,6 +4,7 @@ import { dockerApi } from '@/api/docker'
 import { useNotification } from '@/composables'
 import { useConfirm } from '@/composables'
 import GlassDialog from '@/components/common/GlassDialog.vue'
+import SecretField from '@/components/common/SecretField.vue'
 
 const { success, error: showError, warning } = useNotification()
 const { confirm } = useConfirm()
@@ -179,7 +180,7 @@ defineExpose({ loadDaemonConfig })
                   <v-col cols="8"><v-text-field v-model="daemonForm.proxyHost" label="服务器地址" variant="outlined" density="compact" placeholder="192.168.50.66" /></v-col>
                   <v-col cols="4"><v-text-field v-model="daemonForm.proxyPort" label="端口" variant="outlined" density="compact" placeholder="7890" /></v-col>
                   <v-col cols="6"><v-text-field v-model="daemonForm.proxyUser" label="用户名 (可选)" variant="outlined" density="compact" /></v-col>
-                  <v-col cols="6"><v-text-field v-model="daemonForm.proxyPass" label="密码 (可选)" variant="outlined" density="compact" type="password" /></v-col>
+                  <v-col cols="6"><SecretField v-model="daemonForm.proxyPass" label="密码 (可选)" :show-copy="false" /></v-col>
                   <v-col cols="12"><v-text-field v-model="daemonForm.noProxy" label="无需代理地址 (No Proxy)" variant="outlined" density="compact" placeholder="localhost,127.0.0.1" /></v-col>
                 </v-row>
               </template>

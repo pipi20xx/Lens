@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { authApi } from '@/api/auth'
 import { useNotification } from '@/composables'
 import { useConfirm } from '@/composables'
+import SecretField from '@/components/common/SecretField.vue'
 
 const { success, error: showError } = useNotification()
 const { confirm } = useConfirm()
@@ -196,9 +197,9 @@ onMounted(() => { loadProfile(); loadSessions() })
       <v-window-item value="password">
         <v-card class="liquid-glass-card" rounded="xl" max-width="500">
           <v-card-text class="pa-6">
-            <v-text-field v-model="passwordForm.old_password" label="当前密码" type="password" variant="outlined" class="mb-3" />
-            <v-text-field v-model="passwordForm.new_password" label="新密码" type="password" variant="outlined" hint="至少 6 位字符" persistent-hint class="mb-3" />
-            <v-text-field v-model="passwordForm.confirm_password" label="确认新密码" type="password" variant="outlined" class="mb-4" />
+            <SecretField v-model="passwordForm.old_password" label="当前密码" :show-copy="false" class="mb-3" />
+            <SecretField v-model="passwordForm.new_password" label="新密码" :show-copy="false" hint="至少 6 位字符" persistent-hint class="mb-3" />
+            <SecretField v-model="passwordForm.confirm_password" label="确认新密码" :show-copy="false" class="mb-4" />
             <v-btn color="primary" variant="flat" block prepend-icon="mdi-lock-outline" @click="changePassword">修改密码</v-btn>
           </v-card-text>
         </v-card>

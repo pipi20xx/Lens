@@ -5,6 +5,7 @@ import { useNotification } from '@/composables'
 import { useConfirm } from '@/composables'
 import { useDockerHost } from '../composables/useDockerHost'
 import GlassDialog from '@/components/common/GlassDialog.vue'
+import SecretField from '@/components/common/SecretField.vue'
 
 const { success, error: showError, info } = useNotification()
 const { confirm } = useConfirm()
@@ -91,7 +92,7 @@ function removeScanPath(path: string) {
     <v-text-field v-model="hostForm.ssh_host" label="SSH 地址" variant="outlined" density="compact" placeholder="127.0.0.1" class="mb-3" />
     <v-text-field v-model="hostForm.ssh_port" label="SSH 端口" type="number" variant="outlined" density="compact" class="mb-3" />
     <v-text-field v-model="hostForm.ssh_user" label="SSH 用户名" variant="outlined" density="compact" class="mb-3" />
-    <v-text-field v-model="hostForm.ssh_pass" label="SSH 密码" type="password" variant="outlined" density="compact" class="mb-3" />
+    <SecretField v-model="hostForm.ssh_pass" label="SSH 密码" :show-copy="false" class="mb-3" />
     <v-switch v-model="hostForm.is_local" label="标记为宿主机" density="compact" color="primary" hint="标记为此 Lens 容器所在的物理宿主机" persistent-hint class="mb-3" />
     <v-textarea v-model="hostForm.compose_scan_paths" label="Compose 扫描路径" variant="outlined" density="compact" hint="逗号分隔多个路径" persistent-hint rows="2" />
 

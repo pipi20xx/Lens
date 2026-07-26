@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { toolkitApi } from '@/api/toolkit'
-import { useNotification } from '@/composables'
+import { useNotification, useClipboard } from '@/composables'
 
 const { success, error: showError } = useNotification()
+const { copy: copyToClipboard } = useClipboard()
 
 const episodeId = ref('')
 const loading = ref(false)
@@ -29,11 +30,7 @@ async function handleLookup() {
 
 function copyTmdb() {
   if (!result.value?.tmdb_id) return
-  navigator.clipboard.writeText(String(result.value.tmdb_id)).then(() => {
-    success('TMDB ID 已复制到剪贴板')
-  }).catch(() => {
-    showError('复制失败')
-  })
+  copyToClipboard(String(result.value.tmdb_id), 'TMDB ID 已复制到剪贴板')
 }
 </script>
 

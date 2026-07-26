@@ -2,6 +2,7 @@
 import { ref, nextTick, onMounted } from 'vue'
 import { toolkitApi } from '@/api/toolkit'
 import { useNotification } from '@/composables'
+import SecretField from '@/components/common/SecretField.vue'
 
 const { success, error: showError } = useNotification()
 
@@ -194,7 +195,7 @@ onMounted(loadConfig)
           <v-divider />
           <v-card-text class="pa-4">
             <v-select v-model="config.provider" :items="providerOptions" label="服务商 (Provider)" variant="outlined" density="compact" class="mb-3" @update:model-value="handleProviderChange" />
-            <v-text-field v-if="config.provider === 'openai'" v-model="config.api_key" label="API Key" type="password" placeholder="sk-..." variant="outlined" density="compact" class="mb-3" />
+            <SecretField v-if="config.provider === 'openai'" v-model="config.api_key" label="API Key" placeholder="sk-..." class="mb-3" :show-copy="false" />
             <v-text-field v-model="config.base_url" label="Base URL" placeholder="https://api.openai.com/v1" variant="outlined" density="compact" class="mb-3" />
             <v-text-field v-model="config.model" label="Model Name" placeholder="gpt-3.5-turbo" variant="outlined" density="compact" class="mb-3" />
             <div class="d-flex align-center mb-4">

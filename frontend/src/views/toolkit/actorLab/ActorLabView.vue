@@ -2,10 +2,11 @@
 import { ref, reactive } from 'vue'
 import { actorsApi } from '@/api/actors'
 import { toolkitApi } from '@/api/toolkit'
-import { useNotification } from '@/composables'
+import { useNotification, useClipboard } from '@/composables'
 import GlassDialog from '@/components/common/GlassDialog.vue'
 
 const { success, error: showError, warning } = useNotification()
+const { copy: copyToClipboard } = useClipboard()
 
 const activeTab = ref('search')
 
@@ -68,11 +69,7 @@ const jsonModal = reactive({ show: false, data: {} as any })
 function showJson(data: any) { jsonModal.data = data; jsonModal.show = true }
 
 function copyRawJson() {
-  navigator.clipboard.writeText(JSON.stringify(jsonModal.data, null, 2)).then(() => {
-    success('已复制到剪贴板')
-  }).catch(() => {
-    showError('复制失败')
-  })
+  copyToClipboard(JSON.stringify(jsonModal.data, null, 2))
 }
 </script>
 

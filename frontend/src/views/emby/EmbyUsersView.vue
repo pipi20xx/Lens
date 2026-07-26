@@ -6,6 +6,7 @@ import { useNotification } from '@/composables'
 import { useConfirm } from '@/composables'
 import EmbyConfigBackupManager from '@/components/emby/EmbyConfigBackupManager.vue'
 import GlassDialog from '@/components/common/GlassDialog.vue'
+import SecretField from '@/components/common/SecretField.vue'
 
 const { success, error: showError } = useNotification()
 const { confirm } = useConfirm()
@@ -289,7 +290,7 @@ onMounted(loadUsers)
 
             <!-- 修改密码 -->
             <v-window-item value="password">
-              <v-text-field v-model="newPassword" label="新密码" type="password" variant="outlined" density="compact" hint="留空则不修改" persistent-hint class="mb-3" />
+              <SecretField v-model="newPassword" label="新密码" hint="留空则不修改" persistent-hint class="mb-3" :show-copy="false" />
               <v-btn color="warning" variant="flat" size="small" prepend-icon="mdi-lock-reset" @click="handleUpdatePassword" :disabled="!newPassword">单独更新密码</v-btn>
             </v-window-item>
 
