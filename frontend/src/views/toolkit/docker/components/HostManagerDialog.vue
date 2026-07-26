@@ -57,7 +57,7 @@ function removeScanPath(path: string) {
 
 <template>
   <!-- 主机管理列表对话框 -->
-  <v-dialog v-model="showHostManagerDialog" max-width="700">
+  <v-dialog v-model="showHostManagerDialog" max-width="700" scrollable>
     <v-card class="liquid-glass-card" rounded="xl">
       <v-card-title class="pa-4"><v-icon start>mdi-server</v-icon> Docker 主机管理</v-card-title>
       <v-divider />
@@ -84,13 +84,13 @@ function removeScanPath(path: string) {
   </v-dialog>
 
   <!-- 添加/编辑主机对话框 -->
-  <v-dialog v-model="showHostEditDialog" max-width="520">
+  <v-dialog v-model="showHostEditDialog" max-width="520" scrollable>
     <v-card class="liquid-glass-card" rounded="xl">
       <v-card-title class="pa-4">
         <v-icon start>mdi-server</v-icon> {{ editingHostId ? '编辑主机' : '添加主机' }}
       </v-card-title>
       <v-divider />
-      <v-card-text class="pa-4">
+      <v-card-text class="pa-4" style="max-height:65vh;overflow-y:auto">
         <v-text-field v-model="hostForm.name" label="主机名称" variant="outlined" density="compact" class="mb-3" />
         <v-select v-model="hostForm.type" :items="[{title: '远程 Docker (SSH)', value: 'ssh'}]" label="连接类型" variant="outlined" density="compact" class="mb-3" />
         <v-text-field v-model="hostForm.ssh_host" label="SSH 地址" variant="outlined" density="compact" placeholder="127.0.0.1" class="mb-3" />

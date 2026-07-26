@@ -145,7 +145,7 @@ defineExpose({ loadComposeProjects })
       <v-text-field v-model="composeSearchQuery" prepend-inner-icon="mdi-magnify" placeholder="搜索项目..." variant="outlined" density="compact" hide-details clearable style="max-width:300px" />
       <v-spacer />
       <v-btn-group density="compact">
-        <v-btn prepend-icon="mdi-refresh" variant="tonal" color="info" size="small" @click="loadComposeProjects" :loading="loadingCompose">刷新</v-btn>
+        <v-btn prepend-icon="mdi-refresh" variant="tonal" size="small" @click="loadComposeProjects" :loading="loadingCompose">刷新</v-btn>
         <v-btn prepend-icon="mdi-play" variant="tonal" size="small" color="success" @click="handleBulkComposeAction('up')">全部启动</v-btn>
         <v-btn prepend-icon="mdi-stop" variant="tonal" size="small" color="error" @click="handleBulkComposeAction('down')">全部停止</v-btn>
       </v-btn-group>
@@ -177,7 +177,7 @@ defineExpose({ loadComposeProjects })
             <v-btn size="small" color="primary" variant="tonal" prepend-icon="mdi-play" :loading="loadingActions[project.name]" @click="composeAction(project.name, 'up', project.config_file || project.path)">启动/更新</v-btn>
             <v-btn size="small" color="warning" variant="tonal" prepend-icon="mdi-download" :loading="loadingActions[project.name]" @click="composeAction(project.name, 'pull', project.config_file || project.path)">拉取</v-btn>
             <v-btn size="small" color="error" variant="tonal" prepend-icon="mdi-stop" :loading="loadingActions[project.name]" @click="composeAction(project.name, 'down', project.config_file || project.path)">停止</v-btn>
-            <v-btn size="small" variant="tonal" color="warning" prepend-icon="mdi-pencil-outline" @click="editProject(project)">编辑</v-btn>
+            <v-btn size="small" variant="tonal" prepend-icon="mdi-pencil-outline" @click="editProject(project)">编辑</v-btn>
             <v-btn size="small" color="error" variant="tonal" prepend-icon="mdi-delete-outline" @click="handleDeleteComposeProject(project)">删除</v-btn>
             <v-btn size="small" color="info" variant="tonal" prepend-icon="mdi-backup-restore" @click="createBackupTask(project)">备份</v-btn>
           </div>
@@ -186,14 +186,14 @@ defineExpose({ loadComposeProjects })
     </div>
 
     <!-- Compose 编辑/新建弹窗 -->
-    <v-dialog v-model="showComposeModal" max-width="800">
+    <v-dialog v-model="showComposeModal" max-width="800" scrollable>
       <v-card class="liquid-glass-card" rounded="xl">
         <v-card-title class="pa-4">
           <v-icon start>mdi-file-document-edit-outline</v-icon>
           {{ isEditingProject ? '编辑项目: ' + currentProject.name : '新建 Compose 项目' }}
         </v-card-title>
         <v-divider />
-        <v-card-text class="pa-4">
+        <v-card-text class="pa-4" style="max-height:65vh;overflow-y:auto">
           <v-text-field v-model="currentProject.name" label="项目名称" variant="outlined" density="compact" placeholder="例如: my-awesome-app" :disabled="isEditingProject" class="mb-3" />
           <template v-if="!isEditingProject">
             <v-text-field v-model="baseSavePath" label="基础保存路径" variant="outlined" density="compact" placeholder="选择存放项目的根目录" class="mb-3" />

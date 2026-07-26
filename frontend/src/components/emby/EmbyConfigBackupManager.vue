@@ -84,7 +84,7 @@ watch(showModal, (val) => {
     配置备份管理
   </v-btn>
 
-  <v-dialog v-model="showModal" max-width="750">
+  <v-dialog v-model="showModal" max-width="750" scrollable>
     <v-card class="liquid-glass-card" rounded="xl">
       <v-card-title class="d-flex align-center pa-4">
         <v-icon start>mdi-history</v-icon>

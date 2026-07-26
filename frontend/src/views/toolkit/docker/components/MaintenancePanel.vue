@@ -152,7 +152,7 @@ defineExpose({ loadDaemonConfig })
       <v-card-title class="d-flex align-center pa-4">
         <v-icon start>mdi-cog-outline</v-icon> Docker Daemon 配置
         <v-spacer />
-        <v-btn size="small" variant="tonal" color="primary" prepend-icon="mdi-code-json" @click="openRawEdit" class="mr-2">直接编辑 JSON</v-btn>
+        <v-btn size="small" variant="tonal" color="primary" prepend-icon="mdi-code-block-braces" @click="openRawEdit" class="mr-2">直接编辑 JSON</v-btn>
         <span class="text-caption text-warning"><v-icon size="14">mdi-alert-outline</v-icon> 需要 Root 权限的 SSH 账户</span>
       </v-card-title>
       <v-divider />
@@ -244,11 +244,11 @@ defineExpose({ loadDaemonConfig })
     </v-card>
 
     <!-- 原始 JSON 编辑弹窗 -->
-    <v-dialog v-model="showRawModal" max-width="800">
+    <v-dialog v-model="showRawModal" max-width="800" scrollable>
       <v-card class="liquid-glass-card" rounded="xl">
-        <v-card-title class="pa-4"><v-icon start>mdi-code-json</v-icon> 直接编辑 daemon.json</v-card-title>
+        <v-card-title class="pa-4"><v-icon start>mdi-code-block-braces</v-icon> 直接编辑 daemon.json</v-card-title>
         <v-divider />
-        <v-card-text class="pa-4">
+        <v-card-text class="pa-4" style="max-height:65vh;overflow-y:auto">
           <v-alert type="warning" variant="tonal" density="compact" class="mb-3" text="警告：直接编辑 JSON 可能会导致 Docker 无法启动。系统将会在保存前验证 JSON 格式并自动创建备份。" />
           <v-textarea v-model="rawJsonContent" variant="outlined" rows="18" style="font-family:'Fira Code','JetBrains Mono',monospace" :error-messages="rawJsonError ? [rawJsonError] : []" @update:model-value="validateRawJson" />
           <v-checkbox v-model="daemonForm.shouldRestart" density="compact" hide-details label="保存后重启 Docker 服务" class="mt-3" />

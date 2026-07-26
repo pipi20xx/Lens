@@ -286,7 +286,7 @@ defineExpose({ loadContainers, loadContainerSettings })
     </div>
 
     <!-- 日志对话框 -->
-    <v-dialog v-model="showLogsDialog" max-width="900">
+    <v-dialog v-model="showLogsDialog" max-width="900" scrollable>
       <v-card class="liquid-glass-card" rounded="xl">
         <v-card-title class="d-flex align-center pa-4">
           <v-icon start>mdi-text-box-outline</v-icon> 日志 — {{ logContainerName }}
@@ -301,7 +301,7 @@ defineExpose({ loadContainers, loadContainerSettings })
     </v-dialog>
 
     <!-- 容器设置对话框 -->
-    <v-dialog v-model="showSettingsDialog" max-width="420">
+    <v-dialog v-model="showSettingsDialog" max-width="420" scrollable>
       <v-card class="liquid-glass-card" rounded="xl">
         <v-card-title class="pa-4"><v-icon start>mdi-cog-outline</v-icon> 容器设置 — {{ settingsForm.name }}</v-card-title>
         <v-divider />
@@ -311,7 +311,7 @@ defineExpose({ loadContainers, loadContainerSettings })
         </v-card-text>
         <v-divider />
         <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="text" prepend-icon="mdi-close" @click="showSettingsDialog = false">取消</v-btn>
+          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showSettingsDialog = false">取消</v-btn>
           <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveContainerSettings">保存</v-btn>
         </div>
       </v-card>

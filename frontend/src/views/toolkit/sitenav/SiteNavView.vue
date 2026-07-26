@@ -161,11 +161,11 @@ onMounted(loadAll)
       <div>暂无站点</div>
     </div>
 
-    <v-dialog v-model="showSiteDialog" max-width="500">
+    <v-dialog v-model="showSiteDialog" max-width="500" scrollable>
       <v-card class="liquid-glass-card" rounded="xl">
         <v-card-title class="pa-4"><v-icon start>mdi-web</v-icon>{{ editingSiteId ? '编辑站点' : '添加站点' }}</v-card-title>
         <v-divider />
-        <v-card-text class="pa-4">
+        <v-card-text class="pa-4" style="max-height:65vh;overflow-y:auto">
           <v-text-field v-model="siteForm.name" label="站点名称" variant="outlined" density="compact" class="mb-3" />
           <v-text-field v-model="siteForm.url" label="URL" variant="outlined" density="compact" class="mb-3" />
           <v-text-field v-model="siteForm.icon" label="图标 URL" variant="outlined" density="compact" hint="留空自动获取 favicon" persistent-hint class="mb-3" />
@@ -181,7 +181,7 @@ onMounted(loadAll)
       </v-card>
     </v-dialog>
 
-    <v-dialog v-model="showCategoryDialog" max-width="400">
+    <v-dialog v-model="showCategoryDialog" max-width="400" scrollable>
       <v-card class="liquid-glass-card" rounded="xl">
         <v-card-title class="pa-4"><v-icon start>mdi-folder-outline</v-icon>{{ editingCategoryId ? '编辑分类' : '添加分类' }}</v-card-title>
         <v-divider />

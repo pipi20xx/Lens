@@ -290,7 +290,7 @@ function copyJsonData() {
           </v-card-title>
           <v-divider />
           <v-card-text class="pa-4 d-flex flex-column ga-2">
-            <v-btn block variant="tonal" color="info" prepend-icon="mdi-code-json" @click="showJson(detailResult, 'main')">查看本体 JSON</v-btn>
+            <v-btn block variant="tonal" color="info" prepend-icon="mdi-code-block-braces" @click="showJson(detailResult, 'main')">查看本体 JSON</v-btn>
           </v-card-text>
         </v-card>
       </v-col>
@@ -309,7 +309,7 @@ function copyJsonData() {
               </v-chip>
               <v-spacer />
               <v-btn icon variant="tonal" size="small" @click="showJson(detailResult, 'main')" title="查看本体 JSON">
-                <v-icon>mdi-code-json</v-icon>
+                <v-icon>mdi-code-block-braces</v-icon>
               </v-btn>
             </v-card-title>
             <v-divider />
@@ -320,7 +320,7 @@ function copyJsonData() {
                 <tbody>
                   <tr><td class="text-medium-emphasis" style="width:120px">原始标题</td><td>{{ detailResult.original_name || detailResult.original_title }}</td></tr>
                   <tr><td class="text-medium-emphasis">状态</td><td>{{ detailResult.status }}</td></tr>
-                  <tr><td class="text-medium-emphasis">评分</td><td>⭐ {{ detailResult.vote_average }} ({{ detailResult.vote_count }} 票)</td></tr>
+                  <tr><td class="text-medium-emphasis">评分</td><td><v-icon size="14" color="warning">mdi-star</v-icon> {{ detailResult.vote_average }} ({{ detailResult.vote_count }} 票)</td></tr>
                   <tr><td class="text-medium-emphasis">TMDB ID</td><td>{{ detailResult.id }}</td></tr>
                   <tr>
                     <td class="text-medium-emphasis">流派</td>
@@ -376,18 +376,18 @@ function copyJsonData() {
                   <div v-if="titlePool.length > 0">
                     <v-chip v-for="t in titlePool" :key="t" size="x-small" variant="outlined" class="mr-1 mb-1">{{ t }}</v-chip>
                   </div>
-                  <div v-else class="text-caption text-medium-emphasis pa-2 rounded" style="background:rgba(0,0,0,0.1)">
+                  <div v-else class="text-caption text-medium-emphasis pa-2 rounded" style="background:rgba(var(--v-theme-on-surface),0.03)">
                     {{ detailForm.language === 'all' ? '暂无翻译标题' : '未获取全量标题。请在左侧选择"全语言抓取"模式。' }}
                   </div>
                 </div>
 
                 <!-- 5. 别名池 -->
                 <div class="pa-3">
-                  <div class="text-caption font-weight-bold mb-1" style="color:#f0a020">5. 全量别名池 ({{ aliasPool.length }})</div>
+                  <div class="text-caption font-weight-bold mb-1 text-warning">5. 全量别名池 ({{ aliasPool.length }})</div>
                   <div v-if="aliasPool.length > 0">
-                    <v-chip v-for="a in aliasPool" :key="a" size="x-small" variant="outlined" class="mr-1 mb-1" style="border-color:rgba(240,160,32,0.3);color:#f0a020">{{ a }}</v-chip>
+                    <v-chip v-for="a in aliasPool" :key="a" size="x-small" variant="outlined" color="warning" class="mr-1 mb-1">{{ a }}</v-chip>
                   </div>
-                  <div v-else class="text-caption text-medium-emphasis pa-2 rounded" style="background:rgba(0,0,0,0.1)">暂无别名信息</div>
+                  <div v-else class="text-caption text-medium-emphasis pa-2 rounded" style="background:rgba(var(--v-theme-on-surface),0.03)">暂无别名信息</div>
                 </div>
               </v-card>
 
@@ -403,7 +403,7 @@ function copyJsonData() {
                       <span class="font-weight-bold">{{ season.name }} ({{ season.episodes?.length || 0 }} 集)</span>
                       <v-spacer />
                       <v-btn icon variant="tonal" size="x-small" @click.stop="showJson(season, 'season', false)" title="查看当前快照">
-                        <v-icon size="16">mdi-code-json</v-icon>
+                        <v-icon size="16">mdi-code-block-braces</v-icon>
                       </v-btn>
                       <v-btn icon variant="tonal" size="x-small" color="info" class="ml-1" @click.stop="showJson(season, 'season', true)" title="全语言深度探针">
                         <v-icon size="16">mdi-magnify-scan</v-icon>
@@ -421,7 +421,7 @@ function copyJsonData() {
                             <v-chip v-if="ep.runtime" size="x-small" variant="tonal">{{ ep.runtime }} min</v-chip>
                             <v-spacer />
                             <v-btn icon variant="tonal" size="x-small" @click="showJson(ep, 'episode', false)" title="查看快照">
-                              <v-icon size="14">mdi-code-json</v-icon>
+                              <v-icon size="14">mdi-code-block-braces</v-icon>
                             </v-btn>
                             <v-btn icon variant="tonal" size="x-small" color="primary" @click="showJson(ep, 'episode', true)" title="全语言深度探针">
                               <v-icon size="14">mdi-magnify-scan</v-icon>
@@ -452,10 +452,10 @@ function copyJsonData() {
     </v-row>
 
     <!-- JSON 详情弹窗 -->
-    <v-dialog v-model="jsonModal.show" max-width="900">
+    <v-dialog v-model="jsonModal.show" max-width="900" scrollable>
       <v-card class="liquid-glass-card" rounded="xl">
         <v-card-title class="pa-4">
-          <v-icon start>mdi-code-json</v-icon>
+          <v-icon start>mdi-code-block-braces</v-icon>
           {{ jsonModal.title }}
         </v-card-title>
         <v-divider />
@@ -464,7 +464,7 @@ function copyJsonData() {
           <pre class="code-block">{{ JSON.stringify(jsonModal.data, null, 2) }}</pre>
         </v-card-text>
         <v-divider />
-        <div class="d-flex justify-end pa-4">
+        <div class="d-flex justify-end ga-2 pa-4">
           <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="jsonModal.show = false">关闭</v-btn>
           <v-btn color="primary" variant="flat" prepend-icon="mdi-content-copy" @click="copyJsonData">复制 JSON 数据</v-btn>
         </div>

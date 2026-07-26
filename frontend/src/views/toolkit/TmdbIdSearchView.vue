@@ -95,8 +95,8 @@ function formatRuntime(ticks: number) {
                   <v-chip size="x-small" variant="tonal" :color="item.Type === 'Series' ? 'info' : 'success'">{{ item.Type }}</v-chip>
                 </div>
                 <template #actions>
-                  <v-btn icon variant="text" size="small" @click.stop="showJson(item)">
-                    <v-icon>mdi-code-json</v-icon>
+                  <v-btn icon variant="tonal" size="small" @click.stop="showJson(item)">
+                    <v-icon>mdi-code-block-braces</v-icon>
                   </v-btn>
                 </template>
               </v-expansion-panel-title>
@@ -144,8 +144,8 @@ function formatRuntime(ticks: number) {
                           <span class="text-caption text-medium-emphasis">(ID: {{ season.Id }})</span>
                         </div>
                         <template #actions>
-                          <v-btn icon variant="text" size="x-small" @click.stop="showJson(season)">
-                            <v-icon size="16">mdi-code-json</v-icon>
+                          <v-btn icon variant="tonal" size="x-small" @click.stop="showJson(season)">
+                            <v-icon size="16">mdi-code-block-braces</v-icon>
                           </v-btn>
                         </template>
                       </v-expansion-panel-title>
@@ -167,8 +167,8 @@ function formatRuntime(ticks: number) {
                               <v-list-item-title class="d-flex align-center ga-2">
                                 <span class="font-weight-medium">EP {{ ep.IndexNumber }}</span> - {{ ep.Name }}
                                 <v-spacer />
-                                <v-btn icon variant="text" size="x-small" @click="showJson(ep)">
-                                  <v-icon size="14" color="primary">mdi-code-json</v-icon>
+                                <v-btn icon variant="tonal" size="x-small" @click="showJson(ep)">
+                                  <v-icon size="14" color="primary">mdi-code-block-braces</v-icon>
                                 </v-btn>
                               </v-list-item-title>
                               <v-list-item-subtitle class="d-flex ga-4 text-caption text-medium-emphasis">
@@ -230,10 +230,10 @@ function formatRuntime(ticks: number) {
     </v-row>
 
     <!-- JSON 弹窗 -->
-    <v-dialog v-model="jsonModal.show" max-width="900">
+    <v-dialog v-model="jsonModal.show" max-width="900" scrollable>
       <v-card class="liquid-glass-card" rounded="xl">
         <v-card-title class="pa-4">
-          <v-icon start>mdi-code-json</v-icon>
+          <v-icon start>mdi-code-block-braces</v-icon>
           元数据原始 JSON 快照
         </v-card-title>
         <v-divider />
@@ -241,8 +241,9 @@ function formatRuntime(ticks: number) {
           <pre class="code-block">{{ JSON.stringify(jsonModal.data, null, 2) }}</pre>
         </v-card-text>
         <v-divider />
-        <div class="d-flex justify-end pa-4">
-          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-copy" @click="copyRawJson" block>复制数据</v-btn>
+        <div class="d-flex justify-end ga-2 pa-4">
+          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="jsonModal.show = false">关闭</v-btn>
+          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-copy" @click="copyRawJson">复制数据</v-btn>
         </div>
       </v-card>
     </v-dialog>

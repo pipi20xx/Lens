@@ -797,14 +797,14 @@ onMounted(() => {
     </v-window>
 
     <!-- ==================== 项目编辑弹窗 ==================== -->
-    <v-dialog v-model="showProjectDialog" max-width="620">
+    <v-dialog v-model="showProjectDialog" max-width="620" scrollable>
       <v-card class="liquid-glass-card" rounded="xl">
         <v-card-title class="pa-4">
           <v-icon start>mdi-folder-outline</v-icon>
           {{ editingProjectId ? '编辑项目' : '新建项目' }}
         </v-card-title>
         <v-divider />
-        <v-card-text class="pa-4">
+        <v-card-text class="pa-4" style="max-height:65vh;overflow-y:auto">
           <v-text-field v-model="projectForm.name" label="项目名称" variant="outlined" density="compact"
             hint="例如: My App" persistent-hint class="mb-3" />
           <v-select v-model="projectForm.host_id" :items="hostOptions" item-title="label" item-value="value"
@@ -843,14 +843,14 @@ onMounted(() => {
     </v-dialog>
 
     <!-- ==================== 构建历史弹窗 ==================== -->
-    <v-dialog v-model="showHistoryDialog" max-width="800">
+    <v-dialog v-model="showHistoryDialog" max-width="800" scrollable>
       <v-card class="liquid-glass-card" rounded="xl">
         <v-card-title class="pa-4">
           <v-icon start>mdi-history</v-icon>
           构建历史 — {{ historyProjectName }}
         </v-card-title>
         <v-divider />
-        <div class="pa-4" style="max-height:600px;overflow-y:auto">
+        <v-card-text class="pa-4" style="max-height:65vh;overflow-y:auto">
           <v-progress-linear v-if="historyLoading" indeterminate color="primary" class="mb-4" />
           <div v-if="historyTasks.length" class="d-flex flex-column ga-3">
             <v-card v-for="row in historyTasks" :key="row.id" variant="outlined" rounded="lg" class="pa-3">
@@ -877,12 +877,12 @@ onMounted(() => {
             </v-card>
           </div>
           <div v-else-if="!historyLoading" class="text-center py-8 text-medium-emphasis">暂无构建历史</div>
-        </div>
+        </v-card-text>
       </v-card>
     </v-dialog>
 
     <!-- ==================== 日志查看器弹窗 ==================== -->
-    <v-dialog v-model="showLogViewer" max-width="1200">
+    <v-dialog v-model="showLogViewer" max-width="1200" scrollable>
       <v-card class="liquid-glass-card" rounded="xl">
         <v-card-title class="d-flex align-center pa-4 pb-2">
           <v-icon start>mdi-text-box-outline</v-icon>
@@ -890,6 +890,7 @@ onMounted(() => {
           <v-chip v-if="currentLogStatus" :color="getStatusConfig(currentLogStatus).color" size="small" variant="tonal" class="ml-3">
             {{ getStatusConfig(currentLogStatus).label }}
           </v-chip>
+          <span v-if="!logLoading && currentLog" class="text-caption text-medium-emphasis ml-2">共 {{ currentLog.split('\n').length }} 行</span>
           <v-spacer />
           <div class="d-flex ga-2">
             <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-refresh" :loading="logLoading" @click="fetchLogContent">刷新</v-btn>
@@ -898,22 +899,22 @@ onMounted(() => {
           </div>
         </v-card-title>
         <v-divider />
-        <div ref="logContainerRef" class="pa-4" style="max-height:500px;overflow:auto">
+        <v-card-text ref="logContainerRef" class="pa-4" style="max-height:65vh;overflow:auto">
           <v-progress-linear v-if="logLoading" indeterminate color="primary" class="mb-2" />
           <pre class="code-block">{{ currentLog || '暂无日志内容' }}</pre>
-        </div>
+        </v-card-text>
       </v-card>
     </v-dialog>
 
     <!-- ==================== 仓库编辑弹窗 ==================== -->
-    <v-dialog v-model="showRegDialog" max-width="500">
+    <v-dialog v-model="showRegDialog" max-width="500" scrollable>
       <v-card class="liquid-glass-card" rounded="xl">
         <v-card-title class="pa-4">
           <v-icon start>mdi-database-outline</v-icon>
           {{ editRegMode ? '编辑仓库' : '添加仓库' }}
         </v-card-title>
         <v-divider />
-        <v-card-text class="pa-4">
+        <v-card-text class="pa-4" style="max-height:65vh;overflow-y:auto">
           <v-text-field v-model="regForm.name" label="名称" variant="outlined" density="compact"
             hint="例如: Docker Hub" persistent-hint class="mb-3" />
           <v-text-field v-model="regForm.url" label="URL" variant="outlined" density="compact"
@@ -931,14 +932,14 @@ onMounted(() => {
     </v-dialog>
 
     <!-- ==================== 凭据编辑弹窗 ==================== -->
-    <v-dialog v-model="showCredDialog" max-width="500">
+    <v-dialog v-model="showCredDialog" max-width="500" scrollable>
       <v-card class="liquid-glass-card" rounded="xl">
         <v-card-title class="pa-4">
           <v-icon start>mdi-key-outline</v-icon>
           {{ editCredMode ? '编辑凭据' : '添加凭据' }}
         </v-card-title>
         <v-divider />
-        <v-card-text class="pa-4">
+        <v-card-text class="pa-4" style="max-height:65vh;overflow-y:auto">
           <v-text-field v-model="credForm.name" label="名称" variant="outlined" density="compact"
             hint="例如: my-docker-hub-login" persistent-hint class="mb-3" />
           <v-text-field v-model="credForm.username" label="用户名" variant="outlined" density="compact" class="mb-3" />
@@ -954,14 +955,14 @@ onMounted(() => {
     </v-dialog>
 
     <!-- ==================== 代理编辑弹窗 ==================== -->
-    <v-dialog v-model="showProxyDialog" max-width="500">
+    <v-dialog v-model="showProxyDialog" max-width="500" scrollable>
       <v-card class="liquid-glass-card" rounded="xl">
         <v-card-title class="pa-4">
           <v-icon start>mdi-swap-horizontal</v-icon>
           {{ editProxyMode ? '编辑代理' : '添加代理' }}
         </v-card-title>
         <v-divider />
-        <v-card-text class="pa-4">
+        <v-card-text class="pa-4" style="max-height:65vh;overflow-y:auto">
           <v-text-field v-model="proxyForm.name" label="名称" variant="outlined" density="compact"
             hint="例如: Clash" persistent-hint class="mb-3" />
           <v-text-field v-model="proxyForm.url" label="代理地址" variant="outlined" density="compact"

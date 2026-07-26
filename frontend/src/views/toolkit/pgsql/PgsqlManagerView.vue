@@ -647,7 +647,7 @@ onMounted(fetchHosts)
                             <span class="text-medium-emphasis font-italic">NULL</span>
                           </template>
                           <template v-else-if="typeof row[col.key] === 'object'">
-                            <v-btn size="x-small" color="primary" variant="tonal" prepend-icon="mdi-code-json" @click="openViewer(col.key, row[col.key])">查看 JSON</v-btn>
+                            <v-btn size="x-small" color="primary" variant="tonal" prepend-icon="mdi-code-block-braces" @click="openViewer(col.key, row[col.key])">查看 JSON</v-btn>
                           </template>
                           <template v-else-if="typeof row[col.key] === 'string' && row[col.key].length > 80">
                             <v-btn size="x-small" color="primary" variant="tonal" prepend-icon="mdi-eye-outline" @click="openViewer(col.key, row[col.key])">查看详情</v-btn>
@@ -783,7 +783,7 @@ onMounted(fetchHosts)
     </v-window>
 
     <!-- ==================== 管理主机弹窗 ==================== -->
-    <v-dialog v-model="showHostManagerDialog" max-width="650">
+    <v-dialog v-model="showHostManagerDialog" max-width="650" scrollable>
       <v-card class="liquid-glass-card" rounded="xl">
         <v-card-title class="pa-4">
           <v-icon start>mdi-server-outline</v-icon>
@@ -813,13 +813,13 @@ onMounted(fetchHosts)
     </v-dialog>
 
     <!-- ==================== 添加/编辑主机弹窗 ==================== -->
-    <v-dialog v-model="showHostEditDialog" max-width="500">
+    <v-dialog v-model="showHostEditDialog" max-width="500" scrollable>
       <v-card class="liquid-glass-card" rounded="xl">
         <v-card-title class="pa-4">
           {{ editingHostId ? '编辑数据库主机' : '配置数据库主机' }}
         </v-card-title>
         <v-divider />
-        <v-card-text class="pa-4">
+        <v-card-text class="pa-4" style="max-height:65vh;overflow-y:auto">
           <v-text-field v-model="hostForm.name" label="显示名称" variant="outlined" density="compact"
             hint="例如: 生产环境库" persistent-hint class="mb-3" />
           <v-row class="mb-3">
@@ -844,7 +844,7 @@ onMounted(fetchHosts)
     </v-dialog>
 
     <!-- ==================== 数据值查看器弹窗 ==================== -->
-    <v-dialog v-model="showViewerDialog" max-width="1000">
+    <v-dialog v-model="showViewerDialog" max-width="1000" scrollable>
       <v-card class="liquid-glass-card" rounded="xl">
         <v-card-title class="d-flex align-center pa-4">
           <v-icon start>mdi-eye-outline</v-icon>
@@ -861,7 +861,7 @@ onMounted(fetchHosts)
     </v-dialog>
 
     <!-- ==================== 创建数据库弹窗 ==================== -->
-    <v-dialog v-model="showCreateDbDialog" max-width="450">
+    <v-dialog v-model="showCreateDbDialog" max-width="450" scrollable>
       <v-card class="liquid-glass-card" rounded="xl">
         <v-card-title class="pa-4">创建数据库</v-card-title>
         <v-divider />
@@ -879,7 +879,7 @@ onMounted(fetchHosts)
     </v-dialog>
 
     <!-- ==================== 编辑数据库弹窗 ==================== -->
-    <v-dialog v-model="showEditDbDialog" max-width="500">
+    <v-dialog v-model="showEditDbDialog" max-width="500" scrollable>
       <v-card class="liquid-glass-card" rounded="xl">
         <v-card-title class="pa-4">编辑数据库: {{ editingDb?.name }}</v-card-title>
         <v-divider />
@@ -898,11 +898,11 @@ onMounted(fetchHosts)
     </v-dialog>
 
     <!-- ==================== 创建用户弹窗 ==================== -->
-    <v-dialog v-model="showCreateUserDialog" max-width="550">
+    <v-dialog v-model="showCreateUserDialog" max-width="550" scrollable>
       <v-card class="liquid-glass-card" rounded="xl">
         <v-card-title class="pa-4">创建数据库用户/角色</v-card-title>
         <v-divider />
-        <v-card-text class="pa-4">
+        <v-card-text class="pa-4" style="max-height:65vh;overflow-y:auto">
           <v-text-field v-model="userForm.username" label="用户名/角色名" variant="outlined" density="compact" class="mb-3" />
           <v-text-field v-model="userForm.password" label="密码" type="password" variant="outlined" density="compact" class="mb-3" />
           <v-text-field v-model="userForm.connection_limit" label="连接限制" type="number" variant="outlined" density="compact"
@@ -928,11 +928,11 @@ onMounted(fetchHosts)
     </v-dialog>
 
     <!-- ==================== 编辑用户弹窗 ==================== -->
-    <v-dialog v-model="showEditUserDialog" max-width="550">
+    <v-dialog v-model="showEditUserDialog" max-width="550" scrollable>
       <v-card class="liquid-glass-card" rounded="xl">
         <v-card-title class="pa-4">编辑数据库用户: {{ editingUser?.username }}</v-card-title>
         <v-divider />
-        <v-card-text class="pa-4">
+        <v-card-text class="pa-4" style="max-height:65vh;overflow-y:auto">
           <v-text-field v-model="editUserForm.password" label="重置密码" type="password" variant="outlined" density="compact"
             hint="留空则不修改" persistent-hint class="mb-3" />
           <v-text-field v-model="editUserForm.connection_limit" label="连接限制" type="number" variant="outlined" density="compact"
@@ -958,7 +958,7 @@ onMounted(fetchHosts)
     </v-dialog>
 
     <!-- ==================== 创建备份弹窗 ==================== -->
-    <v-dialog v-model="showCreateBackupDialog" max-width="450">
+    <v-dialog v-model="showCreateBackupDialog" max-width="450" scrollable>
       <v-card class="liquid-glass-card" rounded="xl">
         <v-card-title class="pa-4">创建数据库备份</v-card-title>
         <v-divider />
@@ -976,7 +976,7 @@ onMounted(fetchHosts)
     </v-dialog>
 
     <!-- ==================== 还原备份弹窗 ==================== -->
-    <v-dialog v-model="showRestoreDialog" max-width="450">
+    <v-dialog v-model="showRestoreDialog" max-width="450" scrollable>
       <v-card class="liquid-glass-card" rounded="xl">
         <v-card-title class="pa-4">还原备份: {{ selectedBackup?.filename }}</v-card-title>
         <v-divider />

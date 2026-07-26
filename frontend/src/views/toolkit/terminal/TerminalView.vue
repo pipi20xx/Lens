@@ -232,7 +232,7 @@ onUnmounted(() => {
     </v-card>
 
     <!-- 终端设置对话框 -->
-    <v-dialog v-model="showSettingsDialog" max-width="400">
+    <v-dialog v-model="showSettingsDialog" max-width="400" scrollable>
       <v-card class="liquid-glass-card" rounded="xl">
         <v-card-title class="pa-4">
           <v-icon start>mdi-cog-outline</v-icon>

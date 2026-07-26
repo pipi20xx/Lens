@@ -605,7 +605,7 @@ onUnmounted(() => {
     </v-window>
 
     <!-- ====== 任务历史弹窗 ====== -->
-    <v-dialog v-model="showHistoryModal" max-width="850">
+    <v-dialog v-model="showHistoryModal" max-width="850" scrollable>
       <v-card class="liquid-glass-card" rounded="xl">
         <v-card-title class="pa-4">
           <v-icon start>mdi-history</v-icon>
@@ -660,7 +660,7 @@ onUnmounted(() => {
     </v-dialog>
 
     <!-- ====== 任务编辑弹窗 ====== -->
-    <v-dialog v-model="showEditModal" max-width="700">
+    <v-dialog v-model="showEditModal" max-width="700" scrollable>
       <v-card class="liquid-glass-card" rounded="xl">
         <v-card-title class="pa-4">
           <v-icon start>mdi-backup-restore</v-icon>
@@ -848,7 +848,7 @@ onUnmounted(() => {
     </v-dialog>
 
     <!-- ====== 路径浏览器弹窗 ====== -->
-    <v-dialog v-model="showBrowser" max-width="550">
+    <v-dialog v-model="showBrowser" max-width="550" scrollable>
       <v-card class="liquid-glass-card" rounded="xl">
         <v-card-title class="pa-4">
           <v-icon start>mdi-folder-open</v-icon>

@@ -119,8 +119,8 @@ function getEmbyAvatar(person: any) {
                     <v-chip v-if="person.ProviderIds?.Tmdb" size="x-small" variant="tonal" color="info">TMDB ID: {{ person.ProviderIds.Tmdb }}</v-chip>
                   </v-list-item-subtitle>
                   <template #append>
-                    <v-btn icon variant="text" size="small" @click.stop="showJson(person)">
-                      <v-icon size="18" color="primary">mdi-code-json</v-icon>
+                    <v-btn icon variant="tonal" size="small" @click.stop="showJson(person)">
+                      <v-icon size="18" color="primary">mdi-code-block-braces</v-icon>
                     </v-btn>
                   </template>
                 </v-list-item>
@@ -171,10 +171,10 @@ function getEmbyAvatar(person: any) {
     </v-row>
 
     <!-- JSON 弹窗 -->
-    <v-dialog v-model="jsonModal.show" max-width="800">
+    <v-dialog v-model="jsonModal.show" max-width="800" scrollable>
       <v-card class="liquid-glass-card" rounded="xl">
         <v-card-title class="pa-4">
-          <v-icon start>mdi-code-json</v-icon>
+          <v-icon start>mdi-code-block-braces</v-icon>
           演员原始元数据 (Raw JSON)
         </v-card-title>
         <v-divider />
@@ -182,8 +182,9 @@ function getEmbyAvatar(person: any) {
           <pre class="code-block">{{ JSON.stringify(jsonModal.data, null, 2) }}</pre>
         </v-card-text>
         <v-divider />
-        <div class="d-flex justify-end pa-4">
-          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-copy" @click="copyRawJson" block>复制数据</v-btn>
+        <div class="d-flex justify-end ga-2 pa-4">
+          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="jsonModal.show = false">关闭</v-btn>
+          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-copy" @click="copyRawJson">复制数据</v-btn>
         </div>
       </v-card>
     </v-dialog>

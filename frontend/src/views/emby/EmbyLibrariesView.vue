@@ -221,7 +221,7 @@ onMounted(loadLibraries)
     </v-card>
 
     <!-- 新增媒体库弹窗 -->
-    <v-dialog v-model="showAddDialog" max-width="550">
+    <v-dialog v-model="showAddDialog" max-width="550" scrollable>
       <v-card class="liquid-glass-card" rounded="xl">
         <v-card-title class="pa-4">
           <v-icon start>mdi-folder-plus-outline</v-icon>

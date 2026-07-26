@@ -251,7 +251,7 @@ onMounted(() => {
     </v-window>
 
     <!-- Payload 详情对话框 -->
-    <v-dialog v-model="showLogDetail" max-width="800">
+    <v-dialog v-model="showLogDetail" max-width="800" scrollable>
       <v-card class="liquid-glass-card" rounded="xl">
         <v-card-title class="pa-4">请求详情 (Payload)</v-card-title>
         <v-divider />

@@ -65,6 +65,14 @@ function fillId(person: any) {
 
 const jsonModal = reactive({ show: false, data: {} as any })
 function showJson(data: any) { jsonModal.data = data; jsonModal.show = true }
+
+function copyRawJson() {
+  navigator.clipboard.writeText(JSON.stringify(jsonModal.data, null, 2)).then(() => {
+    success('已复制到剪贴板')
+  }).catch(() => {
+    showError('复制失败')
+  })
+}
 </script>
 
 <template>
@@ -127,7 +135,7 @@ function showJson(data: any) { jsonModal.data = data; jsonModal.show = true }
                   <v-chip size="small" variant="tonal">TMDB: {{ result.id }}</v-chip>
                 </div>
               </div>
-              <v-btn icon variant="tonal" @click="showJson(result.raw)"><v-icon>mdi-code-json</v-icon></v-btn>
+              <v-btn icon variant="tonal" @click="showJson(result.raw)"><v-icon>mdi-code-block-braces</v-icon></v-btn>
             </div>
             <v-divider />
             <v-card-text class="pa-4">
@@ -138,7 +146,7 @@ function showJson(data: any) { jsonModal.data = data; jsonModal.show = true }
                 </div>
                 <v-row class="pa-3 border-b-thin">
                   <v-col cols="6"><div class="text-caption text-medium-emphasis mb-1">1. 中文/通用名</div><v-chip size="small" variant="outlined">{{ result.chinese_name }}</v-chip></v-col>
-                  <v-col cols="6"><div class="text-caption text-medium-emphasis mb-1">2. 原产地/母语名</div><v-chip size="small" variant="outlined" style="border-color:rgba(var(--v-theme-primary),0.3);color:rgb(var(--v-theme-primary))">{{ result.origin_name }}</v-chip></v-col>
+                  <v-col cols="6"><div class="text-caption text-medium-emphasis mb-1">2. 原产地/母语名</div><v-chip size="small" variant="outlined" color="primary">{{ result.origin_name }}</v-chip></v-col>
                 </v-row>
                 <v-row class="pa-3 border-b-thin">
                   <v-col cols="6"><div class="text-caption text-medium-emphasis mb-1">3. 出生地</div><div class="text-body-2">{{ result.place_of_birth || '未知' }}</div></v-col>
@@ -151,7 +159,7 @@ function showJson(data: any) { jsonModal.data = data; jsonModal.show = true }
                 </div>
                 <div class="pa-3">
                   <div class="text-caption text-medium-emphasis mb-2">6. 代表作品 (Top Works)</div>
-                  <div v-if="result.top_works?.length" class="rounded pa-2" style="background:rgba(0,0,0,0.1)">
+                  <div v-if="result.top_works?.length" class="rounded pa-2" style="background:rgba(var(--v-theme-on-surface),0.03)">
                     <div v-for="work in result.top_works" :key="work.id" class="d-flex align-center justify-space-between pa-2 border-b-thin">
                       <div class="d-flex align-center ga-2">
                         <v-chip size="x-small" :color="work.media_type === 'movie' ? 'success' : 'info'" variant="tonal">{{ work.media_type === 'movie' ? '电影' : '剧集' }}</v-chip>
@@ -160,7 +168,7 @@ function showJson(data: any) { jsonModal.data = data; jsonModal.show = true }
                       </div>
                       <div class="d-flex ga-2">
                         <span class="text-caption text-medium-emphasis font-mono">{{ work.release_date || '未知' }}</span>
-                        <span class="text-caption" style="color:#f0a020">⭐ {{ work.vote_average?.toFixed(1) }}</span>
+                        <span class="text-caption text-warning">⭐ {{ work.vote_average?.toFixed(1) }}</span>
                       </div>
                     </div>
                   </div>
@@ -176,13 +184,13 @@ function showJson(data: any) { jsonModal.data = data; jsonModal.show = true }
       </v-col>
     </v-row>
 
-    <v-dialog v-model="jsonModal.show" max-width="900">
+    <v-dialog v-model="jsonModal.show" max-width="900" scrollable>
       <v-card class="liquid-glass-card" rounded="xl">
-        <v-card-title class="pa-4"><v-icon start>mdi-code-json</v-icon>演员原始元数据 (Raw JSON)</v-card-title>
+        <v-card-title class="pa-4"><v-icon start>mdi-code-block-braces</v-icon>演员原始元数据 (Raw JSON)</v-card-title>
         <v-divider />
         <v-card-text class="pa-4"><pre class="code-block">{{ JSON.stringify(jsonModal.data, null, 2) }}</pre></v-card-text>
         <v-divider />
-        <div class="d-flex justify-end pa-4"><v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="jsonModal.show = false">关闭</v-btn></div>
+        <div class="d-flex justify-end ga-2 pa-4"><v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="jsonModal.show = false">关闭</v-btn><v-btn color="primary" variant="flat" prepend-icon="mdi-content-copy" @click="copyRawJson">复制数据</v-btn></div>
       </v-card>
     </v-dialog>
   </v-container>

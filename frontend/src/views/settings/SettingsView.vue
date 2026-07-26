@@ -434,14 +434,14 @@ onMounted(loadAll)
     </v-row>
 
     <!-- 服务器编辑对话框 -->
-    <v-dialog v-model="showAddServerDialog" max-width="520">
+    <v-dialog v-model="showAddServerDialog" max-width="520" scrollable>
       <v-card class="liquid-glass-card" rounded="xl">
         <v-card-title class="pa-4">
           <v-icon start>mdi-server</v-icon>
           {{ editingServerId ? '编辑服务器' : '添加服务器' }}
         </v-card-title>
         <v-divider />
-        <v-card-text class="pa-4">
+        <v-card-text class="pa-4" style="max-height:65vh;overflow-y:auto">
           <v-text-field v-model="serverForm.name" label="名称" variant="outlined" density="compact" class="mb-3" />
           <v-text-field v-model="serverForm.url" label="Emby 地址" variant="outlined" density="compact"
             hint="如 http://192.168.1.100:8096" persistent-hint class="mb-3" />

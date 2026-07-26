@@ -95,11 +95,11 @@ onMounted(loadBookmarks)
       </v-table>
     </v-card>
 
-    <v-dialog v-model="showBookmarkDialog" max-width="500">
+    <v-dialog v-model="showBookmarkDialog" max-width="500" scrollable>
       <v-card class="liquid-glass-card" rounded="xl">
         <v-card-title class="pa-4"><v-icon start>mdi-bookmark-outline</v-icon>{{ editingBookmarkId ? '编辑书签' : '添加书签' }}</v-card-title>
         <v-divider />
-        <v-card-text class="pa-4">
+        <v-card-text class="pa-4" style="max-height:65vh;overflow-y:auto">
           <v-text-field v-model="bookmarkForm.title" label="标题" variant="outlined" density="compact" class="mb-3" />
           <v-text-field v-model="bookmarkForm.url" label="URL" variant="outlined" density="compact" class="mb-3" />
           <v-text-field v-model="bookmarkForm.description" label="描述" variant="outlined" density="compact" class="mb-3" />

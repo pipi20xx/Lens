@@ -41,11 +41,11 @@ watch(showDialog, (val) => { if (val) loadSettings() })
 </script>
 
 <template>
-  <v-dialog v-model="showDialog" max-width="450">
+  <v-dialog v-model="showDialog" max-width="450" scrollable>
     <v-card class="liquid-glass-card" rounded="xl">
       <v-card-title class="pa-4"><v-icon start>mdi-timer-outline</v-icon> 自动更新全局设置</v-card-title>
       <v-divider />
-      <v-card-text class="pa-4">
+      <v-card-text class="pa-4" style="max-height:65vh;overflow-y:auto">
         <v-alert type="info" variant="tonal" density="compact" class="mb-4">此处设置将决定系统何时执行镜像检查。开启后，仅会对在容器列表中手动勾选了「自动更新」标记的容器生效。</v-alert>
         <v-switch v-model="autoUpdateSettings.enabled" label="启用全局调度" density="compact" color="primary" class="mb-3" />
         <v-select v-model="autoUpdateSettings.type" :items="[{title: '每日定时 (Cron)', value: 'cron'}, {title: '固定间隔 (Interval)', value: 'interval'}]" label="执行模式" variant="outlined" density="compact" class="mb-3" />

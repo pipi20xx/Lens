@@ -51,7 +51,7 @@ function copyData() {
       <v-col cols="12" md="7">
         <v-card class="liquid-glass-card mb-4" rounded="xl">
           <v-card-title class="d-flex align-center pa-4">
-            <v-icon start>mdi-code-json</v-icon>
+            <v-icon start>mdi-code-block-braces</v-icon>
             元数据即时抓取
             <v-spacer />
             <v-chip size="x-small" variant="tonal" color="info">Direct API</v-chip>
@@ -83,7 +83,7 @@ function copyData() {
         </v-card>
 
         <div v-else class="text-center py-12 text-medium-emphasis">
-          <v-icon size="64" color="grey" class="mb-4">mdi-code-json</v-icon>
+          <v-icon size="64" color="grey" class="mb-4">mdi-code-block-braces</v-icon>
           <div>暂无数据，请输入 ID 并点击抓取</div>
         </div>
       </v-col>

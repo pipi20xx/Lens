@@ -287,14 +287,14 @@ onMounted(() => {
     </v-card>
 
     <!-- 配置弹窗 -->
-    <v-dialog v-model="showConfigDialog" max-width="600">
+    <v-dialog v-model="showConfigDialog" max-width="600" scrollable>
       <v-card class="liquid-glass-card" rounded="xl">
         <v-card-title class="pa-4">
           <v-icon start>mdi-cog-outline</v-icon>
           智能选中与排除规则配置
         </v-card-title>
         <v-divider />
-        <v-card-text class="pa-4">
+        <v-card-text class="pa-4" style="max-height:65vh;overflow-y:auto">
           <v-tabs class="mb-4">
             <v-tab>评分权重</v-tab>
             <v-tab>白名单排除</v-tab>

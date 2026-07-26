@@ -119,7 +119,7 @@ defineExpose({ loadSystemInfo })
     <v-alert type="info" variant="tonal" class="mt-4" title="环境说明">本页面显示的是远程 Docker 主机的实时环境状态。如果 Docker 或 Compose 未安装，您可以使用「一键修复」功能尝试自动安装。</v-alert>
 
     <!-- 修复/安装配置弹窗 -->
-    <v-dialog v-model="showRepairModal" max-width="450">
+    <v-dialog v-model="showRepairModal" max-width="450" scrollable>
       <v-card class="liquid-glass-card" rounded="xl">
         <v-card-title class="pa-4"><v-icon start>mdi-wrench-outline</v-icon> 环境修复/安装配置</v-card-title>
         <v-divider />
@@ -137,7 +137,7 @@ defineExpose({ loadSystemInfo })
     </v-dialog>
 
     <!-- 安装结果弹窗 -->
-    <v-dialog v-model="showResultModal" max-width="600">
+    <v-dialog v-model="showResultModal" max-width="600" scrollable>
       <v-card class="liquid-glass-card" rounded="xl">
         <v-card-title class="pa-4"><v-icon start>mdi-text-box-outline</v-icon> 安装结果</v-card-title>
         <v-divider />

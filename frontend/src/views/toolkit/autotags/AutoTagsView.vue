@@ -437,14 +437,14 @@ onMounted(() => {
     </v-row>
 
     <!-- 规则编辑弹窗 -->
-    <v-dialog v-model="showEditor" max-width="650">
+    <v-dialog v-model="showEditor" max-width="650" scrollable>
       <v-card class="liquid-glass-card" rounded="xl">
         <v-card-title class="pa-4">
           <v-icon start>mdi-tag-multiple-outline</v-icon>
           {{ isNew ? '添加新规则' : '编辑规则' }}
         </v-card-title>
         <v-divider />
-        <v-card-text class="pa-4">
+        <v-card-text class="pa-4" style="max-height:65vh;overflow-y:auto">
           <v-text-field v-model="editingRule.name" label="规则名称" variant="outlined" density="compact"
             placeholder="起个名字方便识别" class="mb-3" />
           <v-text-field v-model="editingRule.tag" label="生成的标签" variant="outlined" density="compact"

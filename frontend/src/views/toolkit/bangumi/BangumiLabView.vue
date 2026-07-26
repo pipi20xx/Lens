@@ -207,9 +207,9 @@ function copyJsonData() {
           </v-card-title>
           <v-divider />
           <v-card-text class="pa-4 d-flex flex-column ga-2">
-<v-btn block variant="tonal" color="info" prepend-icon="mdi-code-json" @click="showJson(subjectResult, 'Subject')">查看条目原始 JSON</v-btn>
-            <v-btn block variant="tonal" color="info" prepend-icon="mdi-code-json" @click="showJson(episodesResult, 'Episodes')">查看章节原始 JSON</v-btn>
-            <v-btn block variant="tonal" color="info" prepend-icon="mdi-code-json" @click="showJson(charactersResult, 'Characters')">查看角色原始 JSON</v-btn>
+<v-btn block variant="tonal" color="info" prepend-icon="mdi-code-block-braces" @click="showJson(subjectResult, 'Subject')">查看条目原始 JSON</v-btn>
+            <v-btn block variant="tonal" color="info" prepend-icon="mdi-code-block-braces" @click="showJson(episodesResult, 'Episodes')">查看章节原始 JSON</v-btn>
+            <v-btn block variant="tonal" color="info" prepend-icon="mdi-code-block-braces" @click="showJson(charactersResult, 'Characters')">查看角色原始 JSON</v-btn>
           </v-card-text>
         </v-card>
       </v-col>
@@ -285,9 +285,9 @@ function copyJsonData() {
             </div>
             <!-- 别名池 -->
             <div class="pa-3">
-              <div class="text-caption font-weight-bold mb-1" style="color:#f0a020">全量别名池 ({{ aliasPool.length }})</div>
+              <div class="text-caption font-weight-bold mb-1 text-warning">全量别名池 ({{ aliasPool.length }})</div>
               <div v-if="aliasPool.length">
-                <v-chip v-for="a in aliasPool" :key="a" size="x-small" variant="outlined" class="mr-1 mb-1" style="border-color:rgba(240,160,32,0.3);color:#f0a020">{{ a }}</v-chip>
+                <v-chip v-for="a in aliasPool" :key="a" size="x-small" variant="outlined" color="warning" class="mr-1 mb-1">{{ a }}</v-chip>
               </div>
               <div v-else class="text-caption text-medium-emphasis">暂无别名信息</div>
             </div>
@@ -350,10 +350,10 @@ function copyJsonData() {
     </v-row>
 
     <!-- JSON 弹窗 -->
-    <v-dialog v-model="jsonModal.show" max-width="800">
+    <v-dialog v-model="jsonModal.show" max-width="800" scrollable>
       <v-card class="liquid-glass-card" rounded="xl">
         <v-card-title class="pa-4">
-          <v-icon start>mdi-code-json</v-icon>
+          <v-icon start>mdi-code-block-braces</v-icon>
           {{ jsonModal.title }}
         </v-card-title>
         <v-divider />
@@ -361,7 +361,7 @@ function copyJsonData() {
           <pre class="code-block">{{ JSON.stringify(jsonModal.data, null, 2) }}</pre>
         </v-card-text>
         <v-divider />
-        <div class="d-flex justify-end pa-4">
+        <div class="d-flex justify-end ga-2 pa-4">
           <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="jsonModal.show = false">关闭</v-btn>
           <v-btn color="primary" variant="flat" prepend-icon="mdi-content-copy" @click="copyJsonData">复制 JSON 数据</v-btn>
         </div>
