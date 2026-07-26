@@ -178,7 +178,7 @@ function copyJsonData() {
               <v-window-item value="search">
                 <v-text-field v-model="searchForm.keywords" label="关键词" placeholder="番剧名称..."
                   variant="outlined" density="compact" class="mb-3" @keydown.enter="handleSearch" />
-                <v-btn block color="primary" variant="flat" :loading="searchLoading" @click="handleSearch">执行搜索</v-btn>
+                <v-btn block color="primary" variant="flat" prepend-icon="mdi-magnify" :loading="searchLoading" @click="handleSearch">执行搜索</v-btn>
                 <div v-if="searchResults.length > 0" class="mt-4">
                   <div class="text-subtitle-2 font-weight-bold mb-2">搜索结果</div>
                   <v-list density="compact" class="bg-transparent" style="max-height:350px;overflow-y:auto">
@@ -193,7 +193,7 @@ function copyJsonData() {
               <v-window-item value="direct">
                 <v-text-field v-model="form.subject_id" label="Subject ID (条目 ID)" placeholder="例如: 253, 302506..."
                   variant="outlined" density="compact" class="mb-3" @keydown.enter="handleFetchAll" />
-                <v-btn block color="primary" variant="flat" :loading="loading" @click="handleFetchAll">执行抓取</v-btn>
+                <v-btn block color="primary" variant="flat" prepend-icon="mdi-download" :loading="loading" @click="handleFetchAll">执行抓取</v-btn>
               </v-window-item>
             </v-window>
           </v-card-text>
@@ -207,9 +207,9 @@ function copyJsonData() {
           </v-card-title>
           <v-divider />
           <v-card-text class="pa-4 d-flex flex-column ga-2">
-            <v-btn block variant="tonal" @click="showJson(subjectResult, 'Subject')">查看条目原始 JSON</v-btn>
-            <v-btn block variant="tonal" @click="showJson(episodesResult, 'Episodes')">查看章节原始 JSON</v-btn>
-            <v-btn block variant="tonal" @click="showJson(charactersResult, 'Characters')">查看角色原始 JSON</v-btn>
+<v-btn block variant="tonal" color="info" prepend-icon="mdi-code-json" @click="showJson(subjectResult, 'Subject')">查看条目原始 JSON</v-btn>
+            <v-btn block variant="tonal" color="info" prepend-icon="mdi-code-json" @click="showJson(episodesResult, 'Episodes')">查看章节原始 JSON</v-btn>
+            <v-btn block variant="tonal" color="info" prepend-icon="mdi-code-json" @click="showJson(charactersResult, 'Characters')">查看角色原始 JSON</v-btn>
           </v-card-text>
         </v-card>
       </v-col>
@@ -358,12 +358,12 @@ function copyJsonData() {
         </v-card-title>
         <v-divider />
         <v-card-text class="pa-4">
-          <pre style="font-size:12px;white-space:pre-wrap;max-height:60vh;overflow:auto;background:rgba(0,0,0,0.15);padding:16px;border-radius:8px">{{ JSON.stringify(jsonModal.data, null, 2) }}</pre>
+          <pre class="code-block">{{ JSON.stringify(jsonModal.data, null, 2) }}</pre>
         </v-card-text>
         <v-divider />
         <div class="d-flex justify-end pa-4">
-          <v-btn variant="text" @click="jsonModal.show = false">关闭</v-btn>
-          <v-btn color="primary" variant="flat" @click="copyJsonData">复制 JSON 数据</v-btn>
+          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="jsonModal.show = false">关闭</v-btn>
+          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-copy" @click="copyJsonData">复制 JSON 数据</v-btn>
         </div>
       </v-card>
     </v-dialog>

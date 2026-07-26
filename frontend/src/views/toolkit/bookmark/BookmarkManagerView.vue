@@ -70,9 +70,9 @@ onMounted(loadBookmarks)
     <div class="d-flex ga-3 mb-4">
       <v-text-field v-model="searchQuery" prepend-inner-icon="mdi-magnify" placeholder="搜索书签..."
         variant="outlined" density="compact" hide-details clearable style="max-width:260px" />
-      <v-btn prepend-icon="mdi-plus" variant="tonal" size="small" @click="openAddBookmark">添加书签</v-btn>
+      <v-btn prepend-icon="mdi-plus" variant="tonal" color="primary" size="small" @click="openAddBookmark">添加书签</v-btn>
       <v-spacer />
-      <v-btn variant="tonal" size="small" @click="loadBookmarks" :loading="loading" prepend-icon="mdi-refresh">刷新</v-btn>
+      <v-btn variant="tonal" color="info" size="small" @click="loadBookmarks" :loading="loading" prepend-icon="mdi-refresh">刷新</v-btn>
     </div>
 
     <v-progress-linear v-if="loading" indeterminate color="primary" class="mb-4" />
@@ -87,8 +87,8 @@ onMounted(loadBookmarks)
             <td><a :href="bm.url" target="_blank" class="text-decoration-none font-mono" style="font-size:12px">{{ bm.url }}</a></td>
             <td><v-chip v-if="bm.category" size="small" variant="tonal">{{ bm.category }}</v-chip><span v-else class="text-medium-emphasis">-</span></td>
             <td class="text-right">
-              <v-btn size="small" variant="tonal" @click="openEditBookmark(bm)" class="mr-1">编辑</v-btn>
-              <v-btn size="small" color="error" variant="tonal" @click="deleteBookmark(bm.id)">删除</v-btn>
+              <v-btn size="small" variant="tonal" color="warning" prepend-icon="mdi-pencil-outline" @click="openEditBookmark(bm)" class="mr-1">编辑</v-btn>
+              <v-btn size="small" color="error" variant="tonal" prepend-icon="mdi-delete-outline" @click="deleteBookmark(bm.id)">删除</v-btn>
             </td>
           </tr>
         </tbody>
@@ -108,8 +108,8 @@ onMounted(loadBookmarks)
         </v-card-text>
         <v-divider />
         <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="text" @click="showBookmarkDialog = false">取消</v-btn>
-          <v-btn color="primary" variant="flat" @click="saveBookmark">保存</v-btn>
+          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showBookmarkDialog = false">取消</v-btn>
+          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveBookmark">保存</v-btn>
         </div>
       </v-card>
     </v-dialog>

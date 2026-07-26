@@ -141,7 +141,7 @@ async function runAdder() {
               </v-card-text>
               <v-divider />
               <div class="pa-4">
-                <v-btn block color="primary" variant="tonal" @click="runMapper" :loading="loading">执行映射</v-btn>
+                <v-btn block color="primary" variant="tonal" prepend-icon="mdi-swap-horizontal" @click="runMapper" :loading="loading">执行映射</v-btn>
               </div>
             </v-card>
           </v-col>
@@ -160,7 +160,7 @@ async function runAdder() {
               </v-card-text>
               <v-divider />
               <div class="pa-4">
-                <v-btn block color="error" variant="tonal" @click="runRemover" :loading="loading">执行移除</v-btn>
+                <v-btn block color="error" variant="tonal" prepend-icon="mdi-delete-sweep-outline" @click="runRemover" :loading="loading">执行移除</v-btn>
               </div>
             </v-card>
           </v-col>
@@ -179,7 +179,7 @@ async function runAdder() {
               </v-card-text>
               <v-divider />
               <div class="pa-4">
-                <v-btn block color="success" variant="tonal" @click="runAdder" :loading="loading">执行新增</v-btn>
+                <v-btn block color="success" variant="tonal" prepend-icon="mdi-plus" @click="runAdder" :loading="loading">执行新增</v-btn>
               </div>
             </v-card>
           </v-col>

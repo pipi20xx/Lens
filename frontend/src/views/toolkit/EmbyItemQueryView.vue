@@ -62,7 +62,7 @@ function copyData() {
               <v-text-field v-model="itemId" prepend-inner-icon="mdi-identifier" placeholder="输入 Emby Item ID，例如: 12345"
                 variant="outlined" density="compact" hide-details clearable style="max-width:320px"
                 @keydown.enter="fetchInfo" />
-              <v-btn color="primary" variant="flat" @click="fetchInfo" :loading="loading">执行抓取</v-btn>
+              <v-btn color="primary" variant="flat" prepend-icon="mdi-download" @click="fetchInfo" :loading="loading">执行抓取</v-btn>
             </div>
           </v-card-text>
         </v-card>
@@ -72,12 +72,12 @@ function copyData() {
             <v-icon start>mdi-code-braces</v-icon>
             抓取结果 (Raw Metadata JSON)
             <v-spacer />
-            <v-btn size="x-small" variant="tonal" @click="copyData" prepend-icon="mdi-content-copy">复制数据</v-btn>
+            <v-btn size="x-small" variant="tonal" color="info" @click="copyData" prepend-icon="mdi-content-copy">复制数据</v-btn>
           </v-card-title>
           <v-divider />
           <v-card-text class="pa-4">
-            <div class="json-viewer">
-              <pre style="font-size:12px;white-space:pre-wrap;max-height:600px;overflow:auto;font-family:monospace">{{ JSON.stringify(itemData, null, 2) }}</pre>
+            <div class="code-block">
+              <pre>{{ JSON.stringify(itemData, null, 2) }}</pre>
             </div>
           </v-card-text>
         </v-card>
@@ -107,11 +107,3 @@ function copyData() {
   </v-container>
 </template>
 
-<style scoped>
-.json-viewer {
-  background-color: rgba(0, 0, 0, 0.2);
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid rgba(var(--v-theme-on-surface), 0.08);
-}
-</style>

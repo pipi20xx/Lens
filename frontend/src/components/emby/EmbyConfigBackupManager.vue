@@ -90,8 +90,8 @@ watch(showModal, (val) => {
         <v-icon start>mdi-history</v-icon>
         配置备份历史
         <v-spacer />
-        <v-btn variant="tonal" color="warning" size="x-small" :loading="restoringAll" :disabled="!backups.length" @click="handleRestoreAll">一键还原最新备份</v-btn>
-        <v-btn variant="tonal" color="error" size="x-small" class="ml-2" :disabled="!backups.length" @click="handleClearAll">清空所有备份</v-btn>
+        <v-btn variant="tonal" color="warning" size="x-small" prepend-icon="mdi-restore" :loading="restoringAll" :disabled="!backups.length" @click="handleRestoreAll">一键还原最新备份</v-btn>
+        <v-btn variant="tonal" color="error" size="x-small" prepend-icon="mdi-delete-sweep-outline" class="ml-2" :disabled="!backups.length" @click="handleClearAll">清空所有备份</v-btn>
       </v-card-title>
       <v-divider />
 
@@ -109,8 +109,8 @@ watch(showModal, (val) => {
               <td class="font-weight-medium">{{ b.filename?.split('_20')[0] }}</td>
               <td class="text-medium-emphasis">{{ b.mtime ? new Date(b.mtime * 1000).toLocaleString() : '-' }}</td>
               <td class="text-right">
-                <v-btn size="x-small" variant="tonal" color="warning" @click="handleRestore(b.filename)" class="mr-1">还原</v-btn>
-                <v-btn size="x-small" variant="tonal" color="error" @click="handleDelete(b.filename)">删除</v-btn>
+                <v-btn size="x-small" variant="tonal" color="warning" prepend-icon="mdi-restore" @click="handleRestore(b.filename)" class="mr-1">还原</v-btn>
+                <v-btn size="x-small" variant="tonal" color="error" prepend-icon="mdi-delete-outline" @click="handleDelete(b.filename)">删除</v-btn>
               </td>
             </tr>
           </tbody>

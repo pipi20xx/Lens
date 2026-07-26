@@ -73,8 +73,8 @@ defineExpose({ loadSystemInfo })
       <v-card-title class="d-flex align-center pa-4">
         <v-icon start>mdi-information-outline</v-icon> 环境检测
         <v-spacer />
-        <v-btn size="small" variant="tonal" color="warning" @click="showRepairModal = true" :loading="installing" class="mr-2">一键修复/安装</v-btn>
-        <v-btn size="small" variant="tonal" @click="loadSystemInfo" :loading="systemInfoLoading">重新检测</v-btn>
+        <v-btn size="small" variant="tonal" color="warning" prepend-icon="mdi-wrench-outline" @click="showRepairModal = true" :loading="installing" class="mr-2">一键修复/安装</v-btn>
+        <v-btn size="small" variant="tonal" prepend-icon="mdi-refresh" @click="loadSystemInfo" :loading="systemInfoLoading">重新检测</v-btn>
       </v-card-title>
       <v-divider />
       <v-progress-linear v-if="systemInfoLoading" indeterminate color="primary" class="ma-4" />
@@ -98,9 +98,9 @@ defineExpose({ loadSystemInfo })
               <div class="d-flex align-center ga-2">
                 <v-chip :color="systemInfo.status === 'active' ? 'success' : 'error'" size="small" variant="tonal">{{ systemInfo.status === 'active' ? '运行中' : systemInfo.status === 'inactive' ? '已停止' : '未知' }}</v-chip>
                 <v-btn-group density="compact" size="small">
-                  <v-btn v-if="systemInfo.status !== 'active'" variant="tonal" color="success" :loading="actionLoading === 'start'" @click="handleServiceAction('start')">启动</v-btn>
-                  <v-btn v-if="systemInfo.status === 'active'" variant="tonal" color="error" :loading="actionLoading === 'stop'" @click="handleServiceAction('stop')">停止</v-btn>
-                  <v-btn variant="tonal" color="warning" :loading="actionLoading === 'restart'" @click="handleServiceAction('restart')">重启</v-btn>
+                  <v-btn v-if="systemInfo.status !== 'active'" variant="tonal" color="success" prepend-icon="mdi-play" :loading="actionLoading === 'start'" @click="handleServiceAction('start')">启动</v-btn>
+                  <v-btn v-if="systemInfo.status === 'active'" variant="tonal" color="error" prepend-icon="mdi-stop" :loading="actionLoading === 'stop'" @click="handleServiceAction('stop')">停止</v-btn>
+                  <v-btn variant="tonal" color="warning" prepend-icon="mdi-restart" :loading="actionLoading === 'restart'" @click="handleServiceAction('restart')">重启</v-btn>
                 </v-btn-group>
               </div>
             </v-card>
@@ -130,8 +130,8 @@ defineExpose({ loadSystemInfo })
         </v-card-text>
         <v-divider />
         <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="text" @click="showRepairModal = false">取消</v-btn>
-          <v-btn color="primary" variant="flat" @click="handleRepair" :loading="installing">开始执行</v-btn>
+          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showRepairModal = false">取消</v-btn>
+          <v-btn color="primary" variant="flat" prepend-icon="mdi-wrench-outline" @click="handleRepair" :loading="installing">开始执行</v-btn>
         </div>
       </v-card>
     </v-dialog>
@@ -142,7 +142,7 @@ defineExpose({ loadSystemInfo })
         <v-card-title class="pa-4"><v-icon start>mdi-text-box-outline</v-icon> 安装结果</v-card-title>
         <v-divider />
         <v-card-text class="pa-4">
-          <pre style="background:rgba(0,0,0,0.3);color:inherit;padding:12px;font-family:monospace;border-radius:4px;overflow:auto;max-height:400px;font-size:12px;white-space:pre-wrap">{{ resultOutput }}</pre>
+          <pre class="code-block">{{ resultOutput }}</pre>
         </v-card-text>
       </v-card>
     </v-dialog>

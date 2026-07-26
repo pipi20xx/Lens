@@ -41,11 +41,11 @@ async function loadComposeProjects() {
 }
 
 // ========== 项目操作 ==========
-async function composeAction(projectName: string, action: string) {
+async function composeAction(projectName: string, action: string, projectPath?: string) {
   if (!props.hostId) return
   loadingActions.value[projectName] = true
   try {
-    await dockerApi.composeProjectAction(props.hostId, projectName, action)
+    await dockerApi.composeProjectAction(props.hostId, projectName, action, projectPath)
     success(`${action} 已触发`)
     setTimeout(() => loadComposeProjects(), 3000)
   } catch (err: any) { showError(err.message || '操作失败') }
@@ -68,7 +68,7 @@ async function handleDeleteComposeProject(project: any) {
   if (!props.hostId) return
   const ok = await confirm({ title: '移除项目', content: `确定要从视图中移除项目 ${project.name} 吗？`, confirmColor: 'error' })
   if (!ok) return
-  try { await dockerApi.deleteComposeProject(props.hostId, project.name); success('项目已移除'); loadComposeProjects() }
+  try { await dockerApi.deleteComposeProject(props.hostId, project.name, project.config_file || project.path); success('项目已移除'); loadComposeProjects() }
   catch (err: any) { showError('操作失败: ' + (err.message || '未知错误')) }
 }
 
@@ -107,7 +107,7 @@ function handleCreateProject() {
 async function editProject(project: any) {
   if (!props.hostId) return
   try {
-    const res = await dockerApi.getComposeProject(props.hostId, project.name)
+    const res = await dockerApi.getComposeProject(props.hostId, project.name, project.config_file || project.path)
     currentProject.value = { ...res, path: project.config_file || project.path }
     isEditingProject.value = true; yamlError.value = null; showComposeModal.value = true
   } catch { showError('加载项目失败') }
@@ -145,7 +145,7 @@ defineExpose({ loadComposeProjects })
       <v-text-field v-model="composeSearchQuery" prepend-inner-icon="mdi-magnify" placeholder="搜索项目..." variant="outlined" density="compact" hide-details clearable style="max-width:300px" />
       <v-spacer />
       <v-btn-group density="compact">
-        <v-btn prepend-icon="mdi-refresh" variant="tonal" size="small" @click="loadComposeProjects" :loading="loadingCompose">刷新</v-btn>
+        <v-btn prepend-icon="mdi-refresh" variant="tonal" color="info" size="small" @click="loadComposeProjects" :loading="loadingCompose">刷新</v-btn>
         <v-btn prepend-icon="mdi-play" variant="tonal" size="small" color="success" @click="handleBulkComposeAction('up')">全部启动</v-btn>
         <v-btn prepend-icon="mdi-stop" variant="tonal" size="small" color="error" @click="handleBulkComposeAction('down')">全部停止</v-btn>
       </v-btn-group>
@@ -161,7 +161,7 @@ defineExpose({ loadComposeProjects })
     </v-row>
 
     <div class="d-flex flex-column ga-3">
-      <v-card v-for="project in filteredComposeProjects" :key="project.name" class="project-card liquid-glass-card" rounded="lg" :class="{'is-running': project.status?.includes('running')}">
+      <v-card v-for="project in filteredComposeProjects" :key="project.name" class="status-card liquid-glass-card" rounded="lg" :class="{'is-running': project.status?.includes('running')}">
         <div class="pa-4">
           <div class="d-flex align-center mb-1">
             <div class="d-flex align-center ga-1 flex-grow-1" style="min-width:0">
@@ -174,12 +174,12 @@ defineExpose({ loadComposeProjects })
           <div class="text-caption text-medium-emphasis font-mono mb-2" style="opacity:0.6;word-break:break-all;font-size:11px">{{ project.config_file || project.path }}</div>
           <v-divider class="my-2" />
           <div class="d-flex flex-wrap ga-2">
-            <v-btn size="small" color="primary" variant="tonal" :loading="loadingActions[project.name]" @click="composeAction(project.name, 'up')">启动/更新</v-btn>
-            <v-btn size="small" color="warning" variant="tonal" :loading="loadingActions[project.name]" @click="composeAction(project.name, 'pull')">拉取</v-btn>
-            <v-btn size="small" color="error" variant="tonal" :loading="loadingActions[project.name]" @click="composeAction(project.name, 'down')">停止</v-btn>
-            <v-btn size="small" variant="tonal" @click="editProject(project)">编辑</v-btn>
-            <v-btn size="small" color="error" variant="tonal" @click="handleDeleteComposeProject(project)">删除</v-btn>
-            <v-btn size="small" color="info" variant="tonal" @click="createBackupTask(project)">备份</v-btn>
+            <v-btn size="small" color="primary" variant="tonal" prepend-icon="mdi-play" :loading="loadingActions[project.name]" @click="composeAction(project.name, 'up', project.config_file || project.path)">启动/更新</v-btn>
+            <v-btn size="small" color="warning" variant="tonal" prepend-icon="mdi-download" :loading="loadingActions[project.name]" @click="composeAction(project.name, 'pull', project.config_file || project.path)">拉取</v-btn>
+            <v-btn size="small" color="error" variant="tonal" prepend-icon="mdi-stop" :loading="loadingActions[project.name]" @click="composeAction(project.name, 'down', project.config_file || project.path)">停止</v-btn>
+            <v-btn size="small" variant="tonal" color="warning" prepend-icon="mdi-pencil-outline" @click="editProject(project)">编辑</v-btn>
+            <v-btn size="small" color="error" variant="tonal" prepend-icon="mdi-delete-outline" @click="handleDeleteComposeProject(project)">删除</v-btn>
+            <v-btn size="small" color="info" variant="tonal" prepend-icon="mdi-backup-restore" @click="createBackupTask(project)">备份</v-btn>
           </div>
         </div>
       </v-card>
@@ -203,32 +203,11 @@ defineExpose({ loadComposeProjects })
         </v-card-text>
         <v-divider />
         <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="text" @click="showComposeModal = false">取消</v-btn>
-          <v-btn color="primary" variant="flat" @click="saveProject" :disabled="!!yamlError">保存项目</v-btn>
+          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showComposeModal = false">取消</v-btn>
+          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveProject" :disabled="!!yamlError">保存项目</v-btn>
         </div>
       </v-card>
     </v-dialog>
   </div>
 </template>
 
-<style scoped>
-.project-card {
-  position: relative;
-  overflow: hidden;
-  transition: box-shadow 0.2s;
-}
-.project-card::before {
-  content: '';
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 3px;
-  background: transparent;
-  transition: background 0.2s;
-}
-.project-card.is-running::before {
-  background: rgb(var(--v-theme-success));
-}
-.project-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-</style>

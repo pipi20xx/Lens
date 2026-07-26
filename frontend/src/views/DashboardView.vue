@@ -120,8 +120,8 @@ const quickLinks = [
           </v-card-text>
           <v-divider />
           <div class="d-flex ga-2 pa-4">
-            <v-btn variant="tonal" color="primary" href="https://github.com/pipi20xx/Lens" target="_blank">GitHub 源码</v-btn>
-            <v-btn variant="tonal" color="info" href="https://github.com/pipi20xx/Lens/issues" target="_blank">提交反馈 (Issues)</v-btn>
+            <v-btn variant="tonal" color="primary" prepend-icon="mdi-github" href="https://github.com/pipi20xx/Lens" target="_blank">GitHub 源码</v-btn>
+            <v-btn variant="tonal" color="info" prepend-icon="mdi-bug-outline" href="https://github.com/pipi20xx/Lens/issues" target="_blank">提交反馈 (Issues)</v-btn>
           </div>
         </v-card>
       </v-col>
@@ -168,10 +168,10 @@ const quickLinks = [
           </v-card-text>
           <v-divider />
           <div class="pa-4 d-flex flex-column ga-2">
-            <v-btn v-if="versionInfo.has_update" block color="warning" variant="flat" :loading="upgrading" @click="handleUpgrade">
+            <v-btn v-if="versionInfo.has_update" block color="warning" variant="flat" prepend-icon="mdi-arrow-up-bold-circle-outline" :loading="upgrading" @click="handleUpgrade">
               {{ upgrading ? '正在执行更新任务...' : '立即执行系统升级' }}
             </v-btn>
-            <v-btn block color="primary" variant="tonal" @click="navigateTo('/settings')">配置中心</v-btn>
+            <v-btn block color="primary" variant="tonal" prepend-icon="mdi-cog-outline" @click="navigateTo('/settings')">配置中心</v-btn>
           </div>
         </v-card>
 

@@ -113,10 +113,10 @@ onMounted(loadAll)
       <div class="d-flex align-center pa-4 ga-3 flex-wrap">
         <v-text-field v-model="searchQuery" prepend-inner-icon="mdi-magnify" placeholder="搜索站点..."
           variant="outlined" density="compact" hide-details clearable style="max-width:260px" />
-        <v-btn prepend-icon="mdi-plus" variant="tonal" size="small" @click="openAddSite">添加站点</v-btn>
-        <v-btn prepend-icon="mdi-folder-plus-outline" variant="tonal" size="small" @click="openAddCategory">添加分类</v-btn>
+        <v-btn prepend-icon="mdi-plus" variant="tonal" color="primary" size="small" @click="openAddSite">添加站点</v-btn>
+        <v-btn prepend-icon="mdi-folder-plus-outline" variant="tonal" color="primary" size="small" @click="openAddCategory">添加分类</v-btn>
         <v-spacer />
-        <v-btn variant="tonal" size="small" @click="loadAll" :loading="loading" prepend-icon="mdi-refresh">刷新</v-btn>
+        <v-btn variant="tonal" color="info" size="small" @click="loadAll" :loading="loading" prepend-icon="mdi-refresh">刷新</v-btn>
       </div>
     </v-card>
 
@@ -175,8 +175,8 @@ onMounted(loadAll)
         </v-card-text>
         <v-divider />
         <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="text" @click="showSiteDialog = false">取消</v-btn>
-          <v-btn color="primary" variant="flat" @click="saveSite">保存</v-btn>
+          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showSiteDialog = false">取消</v-btn>
+          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveSite">保存</v-btn>
         </div>
       </v-card>
     </v-dialog>
@@ -192,8 +192,8 @@ onMounted(loadAll)
         </v-card-text>
         <v-divider />
         <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="text" @click="showCategoryDialog = false">取消</v-btn>
-          <v-btn color="primary" variant="flat" @click="saveCategory">保存</v-btn>
+          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showCategoryDialog = false">取消</v-btn>
+          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveCategory">保存</v-btn>
         </div>
       </v-card>
     </v-dialog>

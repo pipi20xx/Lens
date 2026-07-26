@@ -561,7 +561,7 @@ onMounted(() => {
         <div class="d-flex flex-wrap justify-space-between align-center mb-4">
           <v-btn prepend-icon="mdi-plus" color="primary" variant="flat" size="small" @click="openAddProject">新建项目</v-btn>
           <div class="d-flex ga-2">
-            <v-btn variant="tonal" size="small" prepend-icon="mdi-refresh" @click="fetchProjects">刷新列表</v-btn>
+            <v-btn variant="tonal" color="info" size="small" prepend-icon="mdi-refresh" @click="fetchProjects">刷新列表</v-btn>
             <v-btn color="error" variant="tonal" size="small" prepend-icon="mdi-delete-sweep-outline" @click="clearAllLogs">清空所有记录</v-btn>
           </div>
         </div>
@@ -593,15 +593,13 @@ onMounted(() => {
               <!-- Tag 输入 + 构建 -->
               <div class="d-flex ga-2 mb-3" style="max-width:360px">
                 <v-text-field v-model="projectTags[row.id]" density="compact" variant="outlined" label="Tag" hide-details style="flex:0 0 120px" />
-                <v-btn color="primary" variant="flat" size="small" @click="directBuild(row)">
-                  <v-icon start>mdi-play</v-icon> 立即构建
-                </v-btn>
+                <v-btn color="primary" variant="flat" size="small" prepend-icon="mdi-play" @click="directBuild(row)">立即构建</v-btn>
               </div>
 
               <v-divider class="mb-2" />
               <!-- 操作按钮 -->
               <div class="d-flex flex-wrap ga-2 pt-1">
-                <v-btn size="small" variant="tonal" prepend-icon="mdi-history" @click="openHistory(row)">查看历史</v-btn>
+                <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-history" @click="openHistory(row)">查看历史</v-btn>
                 <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-pencil-outline" @click="openEditProject(row)">修改</v-btn>
                 <v-btn size="small" variant="tonal" color="error" prepend-icon="mdi-delete-outline" @click="deleteProject(row)">删除</v-btn>
               </div>
@@ -638,9 +636,9 @@ onMounted(() => {
                 <div class="text-body-2 text-medium-emphasis mb-2" style="word-break:break-all">{{ row.url }}</div>
                 <v-divider class="mb-2" />
                 <div class="d-flex flex-wrap ga-2">
-                  <v-btn size="small" variant="tonal" color="info" :loading="testingRegId === row.id" @click="testRegistry(row.id)">测试</v-btn>
-                  <v-btn size="small" variant="tonal" @click="openEditRegistry(row)">编辑</v-btn>
-                  <v-btn size="small" variant="tonal" color="error" @click="deleteRegistry(row.id)">删除</v-btn>
+                  <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-lan-connect" :loading="testingRegId === row.id" @click="testRegistry(row.id)">测试</v-btn>
+                  <v-btn size="small" variant="tonal" color="warning" prepend-icon="mdi-pencil-outline" @click="openEditRegistry(row)">编辑</v-btn>
+                  <v-btn size="small" variant="tonal" color="error" prepend-icon="mdi-delete-outline" @click="deleteRegistry(row.id)">删除</v-btn>
                 </div>
               </v-card>
             </div>
@@ -664,8 +662,8 @@ onMounted(() => {
                 </div>
                 <v-divider class="mb-2 mt-2" />
                 <div class="d-flex flex-wrap ga-2">
-                  <v-btn size="small" variant="tonal" @click="openEditCredential(row)">编辑</v-btn>
-                  <v-btn size="small" variant="tonal" color="error" @click="deleteCredential(row.id)">删除</v-btn>
+                  <v-btn size="small" variant="tonal" color="warning" prepend-icon="mdi-pencil-outline" @click="openEditCredential(row)">编辑</v-btn>
+                  <v-btn size="small" variant="tonal" color="error" prepend-icon="mdi-delete-outline" @click="deleteCredential(row.id)">删除</v-btn>
                 </div>
               </v-card>
             </div>
@@ -696,8 +694,8 @@ onMounted(() => {
                 <div class="text-body-2 text-medium-emphasis mb-2" style="word-break:break-all">{{ row.url }}</div>
                 <v-divider class="mb-2" />
                 <div class="d-flex flex-wrap ga-2">
-                  <v-btn size="small" variant="tonal" @click="openEditProxy(row)">编辑</v-btn>
-                  <v-btn size="small" variant="tonal" color="error" @click="deleteProxy(row.id)">删除</v-btn>
+                  <v-btn size="small" variant="tonal" color="warning" prepend-icon="mdi-pencil-outline" @click="openEditProxy(row)">编辑</v-btn>
+                  <v-btn size="small" variant="tonal" color="error" prepend-icon="mdi-delete-outline" @click="deleteProxy(row.id)">删除</v-btn>
                 </div>
               </v-card>
             </div>
@@ -729,7 +727,7 @@ onMounted(() => {
         <v-card class="liquid-glass-card mb-4" rounded="xl">
           <v-card-title class="d-flex align-center justify-space-between pa-4 pb-2">
             <span class="text-subtitle-1 font-weight-bold">Docker 服务状态</span>
-            <v-btn size="small" variant="tonal" :loading="sysLoading" @click="fetchSysInfo">重新检测</v-btn>
+            <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-refresh" :loading="sysLoading" @click="fetchSysInfo">重新检测</v-btn>
           </v-card-title>
           <v-divider />
           <div class="pa-4">
@@ -838,8 +836,8 @@ onMounted(() => {
         </v-card-text>
         <v-divider />
         <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="text" @click="showProjectDialog = false">取消</v-btn>
-          <v-btn color="primary" variant="flat" @click="saveProject">保存项目</v-btn>
+          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showProjectDialog = false">取消</v-btn>
+          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveProject">保存项目</v-btn>
         </div>
       </v-card>
     </v-dialog>
@@ -873,7 +871,7 @@ onMounted(() => {
               </div>
               <v-divider class="mb-2" />
               <div class="d-flex ga-2">
-                <v-btn size="small" variant="tonal" prepend-icon="mdi-text-box-outline" @click="viewLog(row)">查看日志</v-btn>
+                <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-text-box-outline" @click="viewLog(row)">查看日志</v-btn>
                 <v-btn size="small" variant="tonal" color="error" prepend-icon="mdi-delete-outline" @click="deleteTaskLog(row.id)">删除</v-btn>
               </div>
             </v-card>
@@ -894,8 +892,8 @@ onMounted(() => {
           </v-chip>
           <v-spacer />
           <div class="d-flex ga-2">
-            <v-btn size="small" variant="tonal" :loading="logLoading" @click="fetchLogContent">刷新</v-btn>
-            <v-btn size="small" variant="tonal" @click="scrollLogToBottom">滚动到底部</v-btn>
+            <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-refresh" :loading="logLoading" @click="fetchLogContent">刷新</v-btn>
+            <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-arrow-down" @click="scrollLogToBottom">滚动到底部</v-btn>
             <v-btn icon="mdi-close" variant="text" size="small" @click="showLogViewer = false" />
           </div>
         </v-card-title>
@@ -926,8 +924,8 @@ onMounted(() => {
         </v-card-text>
         <v-divider />
         <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="text" @click="showRegDialog = false">取消</v-btn>
-          <v-btn color="primary" variant="flat" @click="saveRegistry">保存</v-btn>
+          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showRegDialog = false">取消</v-btn>
+          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveRegistry">保存</v-btn>
         </div>
       </v-card>
     </v-dialog>
@@ -949,8 +947,8 @@ onMounted(() => {
         </v-card-text>
         <v-divider />
         <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="text" @click="showCredDialog = false">取消</v-btn>
-          <v-btn color="primary" variant="flat" @click="saveCredential">保存</v-btn>
+          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showCredDialog = false">取消</v-btn>
+          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveCredential">保存</v-btn>
         </div>
       </v-card>
     </v-dialog>
@@ -975,28 +973,11 @@ onMounted(() => {
         </v-card-text>
         <v-divider />
         <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="text" @click="showProxyDialog = false">取消</v-btn>
-          <v-btn color="primary" variant="flat" @click="saveProxy">保存</v-btn>
+          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showProxyDialog = false">取消</v-btn>
+          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveProxy">保存</v-btn>
         </div>
       </v-card>
     </v-dialog>
   </v-container>
 </template>
 
-<style scoped>
-.code-block {
-  background: rgba(0, 0, 0, 0.3);
-  color: #d4d4d4;
-  padding: 12px;
-  border-radius: 8px;
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-  font-size: 13px;
-  line-height: 1.6;
-  white-space: pre-wrap;
-  word-break: break-word;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  margin: 0;
-}
-</style>
-/* hmr test */
-/* host hmr test */

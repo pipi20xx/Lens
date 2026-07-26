@@ -166,7 +166,7 @@ onMounted(loadLibraries)
     <!-- 工具栏 -->
     <v-card class="liquid-glass-card" rounded="xl">
       <v-card-title class="d-flex align-center flex-wrap pa-4">
-        <v-btn prepend-icon="mdi-refresh" variant="tonal" size="small" @click="loadLibraries" :loading="loading" class="mr-2">刷新媒体库列表</v-btn>
+        <v-btn prepend-icon="mdi-refresh" variant="tonal" color="info" size="small" @click="loadLibraries" :loading="loading" class="mr-2">刷新媒体库列表</v-btn>
         <v-btn prepend-icon="mdi-backup-restore" variant="tonal" color="warning" size="small" @click="backupAll" :loading="backingUpAll" class="mr-2">一键备份所有媒体库</v-btn>
         <EmbyConfigBackupManager category="libraries" @restored="loadLibraries" />
         <v-spacer />
@@ -208,9 +208,9 @@ onMounted(loadLibraries)
                   </div>
                   <!-- 操作 -->
                   <div class="d-flex flex-wrap ga-1">
-                    <v-btn size="x-small" variant="tonal" color="info" @click="openEdit(lib)">设置</v-btn>
-                    <v-btn size="x-small" variant="tonal" color="warning" @click="handleDirectBackup(lib)">备份</v-btn>
-                    <v-btn size="x-small" color="error" variant="tonal" @click="removeLibrary(lib.Id, lib.Name)">移除</v-btn>
+                    <v-btn size="x-small" variant="tonal" color="info" prepend-icon="mdi-cog-outline" @click="openEdit(lib)">设置</v-btn>
+                    <v-btn size="x-small" variant="tonal" color="warning" prepend-icon="mdi-backup-restore" @click="handleDirectBackup(lib)">备份</v-btn>
+                    <v-btn size="x-small" color="error" variant="tonal" prepend-icon="mdi-delete-outline" @click="removeLibrary(lib.Id, lib.Name)">移除</v-btn>
                   </div>
                 </div>
               </v-card>
@@ -235,8 +235,8 @@ onMounted(loadLibraries)
         </v-card-text>
         <v-divider />
         <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="text" @click="showAddDialog = false">取消</v-btn>
-          <v-btn color="primary" variant="flat" @click="addLibrary" :loading="adding">创建媒体库</v-btn>
+          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showAddDialog = false">取消</v-btn>
+          <v-btn color="primary" variant="flat" prepend-icon="mdi-plus" @click="addLibrary" :loading="adding">创建媒体库</v-btn>
         </div>
       </v-card>
     </v-dialog>
@@ -277,7 +277,7 @@ onMounted(loadLibraries)
                   <v-icon>mdi-close</v-icon>
                 </v-btn>
               </div>
-              <v-btn size="small" variant="tonal" @click="localData.LibraryOptions.PathInfos.push({ Path: '' })" prepend-icon="mdi-plus">添加路径</v-btn>
+              <v-btn size="small" variant="tonal" color="primary" @click="localData.LibraryOptions.PathInfos.push({ Path: '' })" prepend-icon="mdi-plus">添加路径</v-btn>
             </v-window-item>
 
             <!-- 功能开关 -->
@@ -315,9 +315,9 @@ onMounted(loadLibraries)
 
         <v-divider />
         <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="text" @click="showEditDialog = false">取消</v-btn>
-          <v-btn variant="tonal" color="warning" @click="handleBackup" :loading="backingUp">备份当前配置</v-btn>
-          <v-btn color="primary" variant="flat" @click="handleSaveLib" :loading="savingLib">保存设置</v-btn>
+          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showEditDialog = false">取消</v-btn>
+          <v-btn variant="tonal" color="warning" prepend-icon="mdi-backup-restore" @click="handleBackup" :loading="backingUp">备份当前配置</v-btn>
+          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="handleSaveLib" :loading="savingLib">保存设置</v-btn>
         </div>
       </v-card>
     </v-dialog>

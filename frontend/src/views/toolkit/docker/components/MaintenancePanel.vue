@@ -152,7 +152,7 @@ defineExpose({ loadDaemonConfig })
       <v-card-title class="d-flex align-center pa-4">
         <v-icon start>mdi-cog-outline</v-icon> Docker Daemon 配置
         <v-spacer />
-        <v-btn size="small" variant="tonal" color="primary" @click="openRawEdit" class="mr-2">直接编辑 JSON</v-btn>
+        <v-btn size="small" variant="tonal" color="primary" prepend-icon="mdi-code-json" @click="openRawEdit" class="mr-2">直接编辑 JSON</v-btn>
         <span class="text-caption text-warning"><v-icon size="14">mdi-alert-outline</v-icon> 需要 Root 权限的 SSH 账户</span>
       </v-card-title>
       <v-divider />
@@ -194,7 +194,7 @@ defineExpose({ loadDaemonConfig })
             <v-alert type="info" variant="tonal" density="compact" class="mb-3" text="保存时将自动备份旧配置至本地 data 目录及远程 .bak 文件。" />
             <v-checkbox v-model="daemonForm.shouldRestart" density="compact" hide-details label="保存后重启 Docker 服务 (会导致容器短暂中断)" class="mb-4" />
             <div class="d-flex justify-end">
-              <v-btn color="primary" variant="flat" :loading="daemonLoading" @click="handleSaveDaemonConfig">保存并应用配置</v-btn>
+              <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" :loading="daemonLoading" @click="handleSaveDaemonConfig">保存并应用配置</v-btn>
             </div>
           </v-col>
         </v-row>
@@ -232,7 +232,7 @@ defineExpose({ loadDaemonConfig })
           <v-checkbox v-model="pruneOptions.networks" density="compact" hide-details label="清理未被容器使用的网络 — docker network prune -f" class="ml-4" />
         </div>
 
-        <div v-if="previewPruneCommand" class="cmd-preview mb-4">
+        <div v-if="previewPruneCommand" class="code-block mb-4">
           <span class="text-caption text-medium-emphasis" style="font-size:12px">将要执行的命令：</span>
           <code>{{ previewPruneCommand }}</code>
         </div>
@@ -255,35 +255,11 @@ defineExpose({ loadDaemonConfig })
         </v-card-text>
         <v-divider />
         <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="text" @click="showRawModal = false">取消</v-btn>
-          <v-btn color="primary" variant="flat" @click="handleSaveRawJson" :disabled="!!rawJsonError" :loading="daemonLoading">保存原始配置</v-btn>
+          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showRawModal = false">取消</v-btn>
+          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="handleSaveRawJson" :disabled="!!rawJsonError" :loading="daemonLoading">保存原始配置</v-btn>
         </div>
       </v-card>
     </v-dialog>
   </div>
 </template>
 
-<style scoped>
-.prune-group {
-  padding: 8px 12px;
-  border-left: 3px solid rgba(255, 255, 255, 0.1);
-  border-radius: 0 4px 4px 0;
-}
-.prune-group + .prune-group {
-  margin-top: 4px;
-}
-.cmd-preview {
-  padding: 10px 12px;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  overflow-x: auto;
-}
-.cmd-preview code {
-  color: #7ec699;
-  font-family: 'Fira Code', Consolas, Monaco, monospace;
-  font-size: 13px;
-  white-space: nowrap;
-  display: block;
-}
-</style>

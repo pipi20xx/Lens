@@ -216,14 +216,13 @@ onMounted(() => {
       <v-text-field v-model="searchName" prepend-inner-icon="mdi-magnify" placeholder="搜索名称..."
         variant="outlined" density="compact" hide-details clearable style="max-width:240px"
         @keydown.enter="loadItems" @click:clear="loadItems" />
-      <v-btn prepend-icon="mdi-refresh" variant="tonal" size="small" @click="loadItems" :loading="loading">刷新</v-btn>
-      <v-btn prepend-icon="mdi-cloud-sync-outline" variant="tonal" size="small" @click="syncMedia" :loading="syncing">同步库</v-btn>
+      <v-btn prepend-icon="mdi-refresh" variant="tonal" color="info" size="small" @click="loadItems" :loading="loading">刷新</v-btn>
+      <v-btn prepend-icon="mdi-cloud-sync-outline" variant="tonal" color="info" size="small" @click="syncMedia" :loading="syncing">同步库</v-btn>
       <v-btn prepend-icon="mdi-auto-fix" variant="tonal" size="small" color="primary" @click="autoSelect" :loading="analyzing">智能选中</v-btn>
-      <v-btn variant="tonal" size="small" :color="showOnlyDuplicates ? 'warning' : 'default'" @click="toggleDuplicateMode">
-        <v-icon start>{{ showOnlyDuplicates ? 'mdi-filter' : 'mdi-filter-outline' }}</v-icon>
+      <v-btn variant="tonal" size="small" :color="showOnlyDuplicates ? 'warning' : 'default'" :prepend-icon="showOnlyDuplicates ? 'mdi-filter' : 'mdi-filter-outline'" @click="toggleDuplicateMode">
         {{ showOnlyDuplicates ? '显示全部' : '仅重复项' }}
       </v-btn>
-      <v-btn prepend-icon="mdi-cog-outline" variant="tonal" size="small" @click="openConfigDialog">规则配置</v-btn>
+      <v-btn prepend-icon="mdi-cog-outline" variant="tonal" color="secondary" size="small" @click="openConfigDialog">规则配置</v-btn>
       <v-spacer />
       <v-btn v-if="selectedIds.length" prepend-icon="mdi-delete-outline" variant="flat" color="error" size="small"
         @click="deleteSelected">删除选中 ({{ selectedIds.length }})</v-btn>
@@ -324,8 +323,8 @@ onMounted(() => {
         </v-card-text>
         <v-divider />
         <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="text" @click="showConfigDialog = false">取消</v-btn>
-          <v-btn color="primary" variant="flat" @click="saveConfig" :loading="loading">保存并应用</v-btn>
+          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showConfigDialog = false">取消</v-btn>
+          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveConfig" :loading="loading">保存并应用</v-btn>
         </div>
       </v-card>
     </v-dialog>
@@ -368,8 +367,8 @@ onMounted(() => {
         </v-card-text>
         <v-divider />
         <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="text" @click="showConfirmDialog = false">点错了，返回</v-btn>
-          <v-btn color="error" variant="flat" @click="confirmDelete">
+          <v-btn variant="tonal" color="grey" prepend-icon="mdi-arrow-left" @click="showConfirmDialog = false">点错了，返回</v-btn>
+          <v-btn color="error" variant="flat" prepend-icon="mdi-delete-outline" @click="confirmDelete">
             确认并永久删除 ({{ selectedIds.length }} 项)
           </v-btn>
         </div>

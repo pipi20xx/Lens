@@ -410,11 +410,3 @@ onUnmounted(() => {
   </v-container>
 </template>
 
-<style scoped>
-.podium-item {
-  transition: transform 0.3s ease;
-}
-.podium-item:hover {
-  transform: translateY(-5px);
-}
-</style>

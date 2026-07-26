@@ -143,7 +143,7 @@ onMounted(loadConfig)
             <v-icon start>mdi-chat-outline</v-icon>
             AI 对话
             <v-spacer />
-            <v-btn v-if="messages.length > 0" size="small" variant="tonal" color="error" @click="clearHistory">清空历史</v-btn>
+            <v-btn v-if="messages.length > 0" size="small" variant="tonal" color="error" prepend-icon="mdi-delete-sweep-outline" @click="clearHistory">清空历史</v-btn>
           </v-card-title>
           <v-divider />
           <div ref="chatWindow" class="flex-grow-1 pa-4" style="overflow-y:auto;background:rgba(0,0,0,0.02)">
@@ -201,7 +201,7 @@ onMounted(loadConfig)
               <v-switch v-model="config.use_proxy" density="compact" color="primary" hide-details class="mr-2" />
               <span class="text-body-2 text-medium-emphasis">使用系统内置 HTTP 代理转发请求</span>
             </div>
-            <v-btn block color="primary" variant="flat" :loading="saving" @click="saveConfig">执行保存</v-btn>
+            <v-btn block color="primary" variant="flat" prepend-icon="mdi-content-save-outline" :loading="saving" @click="saveConfig">执行保存</v-btn>
           </v-card-text>
         </v-card>
 

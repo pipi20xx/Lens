@@ -88,7 +88,7 @@ function showJson(data: any) { jsonModal.data = data; jsonModal.show = true }
             <v-window v-model="activeTab">
               <v-window-item value="search">
                 <v-text-field v-model="searchQuery" label="演员姓名" placeholder="中文或英文姓名..." variant="outlined" density="compact" class="mb-3" @keydown.enter="handleSearch" />
-                <v-btn block color="primary" variant="flat" :loading="searchLoading" @click="handleSearch">执行搜索</v-btn>
+                <v-btn block color="primary" variant="flat" prepend-icon="mdi-magnify" :loading="searchLoading" @click="handleSearch">执行搜索</v-btn>
                 <div v-if="searchResults.length > 0" class="mt-4">
                   <div class="text-subtitle-2 font-weight-bold mb-2">搜索结果</div>
                   <v-list density="compact" class="bg-transparent" style="max-height:400px;overflow-y:auto">
@@ -103,7 +103,7 @@ function showJson(data: any) { jsonModal.data = data; jsonModal.show = true }
               <v-window-item value="direct">
                 <v-text-field v-model="personId" label="TMDB Person ID" placeholder="例如: 60063" variant="outlined" density="compact" class="mb-3" />
                 <v-select v-model="detailLanguage" :items="languageOptions" label="抓取语言/模式" variant="outlined" density="compact" class="mb-3" />
-                <v-btn block color="primary" variant="flat" :loading="analyzeLoading" @click="handleAnalyze">执行分析</v-btn>
+                <v-btn block color="primary" variant="flat" prepend-icon="mdi-chart-bell-curve-cumulative" :loading="analyzeLoading" @click="handleAnalyze">执行分析</v-btn>
               </v-window-item>
             </v-window>
           </v-card-text>
@@ -180,9 +180,9 @@ function showJson(data: any) { jsonModal.data = data; jsonModal.show = true }
       <v-card class="liquid-glass-card" rounded="xl">
         <v-card-title class="pa-4"><v-icon start>mdi-code-json</v-icon>演员原始元数据 (Raw JSON)</v-card-title>
         <v-divider />
-        <v-card-text class="pa-4"><pre style="font-size:12px;white-space:pre-wrap;max-height:65vh;overflow:auto;background:rgba(0,0,0,0.15);padding:16px;border-radius:8px">{{ JSON.stringify(jsonModal.data, null, 2) }}</pre></v-card-text>
+        <v-card-text class="pa-4"><pre class="code-block">{{ JSON.stringify(jsonModal.data, null, 2) }}</pre></v-card-text>
         <v-divider />
-        <div class="d-flex justify-end pa-4"><v-btn variant="text" @click="jsonModal.show = false">关闭</v-btn></div>
+        <div class="d-flex justify-end pa-4"><v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="jsonModal.show = false">关闭</v-btn></div>
       </v-card>
     </v-dialog>
   </v-container>

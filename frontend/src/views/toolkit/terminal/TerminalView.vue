@@ -181,13 +181,11 @@ onUnmounted(() => {
           label="选择主机" variant="outlined" density="compact" hide-details style="max-width: 220px"
           prepend-inner-icon="mdi-server" />
 
-        <v-btn v-if="!isConnected" color="primary" variant="flat" size="small" @click="connectTerminal"
-          prepend-icon="mdi-play">连接</v-btn>
-        <v-btn v-else color="error" variant="tonal" size="small" @click="disconnectTerminal"
-          prepend-icon="mdi-stop">断开</v-btn>
+        <v-btn v-if="!isConnected" color="primary" variant="flat" size="small" prepend-icon="mdi-play" @click="connectTerminal">连接</v-btn>
+        <v-btn v-else color="error" variant="tonal" size="small" prepend-icon="mdi-stop" @click="disconnectTerminal">断开</v-btn>
 
-        <v-btn variant="tonal" size="small" @click="clearTerminal" prepend-icon="mdi-eraser">清屏</v-btn>
-        <v-btn variant="tonal" size="small" @click="showSettingsDialog = true" prepend-icon="mdi-cog-outline">设置</v-btn>
+        <v-btn variant="tonal" color="warning" size="small" @click="clearTerminal" prepend-icon="mdi-eraser">清屏</v-btn>
+        <v-btn variant="tonal" color="secondary" size="small" @click="showSettingsDialog = true" prepend-icon="mdi-cog-outline">设置</v-btn>
 
         <v-spacer />
 
@@ -248,24 +246,10 @@ onUnmounted(() => {
         </v-card-text>
         <v-divider />
         <div class="d-flex justify-end pa-4">
-          <v-btn color="primary" variant="flat" @click="showSettingsDialog = false">确定</v-btn>
+          <v-btn color="primary" variant="flat" prepend-icon="mdi-check" @click="showSettingsDialog = false">确定</v-btn>
         </div>
       </v-card>
     </v-dialog>
   </v-container>
 </template>
 
-<style scoped>
-.terminal-input {
-  background: transparent;
-  border: none;
-  outline: none;
-  color: inherit;
-  font-family: 'Fira Code', 'JetBrains Mono', monospace;
-  font-size: 14px;
-}
-
-.terminal-input::placeholder {
-  color: rgba(255, 255, 255, 0.3);
-}
-</style>

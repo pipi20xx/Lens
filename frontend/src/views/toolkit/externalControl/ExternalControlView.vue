@@ -138,8 +138,8 @@ onMounted(() => {
                   class="mb-3"
                 />
                 <div class="d-flex ga-2">
-                  <v-btn color="primary" variant="tonal" @click="copyToken" :disabled="!config.api_token">复制数据</v-btn>
-                  <v-btn variant="tonal" @click="generateNewToken">重新生成</v-btn>
+                  <v-btn color="primary" variant="tonal" prepend-icon="mdi-content-copy" @click="copyToken" :disabled="!config.api_token">复制数据</v-btn>
+                  <v-btn variant="tonal" color="warning" prepend-icon="mdi-refresh" @click="generateNewToken">重新生成</v-btn>
                 </div>
                 <p class="text-caption text-medium-emphasis mt-3">
                   注意：更改 Token 后，所有已对接的外部应用（如自动化脚本、Webhook 触发器）需要同步更新。
@@ -210,7 +210,7 @@ onMounted(() => {
           <v-card-title class="d-flex align-center pa-4">
             <span>审计日志记录</span>
             <v-spacer />
-            <v-btn variant="tonal" size="small" prepend-icon="mdi-refresh" @click="fetchLogs" :loading="loadingLogs">刷新</v-btn>
+            <v-btn variant="tonal" color="info" size="small" prepend-icon="mdi-refresh" @click="fetchLogs" :loading="loadingLogs">刷新</v-btn>
           </v-card-title>
           <v-divider />
           <v-table class="bg-transparent">
@@ -227,7 +227,7 @@ onMounted(() => {
                 <td class="font-mono text-medium-emphasis">{{ row.client_ip }}</td>
                 <td class="text-medium-emphasis">{{ row.process_time?.toFixed(1) }}ms</td>
                 <td class="text-right">
-                  <v-btn size="small" variant="tonal" :disabled="!row.payload" @click="showPayload(row)">查看详情</v-btn>
+                  <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-eye-outline" :disabled="!row.payload" @click="showPayload(row)">查看详情</v-btn>
                 </td>
               </tr>
             </tbody>
@@ -256,11 +256,11 @@ onMounted(() => {
         <v-card-title class="pa-4">请求详情 (Payload)</v-card-title>
         <v-divider />
         <v-card-text class="pa-4">
-          <pre style="font-size:12px;white-space:pre-wrap;max-height:500px;overflow:auto;background:rgba(0,0,0,0.2);padding:16px;border-radius:8px">{{ currentPayload }}</pre>
+          <pre class="code-block">{{ currentPayload }}</pre>
         </v-card-text>
         <v-divider />
         <div class="d-flex justify-end pa-4">
-          <v-btn color="primary" variant="flat" @click="showLogDetail = false">关闭详情</v-btn>
+          <v-btn color="primary" variant="flat" prepend-icon="mdi-close" @click="showLogDetail = false">关闭详情</v-btn>
         </div>
       </v-card>
     </v-dialog>

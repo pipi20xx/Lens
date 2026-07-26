@@ -105,7 +105,7 @@ async function handleAction(endpoint: string) {
               </v-card-text>
               <v-divider />
               <div class="pa-4">
-                <v-btn block color="error" variant="tonal" @click="handleAction('people_remover')" :loading="loading">
+                <v-btn block color="error" variant="tonal" prepend-icon="mdi-account-remove-outline" @click="handleAction('people_remover')" :loading="loading">
                   执行清空演职员
                 </v-btn>
               </div>
@@ -125,7 +125,7 @@ async function handleAction(endpoint: string) {
               </v-card-text>
               <v-divider />
               <div class="pa-4">
-                <v-btn block color="primary" variant="tonal" @click="handleAction('episode_deleter')" :loading="loading">
+                <v-btn block color="primary" variant="tonal" prepend-icon="mdi-delete-sweep-outline" @click="handleAction('episode_deleter')" :loading="loading">
                   执行修复重置
                 </v-btn>
               </div>

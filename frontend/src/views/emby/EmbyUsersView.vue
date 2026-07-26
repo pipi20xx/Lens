@@ -152,14 +152,14 @@ onMounted(loadUsers)
     <!-- 工具栏 -->
     <v-card class="liquid-glass-card" rounded="xl">
       <v-card-title class="d-flex align-center flex-wrap pa-4">
-        <v-btn prepend-icon="mdi-refresh" variant="tonal" size="small" @click="loadUsers" :loading="loading" class="mr-2">刷新用户列表</v-btn>
+        <v-btn prepend-icon="mdi-refresh" variant="tonal" color="info" size="small" @click="loadUsers" :loading="loading" class="mr-2">刷新用户列表</v-btn>
         <v-btn prepend-icon="mdi-backup-restore" variant="tonal" color="warning" size="small" @click="handleBackupAll" :loading="backingUpAll" class="mr-2">一键备份所有用户</v-btn>
         <EmbyConfigBackupManager category="users" @restored="loadUsers" />
         <v-spacer />
         <div class="d-flex ga-2">
           <v-text-field v-model="newUserName" placeholder="新用户名" variant="outlined" density="compact" hide-details style="width:150px"
             @keydown.enter="handleCreateUser" />
-          <v-btn color="primary" variant="flat" size="small" @click="handleCreateUser" :loading="creating">新增用户</v-btn>
+          <v-btn color="primary" variant="flat" size="small" prepend-icon="mdi-plus" @click="handleCreateUser" :loading="creating">新增用户</v-btn>
         </div>
       </v-card-title>
       <v-divider />
@@ -202,9 +202,9 @@ onMounted(loadUsers)
 
                   <!-- 操作按钮 -->
                   <div class="d-flex flex-wrap ga-1">
-                    <v-btn size="x-small" variant="tonal" color="info" @click="openEdit(user)">设置</v-btn>
-                    <v-btn size="x-small" variant="tonal" color="warning" @click="handleDirectBackup(user)">备份</v-btn>
-                    <v-btn size="x-small" color="error" variant="tonal" @click="deleteUser(user.Id, user.Name)">删除</v-btn>
+                    <v-btn size="x-small" variant="tonal" color="info" prepend-icon="mdi-cog-outline" @click="openEdit(user)">设置</v-btn>
+                    <v-btn size="x-small" variant="tonal" color="warning" prepend-icon="mdi-backup-restore" @click="handleDirectBackup(user)">备份</v-btn>
+                    <v-btn size="x-small" color="error" variant="tonal" prepend-icon="mdi-delete-outline" @click="deleteUser(user.Id, user.Name)">删除</v-btn>
                   </div>
                 </div>
               </v-card>
@@ -290,7 +290,7 @@ onMounted(loadUsers)
             <!-- 修改密码 -->
             <v-window-item value="password">
               <v-text-field v-model="newPassword" label="新密码" type="password" variant="outlined" density="compact" hint="留空则不修改" persistent-hint class="mb-3" />
-              <v-btn color="warning" variant="flat" size="small" @click="handleUpdatePassword" :disabled="!newPassword">单独更新密码</v-btn>
+              <v-btn color="warning" variant="flat" size="small" prepend-icon="mdi-lock-reset" @click="handleUpdatePassword" :disabled="!newPassword">单独更新密码</v-btn>
             </v-window-item>
 
             <!-- 原始数据 (JSON) -->
@@ -305,9 +305,9 @@ onMounted(loadUsers)
 
         <v-divider />
         <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="text" @click="showEditModal = false">取消</v-btn>
-          <v-btn variant="tonal" color="warning" @click="handleBackup" :loading="backingUp">备份当前配置</v-btn>
-          <v-btn color="primary" variant="flat" @click="handleSavePolicy" :loading="savingPolicy">保存设置</v-btn>
+          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showEditModal = false">取消</v-btn>
+          <v-btn variant="tonal" color="warning" prepend-icon="mdi-backup-restore" @click="handleBackup" :loading="backingUp">备份当前配置</v-btn>
+          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="handleSavePolicy" :loading="savingPolicy">保存设置</v-btn>
         </div>
       </v-card>
     </v-dialog>

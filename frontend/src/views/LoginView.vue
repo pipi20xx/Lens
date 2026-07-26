@@ -55,6 +55,7 @@ async function onSubmit() {
           color="primary"
           size="large"
           variant="flat"
+          prepend-icon="mdi-login"
           rounded="xl"
           class="login-btn"
         >

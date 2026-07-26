@@ -97,7 +97,7 @@ function getEmbyAvatar(person: any) {
                 :placeholder="embyMode === 'id' ? '输入 TMDB ID' : '输入姓名关键字'"
                 prepend-inner-icon="mdi-magnify" variant="outlined" density="compact" hide-details clearable
                 @keydown.enter="handleEmbySearch" />
-              <v-btn color="primary" variant="tonal" @click="handleEmbySearch" :loading="embyLoading">执行搜索</v-btn>
+              <v-btn color="primary" variant="tonal" prepend-icon="mdi-magnify" @click="handleEmbySearch" :loading="embyLoading">执行搜索</v-btn>
             </div>
 
             <v-list density="compact" class="bg-transparent" style="max-height:600px;overflow-y:auto">
@@ -144,7 +144,7 @@ function getEmbyAvatar(person: any) {
               <p class="text-caption text-medium-emphasis mb-2">显示姓名 (修改后即时同步至 Emby)</p>
               <div class="d-flex ga-3">
                 <v-text-field v-model="editName" placeholder="新姓名" variant="outlined" density="compact" hide-details />
-                <v-btn color="primary" variant="flat" @click="handleUpdateName" :loading="nameLoading">执行修改</v-btn>
+                <v-btn color="primary" variant="flat" prepend-icon="mdi-pencil-outline" @click="handleUpdateName" :loading="nameLoading">执行修改</v-btn>
               </div>
               <p class="text-caption text-medium-emphasis mt-3">选中左侧列表项后即可在此进行编辑。</p>
             </div>
@@ -179,29 +179,14 @@ function getEmbyAvatar(person: any) {
         </v-card-title>
         <v-divider />
         <v-card-text class="pa-4">
-          <div class="json-code-wrapper">
-            <pre style="font-size:11px;white-space:pre-wrap;max-height:60vh;overflow:auto;font-family:monospace">{{ JSON.stringify(jsonModal.data, null, 2) }}</pre>
-          </div>
+          <pre class="code-block">{{ JSON.stringify(jsonModal.data, null, 2) }}</pre>
         </v-card-text>
         <v-divider />
         <div class="d-flex justify-end pa-4">
-          <v-btn color="primary" variant="flat" @click="copyRawJson" block>复制数据</v-btn>
+          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-copy" @click="copyRawJson" block>复制数据</v-btn>
         </div>
       </v-card>
     </v-dialog>
   </v-container>
 </template>
 
-<style scoped>
-.selected-item {
-  background: rgba(var(--v-theme-primary), 0.08) !important;
-  border-left: 4px solid rgb(var(--v-theme-primary)) !important;
-}
-
-.json-code-wrapper {
-  background: rgba(0, 0, 0, 0.2);
-  padding: 16px;
-  border-radius: 8px;
-  border: 1px solid rgba(var(--v-theme-on-surface), 0.08);
-}
-</style>

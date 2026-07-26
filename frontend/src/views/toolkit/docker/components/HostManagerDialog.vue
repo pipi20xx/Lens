@@ -72,9 +72,9 @@ function removeScanPath(path: string) {
                 <v-chip v-if="host.is_local" size="x-small" variant="tonal" color="success">宿主机</v-chip>
               </div>
               <div class="d-flex ga-1">
-                <v-btn size="small" variant="tonal" @click="testConnection(host.id)">测试</v-btn>
-                <v-btn size="small" variant="tonal" @click="openEditHost(host)">编辑</v-btn>
-                <v-btn size="small" variant="tonal" color="error" @click="deleteHost(host.id)">删除</v-btn>
+                <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-lan-connect" @click="testConnection(host.id)">测试</v-btn>
+                <v-btn size="small" variant="tonal" color="warning" prepend-icon="mdi-pencil-outline" @click="openEditHost(host)">编辑</v-btn>
+                <v-btn size="small" variant="tonal" color="error" prepend-icon="mdi-delete-outline" @click="deleteHost(host.id)">删除</v-btn>
               </div>
             </div>
           </v-list-item>
@@ -102,8 +102,8 @@ function removeScanPath(path: string) {
       </v-card-text>
       <v-divider />
       <div class="d-flex justify-end ga-2 pa-4">
-        <v-btn variant="text" @click="showHostEditDialog = false">取消</v-btn>
-        <v-btn color="primary" variant="flat" @click="saveHost">保存</v-btn>
+        <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showHostEditDialog = false">取消</v-btn>
+        <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveHost">保存</v-btn>
       </div>
     </v-card>
   </v-dialog>

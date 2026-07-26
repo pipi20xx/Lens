@@ -254,7 +254,7 @@ onMounted(loadAll)
                 <v-icon start>mdi-server-outline</v-icon>
                 Emby 服务端管理
                 <v-spacer />
-                <v-btn prepend-icon="mdi-plus" variant="tonal" size="small" @click="openAddServer">添加服务器</v-btn>
+                <v-btn prepend-icon="mdi-plus" variant="tonal" color="primary" size="small" @click="openAddServer">添加服务器</v-btn>
               </v-card-title>
               <v-divider />
               <v-card-text class="pa-4">
@@ -274,9 +274,9 @@ onMounted(loadAll)
                       </div>
                       <div class="text-caption text-medium-emphasis font-mono mb-3">{{ server.url }}</div>
                       <div class="d-flex flex-wrap ga-2">
-                        <v-btn size="x-small" variant="tonal" @click="openEditServer(server)">配置</v-btn>
-                        <v-btn v-if="server.id !== activeServerId" size="x-small" color="primary" variant="tonal" @click="activateServer(server.id)">激活</v-btn>
-                        <v-btn size="x-small" color="error" variant="tonal" @click="deleteServer(server.id)">删除</v-btn>
+                        <v-btn size="x-small" variant="tonal" color="secondary" prepend-icon="mdi-cog-outline" @click="openEditServer(server)">配置</v-btn>
+                        <v-btn v-if="server.id !== activeServerId" size="x-small" color="primary" variant="tonal" prepend-icon="mdi-check-circle-outline" @click="activateServer(server.id)">激活</v-btn>
+                        <v-btn size="x-small" color="error" variant="tonal" prepend-icon="mdi-delete-outline" @click="deleteServer(server.id)">删除</v-btn>
                       </div>
                     </v-card>
                   </v-col>
@@ -305,7 +305,7 @@ onMounted(loadAll)
               </v-card-text>
               <v-divider />
               <div class="d-flex justify-end pa-4">
-                <v-btn color="primary" variant="flat" :loading="savingGlobal" @click="handleSaveGlobal">保存 API 配置</v-btn>
+                <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" :loading="savingGlobal" @click="handleSaveGlobal">保存 API 配置</v-btn>
               </div>
             </v-card>
           </v-window-item>
@@ -332,7 +332,7 @@ onMounted(loadAll)
               </v-card-text>
               <v-divider />
               <div class="d-flex justify-end pa-4">
-                <v-btn color="primary" variant="flat" :loading="savingGlobal" @click="handleSaveGlobal">保存代理配置</v-btn>
+                <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" :loading="savingGlobal" @click="handleSaveGlobal">保存代理配置</v-btn>
               </div>
             </v-card>
           </v-window-item>
@@ -357,7 +357,7 @@ onMounted(loadAll)
                   <v-text-field :model-value="systemConfig.api_token" label="API Token" variant="outlined" density="compact"
                     readonly append-inner-icon="mdi-content-copy" @click:append-inner="copyText(systemConfig.api_token)"
                     class="flex-grow-1" />
-                  <v-btn color="primary" variant="tonal" @click="generateToken">重新生成</v-btn>
+                  <v-btn color="primary" variant="tonal" prepend-icon="mdi-refresh" @click="generateToken">重新生成</v-btn>
                 </div>
                 <v-divider class="my-4" />
                 <v-row>
@@ -372,7 +372,7 @@ onMounted(loadAll)
               </v-card-text>
               <v-divider />
               <div class="d-flex justify-end pa-4">
-                <v-btn color="primary" variant="flat" :loading="savingSystem" @click="handleSaveSystem">保存会话与安全配置</v-btn>
+                <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" :loading="savingSystem" @click="handleSaveSystem">保存会话与安全配置</v-btn>
               </div>
             </v-card>
           </v-window-item>
@@ -391,7 +391,7 @@ onMounted(loadAll)
           <v-card-text class="pa-4">
             <p class="text-body-2 text-medium-emphasis mb-4">您可以导出当前的全局配置文件 (config.json) 进行备份，或在迁移环境时导入旧配置。</p>
             <div class="d-flex flex-column ga-2">
-              <v-btn block variant="tonal" @click="exportConfig" prepend-icon="mdi-download">导出 config.json</v-btn>
+              <v-btn block variant="tonal" color="info" @click="exportConfig" prepend-icon="mdi-download">导出 config.json</v-btn>
               <v-btn block color="primary" variant="tonal" @click="($refs.fileInput as any).click()" prepend-icon="mdi-upload">导入备份文件</v-btn>
               <input ref="fileInput" type="file" accept=".json" style="display:none" @change="importConfig" />
             </div>
@@ -406,7 +406,7 @@ onMounted(loadAll)
           </v-card-title>
           <v-divider />
           <v-card-text class="pa-4">
-            <v-btn block variant="tonal" @click="checkVersion" prepend-icon="mdi-refresh" class="mb-3">检查更新</v-btn>
+            <v-btn block variant="tonal" color="info" @click="checkVersion" prepend-icon="mdi-refresh" class="mb-3">检查更新</v-btn>
             <template v-if="versionInfo">
               <div class="text-body-2 mb-1"><span class="text-medium-emphasis">当前版本：</span><span class="font-weight-bold">{{ versionInfo.current }}</span></div>
               <div class="text-body-2 mb-2"><span class="text-medium-emphasis">最新版本：</span><span class="font-weight-bold">{{ versionInfo.latest }}</span></div>
@@ -451,18 +451,13 @@ onMounted(loadAll)
         </v-card-text>
         <v-divider />
         <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="text" @click="testConnection">测试连接</v-btn>
+          <v-btn variant="text" prepend-icon="mdi-lan-connect" @click="testConnection">测试连接</v-btn>
           <v-spacer />
-          <v-btn variant="text" @click="showAddServerDialog = false">取消</v-btn>
-          <v-btn color="primary" variant="flat" @click="saveServer">保存</v-btn>
+          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showAddServerDialog = false">取消</v-btn>
+          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveServer">保存</v-btn>
         </div>
       </v-card>
     </v-dialog>
   </v-container>
 </template>
 
-<style scoped>
-.border-primary {
-  border-left: 3px solid rgb(var(--v-theme-primary)) !important;
-}
-</style>

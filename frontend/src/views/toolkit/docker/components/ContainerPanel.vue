@@ -225,7 +225,7 @@ defineExpose({ loadContainers, loadContainerSettings })
     </v-row>
 
     <div class="d-flex flex-column ga-3">
-      <v-card v-for="row in filteredContainers" :key="row.id" class="container-card liquid-glass-card" rounded="lg" :class="{'is-running': row.status === 'running'}">
+      <v-card v-for="row in filteredContainers" :key="row.id" class="status-card liquid-glass-card" rounded="lg" :class="{'is-running': row.status === 'running'}">
         <div class="pa-4">
           <div class="d-flex align-center mb-1">
             <div class="d-flex align-center ga-1 flex-grow-1" style="min-width:0">
@@ -275,13 +275,9 @@ defineExpose({ loadContainers, loadContainerSettings })
           <v-divider class="my-2" />
 
           <div class="d-flex flex-wrap ga-2">
-            <v-btn size="small" :color="row.status === 'running' ? 'error' : 'primary'" variant="tonal" :loading="loadingActions[row.id]" @click="containerAction(row.id, row.status === 'running' ? 'stop' : 'start')">
-              <v-icon start>{{ row.status === 'running' ? 'mdi-stop' : 'mdi-play' }}</v-icon>{{ row.status === 'running' ? '停止' : '启动' }}
-            </v-btn>
-            <v-btn size="small" :color="updateInfo[row.image]?.has_update ? 'error' : 'warning'" variant="tonal" :loading="loadingActions[row.id]" @click="containerAction(row.id, 'recreate')">
-              <v-icon start>mdi-update</v-icon>{{ updateInfo[row.image]?.has_update ? '发现新镜像' : '更新' }}
-            </v-btn>
-            <v-btn size="small" color="error" variant="tonal" :loading="loadingActions[row.id]" @click="handleDeleteContainer(row)"><v-icon start>mdi-delete-outline</v-icon> 删除</v-btn>
+            <v-btn size="small" :color="row.status === 'running' ? 'error' : 'primary'" variant="tonal" :prepend-icon="row.status === 'running' ? 'mdi-stop' : 'mdi-play'" :loading="loadingActions[row.id]" @click="containerAction(row.id, row.status === 'running' ? 'stop' : 'start')">{{ row.status === 'running' ? '停止' : '启动' }}</v-btn>
+            <v-btn size="small" :color="updateInfo[row.image]?.has_update ? 'error' : 'warning'" variant="tonal" prepend-icon="mdi-update" :loading="loadingActions[row.id]" @click="containerAction(row.id, 'recreate')">{{ updateInfo[row.image]?.has_update ? '发现新镜像' : '更新' }}</v-btn>
+            <v-btn size="small" color="error" variant="tonal" prepend-icon="mdi-delete-outline" :loading="loadingActions[row.id]" @click="handleDeleteContainer(row)">删除</v-btn>
             <v-btn size="small" color="info" variant="tonal" @click="showLogs(row.id, row.name)"><v-icon start>mdi-text-box-outline</v-icon> 日志</v-btn>
             <v-btn size="small" variant="tonal" @click="openSettingsModal(row.name)"><v-icon start>mdi-cog-outline</v-icon> 设置</v-btn>
           </div>
@@ -299,7 +295,7 @@ defineExpose({ loadContainers, loadContainerSettings })
         <v-divider />
         <v-card-text class="pa-0">
           <v-progress-linear v-if="loadingLogs" indeterminate color="primary" />
-          <pre class="pa-4 ma-0" style="max-height:500px;overflow:auto;font-size:12px;font-family:'Fira Code','JetBrains Mono',monospace;background:rgba(0,0,0,0.2);border-radius:0 0 12px 12px">{{ containerLogs }}</pre>
+          <pre class="code-block" style="border-radius:0 0 12px 12px">{{ containerLogs }}</pre>
         </v-card-text>
       </v-card>
     </v-dialog>
@@ -315,35 +311,11 @@ defineExpose({ loadContainers, loadContainerSettings })
         </v-card-text>
         <v-divider />
         <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="text" @click="showSettingsDialog = false">取消</v-btn>
-          <v-btn color="primary" variant="flat" @click="saveContainerSettings">保存</v-btn>
+          <v-btn variant="text" prepend-icon="mdi-close" @click="showSettingsDialog = false">取消</v-btn>
+          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveContainerSettings">保存</v-btn>
         </div>
       </v-card>
     </v-dialog>
   </div>
 </template>
 
-<style scoped>
-.container-card {
-  position: relative;
-  overflow: hidden;
-  transition: box-shadow 0.2s;
-}
-.container-card::before {
-  content: '';
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 3px;
-  background: transparent;
-  transition: background 0.2s;
-}
-.container-card.is-running::before {
-  background: rgb(var(--v-theme-success));
-}
-.container-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-.font-mono {
-  font-family: 'Fira Code', 'JetBrains Mono', monospace;
-}
-</style>

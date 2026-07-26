@@ -480,7 +480,7 @@ onUnmounted(() => {
       <!-- ====== 备份任务 ====== -->
       <v-window-item value="tasks">
         <div class="d-flex justify-end mb-4 ga-2">
-          <v-btn prepend-icon="mdi-refresh" variant="tonal" size="small" @click="fetchTasks" :loading="tasksLoading">刷新</v-btn>
+          <v-btn prepend-icon="mdi-refresh" variant="tonal" color="info" size="small" @click="fetchTasks" :loading="tasksLoading">刷新</v-btn>
           <v-btn prepend-icon="mdi-plus" color="primary" variant="tonal" size="small" @click="handleAddTask">新增任务</v-btn>
         </div>
 
@@ -499,7 +499,7 @@ onUnmounted(() => {
           <v-card
             v-for="row in tasks"
             :key="row.id"
-            class="task-card liquid-glass-card"
+            class="status-card liquid-glass-card"
             :class="{ 'is-auto': row.enabled }"
             rounded="lg"
           >
@@ -539,18 +539,10 @@ onUnmounted(() => {
             <!-- 操作按钮 -->
             <v-divider class="mt-2" />
             <div class="d-flex flex-wrap ga-2 pa-3">
-              <v-btn size="small" color="primary" variant="tonal" @click="handleRunTask(row)">
-                <v-icon start>mdi-play</v-icon> 执行
-              </v-btn>
-              <v-btn size="small" variant="tonal" @click="openHistoryModal(row)">
-                <v-icon start>mdi-history</v-icon> 历史
-              </v-btn>
-              <v-btn size="small" variant="tonal" @click="handleEditTask(row)">
-                <v-icon start>mdi-pencil</v-icon> 编辑
-              </v-btn>
-              <v-btn size="small" color="error" variant="tonal" @click="handleDeleteTask(row)">
-                <v-icon start>mdi-delete-outline</v-icon> 删除
-              </v-btn>
+              <v-btn size="small" color="primary" variant="tonal" prepend-icon="mdi-play" @click="handleRunTask(row)">执行</v-btn>
+              <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-history" @click="openHistoryModal(row)">历史</v-btn>
+              <v-btn size="small" variant="tonal" color="warning" prepend-icon="mdi-pencil-outline" @click="handleEditTask(row)">编辑</v-btn>
+              <v-btn size="small" color="error" variant="tonal" prepend-icon="mdi-delete-outline" @click="handleDeleteTask(row)">删除</v-btn>
             </div>
           </v-card>
         </div>
@@ -559,7 +551,7 @@ onUnmounted(() => {
       <!-- ====== 执行历史 ====== -->
       <v-window-item value="history">
         <div class="d-flex justify-end mb-4">
-          <v-btn prepend-icon="mdi-refresh" variant="tonal" size="small" @click="fetchHistory" :loading="historyLoading">刷新</v-btn>
+          <v-btn prepend-icon="mdi-refresh" variant="tonal" color="info" size="small" @click="fetchHistory" :loading="historyLoading">刷新</v-btn>
         </div>
 
         <!-- 空状态 -->
@@ -575,7 +567,7 @@ onUnmounted(() => {
           <v-card
             v-for="row in history"
             :key="row.id"
-            class="history-card liquid-glass-card"
+            class="status-card liquid-glass-card"
             :class="`is-${row.status}`"
             rounded="lg"
           >
@@ -651,7 +643,7 @@ onUnmounted(() => {
                 </td>
                 <td class="text-right">
                   <v-btn v-if="row.status === 'success'" size="small" variant="tonal" color="warning"
-                    @click="handleRestore(row)">还原</v-btn>
+                    prepend-icon="mdi-restore" @click="handleRestore(row)">还原</v-btn>
                 </td>
               </tr>
             </tbody>
@@ -662,7 +654,7 @@ onUnmounted(() => {
         </v-card-text>
         <v-divider />
         <div class="d-flex justify-end pa-4">
-          <v-btn variant="text" @click="showHistoryModal = false">关闭</v-btn>
+          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showHistoryModal = false">关闭</v-btn>
         </div>
       </v-card>
     </v-dialog>
@@ -849,8 +841,8 @@ onUnmounted(() => {
         </v-card-text>
         <v-divider />
         <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="text" @click="showEditModal = false">取消</v-btn>
-          <v-btn color="primary" variant="flat" @click="handleSaveTask">保存</v-btn>
+          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showEditModal = false">取消</v-btn>
+          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="handleSaveTask">保存</v-btn>
         </div>
       </v-card>
     </v-dialog>
@@ -910,128 +902,10 @@ onUnmounted(() => {
         <v-divider />
         <div class="d-flex justify-space-between align-center pa-4">
           <span class="text-body-2 text-medium-emphasis" style="word-break: break-all; max-width: 300px">{{ browserCurrentPath }}</span>
-          <v-btn color="primary" variant="flat" @click="confirmBrowserPath">确认选择</v-btn>
+          <v-btn color="primary" variant="flat" prepend-icon="mdi-check" @click="confirmBrowserPath">确认选择</v-btn>
         </div>
       </v-card>
     </v-dialog>
   </v-container>
 </template>
 
-<style scoped>
-/* 任务列表 */
-.task-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.task-card {
-  transition: border-color 0.2s, box-shadow 0.2s;
-  position: relative;
-  overflow: hidden;
-}
-
-.task-card::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  background: transparent;
-  transition: background 0.2s;
-}
-
-.task-card.is-auto::before {
-  background: rgb(var(--v-theme-success));
-}
-
-.task-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-/* 卡片头部 */
-.card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.card-title {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-  flex: 1;
-}
-
-/* 信息行 */
-.card-info {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 20px;
-}
-
-.info-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-}
-
-.info-label {
-  opacity: 0.5;
-  font-size: 11px;
-  flex-shrink: 0;
-}
-
-/* 历史列表 */
-.history-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.history-card {
-  transition: border-color 0.2s, box-shadow 0.2s;
-  position: relative;
-  overflow: hidden;
-}
-
-.history-card::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  background: transparent;
-  transition: background 0.2s;
-}
-
-.history-card.is-success::before {
-  background: rgb(var(--v-theme-success));
-}
-
-.history-card.is-running::before {
-  background: rgb(var(--v-theme-info));
-}
-
-.history-card.is-failed::before {
-  background: rgb(var(--v-theme-error));
-}
-
-.history-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.card-message {
-  padding-top: 4px;
-}
-
-/* 路径浏览器 */
-.hoverable:hover {
-  background: rgba(255, 255, 255, 0.05);
-}
-</style>

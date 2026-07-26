@@ -1876,3 +1876,313 @@ code {
   opacity: 0;
   transform: scale(0.5);
 }
+
+/* ============================================================
+ * 27. 从各 .vue scoped 迁移的统一样式
+ *     去重合并，统一命名
+ * ============================================================ */
+
+/* ── 代码块 — 统一替代 .code-block / .json-code-wrapper / .json-viewer / .cmd-preview ── */
+.code-block {
+  background: rgba(0, 0, 0, 0.3);
+  color: #d4d4d4;
+  padding: 16px;
+  border-radius: 12px;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin: 0;
+  overflow-x: auto;
+  max-height: 65vh;
+  overflow-y: auto;
+}
+
+.v-theme--light .code-block {
+  background: rgba(0, 0, 0, 0.06);
+  color: rgba(0, 0, 0, 0.87);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+/* 代码块内行高亮 */
+.code-block code {
+  color: #7ec699;
+  font-family: inherit;
+  font-size: inherit;
+  white-space: nowrap;
+  display: block;
+}
+
+/* 兼容旧类名 */
+.json-code-wrapper {
+  background: rgba(0, 0, 0, 0.3);
+  color: #d4d4d4;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-x: auto;
+}
+
+.json-viewer {
+  background: rgba(0, 0, 0, 0.3);
+  color: #d4d4d4;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-x: auto;
+}
+
+/* ── 状态指示卡片 — 统一替代 task-card / container-card / project-card / history-card ── */
+.status-card {
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.status-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: transparent;
+  transition: background 0.2s;
+}
+
+.status-card.is-success::before,
+.status-card.is-running::before {
+  background: rgb(var(--v-theme-success));
+}
+
+.status-card.is-warning::before {
+  background: rgb(var(--v-theme-warning));
+}
+
+.status-card.is-error::before,
+.status-card.is-failed::before {
+  background: rgb(var(--v-theme-error));
+}
+
+.status-card.is-info::before {
+  background: rgb(var(--v-theme-info));
+}
+
+.status-card.is-auto::before {
+  background: rgb(var(--v-theme-success));
+}
+
+.status-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.v-theme--light .status-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* 运行中卡片背景 */
+.running-card {
+  border-color: rgb(var(--v-theme-success)) !important;
+  background: rgba(var(--v-theme-success), 0.04);
+}
+
+/* ── 卡片头部/信息行 — BackupManagerView ── */
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.card-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.info-label {
+  opacity: 0.5;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.card-message {
+  padding-top: 4px;
+}
+
+/* ── 拖拽规则卡片 — AutoTagsView ── */
+.rules-grid {
+  min-height: 100px;
+}
+
+.rule-card {
+  cursor: grab;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.rule-card:active {
+  cursor: grabbing;
+}
+
+.rule-card:hover {
+  border-color: rgb(var(--v-theme-primary));
+  transform: translateY(-2px);
+}
+
+.rule-card.is-dragging {
+  opacity: 0.5;
+  border: 1px dashed rgb(var(--v-theme-primary));
+}
+
+.drag-handle {
+  cursor: grab;
+  color: #666;
+}
+
+.drag-handle:hover {
+  color: rgb(var(--v-theme-primary));
+}
+
+/* ── 选中项高亮 — ActorManagerView ── */
+.selected-item {
+  background: rgba(var(--v-theme-primary), 0.08) !important;
+  border-left: 4px solid rgb(var(--v-theme-primary)) !important;
+}
+
+/* ── 左边框高亮 — SettingsView ── */
+.border-left-primary {
+  border-left: 3px solid rgb(var(--v-theme-primary)) !important;
+}
+
+/* ── 领奖台项目 — PlaybackReportView ── */
+.podium-item {
+  transition: transform 0.3s ease;
+}
+
+.podium-item:hover {
+  transform: translateY(-5px);
+}
+
+/* ── 终端输入框 — TerminalView ── */
+.terminal-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: inherit;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 14px;
+}
+
+.terminal-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.v-theme--light .terminal-input::placeholder {
+  color: rgba(0, 0, 0, 0.3);
+}
+
+/* ── 等宽字体工具类 — ContainerPanel ── */
+.font-mono {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+}
+
+/* ── 清理分组 — MaintenancePanel ── */
+.prune-group {
+  padding: 8px 12px;
+  border-left: 3px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0 12px 12px 0;
+}
+
+.prune-group + .prune-group {
+  margin-top: 4px;
+}
+
+.v-theme--light .prune-group {
+  border-left-color: rgba(0, 0, 0, 0.1);
+}
+
+/* ── 可悬浮行 — BackupManagerView ── */
+.hoverable:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.v-theme--light .hoverable:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+/* ── 任务卡片 hover — EmbyTasksView ── */
+.task-card-hover {
+  transition: all 0.2s ease;
+}
+
+.task-card-hover:hover {
+  transform: translateY(-2px);
+}
+
+/* ── 列表容器 — BackupManagerView ── */
+.task-list,
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* ── 布局样式 — DefaultLayout ── */
+.logo-header {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  gap: 12px;
+}
+.logo-header--rail {
+  flex-direction: column;
+  padding: 12px 8px;
+  gap: 6px;
+}
+.logo-text {
+  flex: 1;
+  overflow: hidden;
+  min-width: 0;
+}
+.sidebar-version {
+  font-size: 10px;
+  opacity: 0.4;
+  user-select: none;
+  margin-top: 2px;
+}
+
+/* ── 过渡动画 ── */
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+}

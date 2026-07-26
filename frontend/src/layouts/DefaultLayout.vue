@@ -311,34 +311,4 @@ onUnmounted(() => {
   </v-app>
 </template>
 
-<style scoped>
-.logo-header {
-  display: flex;
-  align-items: center;
-  padding: 16px;
-  gap: 12px;
-}
-.logo-header--rail {
-  flex-direction: column;
-  padding: 12px 8px;
-  gap: 6px;
-}
-.logo-text {
-  flex: 1;
-  overflow: hidden;
-  min-width: 0;
-}
-.sidebar-version {
-  font-size: 10px;
-  opacity: 0.4;
-  user-select: none;
-  margin-top: 2px;
-}
 
-.fade-enter-active, .fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-.fade-enter-from, .fade-leave-to {
-  opacity: 0;
-}
-</style>

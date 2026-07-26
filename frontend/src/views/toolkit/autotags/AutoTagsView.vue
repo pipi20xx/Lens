@@ -293,7 +293,7 @@ onMounted(() => {
           <v-card-text class="pa-4">
             <div class="d-flex ga-3 mb-3 align-center">
               <v-text-field :model-value="webhookUrl" label="Webhook URL" variant="outlined" density="compact" readonly hide-details />
-              <v-btn color="primary" variant="tonal" @click="copyUrl" size="small">复制 URL</v-btn>
+              <v-btn color="primary" variant="tonal" prepend-icon="mdi-content-copy" @click="copyUrl" size="small">复制 URL</v-btn>
             </div>
 
             <v-alert type="info" variant="tonal" density="compact" class="mb-4">
@@ -327,7 +327,7 @@ onMounted(() => {
             <span class="text-subtitle-2 font-weight-bold">打标签规则列表</span>
             <span class="text-caption text-medium-emphasis">按住 ⠿ 拖拽调整顺序</span>
           </div>
-          <v-btn type="primary" size="small" variant="tonal" @click="prepareNewRule" prepend-icon="mdi-plus">添加新规则</v-btn>
+          <v-btn type="primary" size="small" variant="tonal" color="primary" @click="prepareNewRule" prepend-icon="mdi-plus">添加新规则</v-btn>
         </div>
 
         <div class="rules-grid" @dragover.prevent @drop="onDrop">
@@ -392,7 +392,7 @@ onMounted(() => {
             <v-text-field v-if="taskForm.use_custom" v-model="taskForm.custom_tags_text"
               placeholder="请输入标签名，多个用英文逗号分隔" variant="outlined" density="compact" hide-details class="mb-3" />
 
-            <v-btn color="primary" variant="flat" block @click="startTask">执行打标签任务</v-btn>
+            <v-btn color="primary" variant="flat" block prepend-icon="mdi-play" @click="startTask">执行打标签任务</v-btn>
           </v-card-text>
         </v-card>
 
@@ -405,8 +405,8 @@ onMounted(() => {
           <v-divider />
           <v-card-text class="pa-4">
             <div class="d-flex ga-2 mb-4">
-              <v-btn size="small" variant="tonal" color="warning" @click="clearSpecific">清除指定标签</v-btn>
-              <v-btn size="small" variant="tonal" color="error" @click="clearAll">清空所有标签</v-btn>
+              <v-btn size="small" variant="tonal" color="warning" prepend-icon="mdi-tag-remove-outline" @click="clearSpecific">清除指定标签</v-btn>
+              <v-btn size="small" variant="tonal" color="error" prepend-icon="mdi-delete-sweep-outline" @click="clearAll">清空所有标签</v-btn>
             </div>
 
             <v-divider class="mb-4" />
@@ -415,7 +415,7 @@ onMounted(() => {
             <div class="d-flex ga-2">
               <v-text-field v-model="testId" placeholder="Emby ID" variant="outlined" density="compact" hide-details style="max-width:120px" />
               <v-text-field v-model="testTag" placeholder="标签名" variant="outlined" density="compact" hide-details />
-              <v-btn size="small" color="primary" variant="tonal" @click="testWrite">执行写入测试</v-btn>
+              <v-btn size="small" color="primary" variant="tonal" prepend-icon="mdi-pencil-outline" @click="testWrite">执行写入测试</v-btn>
             </div>
           </v-card-text>
         </v-card>
@@ -475,45 +475,11 @@ onMounted(() => {
         </v-card-text>
         <v-divider />
         <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="text" @click="showEditor = false">取消</v-btn>
-          <v-btn color="primary" variant="flat" @click="onRuleSave(editingRule)">保存规则</v-btn>
+          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showEditor = false">取消</v-btn>
+          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="onRuleSave(editingRule)">保存规则</v-btn>
         </div>
       </v-card>
     </v-dialog>
   </v-container>
 </template>
 
-<style scoped>
-.rules-grid {
-  min-height: 100px;
-}
-
-.rule-card {
-  cursor: grab;
-  transition: all 0.2s ease;
-  border: 1px solid transparent;
-}
-
-.rule-card:active {
-  cursor: grabbing;
-}
-
-.rule-card:hover {
-  border-color: rgb(var(--v-theme-primary));
-  transform: translateY(-2px);
-}
-
-.rule-card.is-dragging {
-  opacity: 0.5;
-  border: 1px dashed rgb(var(--v-theme-primary));
-}
-
-.drag-handle {
-  cursor: grab;
-  color: #666;
-}
-
-.drag-handle:hover {
-  color: rgb(var(--v-theme-primary));
-}
-</style>

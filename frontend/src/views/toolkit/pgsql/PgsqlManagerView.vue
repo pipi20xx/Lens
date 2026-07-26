@@ -574,7 +574,7 @@ onMounted(fetchHosts)
             管理主机
           </v-btn>
         </div>
-        <v-btn size="small" variant="tonal" prepend-icon="mdi-refresh" :loading="refreshing" :disabled="!selectedHost" @click="refreshAll">
+        <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-refresh" :loading="refreshing" :disabled="!selectedHost" @click="refreshAll">
           全部刷新
         </v-btn>
       </div>
@@ -600,7 +600,7 @@ onMounted(fetchHosts)
                 <v-select v-model="currentDb" :items="dbOptions" item-title="label" item-value="value"
                   density="compact" variant="outlined" label="切换数据库" hide-details
                   @update:model-value="handleDbChange" />
-                <v-btn block size="x-small" variant="tonal" class="mt-2" @click="fetchTables">刷新表列表</v-btn>
+                <v-btn block size="x-small" variant="tonal" color="info" prepend-icon="mdi-refresh" class="mt-2" @click="fetchTables">刷新表列表</v-btn>
               </div>
               <div class="pa-2" style="max-height:500px;overflow-y:auto">
                 <div v-for="t in tableList" :key="t" @click="handleTableSelect(t)"
@@ -628,7 +628,7 @@ onMounted(fetchHosts)
                     <span class="text-subtitle-2 font-weight-bold">{{ selectedTable }}</span>
                     <v-chip size="small" color="info" variant="tonal">{{ pagination.total }} 条记录</v-chip>
                   </div>
-                  <v-btn size="small" variant="tonal" :loading="tableLoading" @click="fetchTableData">刷新数据</v-btn>
+                  <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-refresh" :loading="tableLoading" @click="fetchTableData">刷新数据</v-btn>
                 </div>
                 <v-divider />
                 <div style="overflow-x:auto">
@@ -647,10 +647,10 @@ onMounted(fetchHosts)
                             <span class="text-medium-emphasis font-italic">NULL</span>
                           </template>
                           <template v-else-if="typeof row[col.key] === 'object'">
-                            <v-btn size="x-small" color="primary" variant="tonal" @click="openViewer(col.key, row[col.key])">查看 JSON</v-btn>
+                            <v-btn size="x-small" color="primary" variant="tonal" prepend-icon="mdi-code-json" @click="openViewer(col.key, row[col.key])">查看 JSON</v-btn>
                           </template>
                           <template v-else-if="typeof row[col.key] === 'string' && row[col.key].length > 80">
-                            <v-btn size="x-small" color="primary" variant="tonal" @click="openViewer(col.key, row[col.key])">查看详情</v-btn>
+                            <v-btn size="x-small" color="primary" variant="tonal" prepend-icon="mdi-eye-outline" @click="openViewer(col.key, row[col.key])">查看详情</v-btn>
                           </template>
                           <template v-else>
                             <span style="cursor:pointer" @click="openViewer(col.key, row[col.key])">{{ row[col.key] }}</span>
@@ -663,9 +663,9 @@ onMounted(fetchHosts)
                 <!-- 分页 -->
                 <v-divider />
                 <div class="d-flex align-center justify-center pa-3 ga-2">
-                  <v-btn size="x-small" variant="tonal" :disabled="pagination.page <= 1" @click="pagination.page--; fetchTableData()">上一页</v-btn>
+                  <v-btn size="x-small" variant="tonal" color="secondary" prepend-icon="mdi-chevron-left" :disabled="pagination.page <= 1" @click="pagination.page--; fetchTableData()">上一页</v-btn>
                   <span class="text-caption text-medium-emphasis">第 {{ pagination.page }} 页</span>
-                  <v-btn size="x-small" variant="tonal" :disabled="pagination.page * pagination.pageSize >= pagination.total" @click="pagination.page++; fetchTableData()">下一页</v-btn>
+                  <v-btn size="x-small" variant="tonal" color="secondary" prepend-icon="mdi-chevron-right" :disabled="pagination.page * pagination.pageSize >= pagination.total" @click="pagination.page++; fetchTableData()">下一页</v-btn>
                 </div>
               </template>
             </v-card>
@@ -679,7 +679,7 @@ onMounted(fetchHosts)
         <template v-else>
           <div class="d-flex justify-space-between mb-4">
             <v-btn color="primary" variant="flat" size="small" prepend-icon="mdi-plus" @click="openCreateDb">创建数据库</v-btn>
-            <v-btn size="small" variant="tonal" :loading="dbInfoLoading" @click="fetchDbInfoList">刷新</v-btn>
+            <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-refresh" :loading="dbInfoLoading" @click="fetchDbInfoList">刷新</v-btn>
           </div>
 
           <v-progress-linear v-if="dbInfoLoading" indeterminate color="primary" class="mb-4" />
@@ -695,8 +695,8 @@ onMounted(fetchHosts)
               </div>
               <v-divider class="mb-2" />
               <div class="d-flex flex-wrap ga-2">
-                <v-btn size="small" variant="tonal" color="info" @click="openEditDb(db)">编辑</v-btn>
-                <v-btn size="small" variant="tonal" color="error" @click="dropDatabase(db.name)">删除</v-btn>
+                <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-pencil-outline" @click="openEditDb(db)">编辑</v-btn>
+                <v-btn size="small" variant="tonal" color="error" prepend-icon="mdi-delete-outline" @click="dropDatabase(db.name)">删除</v-btn>
               </div>
             </v-card>
           </div>
@@ -710,7 +710,7 @@ onMounted(fetchHosts)
         <template v-else>
           <div class="d-flex justify-space-between mb-4">
             <v-btn color="primary" variant="flat" size="small" prepend-icon="mdi-plus" @click="openCreateUser">创建用户</v-btn>
-            <v-btn size="small" variant="tonal" :loading="userLoading" @click="fetchUsers">刷新</v-btn>
+            <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-refresh" :loading="userLoading" @click="fetchUsers">刷新</v-btn>
           </div>
 
           <v-progress-linear v-if="userLoading" indeterminate color="primary" class="mb-4" />
@@ -739,8 +739,8 @@ onMounted(fetchHosts)
 
               <v-divider class="mb-2" />
               <div class="d-flex flex-wrap ga-2">
-                <v-btn size="small" variant="tonal" color="info" @click="openEditUser(row)">编辑</v-btn>
-                <v-btn size="small" variant="tonal" color="error" @click="dropUser(row.username)">删除</v-btn>
+                <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-pencil-outline" @click="openEditUser(row)">编辑</v-btn>
+                <v-btn size="small" variant="tonal" color="error" prepend-icon="mdi-delete-outline" @click="dropUser(row.username)">删除</v-btn>
               </div>
             </v-card>
           </div>
@@ -753,7 +753,7 @@ onMounted(fetchHosts)
         <div class="d-flex flex-wrap justify-space-between align-center ga-3 mb-4">
           <div class="d-flex ga-2">
             <v-btn color="primary" variant="flat" size="small" prepend-icon="mdi-plus" :disabled="!selectedHost" @click="openCreateBackup">创建新备份</v-btn>
-            <v-btn size="small" variant="tonal" :loading="backupLoading" @click="fetchBackups">刷新</v-btn>
+            <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-refresh" :loading="backupLoading" @click="fetchBackups">刷新</v-btn>
           </div>
           <v-chip size="small" variant="tonal" color="info">备份文件存储在 data/backups/pg 目录下</v-chip>
         </div>
@@ -773,8 +773,8 @@ onMounted(fetchHosts)
             </div>
             <v-divider class="mb-2" />
             <div class="d-flex flex-wrap ga-2">
-              <v-btn size="small" variant="tonal" color="warning" @click="openRestoreModal(row)">还原</v-btn>
-              <v-btn size="small" variant="tonal" color="error" @click="deleteBackup(row.filename)">删除</v-btn>
+              <v-btn size="small" variant="tonal" color="warning" prepend-icon="mdi-restore" @click="openRestoreModal(row)">还原</v-btn>
+              <v-btn size="small" variant="tonal" color="error" prepend-icon="mdi-delete-outline" @click="deleteBackup(row.filename)">删除</v-btn>
             </div>
           </v-card>
         </div>
@@ -793,7 +793,7 @@ onMounted(fetchHosts)
         <div class="pa-4">
           <div class="d-flex justify-space-between mb-4">
             <v-btn color="primary" variant="flat" size="small" prepend-icon="mdi-plus" @click="openAddHost">添加新主机</v-btn>
-            <v-btn size="small" variant="tonal" @click="fetchHosts">刷新</v-btn>
+            <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-refresh" @click="fetchHosts">刷新</v-btn>
           </div>
           <v-table density="compact" class="bg-transparent">
             <thead><tr><th>名称</th><th>地址</th><th class="text-right">操作</th></tr></thead>
@@ -802,8 +802,8 @@ onMounted(fetchHosts)
                 <td class="font-weight-medium">{{ h.name }}</td>
                 <td class="text-medium-emphasis font-mono" style="font-size:12px">{{ h.host }}:{{ h.port }}</td>
                 <td class="text-right">
-                  <v-btn size="x-small" variant="tonal" color="primary" @click="openEditHost(h)">编辑</v-btn>
-                  <v-btn size="x-small" variant="tonal" color="error" class="ml-1" @click="deleteHost(h.id)">移除</v-btn>
+                  <v-btn size="x-small" variant="tonal" color="primary" prepend-icon="mdi-pencil-outline" @click="openEditHost(h)">编辑</v-btn>
+                  <v-btn size="x-small" variant="tonal" color="error" prepend-icon="mdi-delete-outline" class="ml-1" @click="deleteHost(h.id)">移除</v-btn>
                 </td>
               </tr>
             </tbody>
@@ -836,9 +836,9 @@ onMounted(fetchHosts)
         </v-card-text>
         <v-divider />
         <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="text" @click="showHostEditDialog = false">取消</v-btn>
-          <v-btn color="warning" variant="tonal" :loading="hostTesting" @click="testHostConnection">测试连接</v-btn>
-          <v-btn color="primary" variant="flat" @click="saveHost">{{ editingHostId ? '保存修改' : '保存主机' }}</v-btn>
+          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showHostEditDialog = false">取消</v-btn>
+          <v-btn color="warning" variant="tonal" prepend-icon="mdi-lan-connect" :loading="hostTesting" @click="testHostConnection">测试连接</v-btn>
+          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveHost">{{ editingHostId ? '保存修改' : '保存主机' }}</v-btn>
         </div>
       </v-card>
     </v-dialog>
@@ -850,13 +850,13 @@ onMounted(fetchHosts)
           <v-icon start>mdi-eye-outline</v-icon>
           查看: {{ viewerTitle }}
           <v-spacer />
-          <v-btn size="small" variant="tonal" @click="copyViewerContent">复制内容</v-btn>
+          <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-content-copy" @click="copyViewerContent">复制内容</v-btn>
           <v-btn icon="mdi-close" variant="text" size="small" @click="showViewerDialog = false" />
         </v-card-title>
         <v-divider />
-        <div class="pa-4" style="max-height:70vh;overflow:auto">
+        <v-card-text class="pa-4">
           <pre class="code-block">{{ formattedViewerContent }}</pre>
-        </div>
+        </v-card-text>
       </v-card>
     </v-dialog>
 
@@ -872,8 +872,8 @@ onMounted(fetchHosts)
         </v-card-text>
         <v-divider />
         <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="text" @click="showCreateDbDialog = false">取消</v-btn>
-          <v-btn color="primary" variant="flat" :loading="creatingDb" @click="createDatabase">立即创建</v-btn>
+          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showCreateDbDialog = false">取消</v-btn>
+          <v-btn color="primary" variant="flat" prepend-icon="mdi-plus" :loading="creatingDb" @click="createDatabase">立即创建</v-btn>
         </div>
       </v-card>
     </v-dialog>
@@ -891,8 +891,8 @@ onMounted(fetchHosts)
         </v-card-text>
         <v-divider />
         <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="text" @click="showEditDbDialog = false">取消</v-btn>
-          <v-btn color="primary" variant="flat" :loading="updatingDb" @click="updateDatabase">保存修改</v-btn>
+          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showEditDbDialog = false">取消</v-btn>
+          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" :loading="updatingDb" @click="updateDatabase">保存修改</v-btn>
         </div>
       </v-card>
     </v-dialog>
@@ -921,8 +921,8 @@ onMounted(fetchHosts)
         </v-card-text>
         <v-divider />
         <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="text" @click="showCreateUserDialog = false">取消</v-btn>
-          <v-btn color="primary" variant="flat" :loading="creatingUser" @click="createUser">创建角色</v-btn>
+          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showCreateUserDialog = false">取消</v-btn>
+          <v-btn color="primary" variant="flat" prepend-icon="mdi-plus" :loading="creatingUser" @click="createUser">创建角色</v-btn>
         </div>
       </v-card>
     </v-dialog>
@@ -951,8 +951,8 @@ onMounted(fetchHosts)
         </v-card-text>
         <v-divider />
         <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="text" @click="showEditUserDialog = false">取消</v-btn>
-          <v-btn color="primary" variant="flat" :loading="updatingUser" @click="updateUser">保存修改</v-btn>
+          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showEditUserDialog = false">取消</v-btn>
+          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" :loading="updatingUser" @click="updateUser">保存修改</v-btn>
         </div>
       </v-card>
     </v-dialog>
@@ -969,8 +969,8 @@ onMounted(fetchHosts)
         </v-card-text>
         <v-divider />
         <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="text" @click="showCreateBackupDialog = false">取消</v-btn>
-          <v-btn color="primary" variant="flat" :loading="actionLoading" @click="createBackup">开始备份</v-btn>
+          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showCreateBackupDialog = false">取消</v-btn>
+          <v-btn color="primary" variant="flat" prepend-icon="mdi-backup-restore" :loading="actionLoading" @click="createBackup">开始备份</v-btn>
         </div>
       </v-card>
     </v-dialog>
@@ -993,26 +993,11 @@ onMounted(fetchHosts)
         </v-card-text>
         <v-divider />
         <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="text" @click="showRestoreDialog = false">取消</v-btn>
-          <v-btn color="error" variant="flat" :loading="actionLoading" @click="restoreBackup">确认还原</v-btn>
+          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showRestoreDialog = false">取消</v-btn>
+          <v-btn color="error" variant="flat" prepend-icon="mdi-restore" :loading="actionLoading" @click="restoreBackup">确认还原</v-btn>
         </div>
       </v-card>
     </v-dialog>
   </v-container>
 </template>
 
-<style scoped>
-.code-block {
-  background: rgba(0, 0, 0, 0.3);
-  color: #d4d4d4;
-  padding: 12px;
-  border-radius: 8px;
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-  font-size: 13px;
-  line-height: 1.5;
-  white-space: pre-wrap;
-  word-break: break-word;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  margin: 0;
-}
-</style>

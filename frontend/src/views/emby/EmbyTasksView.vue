@@ -121,7 +121,7 @@ onUnmounted(() => {
     <!-- 工具栏 -->
     <div class="d-flex align-center mb-4">
       <v-spacer />
-      <v-btn prepend-icon="mdi-refresh" variant="tonal" size="small" @click="fetchTasks(true)" :loading="loading">刷新</v-btn>
+      <v-btn prepend-icon="mdi-refresh" variant="tonal" color="info" size="small" @click="fetchTasks(true)" :loading="loading">刷新</v-btn>
     </div>
 
     <!-- 加载中 -->
@@ -147,7 +147,7 @@ onUnmounted(() => {
             <v-card
               variant="outlined"
               rounded="lg"
-              class="pa-4 task-card"
+              class="pa-4 status-card task-card-hover"
               :class="{ 'running-card': task.State === 'Running' }"
             >
               <!-- 卡片头部 -->
@@ -212,15 +212,3 @@ onUnmounted(() => {
   </v-container>
 </template>
 
-<style scoped>
-.task-card {
-  transition: all 0.2s ease;
-}
-.task-card:hover {
-  transform: translateY(-2px);
-}
-.running-card {
-  border-color: rgb(var(--v-theme-success)) !important;
-  background: rgba(var(--v-theme-success), 0.04);
-}
-</style>

@@ -73,7 +73,7 @@ function formatRuntime(ticks: number) {
               <v-text-field v-model="form.tmdb_id" prepend-inner-icon="mdi-identifier" placeholder="输入 TMDB ID (如: 94359)"
                 variant="outlined" density="compact" hide-details clearable style="max-width:200px"
                 @keydown.enter="handleSearch" />
-              <v-btn color="primary" variant="flat" @click="handleSearch" :loading="loading">执行搜索</v-btn>
+              <v-btn color="primary" variant="flat" prepend-icon="mdi-magnify" @click="handleSearch" :loading="loading">执行搜索</v-btn>
             </div>
             <div class="d-flex align-center ga-2">
               <span class="text-body-2 text-medium-emphasis">检索范围:</span>
@@ -238,24 +238,14 @@ function formatRuntime(ticks: number) {
         </v-card-title>
         <v-divider />
         <v-card-text class="pa-4">
-          <div class="json-code-wrapper">
-            <pre style="font-size:11px;white-space:pre-wrap;max-height:60vh;overflow:auto;font-family:monospace">{{ JSON.stringify(jsonModal.data, null, 2) }}</pre>
-          </div>
+          <pre class="code-block">{{ JSON.stringify(jsonModal.data, null, 2) }}</pre>
         </v-card-text>
         <v-divider />
         <div class="d-flex justify-end pa-4">
-          <v-btn color="primary" variant="flat" @click="copyRawJson" block>复制数据</v-btn>
+          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-copy" @click="copyRawJson" block>复制数据</v-btn>
         </div>
       </v-card>
     </v-dialog>
   </v-container>
 </template>
 
-<style scoped>
-.json-code-wrapper {
-  background: rgba(0, 0, 0, 0.2);
-  padding: 16px;
-  border-radius: 8px;
-  border: 1px solid rgba(var(--v-theme-on-surface), 0.08);
-}
-</style>

@@ -107,7 +107,7 @@ async function handleAction(endpoint: string) {
               </v-card-text>
               <v-divider />
               <div class="pa-4">
-                <v-btn block color="error" variant="tonal" @click="handleAction('metadata_field_unlocker')" :loading="loading">
+                <v-btn block color="error" variant="tonal" prepend-icon="mdi-lock-open-variant-outline" @click="handleAction('metadata_field_unlocker')" :loading="loading">
                   执行字段解锁
                 </v-btn>
               </div>
@@ -130,7 +130,7 @@ async function handleAction(endpoint: string) {
               </v-card-text>
               <v-divider />
               <div class="pa-4">
-                <v-btn block color="info" variant="tonal" @click="handleAction('item_locker')" :loading="loading">
+                <v-btn block color="info" variant="tonal" prepend-icon="mdi-lock-outline" @click="handleAction('item_locker')" :loading="loading">
                   执行全局锁定
                 </v-btn>
               </div>
@@ -153,7 +153,7 @@ async function handleAction(endpoint: string) {
               </v-card-text>
               <v-divider />
               <div class="pa-4">
-                <v-btn block color="success" variant="tonal" @click="handleAction('item_unlocker')" :loading="loading">
+                <v-btn block color="success" variant="tonal" prepend-icon="mdi-lock-open-outline" @click="handleAction('item_unlocker')" :loading="loading">
                   执行深度解锁
                 </v-btn>
               </div>

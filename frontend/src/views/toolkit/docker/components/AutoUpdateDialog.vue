@@ -63,8 +63,8 @@ watch(showDialog, (val) => { if (val) loadSettings() })
       </v-card-text>
       <v-divider />
       <div class="d-flex justify-end ga-2 pa-4">
-        <v-btn variant="text" @click="showDialog = false">取消</v-btn>
-        <v-btn color="primary" variant="flat" @click="saveAutoUpdateSettings" :loading="savingAutoUpdate">保存并生效</v-btn>
+        <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showDialog = false">取消</v-btn>
+        <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveAutoUpdateSettings" :loading="savingAutoUpdate">保存并生效</v-btn>
       </div>
     </v-card>
   </v-dialog>

@@ -15,10 +15,10 @@ const { show, options, onConfirm, onCancel } = useConfirm()
       </v-card-text>
       <v-card-actions class="px-4 pb-4">
         <v-spacer />
-        <v-btn variant="text" @click="onCancel">
+        <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="onCancel">
           {{ options.cancelText }}
         </v-btn>
-        <v-btn :color="options.confirmColor" variant="flat" @click="onConfirm">
+        <v-btn :color="options.confirmColor" variant="flat" prepend-icon="mdi-check" @click="onConfirm">
           {{ options.confirmText }}
         </v-btn>
       </v-card-actions>
