@@ -2,6 +2,7 @@
 import { ref, reactive, computed } from 'vue'
 import { toolkitApi } from '@/api/toolkit'
 import { useNotification } from '@/composables'
+import GlassDialog from '@/components/common/GlassDialog.vue'
 
 const { success, error: showError, warning } = useNotification()
 
@@ -452,23 +453,15 @@ function copyJsonData() {
     </v-row>
 
     <!-- JSON 详情弹窗 -->
-    <v-dialog v-model="jsonModal.show" max-width="900" scrollable>
-      <v-card class="liquid-glass-card" rounded="xl">
-        <v-card-title class="pa-4">
-          <v-icon start>mdi-code-block-braces</v-icon>
-          {{ jsonModal.title }}
-        </v-card-title>
-        <v-divider />
-        <v-progress-linear v-if="jsonModal.loading" indeterminate color="primary" class="mb-2" />
-        <v-card-text class="pa-4">
-          <pre class="code-block">{{ JSON.stringify(jsonModal.data, null, 2) }}</pre>
-        </v-card-text>
-        <v-divider />
-        <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="jsonModal.show = false">关闭</v-btn>
-          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-copy" @click="copyJsonData">复制 JSON 数据</v-btn>
-        </div>
-      </v-card>
-    </v-dialog>
+    <GlassDialog v-model="jsonModal.show" :max-width="900"
+      icon="mdi-code-block-braces" :title="jsonModal.title" cancel-text="关闭"
+    >
+      <v-progress-linear v-if="jsonModal.loading" indeterminate color="primary" class="mb-2" />
+      <pre class="code-block code-block--flat">{{ JSON.stringify(jsonModal.data, null, 2) }}</pre>
+
+      <template #actions>
+        <v-btn color="primary" variant="flat" prepend-icon="mdi-content-copy" @click="copyJsonData">复制 JSON 数据</v-btn>
+      </template>
+    </GlassDialog>
   </v-container>
 </template>

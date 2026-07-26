@@ -2,6 +2,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { systemApi } from '@/api/system'
 import { useNotification } from '@/composables'
+import GlassDialog from '@/components/common/GlassDialog.vue'
 
 const { success, error: showError } = useNotification()
 
@@ -251,18 +252,10 @@ onMounted(() => {
     </v-window>
 
     <!-- Payload 详情对话框 -->
-    <v-dialog v-model="showLogDetail" max-width="800" scrollable>
-      <v-card class="liquid-glass-card" rounded="xl">
-        <v-card-title class="pa-4">请求详情 (Payload)</v-card-title>
-        <v-divider />
-        <v-card-text class="pa-4">
-          <pre class="code-block">{{ currentPayload }}</pre>
-        </v-card-text>
-        <v-divider />
-        <div class="d-flex justify-end pa-4">
-          <v-btn color="primary" variant="flat" prepend-icon="mdi-close" @click="showLogDetail = false">关闭详情</v-btn>
-        </div>
-      </v-card>
-    </v-dialog>
+    <GlassDialog v-model="showLogDetail" :max-width="800"
+      title="请求详情 (Payload)" cancel-text="关闭详情"
+    >
+      <pre class="code-block code-block--flat">{{ currentPayload }}</pre>
+    </GlassDialog>
   </v-container>
 </template>

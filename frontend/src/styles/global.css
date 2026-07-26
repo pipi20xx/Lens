@@ -241,14 +241,14 @@ body::-webkit-scrollbar-thumb:hover,
   background: rgba(255, 255, 255, 0.75) !important;
   backdrop-filter: blur(40px) saturate(180%) !important;
   -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
-  border-right: 1px solid rgba(0, 0, 0, 0.06) !important;
+  border-right: 1px solid rgba(0, 0, 0, 0.12) !important;
 }
 
 .v-theme--light .v-app-bar {
   background: rgba(255, 255, 255, 0.7) !important;
   backdrop-filter: blur(40px) saturate(180%) !important;
   -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12) !important;
 }
 
 .v-theme--light .v-navigation-drawer .v-list-item--active .v-list-item-title {
@@ -361,12 +361,17 @@ body::-webkit-scrollbar-thumb:hover,
  * 4. 卡片 — Liquid Glass：半透明 + 模糊 + 饱和度 + 彩虹边框
  * ============================================================ */
 
+/* 亮色模式 — 提升边框可见度（Vuetify 默认 0.06 太淡，白底上几乎看不见） */
+.v-theme--light {
+  --v-border-opacity: 0.14 !important;
+}
+
 /* 亮色卡片 */
 .v-theme--light .v-card {
   background: rgba(255, 255, 255, 0.65) !important;
   backdrop-filter: blur(40px) saturate(180%) !important;
   -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
   transition: all 0.5s ease-out !important;
   border-radius: 24px !important;
@@ -378,7 +383,7 @@ body::-webkit-scrollbar-thumb:hover,
 
 .v-theme--light .v-card--variant-outlined {
   background: rgba(255, 255, 255, 0.55) !important;
-  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
 }
 
@@ -713,7 +718,7 @@ body::-webkit-scrollbar-thumb:hover,
  * ============================================================ */
 .v-theme--light .v-sheet {
   background: rgba(255, 255, 255, 0.65) !important;
-  border-color: rgba(0, 0, 0, 0.06) !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
 }
 
 .v-theme--dark .v-sheet {
@@ -734,14 +739,14 @@ body::-webkit-scrollbar-thumb:hover,
 .v-theme--light .v-field--variant-outlined .v-field__outline__notch::before,
 .v-theme--light .v-field--variant-outlined .v-field__outline__notch::after,
 .v-theme--light .v-field--variant-outlined .v-field__outline__end {
-  border-color: rgba(124, 58, 237, 0.28) !important;
+  border-color: rgba(124, 58, 237, 0.42) !important;
 }
 
 .v-theme--light .v-field--variant-outlined:hover .v-field__outline__start,
 .v-theme--light .v-field--variant-outlined:hover .v-field__outline__notch::before,
 .v-theme--light .v-field--variant-outlined:hover .v-field__outline__notch::after,
 .v-theme--light .v-field--variant-outlined:hover .v-field__outline__end {
-  border-color: rgba(124, 58, 237, 0.45) !important;
+  border-color: rgba(124, 58, 237, 0.6) !important;
 }
 
 .v-theme--light .v-field--variant-outlined.v-field--focused .v-field__outline__start,
@@ -810,7 +815,7 @@ body::-webkit-scrollbar-thumb:hover,
  * 9. 分割线 — Liquid Glass 极淡
  * ============================================================ */
 .v-theme--light .v-divider {
-  border-color: rgba(0, 0, 0, 0.06) !important;
+  border-color: rgba(0, 0, 0, 0.10) !important;
 }
 
 .v-theme--dark .v-divider {
@@ -1126,7 +1131,7 @@ code {
  * ============================================================ */
 .v-theme--light .workflow-task-params {
   background: rgba(0, 0, 0, 0.02) !important;
-  border-color: rgba(0, 0, 0, 0.06) !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
 }
 
 .v-theme--light .log-window {
@@ -1244,7 +1249,7 @@ code {
  * ============================================================ */
 .v-theme--light .v-expansion-panel {
   background: rgba(255, 255, 255, 0.5) !important;
-  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
   border-radius: 16px !important;
 }
 
@@ -1694,7 +1699,7 @@ code {
 }
 
 .v-theme--light .border.rounded {
-  border-color: rgba(0, 0, 0, 0.06) !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
 }
 
 .v-theme--light .bg-success-darken-4 {
@@ -1903,7 +1908,13 @@ code {
 .v-theme--light .code-block {
   background: rgba(0, 0, 0, 0.06);
   color: rgba(0, 0, 0, 0.87);
-  border-color: rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+/* ── 代码块修饰类 — 用于 scrollable 弹窗内部，移除自身滚动避免双重滚动条 ── */
+.code-block--flat {
+  max-height: none !important;
+  overflow-y: visible !important;
 }
 
 /* 代码块内行高亮 */

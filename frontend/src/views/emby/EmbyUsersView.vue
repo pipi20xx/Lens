@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { listEmbyUsers, createEmbyUser, deleteEmbyUser, getEmbyUserInfo, updateEmbyUserPolicy, updateEmbyUserPassword } from '@/api/embyUsers'
 import { embyBackupApi } from '@/api/embyBackup'
 import { useNotification } from '@/composables'
 import { useConfirm } from '@/composables'
 import EmbyConfigBackupManager from '@/components/emby/EmbyConfigBackupManager.vue'
+import GlassDialog from '@/components/common/GlassDialog.vue'
 
 const { success, error: showError } = useNotification()
 const { confirm } = useConfirm()
@@ -133,6 +134,14 @@ async function handleUpdatePassword() {
   } catch { showError('密码更新失败') }
 }
 
+// 根据内容动态计算行数，确保打开时默认显示全部内容
+const jsonRows = computed(() => {
+  const text = jsonRaw.value || ''
+  if (!text) return 10
+  const lines = text.split('\n').length
+  return Math.max(10, Math.min(lines + 1, 30))
+})
+
 onMounted(loadUsers)
 </script>
 
@@ -215,26 +224,17 @@ onMounted(loadUsers)
     </v-card>
 
     <!-- 用户设置弹窗 -->
-    <v-dialog v-model="showEditModal" max-width="900" scrollable>
-      <v-card class="liquid-glass-card" rounded="xl">
-        <v-card-title class="pa-4">
-          <v-icon start>mdi-account-cog-outline</v-icon>
-          设置: {{ editingUser?.Name }}
-        </v-card-title>
-        <v-divider />
+    <GlassDialog v-model="showEditModal" :max-width="900" icon="mdi-account-cog-outline" :title="'设置: ' + (editingUser?.Name)">
+      <v-tabs v-model="activeEditTab" density="compact" color="primary" class="mb-4">
+        <v-tab value="account"><v-icon start>mdi-account-check-outline</v-icon> 账户与访问</v-tab>
+        <v-tab value="playback"><v-icon start>mdi-play-circle-outline</v-icon> 播放与转码</v-tab>
+        <v-tab value="features"><v-icon start>mdi-shield-key-outline</v-icon> 功能权限</v-tab>
+        <v-tab value="library"><v-icon start>mdi-folder-multiple-outline</v-icon> 媒体库范围</v-tab>
+        <v-tab value="password"><v-icon start>mdi-lock-reset</v-icon> 修改密码</v-tab>
+        <v-tab value="json"><v-icon start>mdi-code-block-braces</v-icon> 原始数据</v-tab>
+      </v-tabs>
 
-        <v-tabs v-model="activeEditTab" class="px-4">
-          <v-tab value="account">账户与访问</v-tab>
-          <v-tab value="playback">播放与转码</v-tab>
-          <v-tab value="features">功能权限</v-tab>
-          <v-tab value="library">媒体库范围</v-tab>
-          <v-tab value="password">修改密码</v-tab>
-          <v-tab value="json">原始数据 (JSON)</v-tab>
-        </v-tabs>
-        <v-divider />
-
-        <v-card-text class="pa-4" style="max-height: 60vh; overflow-y: auto;">
-          <v-window v-model="activeEditTab">
+      <v-window v-model="activeEditTab">
             <!-- 账户与访问 -->
             <v-window-item value="account">
               <v-switch v-model="policy.IsDisabled" label="禁用此账户 (IsDisabled)" density="compact" color="error" class="mb-2" />
@@ -298,18 +298,20 @@ onMounted(loadUsers)
               <v-alert variant="tonal" type="info" density="compact" class="mb-3" rounded="lg">
                 高级操作：您可以直接编辑下方的原始 JSON 数据。请确保格式正确，非法 JSON 将无法保存。
               </v-alert>
-              <v-textarea v-model="jsonRaw" variant="outlined" rows="18" style="font-family: monospace" @update:model-value="handleJsonInput" />
+              <v-textarea v-model="jsonRaw" variant="outlined" :rows="jsonRows" auto-grow class="raw-json-textarea" style="font-family: monospace" @update:model-value="handleJsonInput" />
             </v-window-item>
-          </v-window>
-        </v-card-text>
+      </v-window>
 
-        <v-divider />
-        <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showEditModal = false">取消</v-btn>
-          <v-btn variant="tonal" color="warning" prepend-icon="mdi-backup-restore" @click="handleBackup" :loading="backingUp">备份当前配置</v-btn>
-          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="handleSavePolicy" :loading="savingPolicy">保存设置</v-btn>
-        </div>
-      </v-card>
-    </v-dialog>
+      <template #actions>
+        <v-btn variant="tonal" color="warning" prepend-icon="mdi-backup-restore" @click="handleBackup" :loading="backingUp">备份当前配置</v-btn>
+        <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="handleSavePolicy" :loading="savingPolicy">保存设置</v-btn>
+      </template>
+    </GlassDialog>
   </v-container>
 </template>
+
+<style scoped>
+.raw-json-textarea :deep(textarea) {
+  max-height: 55vh !important;
+}
+</style>

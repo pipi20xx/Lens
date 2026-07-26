@@ -42,7 +42,7 @@ function copyData() {
   <v-container fluid class="pa-6">
     <h1 class="text-h5 font-weight-bold mb-2">
       <v-icon start>mdi-magnify</v-icon>
-      项目元数据查询
+      Emby 项目元数据查询
     </h1>
     <p class="text-body-2 text-medium-emphasis mb-6">输入项目的 Emby ID，实时抓取该项目的全量元数据 JSON 包，用于调试和审计。</p>
 
@@ -53,8 +53,6 @@ function copyData() {
           <v-card-title class="d-flex align-center pa-4">
             <v-icon start>mdi-code-block-braces</v-icon>
             元数据即时抓取
-            <v-spacer />
-            <v-chip size="x-small" variant="tonal" color="info">Direct API</v-chip>
           </v-card-title>
           <v-divider />
           <v-card-text class="pa-4">

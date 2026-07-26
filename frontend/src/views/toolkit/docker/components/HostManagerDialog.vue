@@ -4,6 +4,7 @@ import { dockerApi } from '@/api/docker'
 import { useNotification } from '@/composables'
 import { useConfirm } from '@/composables'
 import { useDockerHost } from '../composables/useDockerHost'
+import GlassDialog from '@/components/common/GlassDialog.vue'
 
 const { success, error: showError, info } = useNotification()
 const { confirm } = useConfirm()
@@ -57,54 +58,45 @@ function removeScanPath(path: string) {
 
 <template>
   <!-- 主机管理列表对话框 -->
-  <v-dialog v-model="showHostManagerDialog" max-width="700" scrollable>
-    <v-card class="liquid-glass-card" rounded="xl">
-      <v-card-title class="pa-4"><v-icon start>mdi-server</v-icon> Docker 主机管理</v-card-title>
-      <v-divider />
-      <v-card-text class="pa-4">
-        <v-btn prepend-icon="mdi-plus" color="primary" variant="tonal" block @click="openAddHost" class="mb-4">添加新主机</v-btn>
-        <v-list v-if="hosts.length" density="compact" class="bg-transparent">
-          <v-list-item v-for="host in hosts" :key="host.id" class="mb-2" rounded="lg" variant="outlined">
-            <div class="d-flex align-center justify-space-between w-100">
-              <div class="d-flex align-center ga-2">
-                <span class="font-weight-bold">{{ host.name }}</span>
-                <v-chip size="x-small" variant="tonal" color="warning">SSH 远程</v-chip>
-                <v-chip v-if="host.is_local" size="x-small" variant="tonal" color="success">宿主机</v-chip>
-              </div>
-              <div class="d-flex ga-1">
-                <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-lan-connect" @click="testConnection(host.id)">测试</v-btn>
-                <v-btn size="small" variant="tonal" color="warning" prepend-icon="mdi-pencil-outline" @click="openEditHost(host)">编辑</v-btn>
-                <v-btn size="small" variant="tonal" color="error" prepend-icon="mdi-delete-outline" @click="deleteHost(host.id)">删除</v-btn>
-              </div>
-            </div>
-          </v-list-item>
-        </v-list>
-      </v-card-text>
-    </v-card>
-  </v-dialog>
+  <GlassDialog v-model="showHostManagerDialog" :max-width="700" icon="mdi-server" title="Docker 主机管理" :cancel-visible="false">
+    <v-btn prepend-icon="mdi-plus" color="primary" variant="tonal" block @click="openAddHost" class="mb-4">添加新主机</v-btn>
+    <v-list v-if="hosts.length" density="compact" class="bg-transparent">
+      <v-list-item v-for="host in hosts" :key="host.id" class="mb-2" rounded="lg" variant="outlined">
+        <div class="d-flex align-center justify-space-between w-100">
+          <div class="d-flex align-center ga-2">
+            <span class="font-weight-bold">{{ host.name }}</span>
+            <v-chip size="x-small" variant="tonal" color="warning">SSH 远程</v-chip>
+            <v-chip v-if="host.is_local" size="x-small" variant="tonal" color="success">宿主机</v-chip>
+          </div>
+          <div class="d-flex ga-1">
+            <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-lan-connect" @click="testConnection(host.id)">测试</v-btn>
+            <v-btn size="small" variant="tonal" color="warning" prepend-icon="mdi-pencil-outline" @click="openEditHost(host)">编辑</v-btn>
+            <v-btn size="small" variant="tonal" color="error" prepend-icon="mdi-delete-outline" @click="deleteHost(host.id)">删除</v-btn>
+          </div>
+        </div>
+      </v-list-item>
+    </v-list>
+
+    <template #actions>
+      <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showHostManagerDialog = false">关闭</v-btn>
+    </template>
+  </GlassDialog>
 
   <!-- 添加/编辑主机对话框 -->
-  <v-dialog v-model="showHostEditDialog" max-width="520" scrollable>
-    <v-card class="liquid-glass-card" rounded="xl">
-      <v-card-title class="pa-4">
-        <v-icon start>mdi-server</v-icon> {{ editingHostId ? '编辑主机' : '添加主机' }}
-      </v-card-title>
-      <v-divider />
-      <v-card-text class="pa-4" style="max-height:65vh;overflow-y:auto">
-        <v-text-field v-model="hostForm.name" label="主机名称" variant="outlined" density="compact" class="mb-3" />
-        <v-select v-model="hostForm.type" :items="[{title: '远程 Docker (SSH)', value: 'ssh'}]" label="连接类型" variant="outlined" density="compact" class="mb-3" />
-        <v-text-field v-model="hostForm.ssh_host" label="SSH 地址" variant="outlined" density="compact" placeholder="127.0.0.1" class="mb-3" />
-        <v-text-field v-model="hostForm.ssh_port" label="SSH 端口" type="number" variant="outlined" density="compact" class="mb-3" />
-        <v-text-field v-model="hostForm.ssh_user" label="SSH 用户名" variant="outlined" density="compact" class="mb-3" />
-        <v-text-field v-model="hostForm.ssh_pass" label="SSH 密码" type="password" variant="outlined" density="compact" class="mb-3" />
-        <v-switch v-model="hostForm.is_local" label="标记为宿主机" density="compact" color="primary" hint="标记为此 Lens 容器所在的物理宿主机" persistent-hint class="mb-3" />
-        <v-textarea v-model="hostForm.compose_scan_paths" label="Compose 扫描路径" variant="outlined" density="compact" hint="逗号分隔多个路径" persistent-hint rows="2" />
-      </v-card-text>
-      <v-divider />
-      <div class="d-flex justify-end ga-2 pa-4">
-        <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showHostEditDialog = false">取消</v-btn>
-        <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveHost">保存</v-btn>
-      </div>
-    </v-card>
-  </v-dialog>
+  <GlassDialog v-model="showHostEditDialog" :max-width="520" icon="mdi-server"
+    :title="editingHostId ? '编辑主机' : '添加主机'"
+  >
+    <v-text-field v-model="hostForm.name" label="主机名称" variant="outlined" density="compact" class="mb-3" />
+    <v-select v-model="hostForm.type" :items="[{title: '远程 Docker (SSH)', value: 'ssh'}]" label="连接类型" variant="outlined" density="compact" class="mb-3" />
+    <v-text-field v-model="hostForm.ssh_host" label="SSH 地址" variant="outlined" density="compact" placeholder="127.0.0.1" class="mb-3" />
+    <v-text-field v-model="hostForm.ssh_port" label="SSH 端口" type="number" variant="outlined" density="compact" class="mb-3" />
+    <v-text-field v-model="hostForm.ssh_user" label="SSH 用户名" variant="outlined" density="compact" class="mb-3" />
+    <v-text-field v-model="hostForm.ssh_pass" label="SSH 密码" type="password" variant="outlined" density="compact" class="mb-3" />
+    <v-switch v-model="hostForm.is_local" label="标记为宿主机" density="compact" color="primary" hint="标记为此 Lens 容器所在的物理宿主机" persistent-hint class="mb-3" />
+    <v-textarea v-model="hostForm.compose_scan_paths" label="Compose 扫描路径" variant="outlined" density="compact" hint="逗号分隔多个路径" persistent-hint rows="2" />
+
+    <template #actions>
+      <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveHost">保存</v-btn>
+    </template>
+  </GlassDialog>
 </template>

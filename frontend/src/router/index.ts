@@ -15,7 +15,7 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/DashboardView.vue'),
     meta: { requiresAuth: true, title: '管理仪表盘', icon: 'mdi-view-dashboard-outline' },
   },
-  // ── Emby 核心运维 ──
+  // ── Emby 高危运维 ──
   {
     path: '/emby/users',
     name: 'embyUsers',
@@ -28,72 +28,73 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/emby/EmbyLibrariesView.vue'),
     meta: { requiresAuth: true, title: 'Emby 媒体库管理', group: 'emby-core' },
   },
+  // ── Emby 查询工具 ──
   {
     path: '/emby/tasks',
     name: 'embyTasks',
     component: () => import('@/views/emby/EmbyTasksView.vue'),
-    meta: { requiresAuth: true, title: 'Emby 任务计划', group: 'emby-core' },
+    meta: { requiresAuth: true, title: 'Emby 任务计划', group: 'emby-query' },
   },
   {
     path: '/emby/playback-report',
     name: 'playbackReport',
     component: () => import('@/views/emby/PlaybackReportView.vue'),
-    meta: { requiresAuth: true, title: '播放统计报表', group: 'emby-core' },
+    meta: { requiresAuth: true, title: 'Emby 播放统计报表', group: 'emby-query' },
   },
-  // ── Emby 媒体工具 ──
   {
     path: '/toolkit/emby-item-query',
     name: 'embyItemQuery',
     component: () => import('@/views/toolkit/EmbyItemQueryView.vue'),
-    meta: { requiresAuth: true, title: '项目元数据查询', group: 'emby-tools' },
+    meta: { requiresAuth: true, title: 'Emby 项目元数据查询', group: 'emby-query' },
   },
   {
     path: '/toolkit/tmdb-reverse-lookup',
     name: 'tmdbReverseLookup',
     component: () => import('@/views/toolkit/TmdbReverseLookupView.vue'),
-    meta: { requiresAuth: true, title: '剧集 TMDB 反查', group: 'emby-tools' },
+    meta: { requiresAuth: true, title: 'Emby 剧集 TMDB 反查', group: 'emby-query' },
   },
   {
     path: '/toolkit/tmdb-id-search',
     name: 'tmdbIdSearch',
     component: () => import('@/views/toolkit/TmdbIdSearchView.vue'),
-    meta: { requiresAuth: true, title: 'TMDB ID 深度搜索', group: 'emby-tools' },
+    meta: { requiresAuth: true, title: 'Emby TMDB ID 深度搜索', group: 'emby-query' },
   },
+  // ── Emby 媒体工具 ──
   {
     path: '/toolkit/dedupe',
     name: 'dedupe',
-    component: () => import('@/views/toolkit/DedupeView.vue'),
-    meta: { requiresAuth: true, title: '重复项清理', group: 'emby-tools' },
+    component: () => import('@/views/toolkit/dedupe/DedupeView.vue'),
+    meta: { requiresAuth: true, title: 'Emby 重复项清理', group: 'emby-core' },
   },
   {
     path: '/toolkit/type-manager',
     name: 'typeManager',
     component: () => import('@/views/toolkit/TypeManagerView.vue'),
-    meta: { requiresAuth: true, title: '类型映射管理', group: 'emby-tools' },
+    meta: { requiresAuth: true, title: 'Emby 类型映射管理', group: 'emby-tools' },
   },
   {
     path: '/toolkit/cleanup',
     name: 'cleanup',
     component: () => import('@/views/toolkit/CleanupView.vue'),
-    meta: { requiresAuth: true, title: '媒体净化清理', group: 'emby-tools' },
+    meta: { requiresAuth: true, title: 'Emby 媒体净化清理', group: 'emby-tools' },
   },
   {
     path: '/toolkit/lock-manager',
     name: 'lockManager',
     component: () => import('@/views/toolkit/LockManagerView.vue'),
-    meta: { requiresAuth: true, title: '元数据锁定器', group: 'emby-tools' },
+    meta: { requiresAuth: true, title: 'Emby 元数据锁定器', group: 'emby-tools' },
   },
   {
     path: '/toolkit/autotags',
     name: 'autotags',
     component: () => import('@/views/toolkit/autotags/AutoTagsView.vue'),
-    meta: { requiresAuth: true, title: '自动标签助手', group: 'emby-tools' },
+    meta: { requiresAuth: true, title: 'Emby 自动标签助手', group: 'emby-tools' },
   },
   {
     path: '/toolkit/actor-manager',
     name: 'actorManager',
     component: () => import('@/views/toolkit/actor/ActorManagerView.vue'),
-    meta: { requiresAuth: true, title: '演员信息维护', group: 'emby-tools' },
+    meta: { requiresAuth: true, title: 'Emby 演员信息维护', group: 'emby-tools' },
   },
   // ── 实验室 ──
   {
@@ -156,7 +157,7 @@ const routes: RouteRecordRaw[] = [
     path: '/toolkit/webhook-receiver',
     name: 'webhookReceiver',
     component: () => import('@/views/toolkit/webhook/WebhookReceiverView.vue'),
-    meta: { requiresAuth: true, title: 'Webhook 接收器', group: 'config' },
+    meta: { requiresAuth: true, title: 'Webhook 接收器', group: 'labs' },
   },
   {
     path: '/toolkit/notification-manager',
@@ -176,12 +177,12 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/toolkit/externalControl/ExternalControlView.vue'),
     meta: { requiresAuth: true, title: '外部控制', group: 'config' },
   },
-  // ── 站点导航 ──
+  // ── 站点导航（独立全屏页面，不使用 DefaultLayout）──
   {
     path: '/toolkit/site-nav',
     name: 'siteNav',
     component: () => import('@/views/toolkit/sitenav/SiteNavView.vue'),
-    meta: { requiresAuth: true, title: '站点导航', icon: 'mdi-compass-outline' },
+    meta: { requiresAuth: true, title: '站点导航', icon: 'mdi-compass-outline', standalone: true },
   },
   {
     path: '/toolkit/bookmark-manager',

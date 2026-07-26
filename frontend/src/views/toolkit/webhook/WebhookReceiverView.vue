@@ -75,7 +75,7 @@ onMounted(loadLogs)
       <v-icon start>mdi-webhook</v-icon>
       Webhook 接收器
     </h1>
-    <p class="text-body-2 text-medium-emphasis mb-6">管理 Webhook 接收端点，查看接收日志与请求详情。</p>
+    <p class="text-body-2 text-medium-emphasis mb-6">纯接收端点，用于查看 Webhook 发送方的实际请求内容与结构，方便调试。</p>
 
     <!-- Webhook URL 展示 -->
     <v-card class="liquid-glass-card mb-4" rounded="xl">

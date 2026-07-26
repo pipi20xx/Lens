@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { notificationApi } from '@/api/notification'
 import { useNotification } from '@/composables'
 import { useConfirm } from '@/composables'
+import GlassDialog from '@/components/common/GlassDialog.vue'
 
 const { success, error: showError } = useNotification()
 const { confirm } = useConfirm()
@@ -311,91 +312,82 @@ onMounted(loadSettings)
     </v-window>
 
     <!-- Bot 编辑对话框 -->
-    <v-dialog v-model="showBotDialog" max-width="640" scrollable>
-      <v-card class="liquid-glass-card" rounded="xl">
-        <v-card-title class="pa-4">
-          <v-icon start>mdi-robot-outline</v-icon>
-          {{ editingBotId ? '编辑 Bot' : '添加 Bot' }}
-        </v-card-title>
-        <v-divider />
-        <v-card-text class="pa-4">
-          <!-- 基本信息 -->
-          <v-text-field v-model="botForm.name" label="名称" variant="outlined" density="compact" placeholder="例如: 我的 Telegram Bot" class="mb-3" />
-          <v-select v-model="botForm.type" :items="typeOptions" label="类型" variant="outlined" density="compact" class="mb-3" />
-          <v-text-field v-model="botForm.token" label="Bot Token" variant="outlined" density="compact" placeholder="例如: 123456:ABC-DEF..." class="mb-3" />
-          <v-text-field v-model="botForm.chat_id" label="Chat ID" variant="outlined" density="compact" placeholder="接收通知的聊天 ID" class="mb-3" />
+    <GlassDialog v-model="showBotDialog" :max-width="640"
+      icon="mdi-robot-outline" :title="editingBotId ? '编辑 Bot' : '添加 Bot'"
+    >
+      <!-- 基本信息 -->
+      <v-text-field v-model="botForm.name" label="名称" variant="outlined" density="compact" placeholder="例如: 我的 Telegram Bot" class="mb-3" />
+      <v-select v-model="botForm.type" :items="typeOptions" label="类型" variant="outlined" density="compact" class="mb-3" />
+      <v-text-field v-model="botForm.token" label="Bot Token" variant="outlined" density="compact" placeholder="例如: 123456:ABC-DEF..." class="mb-3" />
+      <v-text-field v-model="botForm.chat_id" label="Chat ID" variant="outlined" density="compact" placeholder="接收通知的聊天 ID" class="mb-3" />
 
-          <v-divider class="my-4" />
+      <v-divider class="my-4" />
 
-          <!-- 订阅事件 -->
-          <div class="text-subtitle-2 font-weight-bold mb-2">
-            <v-icon start size="18">mdi-bell-ring-outline</v-icon>
-            订阅事件
-          </div>
-          <p class="text-caption text-medium-emphasis mb-3">选择此 Bot 需要接收通知的事件类型。只有订阅的事件才会推送。</p>
+      <!-- 订阅事件 -->
+      <div class="text-subtitle-2 font-weight-bold mb-2">
+        <v-icon start size="18">mdi-bell-ring-outline</v-icon>
+        订阅事件
+      </div>
+      <p class="text-caption text-medium-emphasis mb-3">选择此 Bot 需要接收通知的事件类型。只有订阅的事件才会推送。</p>
 
-          <div class="d-flex ga-2 mb-3">
-            <v-btn size="x-small" variant="tonal" color="primary" prepend-icon="mdi-select-all" @click="selectAllEvents">全选</v-btn>
-            <v-btn size="x-small" variant="tonal" color="error" prepend-icon="mdi-close-circle-outline" @click="clearAllEvents">清空</v-btn>
-          </div>
+      <div class="d-flex ga-2 mb-3">
+        <v-btn size="x-small" variant="tonal" color="primary" prepend-icon="mdi-select-all" @click="selectAllEvents">全选</v-btn>
+        <v-btn size="x-small" variant="tonal" color="error" prepend-icon="mdi-close-circle-outline" @click="clearAllEvents">清空</v-btn>
+      </div>
 
-          <div v-for="group in EVENT_GROUPS" :key="group.group" class="mb-3">
-            <div class="d-flex align-center mb-1">
-              <v-icon start size="16" class="mr-1">{{ group.icon }}</v-icon>
-              <span class="text-body-2 font-weight-medium">{{ group.group }}</span>
-              <v-btn size="x-small" variant="text" prepend-icon="mdi-select-all" class="ml-auto" @click="selectAllInGroup(group)">
-                {{ isGroupFullySelected(group) ? '✓' : '全选' }}
-              </v-btn>
-            </div>
-            <div class="d-flex flex-wrap ga-2 ml-6">
-              <v-checkbox
-                v-for="evt in group.events"
-                :key="evt.value"
-                v-model="botForm.subscribed_events"
-                :value="evt.value"
-                :label="evt.label"
-                density="compact"
-                hide-details
-                color="primary"
-              />
-            </div>
-          </div>
-
-          <v-divider class="my-4" />
-
-          <!-- 交互模式 -->
-          <div class="d-flex align-center justify-space-between mb-2">
-            <div>
-              <div class="text-body-2 font-weight-medium">交互模式</div>
-              <div class="text-caption text-medium-emphasis">允许通过 Telegram 消息执行操作（如查询状态、触发备份）</div>
-            </div>
-            <v-switch v-model="botForm.is_interactive" density="compact" color="primary" hide-details />
-          </div>
-
-          <template v-if="botForm.is_interactive">
-            <v-text-field
-              v-model="botForm.allowed_user_ids"
-              label="允许交互的 TG 用户 ID"
-              variant="outlined"
-              density="compact"
-              placeholder="多个 ID 用英文逗号分隔，如: 123456,789012"
-              hint="只有这些用户 ID 才能通过 Bot 执行操作，留空则所有人可操作"
-              persistent-hint
-              class="mt-2"
-            />
-          </template>
-
-          <v-divider class="my-4" />
-
-          <!-- 启用开关 -->
-          <v-switch v-model="botForm.enabled" label="启用此 Bot" density="compact" color="primary" />
-        </v-card-text>
-        <v-divider />
-        <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showBotDialog = false">取消</v-btn>
-          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveBot">保存</v-btn>
+      <div v-for="group in EVENT_GROUPS" :key="group.group" class="mb-3">
+        <div class="d-flex align-center mb-1">
+          <v-icon start size="16" class="mr-1">{{ group.icon }}</v-icon>
+          <span class="text-body-2 font-weight-medium">{{ group.group }}</span>
+          <v-btn size="x-small" variant="text" prepend-icon="mdi-select-all" class="ml-auto" @click="selectAllInGroup(group)">
+            {{ isGroupFullySelected(group) ? '✓' : '全选' }}
+          </v-btn>
         </div>
-      </v-card>
-    </v-dialog>
+        <div class="d-flex flex-wrap ga-2 ml-6">
+          <v-checkbox
+            v-for="evt in group.events"
+            :key="evt.value"
+            v-model="botForm.subscribed_events"
+            :value="evt.value"
+            :label="evt.label"
+            density="compact"
+            hide-details
+            color="primary"
+          />
+        </div>
+      </div>
+
+      <v-divider class="my-4" />
+
+      <!-- 交互模式 -->
+      <div class="d-flex align-center justify-space-between mb-2">
+        <div>
+          <div class="text-body-2 font-weight-medium">交互模式</div>
+          <div class="text-caption text-medium-emphasis">允许通过 Telegram 消息执行操作（如查询状态、触发备份）</div>
+        </div>
+        <v-switch v-model="botForm.is_interactive" density="compact" color="primary" hide-details />
+      </div>
+
+      <template v-if="botForm.is_interactive">
+        <v-text-field
+          v-model="botForm.allowed_user_ids"
+          label="允许交互的 TG 用户 ID"
+          variant="outlined"
+          density="compact"
+          placeholder="多个 ID 用英文逗号分隔，如: 123456,789012"
+          hint="只有这些用户 ID 才能通过 Bot 执行操作，留空则所有人可操作"
+          persistent-hint
+          class="mt-2"
+        />
+      </template>
+
+      <v-divider class="my-4" />
+
+      <!-- 启用开关 -->
+      <v-switch v-model="botForm.enabled" label="启用此 Bot" density="compact" color="primary" />
+      <template #actions>
+        <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveBot">保存</v-btn>
+      </template>
+    </GlassDialog>
   </v-container>
 </template>

@@ -96,9 +96,9 @@ async function runAdder() {
   <v-container fluid class="pa-6">
     <h1 class="text-h5 font-weight-bold mb-2">
       <v-icon start>mdi-format-list-bulleted-type</v-icon>
-      类型映射管理
+      Emby 类型映射管理
     </h1>
-    <p class="text-body-2 text-medium-emphasis mb-6">提供类型映射、一键移除及批量新增功能，深度优化媒体库标签结构。</p>
+    <p class="text-body-2 text-medium-emphasis mb-6">针对 Emby 提供类型映射、一键移除及批量新增功能，深度优化媒体库标签结构。</p>
 
     <v-row>
       <!-- 左侧：主要功能区 -->

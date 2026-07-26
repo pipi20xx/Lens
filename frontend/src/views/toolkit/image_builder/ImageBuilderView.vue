@@ -4,6 +4,7 @@ import { imageBuilderApi } from '@/api/imageBuilder'
 import { dockerApi } from '@/api/docker'
 import { useNotification } from '@/composables'
 import { useConfirm } from '@/composables'
+import GlassDialog from '@/components/common/GlassDialog.vue'
 
 const { success, error: showError, info } = useNotification()
 const { confirm } = useConfirm()
@@ -797,15 +798,8 @@ onMounted(() => {
     </v-window>
 
     <!-- ==================== 项目编辑弹窗 ==================== -->
-    <v-dialog v-model="showProjectDialog" max-width="620" scrollable>
-      <v-card class="liquid-glass-card" rounded="xl">
-        <v-card-title class="pa-4">
-          <v-icon start>mdi-folder-outline</v-icon>
-          {{ editingProjectId ? '编辑项目' : '新建项目' }}
-        </v-card-title>
-        <v-divider />
-        <v-card-text class="pa-4" style="max-height:65vh;overflow-y:auto">
-          <v-text-field v-model="projectForm.name" label="项目名称" variant="outlined" density="compact"
+    <GlassDialog v-model="showProjectDialog" :max-width="620" icon="mdi-folder-outline" :title="editingProjectId ? '编辑项目' : '新建项目'">
+  <v-text-field v-model="projectForm.name" label="项目名称" variant="outlined" density="compact"
             hint="例如: My App" persistent-hint class="mb-3" />
           <v-select v-model="projectForm.host_id" :items="hostOptions" item-title="label" item-value="value"
             label="构建主机" variant="outlined" density="compact" hint="选择执行构建的服务器" persistent-hint class="mb-3" />
@@ -833,25 +827,14 @@ onMounted(() => {
             <v-switch v-model="projectForm.no_cache" label="禁用缓存" density="compact" color="primary" hide-details />
             <v-switch v-model="projectForm.auto_cleanup" label="自动清理本地镜像" density="compact" color="primary" hide-details />
           </div>
-        </v-card-text>
-        <v-divider />
-        <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showProjectDialog = false">取消</v-btn>
-          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveProject">保存项目</v-btn>
-        </div>
-      </v-card>
-    </v-dialog>
+  <template #actions>
+    <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveProject">保存项目</v-btn>
+  </template>
+</GlassDialog>
 
     <!-- ==================== 构建历史弹窗 ==================== -->
-    <v-dialog v-model="showHistoryDialog" max-width="800" scrollable>
-      <v-card class="liquid-glass-card" rounded="xl">
-        <v-card-title class="pa-4">
-          <v-icon start>mdi-history</v-icon>
-          构建历史 — {{ historyProjectName }}
-        </v-card-title>
-        <v-divider />
-        <v-card-text class="pa-4" style="max-height:65vh;overflow-y:auto">
-          <v-progress-linear v-if="historyLoading" indeterminate color="primary" class="mb-4" />
+    <GlassDialog v-model="showHistoryDialog" :max-width="800" icon="mdi-history" :title="'构建历史 —' + (historyProjectName)" :cancel-visible="false">
+  <v-progress-linear v-if="historyLoading" indeterminate color="primary" class="mb-4" />
           <div v-if="historyTasks.length" class="d-flex flex-column ga-3">
             <v-card v-for="row in historyTasks" :key="row.id" variant="outlined" rounded="lg" class="pa-3">
               <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-1">
@@ -877,93 +860,56 @@ onMounted(() => {
             </v-card>
           </div>
           <div v-else-if="!historyLoading" class="text-center py-8 text-medium-emphasis">暂无构建历史</div>
-        </v-card-text>
-      </v-card>
-    </v-dialog>
+</GlassDialog>
 
     <!-- ==================== 日志查看器弹窗 ==================== -->
-    <v-dialog v-model="showLogViewer" max-width="1200" scrollable>
-      <v-card class="liquid-glass-card" rounded="xl">
-        <v-card-title class="d-flex align-center pa-4 pb-2">
-          <v-icon start>mdi-text-box-outline</v-icon>
-          构建日志
-          <v-chip v-if="currentLogStatus" :color="getStatusConfig(currentLogStatus).color" size="small" variant="tonal" class="ml-3">
-            {{ getStatusConfig(currentLogStatus).label }}
-          </v-chip>
-          <span v-if="!logLoading && currentLog" class="text-caption text-medium-emphasis ml-2">共 {{ currentLog.split('\n').length }} 行</span>
-          <v-spacer />
-          <div class="d-flex ga-2">
-            <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-refresh" :loading="logLoading" @click="fetchLogContent">刷新</v-btn>
-            <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-arrow-down" @click="scrollLogToBottom">滚动到底部</v-btn>
-            <v-btn icon="mdi-close" variant="text" size="small" @click="showLogViewer = false" />
-          </div>
-        </v-card-title>
-        <v-divider />
-        <v-card-text ref="logContainerRef" class="pa-4" style="max-height:65vh;overflow:auto">
-          <v-progress-linear v-if="logLoading" indeterminate color="primary" class="mb-2" />
-          <pre class="code-block">{{ currentLog || '暂无日志内容' }}</pre>
-        </v-card-text>
-      </v-card>
-    </v-dialog>
+    <GlassDialog v-model="showLogViewer" :max-width="1200" :cancel-visible="false">
+      <template #title>
+        <v-icon start>mdi-text-box-outline</v-icon>
+        构建日志
+        <v-chip v-if="currentLogStatus" :color="getStatusConfig(currentLogStatus).color" size="small" variant="tonal" class="ml-3">
+          {{ getStatusConfig(currentLogStatus).label }}
+        </v-chip>
+        <span v-if="!logLoading && currentLog" class="text-caption text-medium-emphasis ml-2">共 {{ currentLog.split('\n').length }} 行</span>
+        <v-spacer />
+        <div class="d-flex ga-2">
+          <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-refresh" :loading="logLoading" @click="fetchLogContent">刷新</v-btn>
+          <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-arrow-down" @click="scrollLogToBottom">滚动到底部</v-btn>
+        </div>
+      </template>
+      <v-progress-linear v-if="logLoading" indeterminate color="primary" class="mb-2" />
+      <pre ref="logContainerRef" class="code-block code-block--flat">{{ currentLog || '暂无日志内容' }}</pre>
+    </GlassDialog>
 
     <!-- ==================== 仓库编辑弹窗 ==================== -->
-    <v-dialog v-model="showRegDialog" max-width="500" scrollable>
-      <v-card class="liquid-glass-card" rounded="xl">
-        <v-card-title class="pa-4">
-          <v-icon start>mdi-database-outline</v-icon>
-          {{ editRegMode ? '编辑仓库' : '添加仓库' }}
-        </v-card-title>
-        <v-divider />
-        <v-card-text class="pa-4" style="max-height:65vh;overflow-y:auto">
-          <v-text-field v-model="regForm.name" label="名称" variant="outlined" density="compact"
+    <GlassDialog v-model="showRegDialog" :max-width="500" icon="mdi-database-outline" :title="editRegMode ? '编辑仓库' : '添加仓库'">
+  <v-text-field v-model="regForm.name" label="名称" variant="outlined" density="compact"
             hint="例如: Docker Hub" persistent-hint class="mb-3" />
           <v-text-field v-model="regForm.url" label="URL" variant="outlined" density="compact"
             hint="例如: docker.io" persistent-hint class="mb-3" />
           <v-switch v-model="regForm.is_https" label="HTTPS" density="compact" color="primary" class="mb-3" />
           <v-select v-model="regForm.credential_id" :items="credOptions" item-title="label" item-value="value"
             label="关联凭据" variant="outlined" density="compact" clearable class="mb-3" />
-        </v-card-text>
-        <v-divider />
-        <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showRegDialog = false">取消</v-btn>
-          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveRegistry">保存</v-btn>
-        </div>
-      </v-card>
-    </v-dialog>
+  <template #actions>
+    <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveRegistry">保存</v-btn>
+  </template>
+</GlassDialog>
 
     <!-- ==================== 凭据编辑弹窗 ==================== -->
-    <v-dialog v-model="showCredDialog" max-width="500" scrollable>
-      <v-card class="liquid-glass-card" rounded="xl">
-        <v-card-title class="pa-4">
-          <v-icon start>mdi-key-outline</v-icon>
-          {{ editCredMode ? '编辑凭据' : '添加凭据' }}
-        </v-card-title>
-        <v-divider />
-        <v-card-text class="pa-4" style="max-height:65vh;overflow-y:auto">
-          <v-text-field v-model="credForm.name" label="名称" variant="outlined" density="compact"
+    <GlassDialog v-model="showCredDialog" :max-width="500" icon="mdi-key-outline" :title="editCredMode ? '编辑凭据' : '添加凭据'">
+  <v-text-field v-model="credForm.name" label="名称" variant="outlined" density="compact"
             hint="例如: my-docker-hub-login" persistent-hint class="mb-3" />
           <v-text-field v-model="credForm.username" label="用户名" variant="outlined" density="compact" class="mb-3" />
           <v-text-field v-model="credForm.password" label="密码/Token" variant="outlined" density="compact"
             hint="请输入密码或仓库 Token" persistent-hint class="mb-3" type="password" />
-        </v-card-text>
-        <v-divider />
-        <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showCredDialog = false">取消</v-btn>
-          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveCredential">保存</v-btn>
-        </div>
-      </v-card>
-    </v-dialog>
+  <template #actions>
+    <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveCredential">保存</v-btn>
+  </template>
+</GlassDialog>
 
     <!-- ==================== 代理编辑弹窗 ==================== -->
-    <v-dialog v-model="showProxyDialog" max-width="500" scrollable>
-      <v-card class="liquid-glass-card" rounded="xl">
-        <v-card-title class="pa-4">
-          <v-icon start>mdi-swap-horizontal</v-icon>
-          {{ editProxyMode ? '编辑代理' : '添加代理' }}
-        </v-card-title>
-        <v-divider />
-        <v-card-text class="pa-4" style="max-height:65vh;overflow-y:auto">
-          <v-text-field v-model="proxyForm.name" label="名称" variant="outlined" density="compact"
+    <GlassDialog v-model="showProxyDialog" :max-width="500" icon="mdi-swap-horizontal" :title="editProxyMode ? '编辑代理' : '添加代理'">
+  <v-text-field v-model="proxyForm.name" label="名称" variant="outlined" density="compact"
             hint="例如: Clash" persistent-hint class="mb-3" />
           <v-text-field v-model="proxyForm.url" label="代理地址" variant="outlined" density="compact"
             hint="例如: http://192.168.1.5:7890" persistent-hint class="mb-3" />
@@ -971,14 +917,10 @@ onMounted(() => {
             hint="可选" persistent-hint class="mb-3" />
           <v-text-field v-model="proxyForm.password" label="密码" variant="outlined" density="compact"
             hint="可选" persistent-hint type="password" class="mb-3" />
-        </v-card-text>
-        <v-divider />
-        <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showProxyDialog = false">取消</v-btn>
-          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveProxy">保存</v-btn>
-        </div>
-      </v-card>
-    </v-dialog>
+  <template #actions>
+    <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveProxy">保存</v-btn>
+  </template>
+</GlassDialog>
   </v-container>
 </template>
 

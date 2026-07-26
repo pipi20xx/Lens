@@ -58,9 +58,9 @@ async function handleAction(endpoint: string) {
   <v-container fluid class="pa-6">
     <h1 class="text-h5 font-weight-bold mb-2">
       <v-icon start>mdi-broom</v-icon>
-      媒体净化清理
+      Emby 媒体净化清理
     </h1>
-    <p class="text-body-2 text-medium-emphasis mb-6">支持指定媒体库与媒体类型，执行演职员移除或剧集类型重置，保持媒体库整洁。</p>
+    <p class="text-body-2 text-medium-emphasis mb-6">针对 Emby 支持指定媒体库与媒体类型，执行演职员移除或剧集类型重置，保持媒体库整洁。</p>
 
     <v-row>
       <!-- 左侧：主要功能区 -->

@@ -1,12 +1,17 @@
 <script setup lang="ts">
-import { watch, onMounted } from 'vue'
+import { watch, onMounted, computed } from 'vue'
+import { useRoute } from 'vue-router'
 import { useTheme } from 'vuetify'
 import { useThemeStore, useSystemStore } from '@/stores'
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
 
+const route = useRoute()
 const theme = useTheme()
 const themeStore = useThemeStore()
 const systemStore = useSystemStore()
+
+// 判断当前路由是否为独立全屏页面（不带 DefaultLayout）
+const isStandalone = computed(() => route.meta.standalone === true)
 
 // 同步主题
 function applyTheme(isDark: boolean) {
@@ -31,5 +36,6 @@ onMounted(() => {
 </script>
 
 <template>
-  <DefaultLayout />
+  <router-view v-if="isStandalone" />
+  <DefaultLayout v-else />
 </template>

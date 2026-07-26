@@ -41,7 +41,7 @@ function copyTmdb() {
   <v-container fluid class="pa-6">
     <h1 class="text-h5 font-weight-bold mb-2">
       <v-icon start>mdi-swap-horizontal</v-icon>
-      剧情 TMDB 反查
+      Emby 剧集 TMDB 反查
     </h1>
     <p class="text-body-2 text-medium-emphasis mb-6">根据 <strong>Emby 库内</strong>的单集 (Episode) ID 向上追溯其所属剧集并提取 TMDB 唯一标识符。</p>
 
@@ -52,8 +52,6 @@ function copyTmdb() {
           <v-card-title class="d-flex align-center pa-4">
             <v-icon start>mdi-arrow-top-right</v-icon>
             单集溯源 (Reverse Mapping)
-            <v-spacer />
-            <v-chip size="x-small" variant="tonal" color="warning">Series Lookup</v-chip>
           </v-card-title>
           <v-divider />
           <v-card-text class="pa-4">

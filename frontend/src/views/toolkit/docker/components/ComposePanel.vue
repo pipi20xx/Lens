@@ -3,6 +3,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { dockerApi } from '@/api/docker'
 import { useNotification } from '@/composables'
 import { useConfirm } from '@/composables'
+import GlassDialog from '@/components/common/GlassDialog.vue'
 
 const { success, error: showError, info } = useNotification()
 const { confirm } = useConfirm()
@@ -186,28 +187,22 @@ defineExpose({ loadComposeProjects })
     </div>
 
     <!-- Compose 编辑/新建弹窗 -->
-    <v-dialog v-model="showComposeModal" max-width="800" scrollable>
-      <v-card class="liquid-glass-card" rounded="xl">
-        <v-card-title class="pa-4">
-          <v-icon start>mdi-file-document-edit-outline</v-icon>
-          {{ isEditingProject ? '编辑项目: ' + currentProject.name : '新建 Compose 项目' }}
-        </v-card-title>
-        <v-divider />
-        <v-card-text class="pa-4" style="max-height:65vh;overflow-y:auto">
-          <v-text-field v-model="currentProject.name" label="项目名称" variant="outlined" density="compact" placeholder="例如: my-awesome-app" :disabled="isEditingProject" class="mb-3" />
-          <template v-if="!isEditingProject">
-            <v-text-field v-model="baseSavePath" label="基础保存路径" variant="outlined" density="compact" placeholder="选择存放项目的根目录" class="mb-3" />
-            <div class="mb-3"><span class="text-body-2 text-medium-emphasis">完整保存路径：</span><code class="text-body-2">{{ finalSavePath }}</code></div>
-          </template>
-          <v-textarea v-model="currentProject.content" label="YAML 内容" variant="outlined" placeholder="在此输入 docker-compose.yml 内容" rows="14" style="font-family:'Fira Code','JetBrains Mono',monospace" :error-messages="yamlError ? [yamlError] : []" @update:model-value="handleYamlInput" />
-        </v-card-text>
-        <v-divider />
-        <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showComposeModal = false">取消</v-btn>
-          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveProject" :disabled="!!yamlError">保存项目</v-btn>
-        </div>
-      </v-card>
-    </v-dialog>
+    <GlassDialog v-model="showComposeModal" :max-width="800"
+      :icon="'mdi-file-document-edit-outline'"
+      :title="isEditingProject ? '编辑项目: ' + currentProject.name : '新建 Compose 项目'"
+    >
+      <v-text-field v-model="currentProject.name" label="项目名称" variant="outlined" density="compact" placeholder="例如: my-awesome-app" :disabled="isEditingProject" class="mb-3" />
+      <template v-if="!isEditingProject">
+        <v-text-field v-model="baseSavePath" label="基础保存路径" variant="outlined" density="compact" placeholder="选择存放项目的根目录" class="mb-3" />
+        <div class="mb-3"><span class="text-body-2 text-medium-emphasis">完整保存路径：</span><code class="text-body-2">{{ finalSavePath }}</code></div>
+      </template>
+      <v-textarea v-model="currentProject.content" label="YAML 内容" variant="outlined" placeholder="在此输入 docker-compose.yml 内容" :rows="Math.min(currentProject.content.split('\n').length, 30)" auto-grow style="font-family:'Fira Code','JetBrains Mono',monospace" :error-messages="yamlError ? [yamlError] : []" @update:model-value="handleYamlInput" />
+
+      <template #actions>
+        <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveProject" :disabled="!!yamlError">保存项目</v-btn>
+      </template>
+    </GlassDialog>
   </div>
 </template>
+
 

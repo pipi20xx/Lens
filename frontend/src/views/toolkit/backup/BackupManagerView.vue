@@ -6,6 +6,7 @@ import { pgsqlApi } from '@/api/pgsql'
 import { dockerApi } from '@/api/docker'
 import { useNotification } from '@/composables'
 import { useConfirm } from '@/composables'
+import GlassDialog from '@/components/common/GlassDialog.vue'
 
 const { success, error: showError, info } = useNotification()
 const { confirm } = useConfirm()
@@ -605,15 +606,8 @@ onUnmounted(() => {
     </v-window>
 
     <!-- ====== 任务历史弹窗 ====== -->
-    <v-dialog v-model="showHistoryModal" max-width="850" scrollable>
-      <v-card class="liquid-glass-card" rounded="xl">
-        <v-card-title class="pa-4">
-          <v-icon start>mdi-history</v-icon>
-          备份历史: {{ historyModalTaskName || '加载中...' }}
-        </v-card-title>
-        <v-divider />
-        <v-card-text class="pa-4">
-          <v-table class="bg-transparent" density="compact" v-if="!historyModalLoading">
+    <GlassDialog v-model="showHistoryModal" :max-width="850" icon="mdi-history" :title="'备份历史:' + (historyModalTaskName || '加载中...')" cancel-text="关闭">
+  <v-table class="bg-transparent" density="compact" v-if="!historyModalLoading">
             <thead>
               <tr>
                 <th>开始时间</th>
@@ -651,24 +645,11 @@ onUnmounted(() => {
           <div v-else class="text-center py-8">
             <v-progress-circular indeterminate color="primary" />
           </div>
-        </v-card-text>
-        <v-divider />
-        <div class="d-flex justify-end pa-4">
-          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showHistoryModal = false">关闭</v-btn>
-        </div>
-      </v-card>
-    </v-dialog>
+</GlassDialog>
 
     <!-- ====== 任务编辑弹窗 ====== -->
-    <v-dialog v-model="showEditModal" max-width="700" scrollable>
-      <v-card class="liquid-glass-card" rounded="xl">
-        <v-card-title class="pa-4">
-          <v-icon start>mdi-backup-restore</v-icon>
-          {{ editTask.id ? '编辑备份任务' : '新增备份任务' }}
-        </v-card-title>
-        <v-divider />
-        <v-card-text class="pa-4" style="max-height: 70vh; overflow-y: auto;">
-          <!-- 远程任务提示 -->
+    <GlassDialog v-model="showEditModal" :max-width="700" icon="mdi-backup-restore" :title="editTask.id ? '编辑备份任务' : '新增备份任务'">
+  <!-- 远程任务提示 -->
           <v-alert v-if="editTask.host_id && editTask.host_id !== 'local'" type="warning" variant="tonal" density="compact" class="mb-4" title="远程 SSH 备份模式">
             <template v-slot:text>
               <ul style="margin: 0; padding-left: 18px; font-size: 12px; line-height: 1.6">
@@ -838,40 +819,14 @@ onUnmounted(() => {
               </v-btn>
             </div>
           </template>
-        </v-card-text>
-        <v-divider />
-        <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showEditModal = false">取消</v-btn>
-          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="handleSaveTask">保存</v-btn>
-        </div>
-      </v-card>
-    </v-dialog>
+  <template #actions>
+    <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="handleSaveTask">保存</v-btn>
+  </template>
+</GlassDialog>
 
     <!-- ====== 路径浏览器弹窗 ====== -->
-    <v-dialog v-model="showBrowser" max-width="550" scrollable>
-      <v-card class="liquid-glass-card" rounded="xl">
-        <v-card-title class="pa-4">
-          <v-icon start>mdi-folder-open</v-icon>
-          选择路径
-        </v-card-title>
-        <v-divider />
-
-        <!-- 面包屑导航 -->
-        <div class="pa-4 pb-2">
-          <v-breadcrumbs :items="browserPathParts.map((p, i) => ({ title: p || '/', href: i }))" density="compact">
-            <template v-slot:divider>
-              <v-icon size="small">mdi-chevron-right</v-icon>
-            </template>
-            <template v-slot:item="{ item }">
-              <v-breadcrumbs-item @click="browserJumpTo(item.href as number)" style="cursor:pointer">
-                {{ item.title }}
-              </v-breadcrumbs-item>
-            </template>
-          </v-breadcrumbs>
-        </div>
-
-        <v-card-text class="pa-4 pt-0" style="max-height: 400px; overflow-y: auto">
-          <v-progress-linear v-if="browserLoading" indeterminate color="primary" class="mb-2" />
+    <GlassDialog v-model="showBrowser" :max-width="550" icon="mdi-folder-open" title="选择路径" :cancel-visible="false">
+  <v-progress-linear v-if="browserLoading" indeterminate color="primary" class="mb-2" />
 
           <!-- 返回上级 -->
           <div v-if="browserCurrentPath !== '/'" class="d-flex align-center pa-2 rounded hoverable"
@@ -897,15 +852,7 @@ onUnmounted(() => {
           <div v-if="!browserLoading && browserItems.length === 0 && browserCurrentPath !== '/'" class="text-center py-4 text-medium-emphasis text-body-2">
             空目录
           </div>
-        </v-card-text>
-
-        <v-divider />
-        <div class="d-flex justify-space-between align-center pa-4">
-          <span class="text-body-2 text-medium-emphasis" style="word-break: break-all; max-width: 300px">{{ browserCurrentPath }}</span>
-          <v-btn color="primary" variant="flat" prepend-icon="mdi-check" @click="confirmBrowserPath">确认选择</v-btn>
-        </div>
-      </v-card>
-    </v-dialog>
+</GlassDialog>
   </v-container>
 </template>
 

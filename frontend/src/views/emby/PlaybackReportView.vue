@@ -183,7 +183,7 @@ onUnmounted(() => {
       <div>
         <h1 class="text-h5 font-weight-bold mb-1">
           <v-icon start>mdi-chart-bar</v-icon>
-          播放统计报表
+          Emby 播放统计报表
         </h1>
         <p class="text-body-2 text-medium-emphasis">实时洞察媒体库播放趋势、活跃用户与内容热度。</p>
       </div>

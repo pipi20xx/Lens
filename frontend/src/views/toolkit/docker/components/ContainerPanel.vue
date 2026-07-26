@@ -4,6 +4,7 @@ import { dockerApi } from '@/api/docker'
 import { useNotification } from '@/composables'
 import { useConfirm } from '@/composables'
 import { useDockerHost } from '../composables/useDockerHost'
+import GlassDialog from '@/components/common/GlassDialog.vue'
 
 const { success, error: showError, info, warning } = useNotification()
 const { confirm } = useConfirm()
@@ -286,36 +287,26 @@ defineExpose({ loadContainers, loadContainerSettings })
     </div>
 
     <!-- 日志对话框 -->
-    <v-dialog v-model="showLogsDialog" max-width="900" scrollable>
-      <v-card class="liquid-glass-card" rounded="xl">
-        <v-card-title class="d-flex align-center pa-4">
-          <v-icon start>mdi-text-box-outline</v-icon> 日志 — {{ logContainerName }}
-          <v-spacer /><v-btn icon="mdi-close" variant="text" size="small" @click="showLogsDialog = false" />
-        </v-card-title>
-        <v-divider />
-        <v-card-text class="pa-0">
-          <v-progress-linear v-if="loadingLogs" indeterminate color="primary" />
-          <pre class="code-block" style="border-radius:0 0 12px 12px">{{ containerLogs }}</pre>
-        </v-card-text>
-      </v-card>
-    </v-dialog>
+    <GlassDialog v-model="showLogsDialog" :max-width="900"
+      icon="mdi-text-box-outline" :title="'日志 — ' + logContainerName" :cancel-visible="false"
+    >
+      <v-progress-linear v-if="loadingLogs" indeterminate color="primary" />
+      <pre class="code-block code-block--flat" style="border-radius:0 0 12px 12px">{{ containerLogs }}</pre>
+      <template #actions>
+        <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showLogsDialog = false">关闭</v-btn>
+      </template>
+    </GlassDialog>
 
     <!-- 容器设置对话框 -->
-    <v-dialog v-model="showSettingsDialog" max-width="420" scrollable>
-      <v-card class="liquid-glass-card" rounded="xl">
-        <v-card-title class="pa-4"><v-icon start>mdi-cog-outline</v-icon> 容器设置 — {{ settingsForm.name }}</v-card-title>
-        <v-divider />
-        <v-card-text class="pa-4">
-          <v-text-field v-model="settingsForm.custom_port" label="自定义访问端口" variant="outlined" density="compact" hint="Host 模式或未识别端口的跳转地址" persistent-hint class="mb-3" />
-          <v-switch v-model="settingsForm.auto_update" label="自动更新镜像" density="compact" color="primary" hint="开启后每日凌晨 03:00 自动检查并升级该容器镜像" persistent-hint />
-        </v-card-text>
-        <v-divider />
-        <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showSettingsDialog = false">取消</v-btn>
-          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveContainerSettings">保存</v-btn>
-        </div>
-      </v-card>
-    </v-dialog>
+    <GlassDialog v-model="showSettingsDialog" :max-width="420"
+      icon="mdi-cog-outline" :title="'容器设置 — ' + settingsForm.name"
+    >
+      <v-text-field v-model="settingsForm.custom_port" label="自定义访问端口" variant="outlined" density="compact" hint="Host 模式或未识别端口的跳转地址" persistent-hint class="mb-3" />
+      <v-switch v-model="settingsForm.auto_update" label="自动更新镜像" density="compact" color="primary" hint="开启后每日凌晨 03:00 自动检查并升级该容器镜像" persistent-hint />
+      <template #actions>
+        <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveContainerSettings">保存</v-btn>
+      </template>
+    </GlassDialog>
   </div>
 </template>
 

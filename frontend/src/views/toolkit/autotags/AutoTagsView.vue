@@ -3,6 +3,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { toolkitApi } from '@/api/toolkit'
 import { useNotification } from '@/composables'
 import { useConfirm } from '@/composables'
+import GlassDialog from '@/components/common/GlassDialog.vue'
 
 const { success, error: showError } = useNotification()
 const { confirm } = useConfirm()
@@ -233,17 +234,25 @@ async function clearAll() {
   }
 }
 
-async function clearSpecific() {
-  const ok = await confirm({
-    title: '移除特定标签',
-    content: '请输入要移除的标签名（多个用逗号分隔）：',
-    confirmColor: 'warning'
-  })
-  if (!ok) return
-  // 简化：直接使用 prompt 风格的确认
+// ========== 移除特定标签弹窗 ==========
+const showClearSpecific = ref(false)
+const clearSpecificTags = ref('')
+
+function openClearSpecific() {
+  clearSpecificTags.value = ''
+  showClearSpecific.value = true
+}
+
+async function confirmClearSpecific() {
+  const tags = clearSpecificTags.value.split(',').map(t => t.trim()).filter(t => t)
+  if (!tags.length) {
+    showError('请输入至少一个标签名')
+    return
+  }
   try {
-    await toolkitApi.autotags.clearSpecific({ tags: [] })
+    await toolkitApi.autotags.clearSpecific(tags)
     success('清除任务已启动')
+    showClearSpecific.value = false
   } catch {
     showError('启动失败')
   }
@@ -274,7 +283,7 @@ onMounted(() => {
   <v-container fluid class="pa-6">
     <h1 class="text-h5 font-weight-bold mb-2">
       <v-icon start>mdi-tag-multiple-outline</v-icon>
-      自动标签助手
+      Emby 自动标签助手
     </h1>
     <p class="text-body-2 text-medium-emphasis mb-6">基于规则全自动维护 Emby 媒体标签。支持实时 Webhook 联动自动化。</p>
 
@@ -405,7 +414,7 @@ onMounted(() => {
           <v-divider />
           <v-card-text class="pa-4">
             <div class="d-flex ga-2 mb-4">
-              <v-btn size="small" variant="tonal" color="warning" prepend-icon="mdi-tag-remove-outline" @click="clearSpecific">清除指定标签</v-btn>
+              <v-btn size="small" variant="tonal" color="warning" prepend-icon="mdi-tag-remove-outline" @click="openClearSpecific">清除指定标签</v-btn>
               <v-btn size="small" variant="tonal" color="error" prepend-icon="mdi-delete-sweep-outline" @click="clearAll">清空所有标签</v-btn>
             </div>
 
@@ -436,50 +445,60 @@ onMounted(() => {
       </v-col>
     </v-row>
 
+    <!-- 移除特定标签弹窗 -->
+    <GlassDialog v-model="showClearSpecific" :max-width="480" :scrollable="false"
+      icon="mdi-tag-remove-outline" title="移除特定标签"
+    >
+      <p class="text-body-2 text-medium-emphasis mb-3">输入要从媒体库中移除的标签名称，多个标签用英文逗号分隔。</p>
+      <v-text-field
+        v-model="clearSpecificTags"
+        placeholder="例如: 标签1, 标签2, 标签3"
+        variant="outlined"
+        density="compact"
+        autofocus
+        hide-details
+        @keyup.enter="confirmClearSpecific"
+      />
+      <template #actions>
+        <v-btn color="warning" variant="flat" prepend-icon="mdi-tag-remove-outline" @click="confirmClearSpecific">执行清除</v-btn>
+      </template>
+    </GlassDialog>
+
     <!-- 规则编辑弹窗 -->
-    <v-dialog v-model="showEditor" max-width="650" scrollable>
-      <v-card class="liquid-glass-card" rounded="xl">
-        <v-card-title class="pa-4">
-          <v-icon start>mdi-tag-multiple-outline</v-icon>
-          {{ isNew ? '添加新规则' : '编辑规则' }}
-        </v-card-title>
-        <v-divider />
-        <v-card-text class="pa-4" style="max-height:65vh;overflow-y:auto">
-          <v-text-field v-model="editingRule.name" label="规则名称" variant="outlined" density="compact"
-            placeholder="起个名字方便识别" class="mb-3" />
-          <v-text-field v-model="editingRule.tag" label="生成的标签" variant="outlined" density="compact"
-            placeholder="Emby 中将要显示的标签名" class="mb-3" />
+    <GlassDialog v-model="showEditor" :max-width="650"
+      icon="mdi-tag-multiple-outline" :title="isNew ? '添加新规则' : '编辑规则'"
+    >
+      <v-text-field v-model="editingRule.name" label="规则名称" variant="outlined" density="compact"
+        placeholder="起个名字方便识别" class="mb-3" />
+      <v-text-field v-model="editingRule.tag" label="生成的标签" variant="outlined" density="compact"
+        placeholder="Emby 中将要显示的标签名" class="mb-3" />
 
-          <v-select v-model="editingRule.conditions.countries" :items="COUNTRY_OPTIONS" multiple chips closable-chips
-            label="国家/地区" variant="outlined" density="compact"
-            placeholder="满足其中任一国家即可" class="mb-3" />
+      <v-select v-model="editingRule.conditions.countries" :items="COUNTRY_OPTIONS" multiple chips closable-chips
+        label="国家/地区" variant="outlined" density="compact"
+        placeholder="满足其中任一国家即可" class="mb-3" />
 
-          <v-select v-model="editingRule.conditions.genres" :items="GENRE_OPTIONS" multiple chips closable-chips
-            label="流派类型" variant="outlined" density="compact"
-            placeholder="满足其中任一流派即可" class="mb-3" />
+      <v-select v-model="editingRule.conditions.genres" :items="GENRE_OPTIONS" multiple chips closable-chips
+        label="流派类型" variant="outlined" density="compact"
+        placeholder="满足其中任一流派即可" class="mb-3" />
 
-          <v-text-field v-model="editingRule.conditions.years_text" label="作用于年份" variant="outlined" density="compact"
-            placeholder="例如: 2020, 2022 2024 或 1999-2020" class="mb-3" />
+      <v-text-field v-model="editingRule.conditions.years_text" label="作用于年份" variant="outlined" density="compact"
+        placeholder="例如: 2020, 2022 2024 或 1999-2020" class="mb-3" />
 
-          <v-radio-group v-model="editingRule.item_type" density="compact" hide-details class="mb-3">
-            <template #label><span class="text-body-2">作用对象:</span></template>
-            <v-radio v-for="opt in ITEM_TYPE_OPTIONS" :key="opt.value" :value="opt.value" :label="opt.title" />
-          </v-radio-group>
+      <v-radio-group v-model="editingRule.item_type" density="compact" hide-details class="mb-3">
+        <template #label><span class="text-body-2">作用对象:</span></template>
+        <v-radio v-for="opt in ITEM_TYPE_OPTIONS" :key="opt.value" :value="opt.value" :label="opt.title" />
+      </v-radio-group>
 
-          <v-checkbox v-model="editingRule.match_all_conditions" density="compact" hide-details class="mb-1">
-            <template #label><span class="text-body-2">严格匹配所有条件 (国家/地区和流派必须全部命中)</span></template>
-          </v-checkbox>
-          <v-checkbox v-model="editingRule.is_negative_match" density="compact" hide-details>
-            <template #label><span class="text-body-2">负向匹配 (满足条件的项目将被排除，不满足才生效)</span></template>
-          </v-checkbox>
-        </v-card-text>
-        <v-divider />
-        <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showEditor = false">取消</v-btn>
-          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="onRuleSave(editingRule)">保存规则</v-btn>
-        </div>
-      </v-card>
-    </v-dialog>
+      <v-checkbox v-model="editingRule.match_all_conditions" density="compact" hide-details class="mb-1">
+        <template #label><span class="text-body-2">严格匹配所有条件 (国家/地区和流派必须全部命中)</span></template>
+      </v-checkbox>
+      <v-checkbox v-model="editingRule.is_negative_match" density="compact" hide-details>
+        <template #label><span class="text-body-2">负向匹配 (满足条件的项目将被排除，不满足才生效)</span></template>
+      </v-checkbox>
+      <template #actions>
+        <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="onRuleSave(editingRule)">保存规则</v-btn>
+      </template>
+    </GlassDialog>
   </v-container>
 </template>
 

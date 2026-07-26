@@ -1,255 +1,300 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
-import { terminalApi } from '@/api/terminal'
-import { useNotification } from '@/composables'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import HostPanel from './components/HostPanel.vue'
+import CommandPanel from './components/CommandPanel.vue'
+import TerminalInstance from './components/TerminalInstance.vue'
 
-const { success, error: showError } = useNotification()
-
-// ========== 主机与命令 ==========
-const hosts = ref<any[]>([])
-const selectedHostId = ref<string | null>(null)
-const commands = ref<any[]>([])
-const loading = ref(false)
-
-async function loadHosts() {
-  try {
-    const data = await terminalApi.getHosts()
-    hosts.value = Array.isArray(data) ? data : []
-    if (hosts.value.length > 0) {
-      const saved = localStorage.getItem('lens_selected_terminal_host')
-      selectedHostId.value = (saved && hosts.value.some(h => h.id === saved)) ? saved : hosts.value[0].id
-    }
-  } catch {
-    showError('加载主机列表失败')
-  }
+// ========== 会话管理 ==========
+interface Session {
+  sessionId: string
+  hostId: number | string
+  name: string
+  connected: boolean
 }
 
-async function loadCommands() {
-  try {
-    const data = await terminalApi.getCommands()
-    commands.value = Array.isArray(data) ? data : []
-  } catch { /* ignore */ }
+const activeSessionId = ref('')
+const openSessions = ref<Session[]>([])
+const collapsedSider = ref(false)
+
+// 存储终端实例引用
+const instanceRefs = new Map<string, any>()
+function setInstanceRef(id: string, el: any) {
+  if (el) instanceRefs.set(id, el)
+  else instanceRefs.delete(id)
 }
 
-// ========== WebSocket 终端 ==========
-const terminalOutput = ref<string[]>([])
-const terminalInput = ref('')
-const ws = ref<WebSocket | null>(null)
-const isConnected = ref(false)
-const terminalRef = ref<HTMLElement | null>(null)
-const commandHistory = ref<string[]>([])
-const historyIndex = ref(-1)
+const activeSession = computed(() => {
+  return openSessions.value.find((s) => s.sessionId === activeSessionId.value)
+})
 
-function getWsUrl() {
-  const token = localStorage.getItem('lens_access_token')
-  const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-  return `${proto}//${window.location.host}/ws/terminal?token=${token}`
+const activeSessionConnected = computed(() => {
+  return activeSession.value?.connected || false
+})
+
+const currentHostId = computed(() => {
+  return activeSession.value?.hostId ?? 0
+})
+
+const currentHostName = computed(() => {
+  return activeSession.value?.name || '未选择主机'
+})
+
+// 处理主机选择：点击主机开启新会话
+function handleHostSelect(host: any) {
+  const { id, name } = host
+  const sessionId = Date.now().toString() + Math.random().toString(36).substring(2, 5)
+  const hostSessionCount = openSessions.value.filter((s) => s.hostId === id).length
+  const sessionName = hostSessionCount > 0 ? `${name} #${hostSessionCount + 1}` : name
+
+  openSessions.value.push({
+    sessionId,
+    hostId: id,
+    name: sessionName,
+    connected: false,
+  })
+  activeSessionId.value = sessionId
 }
 
-function connectTerminal() {
-  if (!selectedHostId.value) {
-    showError('请先选择主机')
-    return
-  }
-  if (ws.value) {
-    ws.value.close()
-  }
+function handleCloseSession(sessionId: string) {
+  const index = openSessions.value.findIndex((s) => s.sessionId === sessionId)
+  if (index === -1) return
 
-  const token = localStorage.getItem('lens_access_token')
-  const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-  const wsUrl = `${proto}//${window.location.host}/ws/terminal?token=${token}&host_id=${selectedHostId.value}`
+  openSessions.value.splice(index, 1)
+  instanceRefs.delete(sessionId)
 
-  ws.value = new WebSocket(wsUrl)
-
-  ws.value.onopen = () => {
-    isConnected.value = true
-    terminalOutput.value.push('\x1b[32m● 已连接到终端\x1b[0m\n')
-  }
-
-  ws.value.onmessage = (event) => {
-    const data = event.data
-    terminalOutput.value.push(data)
-    nextTick(scrollToBottom)
-  }
-
-  ws.value.onclose = () => {
-    isConnected.value = false
-    terminalOutput.value.push('\x1b[31m● 连接已断开\x1b[0m\n')
-  }
-
-  ws.value.onerror = () => {
-    isConnected.value = false
-    showError('终端连接错误')
-  }
-}
-
-function disconnectTerminal() {
-  if (ws.value) {
-    ws.value.close()
-    ws.value = null
-  }
-}
-
-function sendCommand() {
-  if (!ws.value || ws.value.readyState !== WebSocket.OPEN) {
-    showError('终端未连接')
-    return
-  }
-  const cmd = terminalInput.value
-  if (!cmd.trim()) return
-
-  // 记录命令历史
-  commandHistory.value.unshift(cmd)
-  if (commandHistory.value.length > 100) commandHistory.value.pop()
-  historyIndex.value = -1
-
-  ws.value.send(JSON.stringify({ type: 'input', data: cmd + '\n' }))
-  terminalInput.value = ''
-}
-
-function handleKeydown(e: KeyboardEvent) {
-  if (e.key === 'Enter') {
-    sendCommand()
-  } else if (e.key === 'ArrowUp') {
-    e.preventDefault()
-    if (historyIndex.value < commandHistory.value.length - 1) {
-      historyIndex.value++
-      terminalInput.value = commandHistory.value[historyIndex.value]
-    }
-  } else if (e.key === 'ArrowDown') {
-    e.preventDefault()
-    if (historyIndex.value > 0) {
-      historyIndex.value--
-      terminalInput.value = commandHistory.value[historyIndex.value]
+  if (activeSessionId.value === sessionId) {
+    if (openSessions.value.length > 0) {
+      activeSessionId.value = openSessions.value[Math.max(0, index - 1)].sessionId
     } else {
-      historyIndex.value = -1
-      terminalInput.value = ''
+      activeSessionId.value = ''
     }
   }
 }
 
-function scrollToBottom() {
-  if (terminalRef.value) {
-    terminalRef.value.scrollTop = terminalRef.value.scrollHeight
+// 快速命令发送
+function sendToActiveTerm(cmd: string, autoEnter: boolean) {
+  const instance = instanceRefs.get(activeSessionId.value)
+  if (instance) {
+    instance.send(cmd + (autoEnter ? '\n' : ''))
+    instance.focus()
   }
 }
 
-function clearTerminal() {
-  terminalOutput.value = []
+// 工具栏操作
+function clearActiveTerm() {
+  instanceRefs.get(activeSessionId.value)?.clear()
+}
+function reconnectActiveTerm() {
+  instanceRefs.get(activeSessionId.value)?.reconnect()
 }
 
-// ========== 快捷命令 ==========
-function runQuickCommand(cmd: string) {
-  if (!ws.value || ws.value.readyState !== WebSocket.OPEN) {
-    showError('终端未连接')
-    return
-  }
-  ws.value.send(JSON.stringify({ type: 'input', data: cmd + '\n' }))
-}
-
-// ========== 终端设置对话框 ==========
-const showSettingsDialog = ref(false)
-const terminalSettings = ref({
-  font_size: 14,
-  scrollback: 5000,
-  shell: '/bin/bash',
-})
-
-// ========== 生命周期 ==========
+// 默认开启本地终端
 onMounted(() => {
-  loadHosts()
-  loadCommands()
-})
-
-onUnmounted(() => {
-  if (ws.value) ws.value.close()
+  handleHostSelect({ id: 0, name: '本地 Shell' })
 })
 </script>
 
 <template>
-  <v-container fluid class="pa-6">
-    <h1 class="text-h5 font-weight-bold mb-2">
-      <v-icon start>mdi-console</v-icon>
-      终端
-    </h1>
-    <p class="text-body-2 text-medium-emphasis mb-6">通过 SSH 连接远程主机执行命令，支持多主机切换与实时输出。</p>
-
-    <!-- 控制栏 -->
-    <v-card class="liquid-glass-card mb-4" rounded="xl">
-      <div class="d-flex align-center pa-4 ga-3 flex-wrap">
-        <v-select v-model="selectedHostId" :items="hosts.map(h => ({ title: h.name, value: h.id }))"
-          label="选择主机" variant="outlined" density="compact" hide-details style="max-width: 220px"
-          prepend-inner-icon="mdi-server" />
-
-        <v-btn v-if="!isConnected" color="primary" variant="flat" size="small" prepend-icon="mdi-play" @click="connectTerminal">连接</v-btn>
-        <v-btn v-else color="error" variant="tonal" size="small" prepend-icon="mdi-stop" @click="disconnectTerminal">断开</v-btn>
-
-        <v-btn variant="tonal" color="warning" size="small" @click="clearTerminal" prepend-icon="mdi-eraser">清屏</v-btn>
-        <v-btn variant="tonal" color="secondary" size="small" @click="showSettingsDialog = true" prepend-icon="mdi-cog-outline">设置</v-btn>
-
-        <v-spacer />
-
-        <v-chip :color="isConnected ? 'success' : 'grey'" size="small" variant="tonal">
-          <v-icon start size="14">{{ isConnected ? 'mdi-circle' : 'mdi-circle-outline' }}</v-icon>
-          {{ isConnected ? '已连接' : '未连接' }}
+  <div class="terminal-view">
+    <!-- 顶部状态栏 -->
+    <div class="terminal-top-bar">
+      <div class="bar-left d-flex align-center ga-2">
+        <v-btn icon variant="text" size="small" @click="collapsedSider = !collapsedSider">
+          <v-icon size="18">mdi-menu</v-icon>
+        </v-btn>
+        <v-divider vertical />
+        <span class="text-body-2 font-weight-bold">{{ currentHostName }}</span>
+        <v-chip :color="activeSessionConnected ? 'success' : 'grey'" size="small" variant="tonal" class="ml-1">
+          <v-icon start size="12">{{ activeSessionConnected ? 'mdi-circle' : 'mdi-circle-outline' }}</v-icon>
+          {{ activeSessionConnected ? '已连接' : '未连接' }}
         </v-chip>
       </div>
-    </v-card>
+      <div class="bar-right d-flex ga-1">
+        <v-btn icon variant="text" size="small" @click="clearActiveTerm" title="清屏">
+          <v-icon size="18">mdi-eraser</v-icon>
+        </v-btn>
+        <v-btn icon variant="text" size="small" @click="reconnectActiveTerm" title="重连">
+          <v-icon size="18">mdi-refresh</v-icon>
+        </v-btn>
+      </div>
+    </div>
 
-    <!-- 快捷命令 -->
-    <v-card v-if="commands.length" class="liquid-glass-card mb-4" rounded="xl">
-      <v-card-title class="pa-4 pb-2 text-subtitle-2">
-        <v-icon start size="18">mdi-lightning-bolt</v-icon>
-        快捷命令
-      </v-card-title>
-      <v-card-text class="pa-4 pt-0">
-        <div class="d-flex flex-wrap ga-2">
-          <v-chip v-for="cmd in commands" :key="cmd.id || cmd.name" size="small" variant="tonal" color="primary"
-            @click="runQuickCommand(cmd.command)" style="cursor:pointer">
-            {{ cmd.name || cmd.command }}
-          </v-chip>
-        </div>
-      </v-card-text>
-    </v-card>
-
-    <!-- 终端窗口 -->
-    <v-card class="liquid-glass-card" rounded="xl" style="min-height:500px">
-      <div ref="terminalRef" class="terminal-output pa-4" style="height:500px;overflow:auto;font-family:'Fira Code','JetBrains Mono',monospace;font-size:14px;background:rgba(0,0,0,0.4);border-radius:0 0 12px 12px;white-space:pre-wrap;word-break:break-all">
-        <template v-if="terminalOutput.length === 0">
-          <span class="text-medium-emphasis">点击"连接"按钮开始终端会话...</span>
-        </template>
-        <template v-for="(line, idx) in terminalOutput" :key="idx">
-          <span>{{ line }}</span>
-        </template>
+    <!-- 三栏布局 -->
+    <div class="terminal-body">
+      <!-- 左侧：主机列表 -->
+      <div class="terminal-sider-left" :class="{ collapsed: collapsedSider }">
+        <HostPanel :active-host-id="currentHostId" @select="handleHostSelect" />
       </div>
 
-      <!-- 输入行 -->
-      <div class="d-flex align-center pa-2" style="background:rgba(0,0,0,0.3);border-top:1px solid rgba(255,255,255,0.1)">
-        <span class="text-success mr-2 font-mono" style="font-size:14px">$</span>
-        <input v-model="terminalInput" @keydown="handleKeydown" :disabled="!isConnected"
-          class="terminal-input flex-grow-1" placeholder="输入命令..." autocomplete="off" spellcheck="false" />
-      </div>
-    </v-card>
-
-    <!-- 终端设置对话框 -->
-    <v-dialog v-model="showSettingsDialog" max-width="400" scrollable>
-      <v-card class="liquid-glass-card" rounded="xl">
-        <v-card-title class="pa-4">
-          <v-icon start>mdi-cog-outline</v-icon>
-          终端设置
-        </v-card-title>
-        <v-divider />
-        <v-card-text class="pa-4">
-          <v-slider v-model="terminalSettings.font_size" label="字体大小" min="10" max="24" thumb-label class="mb-3" />
-          <v-text-field v-model="terminalSettings.scrollback" label="回滚行数" type="number" variant="outlined" density="compact" class="mb-3" />
-          <v-text-field v-model="terminalSettings.shell" label="默认 Shell" variant="outlined" density="compact" />
-        </v-card-text>
-        <v-divider />
-        <div class="d-flex justify-end pa-4">
-          <v-btn color="primary" variant="flat" prepend-icon="mdi-check" @click="showSettingsDialog = false">确定</v-btn>
+      <!-- 中间：终端区域 -->
+      <div class="terminal-workspace">
+        <!-- 会话标签 -->
+        <div v-if="openSessions.length > 0" class="session-tabs">
+          <div
+            v-for="session in openSessions"
+            :key="session.sessionId"
+            class="session-tab"
+            :class="{ active: activeSessionId === session.sessionId }"
+            @click="activeSessionId = session.sessionId"
+          >
+            <v-icon size="14" class="mr-1">{{ session.connected ? 'mdi-circle' : 'mdi-circle-outline' }}</v-icon>
+            <span class="tab-name">{{ session.name }}</span>
+            <v-icon size="14" class="tab-close ml-1" @click.stop="handleCloseSession(session.sessionId)">mdi-close</v-icon>
+          </div>
         </div>
-      </v-card>
-    </v-dialog>
-  </v-container>
+
+        <!-- 终端容器 -->
+        <div class="terminal-container">
+          <TerminalInstance
+            v-for="session in openSessions"
+            :key="session.sessionId"
+            :ref="(el: any) => setInstanceRef(session.sessionId, el)"
+            :host-id="session.hostId"
+            :host-name="session.name"
+            :visible="activeSessionId === session.sessionId"
+            @connected="session.connected = true"
+            @disconnected="session.connected = false"
+          />
+          <div v-if="openSessions.length === 0" class="empty-terminal">
+            <v-icon size="48" color="grey" class="mb-3">mdi-console-line</v-icon>
+            <div class="text-body-2 text-medium-emphasis">请从左侧选择主机以开启会话</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右侧：快速命令 -->
+      <div class="terminal-sider-right">
+        <CommandPanel @send="sendToActiveTerm" />
+      </div>
+    </div>
+  </div>
 </template>
 
+<style scoped>
+.terminal-view {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.terminal-top-bar {
+  height: 44px;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.terminal-body {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+/* 左侧主机面板 */
+.terminal-sider-left {
+  width: 220px;
+  flex-shrink: 0;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  transition: width 0.2s ease, opacity 0.2s ease;
+}
+.terminal-sider-left.collapsed {
+  width: 0;
+  opacity: 0;
+}
+
+/* 右侧命令面板 */
+.terminal-sider-right {
+  width: 260px;
+  flex-shrink: 0;
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+/* 中间终端区域 */
+.terminal-workspace {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* 会话标签栏 */
+.session-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  overflow-x: auto;
+  flex-shrink: 0;
+}
+
+.session-tab {
+  display: flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 6px 6px 0 0;
+  cursor: pointer;
+  font-size: 13px;
+  white-space: nowrap;
+  transition: background 0.2s;
+  color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.03);
+  user-select: none;
+}
+.session-tab:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.7);
+}
+.session-tab.active {
+  background: #1a1a2e;
+  color: #fff;
+}
+.session-tab .tab-name {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.session-tab .tab-close {
+  opacity: 0.3;
+  transition: opacity 0.2s;
+}
+.session-tab .tab-close:hover {
+  opacity: 1;
+  color: rgb(var(--v-theme-error));
+}
+
+/* 终端容器 */
+.terminal-container {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  background: #1a1a2e;
+}
+
+.empty-terminal {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 移动端响应式 */
+@media (max-width: 960px) {
+  .terminal-sider-left {
+    width: 0;
+    opacity: 0;
+  }
+  .terminal-sider-right {
+    width: 0;
+    opacity: 0;
+  }
+}
+</style>

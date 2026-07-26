@@ -4,6 +4,7 @@ import { serverApi } from '@/api/server'
 import { configApi } from '@/api/config'
 import { systemApi } from '@/api/system'
 import { useNotification } from '@/composables'
+import GlassDialog from '@/components/common/GlassDialog.vue'
 
 const { success, error: showError } = useNotification()
 const activeTab = ref('general')
@@ -434,30 +435,18 @@ onMounted(loadAll)
     </v-row>
 
     <!-- 服务器编辑对话框 -->
-    <v-dialog v-model="showAddServerDialog" max-width="520" scrollable>
-      <v-card class="liquid-glass-card" rounded="xl">
-        <v-card-title class="pa-4">
-          <v-icon start>mdi-server</v-icon>
-          {{ editingServerId ? '编辑服务器' : '添加服务器' }}
-        </v-card-title>
-        <v-divider />
-        <v-card-text class="pa-4" style="max-height:65vh;overflow-y:auto">
-          <v-text-field v-model="serverForm.name" label="名称" variant="outlined" density="compact" class="mb-3" />
+    <GlassDialog v-model="showAddServerDialog" :max-width="520" icon="mdi-server" :title="editingServerId ? '编辑服务器' : '添加服务器'">
+  <v-text-field v-model="serverForm.name" label="名称" variant="outlined" density="compact" class="mb-3" />
           <v-text-field v-model="serverForm.url" label="Emby 地址" variant="outlined" density="compact"
             hint="如 http://192.168.1.100:8096" persistent-hint class="mb-3" />
           <v-text-field v-model="serverForm.api_key" label="API Key" variant="outlined" density="compact" class="mb-3" />
           <v-text-field v-model="serverForm.username" label="用户名 (用于登录)" variant="outlined" density="compact" class="mb-3" />
           <v-text-field v-model="serverForm.password" label="密码" type="password" variant="outlined" density="compact" class="mb-3" />
-        </v-card-text>
-        <v-divider />
-        <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="text" prepend-icon="mdi-lan-connect" @click="testConnection">测试连接</v-btn>
-          <v-spacer />
-          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showAddServerDialog = false">取消</v-btn>
-          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveServer">保存</v-btn>
-        </div>
-      </v-card>
-    </v-dialog>
+  <template #actions>
+    <v-btn variant="text" prepend-icon="mdi-lan-connect" @click="testConnection">测试连接</v-btn>
+    <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveServer">保存</v-btn>
+  </template>
+</GlassDialog>
   </v-container>
 </template>
 

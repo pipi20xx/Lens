@@ -55,7 +55,7 @@ async function handleAction(endpoint: string) {
   <v-container fluid class="pa-6">
     <h1 class="text-h5 font-weight-bold mb-2">
       <v-icon start>mdi-lock-outline</v-icon>
-      元数据锁定器
+      Emby 元数据锁定器
     </h1>
     <p class="text-body-2 text-medium-emphasis mb-6">严格区分 Emby 的"主锁 (LockData)"与"小锁 (LockedFields)"维度的操作逻辑。</p>
 
@@ -93,9 +93,9 @@ async function handleAction(endpoint: string) {
         <v-row>
           <!-- 元数据字段全解锁 -->
           <v-col cols="12" sm="4">
-            <v-card class="liquid-glass-card" rounded="xl" style="height:100%;display:flex;flex-direction:column" color="error">
+            <v-card class="liquid-glass-card" rounded="xl" style="height:100%;display:flex;flex-direction:column">
               <v-card-title class="pa-4 text-subtitle-2">
-                <v-icon start size="18">mdi-lock-open-variant-outline</v-icon>
+                <v-icon start size="18" color="error">mdi-lock-open-variant-outline</v-icon>
                 元数据字段全解锁
               </v-card-title>
               <v-divider />
@@ -116,9 +116,9 @@ async function handleAction(endpoint: string) {
 
           <!-- 项目整体锁定 -->
           <v-col cols="12" sm="4">
-            <v-card class="liquid-glass-card" rounded="xl" style="height:100%;display:flex;flex-direction:column" color="info">
+            <v-card class="liquid-glass-card" rounded="xl" style="height:100%;display:flex;flex-direction:column">
               <v-card-title class="pa-4 text-subtitle-2">
-                <v-icon start size="18">mdi-lock-outline</v-icon>
+                <v-icon start size="18" color="info">mdi-lock-outline</v-icon>
                 项目整体锁定
               </v-card-title>
               <v-divider />
@@ -139,9 +139,9 @@ async function handleAction(endpoint: string) {
 
           <!-- 项目深度全解锁 -->
           <v-col cols="12" sm="4">
-            <v-card class="liquid-glass-card" rounded="xl" style="height:100%;display:flex;flex-direction:column" color="success">
+            <v-card class="liquid-glass-card" rounded="xl" style="height:100%;display:flex;flex-direction:column">
               <v-card-title class="pa-4 text-subtitle-2">
-                <v-icon start size="18">mdi-lock-open-outline</v-icon>
+                <v-icon start size="18" color="success">mdi-lock-open-outline</v-icon>
                 项目深度全解锁
               </v-card-title>
               <v-divider />

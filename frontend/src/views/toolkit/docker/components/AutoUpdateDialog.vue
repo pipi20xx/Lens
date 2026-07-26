@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { dockerApi } from '@/api/docker'
 import { useNotification } from '@/composables'
+import GlassDialog from '@/components/common/GlassDialog.vue'
 
 const { success, error: showError } = useNotification()
 
@@ -41,31 +42,24 @@ watch(showDialog, (val) => { if (val) loadSettings() })
 </script>
 
 <template>
-  <v-dialog v-model="showDialog" max-width="450" scrollable>
-    <v-card class="liquid-glass-card" rounded="xl">
-      <v-card-title class="pa-4"><v-icon start>mdi-timer-outline</v-icon> 自动更新全局设置</v-card-title>
-      <v-divider />
-      <v-card-text class="pa-4" style="max-height:65vh;overflow-y:auto">
-        <v-alert type="info" variant="tonal" density="compact" class="mb-4">此处设置将决定系统何时执行镜像检查。开启后，仅会对在容器列表中手动勾选了「自动更新」标记的容器生效。</v-alert>
-        <v-switch v-model="autoUpdateSettings.enabled" label="启用全局调度" density="compact" color="primary" class="mb-3" />
-        <v-select v-model="autoUpdateSettings.type" :items="[{title: '每日定时 (Cron)', value: 'cron'}, {title: '固定间隔 (Interval)', value: 'interval'}]" label="执行模式" variant="outlined" density="compact" class="mb-3" />
-        <template v-if="autoUpdateSettings.type === 'cron'">
-          <v-text-field v-model="autoUpdateSettings.value" label="执行时间 (每天)" variant="outlined" density="compact" type="time" hint="每天此时间点自动开始检查" persistent-hint />
-        </template>
-        <template v-if="autoUpdateSettings.type === 'interval'">
-          <v-row dense>
-            <v-col cols="4"><v-text-field v-model.number="intervalParts.d" label="天" variant="outlined" density="compact" type="number" :min="0" /></v-col>
-            <v-col cols="4"><v-text-field v-model.number="intervalParts.h" label="时" variant="outlined" density="compact" type="number" :min="0" :max="23" /></v-col>
-            <v-col cols="4"><v-text-field v-model.number="intervalParts.m" label="分" variant="outlined" density="compact" type="number" :min="0" :max="59" /></v-col>
-          </v-row>
-          <span class="text-caption text-medium-emphasis">当前合计: {{ (intervalParts.d * 1440) + (intervalParts.h * 60) + intervalParts.m }} 分钟</span>
-        </template>
-      </v-card-text>
-      <v-divider />
-      <div class="d-flex justify-end ga-2 pa-4">
-        <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showDialog = false">取消</v-btn>
-        <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveAutoUpdateSettings" :loading="savingAutoUpdate">保存并生效</v-btn>
-      </div>
-    </v-card>
-  </v-dialog>
+  <GlassDialog v-model="showDialog" :max-width="450" icon="mdi-timer-outline" title="自动更新全局设置">
+    <v-alert type="info" variant="tonal" density="compact" class="mb-4">此处设置将决定系统何时执行镜像检查。开启后，仅会对在容器列表中手动勾选了「自动更新」标记的容器生效。</v-alert>
+    <v-switch v-model="autoUpdateSettings.enabled" label="启用全局调度" density="compact" color="primary" class="mb-3" />
+    <v-select v-model="autoUpdateSettings.type" :items="[{title: '每日定时 (Cron)', value: 'cron'}, {title: '固定间隔 (Interval)', value: 'interval'}]" label="执行模式" variant="outlined" density="compact" class="mb-3" />
+    <template v-if="autoUpdateSettings.type === 'cron'">
+      <v-text-field v-model="autoUpdateSettings.value" label="执行时间 (每天)" variant="outlined" density="compact" type="time" hint="每天此时间点自动开始检查" persistent-hint />
+    </template>
+    <template v-if="autoUpdateSettings.type === 'interval'">
+      <v-row dense>
+        <v-col cols="4"><v-text-field v-model.number="intervalParts.d" label="天" variant="outlined" density="compact" type="number" :min="0" /></v-col>
+        <v-col cols="4"><v-text-field v-model.number="intervalParts.h" label="时" variant="outlined" density="compact" type="number" :min="0" :max="23" /></v-col>
+        <v-col cols="4"><v-text-field v-model.number="intervalParts.m" label="分" variant="outlined" density="compact" type="number" :min="0" :max="59" /></v-col>
+      </v-row>
+      <span class="text-caption text-medium-emphasis">当前合计: {{ (intervalParts.d * 1440) + (intervalParts.h * 60) + intervalParts.m }} 分钟</span>
+    </template>
+
+    <template #actions>
+      <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveAutoUpdateSettings" :loading="savingAutoUpdate">保存并生效</v-btn>
+    </template>
+  </GlassDialog>
 </template>

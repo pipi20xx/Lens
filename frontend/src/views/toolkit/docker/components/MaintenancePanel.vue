@@ -3,6 +3,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { dockerApi } from '@/api/docker'
 import { useNotification } from '@/composables'
 import { useConfirm } from '@/composables'
+import GlassDialog from '@/components/common/GlassDialog.vue'
 
 const { success, error: showError, warning } = useNotification()
 const { confirm } = useConfirm()
@@ -244,22 +245,16 @@ defineExpose({ loadDaemonConfig })
     </v-card>
 
     <!-- 原始 JSON 编辑弹窗 -->
-    <v-dialog v-model="showRawModal" max-width="800" scrollable>
-      <v-card class="liquid-glass-card" rounded="xl">
-        <v-card-title class="pa-4"><v-icon start>mdi-code-block-braces</v-icon> 直接编辑 daemon.json</v-card-title>
-        <v-divider />
-        <v-card-text class="pa-4" style="max-height:65vh;overflow-y:auto">
-          <v-alert type="warning" variant="tonal" density="compact" class="mb-3" text="警告：直接编辑 JSON 可能会导致 Docker 无法启动。系统将会在保存前验证 JSON 格式并自动创建备份。" />
-          <v-textarea v-model="rawJsonContent" variant="outlined" rows="18" style="font-family:'Fira Code','JetBrains Mono',monospace" :error-messages="rawJsonError ? [rawJsonError] : []" @update:model-value="validateRawJson" />
-          <v-checkbox v-model="daemonForm.shouldRestart" density="compact" hide-details label="保存后重启 Docker 服务" class="mt-3" />
-        </v-card-text>
-        <v-divider />
-        <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showRawModal = false">取消</v-btn>
-          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="handleSaveRawJson" :disabled="!!rawJsonError" :loading="daemonLoading">保存原始配置</v-btn>
-        </div>
-      </v-card>
-    </v-dialog>
+    <GlassDialog v-model="showRawModal" :max-width="800"
+      icon="mdi-code-block-braces" title="直接编辑 daemon.json"
+    >
+      <v-alert type="warning" variant="tonal" density="compact" class="mb-3" text="警告：直接编辑 JSON 可能会导致 Docker 无法启动。系统将会在保存前验证 JSON 格式并自动创建备份。" />
+      <v-textarea v-model="rawJsonContent" variant="outlined" :rows="Math.min(rawJsonContent.split('\n').length, 30)" auto-grow style="font-family:'Fira Code','JetBrains Mono',monospace" :error-messages="rawJsonError ? [rawJsonError] : []" @update:model-value="validateRawJson" />
+      <v-checkbox v-model="daemonForm.shouldRestart" density="compact" hide-details label="保存后重启 Docker 服务" class="mt-3" />
+
+      <template #actions>
+        <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="handleSaveRawJson" :disabled="!!rawJsonError" :loading="daemonLoading">保存原始配置</v-btn>
+      </template>
+    </GlassDialog>
   </div>
 </template>
-

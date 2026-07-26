@@ -21,12 +21,13 @@ const rail = ref(false)
 // 导航菜单
 const navGroups = [
   {
-    key: 'emby-core',
-    label: 'Emby 核心运维',
-    icon: 'mdi-server-outline',
+    key: 'emby-query',
+    label: 'Emby 查询工具',
+    icon: 'mdi-magnify-scan',
     items: [
-      { title: 'Emby 用户管理', icon: 'mdi-account-group-outline', to: '/emby/users' },
-      { title: 'Emby 媒体库管理', icon: 'mdi-folder-multiple-outline', to: '/emby/libraries' },
+      { title: '项目元数据查询', icon: 'mdi-magnify', to: '/toolkit/emby-item-query' },
+      { title: '剧集 TMDB 反查', icon: 'mdi-link-variant', to: '/toolkit/tmdb-reverse-lookup' },
+      { title: 'TMDB ID 深度搜索', icon: 'mdi-identifier', to: '/toolkit/tmdb-id-search' },
       { title: 'Emby 任务计划', icon: 'mdi-clock-outline', to: '/emby/tasks' },
       { title: '播放统计报表', icon: 'mdi-chart-bar', to: '/emby/playback-report' },
     ],
@@ -36,15 +37,21 @@ const navGroups = [
     label: 'Emby 媒体工具',
     icon: 'mdi-tools',
     items: [
-      { title: '项目元数据查询', icon: 'mdi-magnify', to: '/toolkit/emby-item-query' },
-      { title: '剧集 TMDB 反查', icon: 'mdi-link-variant', to: '/toolkit/tmdb-reverse-lookup' },
-      { title: 'TMDB ID 深度搜索', icon: 'mdi-identifier', to: '/toolkit/tmdb-id-search' },
-      { title: '重复项清理', icon: 'mdi-content-duplicate', to: '/toolkit/dedupe' },
       { title: '类型映射管理', icon: 'mdi-tag-outline', to: '/toolkit/type-manager' },
       { title: '媒体净化清理', icon: 'mdi-broom', to: '/toolkit/cleanup' },
       { title: '元数据锁定器', icon: 'mdi-lock-outline', to: '/toolkit/lock-manager' },
       { title: '自动标签助手', icon: 'mdi-tag-plus-outline', to: '/toolkit/autotags' },
       { title: '演员信息维护', icon: 'mdi-account-star-outline', to: '/toolkit/actor-manager' },
+    ],
+  },
+  {
+    key: 'emby-core',
+    label: 'Emby 高危运维',
+    icon: 'mdi-alert-octagon-outline',
+    items: [
+      { title: '重复项清理', icon: 'mdi-content-duplicate', to: '/toolkit/dedupe' },
+      { title: '用户管理', icon: 'mdi-account-group-outline', to: '/emby/users' },
+      { title: '媒体库管理', icon: 'mdi-folder-multiple-outline', to: '/emby/libraries' },
     ],
   },
   {
@@ -56,6 +63,7 @@ const navGroups = [
       { title: 'Bangumi 实验室', icon: 'mdi-animation-outline', to: '/toolkit/bangumi-lab' },
       { title: 'AI 实验室', icon: 'mdi-robot-outline', to: '/toolkit/ai-lab' },
       { title: '演员实验室', icon: 'mdi-account-tie-outline', to: '/toolkit/actor-lab' },
+      { title: 'Webhook 接收器', icon: 'mdi-webhook', to: '/toolkit/webhook-receiver' },
     ],
   },
   {
@@ -75,7 +83,6 @@ const navGroups = [
     label: '配置与控制',
     icon: 'mdi-tune-vertical',
     items: [
-      { title: 'Webhook', icon: 'mdi-webhook', to: '/toolkit/webhook-receiver' },
       { title: '通知管理', icon: 'mdi-bell-outline', to: '/toolkit/notification-manager' },
       { title: '账户管理', icon: 'mdi-account-cog-outline', to: '/toolkit/account-manager' },
       { title: '外部控制', icon: 'mdi-api', to: '/toolkit/external-control' },

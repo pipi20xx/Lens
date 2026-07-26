@@ -2,6 +2,7 @@
 import { ref, watch, onMounted } from 'vue'
 import { dockerApi } from '@/api/docker'
 import { useNotification } from '@/composables'
+import GlassDialog from '@/components/common/GlassDialog.vue'
 
 const { success, error: showError } = useNotification()
 
@@ -119,32 +120,22 @@ defineExpose({ loadSystemInfo })
     <v-alert type="info" variant="tonal" class="mt-4" title="环境说明">本页面显示的是远程 Docker 主机的实时环境状态。如果 Docker 或 Compose 未安装，您可以使用「一键修复」功能尝试自动安装。</v-alert>
 
     <!-- 修复/安装配置弹窗 -->
-    <v-dialog v-model="showRepairModal" max-width="450" scrollable>
-      <v-card class="liquid-glass-card" rounded="xl">
-        <v-card-title class="pa-4"><v-icon start>mdi-wrench-outline</v-icon> 环境修复/安装配置</v-card-title>
-        <v-divider />
-        <v-card-text class="pa-4">
-          <v-switch v-model="repairForm.useMirror" label="使用国内镜像" density="compact" color="primary" hint="开启后使用阿里云镜像安装，国内环境建议开启" persistent-hint class="mb-3" />
-          <v-text-field v-model="repairForm.proxy" label="安装代理" variant="outlined" density="compact" placeholder="例如: http://192.168.1.10:7890" hint="仅在安装过程中生效。留空则不使用代理。" persistent-hint class="mb-3" />
-          <v-alert type="warning" variant="tonal" density="compact" text="此操作将修改远程主机的系统组件。" />
-        </v-card-text>
-        <v-divider />
-        <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showRepairModal = false">取消</v-btn>
-          <v-btn color="primary" variant="flat" prepend-icon="mdi-wrench-outline" @click="handleRepair" :loading="installing">开始执行</v-btn>
-        </div>
-      </v-card>
-    </v-dialog>
+    <GlassDialog v-model="showRepairModal" :max-width="450"
+      icon="mdi-wrench-outline" title="环境修复/安装配置"
+    >
+      <v-switch v-model="repairForm.useMirror" label="使用国内镜像" density="compact" color="primary" hint="开启后使用阿里云镜像安装，国内环境建议开启" persistent-hint class="mb-3" />
+      <v-text-field v-model="repairForm.proxy" label="安装代理" variant="outlined" density="compact" placeholder="例如: http://192.168.1.10:7890" hint="仅在安装过程中生效。留空则不使用代理。" persistent-hint class="mb-3" />
+      <v-alert type="warning" variant="tonal" density="compact" text="此操作将修改远程主机的系统组件。" />
+      <template #actions>
+        <v-btn color="primary" variant="flat" prepend-icon="mdi-wrench-outline" @click="handleRepair" :loading="installing">开始执行</v-btn>
+      </template>
+    </GlassDialog>
 
     <!-- 安装结果弹窗 -->
-    <v-dialog v-model="showResultModal" max-width="600" scrollable>
-      <v-card class="liquid-glass-card" rounded="xl">
-        <v-card-title class="pa-4"><v-icon start>mdi-text-box-outline</v-icon> 安装结果</v-card-title>
-        <v-divider />
-        <v-card-text class="pa-4">
-          <pre class="code-block">{{ resultOutput }}</pre>
-        </v-card-text>
-      </v-card>
-    </v-dialog>
+    <GlassDialog v-model="showResultModal" :max-width="600"
+      icon="mdi-text-box-outline" title="安装结果" cancel-text="关闭"
+    >
+      <pre class="code-block code-block--flat">{{ resultOutput }}</pre>
+    </GlassDialog>
   </div>
 </template>

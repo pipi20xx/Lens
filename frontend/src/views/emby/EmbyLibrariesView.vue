@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { listEmbyLibraries, addEmbyLibrary, removeEmbyLibrary, updateEmbyLibrary } from '@/api/embyLibraries'
 import { embyBackupApi } from '@/api/embyBackup'
 import { useNotification } from '@/composables'
 import { useConfirm } from '@/composables'
 import EmbyConfigBackupManager from '@/components/emby/EmbyConfigBackupManager.vue'
+import GlassDialog from '@/components/common/GlassDialog.vue'
 
 const { success, error: showError } = useNotification()
 const { confirm } = useConfirm()
@@ -94,6 +95,8 @@ function openEdit(lib: any) {
   editingLib.value = lib
   localData.value = JSON.parse(JSON.stringify(lib))
   if (!localData.value.LibraryOptions) localData.value.LibraryOptions = {}
+  if (!localData.value.LibraryOptions.PathInfos) localData.value.LibraryOptions.PathInfos = []
+  if (!localData.value.LibraryOptions.TypeOptions) localData.value.LibraryOptions.TypeOptions = []
   jsonRaw.value = JSON.stringify(localData.value, null, 2)
   activeEditTab.value = 'basic'
   showEditDialog.value = true
@@ -146,6 +149,218 @@ function getLibraryIcon(type: string) {
   const icons: Record<string, string> = { movies: 'mdi-filmstrip', tvshows: 'mdi-television-classic', music: 'mdi-music', books: 'mdi-book-open-variant', homevideos: 'mdi-video-vintage', mixed: 'mdi-folder-multiple' }
   return icons[type] || 'mdi-folder'
 }
+
+// === 元数据下载器 & 图片下载参数 ===
+const METADATA_FETCHERS: Record<string, string[]> = {
+  Movie: ['TheMovieDb', 'The Open Movie Database', 'TheTVDB'],
+  Series: ['TheMovieDb', 'The Open Movie Database', 'TheTVDB'],
+  Season: ['TheMovieDb', 'TheTVDB'],
+  Episode: ['TheMovieDb', 'The Open Movie Database', 'TheTVDB'],
+}
+
+const IMAGE_FETCHERS: Record<string, string[]> = {
+  Movie: ['TheMovieDb', 'TheTVDB', 'FanArt', 'The Open Movie Database', 'Image Capture'],
+  Series: ['TheMovieDb', 'The Open Movie Database', 'FanArt', 'TheTVDB'],
+  Season: ['TheMovieDb', 'FanArt', 'TheTVDB'],
+  Episode: ['TheMovieDb', 'TheTVDB', 'The Open Movie Database', 'Image Capture'],
+}
+
+const IMAGE_OPTS_FILTER: Record<string, string[]> = {
+  Movie: ['Primary', 'Art', 'Banner', 'Disc', 'Logo', 'Thumb', 'Backdrop'],
+  Series: ['Primary', 'Art', 'Banner', 'Logo', 'Thumb', 'Backdrop'],
+  Season: ['Primary', 'Banner', 'Thumb'],
+  Episode: [],
+}
+
+const TYPE_LABELS: Record<string, string> = {
+  Movie: '电影 (Movie)',
+  Series: '剧集 (Series)',
+  Season: '季 (Season)',
+  Episode: '集 (Episode)',
+}
+
+const activeTypes = computed(() => {
+  const contentType = localData.value?.LibraryOptions?.ContentType || localData.value?.CollectionType
+  if (contentType === 'tvshows') return ['Series', 'Season', 'Episode']
+  if (contentType === 'movies') return ['Movie']
+  return ['Movie', 'Series', 'Season', 'Episode']
+})
+
+function getTypeOption(typeKey: string) {
+  const options = localData.value?.LibraryOptions?.TypeOptions || []
+  return options.find((o: any) => o.Type === typeKey) || { Type: typeKey, MetadataFetchers: [], ImageFetchers: [], ImageOptions: [] }
+}
+
+function getAvailableMetadataFetchers(typeKey: string) {
+  return METADATA_FETCHERS[typeKey] || []
+}
+
+function getAvailableImageFetchers(typeKey: string) {
+  return IMAGE_FETCHERS[typeKey] || []
+}
+
+function getAllowedImages(typeKey: string) {
+  return IMAGE_OPTS_FILTER[typeKey] || []
+}
+
+function isImageEnabled(typeKey: string, imgType: string) {
+  const typeOpt = getTypeOption(typeKey)
+  const imgOpt = typeOpt.ImageOptions?.find((i: any) => i.Type === imgType)
+  return imgOpt ? imgOpt.Limit > 0 : false
+}
+
+function getImageOptionValue(typeKey: string, imgType: string, field: 'Limit' | 'MinWidth') {
+  const typeOpt = getTypeOption(typeKey)
+  const imgOpt = typeOpt.ImageOptions?.find((i: any) => i.Type === imgType)
+  if (imgOpt) return imgOpt[field]
+  return field === 'Limit' ? 1 : 0
+}
+
+function toggleMetadataFetcher(typeKey: string, fetcher: string) {
+  const typeOpt = getTypeOption(typeKey)
+  const current: string[] = typeOpt.MetadataFetchers || []
+  const idx = current.indexOf(fetcher)
+  if (idx >= 0) current.splice(idx, 1)
+  else current.push(fetcher)
+  updateTypeOption(typeKey, 'MetadataFetchers', current)
+}
+
+function toggleImageFetcher(typeKey: string, fetcher: string) {
+  const typeOpt = getTypeOption(typeKey)
+  const current: string[] = typeOpt.ImageFetchers || []
+  const idx = current.indexOf(fetcher)
+  if (idx >= 0) current.splice(idx, 1)
+  else current.push(fetcher)
+  updateTypeOption(typeKey, 'ImageFetchers', current)
+}
+
+function handleImageToggle(typeKey: string, imgType: string, enabled: boolean) {
+  updateImageOption(typeKey, imgType, 'Limit', enabled ? 1 : 0)
+}
+
+function updateTypeOption(typeKey: string, key: string, value: any) {
+  const data = JSON.parse(JSON.stringify(localData.value))
+  if (!data.LibraryOptions) data.LibraryOptions = {}
+  if (!data.LibraryOptions.TypeOptions) data.LibraryOptions.TypeOptions = []
+  let typeOpt = data.LibraryOptions.TypeOptions.find((o: any) => o.Type === typeKey)
+  if (!typeOpt) {
+    typeOpt = { Type: typeKey, MetadataFetchers: [], ImageFetchers: [], ImageOptions: [] }
+    data.LibraryOptions.TypeOptions.push(typeOpt)
+  }
+  typeOpt[key] = value
+  localData.value = data
+}
+
+function updateImageOption(typeKey: string, imgType: string, field: string, value: any) {
+  const data = JSON.parse(JSON.stringify(localData.value))
+  if (!data.LibraryOptions) data.LibraryOptions = {}
+  if (!data.LibraryOptions.TypeOptions) data.LibraryOptions.TypeOptions = []
+  let typeOpt = data.LibraryOptions.TypeOptions.find((o: any) => o.Type === typeKey)
+  if (!typeOpt) {
+    typeOpt = { Type: typeKey, MetadataFetchers: [], ImageFetchers: [], ImageOptions: [] }
+    data.LibraryOptions.TypeOptions.push(typeOpt)
+  }
+  if (!typeOpt.ImageOptions) typeOpt.ImageOptions = []
+  let imgOpt = typeOpt.ImageOptions.find((i: any) => i.Type === imgType)
+  if (!imgOpt) {
+    imgOpt = { Type: imgType, Limit: 0, MinWidth: 0 }
+    typeOpt.ImageOptions.push(imgOpt)
+  }
+  imgOpt[field] = value
+  localData.value = data
+}
+
+// === 本地元数据读取器 (NFO) ===
+const localReaderOrder = computed(() => {
+  const disabled = localData.value?.LibraryOptions?.DisabledLocalMetadataReaders || []
+  const all = ['Nfo', 'Emby Xml']
+  return all.filter(r => !disabled.includes(r))
+})
+
+function toggleLocalReader(reader: string) {
+  const data = JSON.parse(JSON.stringify(localData.value))
+  if (!data.LibraryOptions) data.LibraryOptions = {}
+  const disabled: string[] = data.LibraryOptions.DisabledLocalMetadataReaders || []
+  const order: string[] = data.LibraryOptions.LocalMetadataReaderOrder || []
+  const idx = disabled.indexOf(reader)
+  if (idx >= 0) {
+    disabled.splice(idx, 1)
+    if (!order.includes(reader)) order.push(reader)
+  } else {
+    disabled.push(reader)
+    const oi = order.indexOf(reader)
+    if (oi >= 0) order.splice(oi, 1)
+  }
+  data.LibraryOptions.DisabledLocalMetadataReaders = disabled
+  data.LibraryOptions.LocalMetadataReaderOrder = order
+  localData.value = data
+}
+
+// === 功能开关配置项 ===
+const scanOptions = [
+  { label: '启用实时监控 (EnableRealtimeMonitor)', key: 'EnableRealtimeMonitor' },
+  { label: '提取章节图片 (EnableChapterImageExtraction)', key: 'EnableChapterImageExtraction' },
+  { label: '库扫描期间提取章节图 (ExtractChapterImagesDuringLibraryScan)', key: 'ExtractChapterImagesDuringLibraryScan' },
+  { label: '启用标记检测 (EnableMarkerDetection)', key: 'EnableMarkerDetection' },
+  { label: '库扫描期间检测标记 (EnableMarkerDetectionDuringLibraryScan)', key: 'EnableMarkerDetectionDuringLibraryScan' },
+  { label: '忽略隐藏文件和文件夹 (IgnoreHiddenFiles)', key: 'IgnoreHiddenFiles' },
+  { label: '启用压缩媒体文件读取 (EnableArchiveMediaFiles)', key: 'EnableArchiveMediaFiles' },
+]
+
+const saveOptions = [
+  { label: '将媒体元数据保存到媒体文件夹 (SaveLocalMetadata)', key: 'SaveLocalMetadata' },
+  { label: '将元数据文件设为隐藏 (SaveMetadataHidden)', key: 'SaveMetadataHidden' },
+  { label: '在本地保存缩略图集 (SaveLocalThumbnailSets)', key: 'SaveLocalThumbnailSets' },
+  { label: '将歌词保存到媒体文件夹 (SaveLyricsWithMedia)', key: 'SaveLyricsWithMedia' },
+  { label: '将字幕保存到媒体文件夹 (SaveSubtitlesWithMedia)', key: 'SaveSubtitlesWithMedia' },
+  { label: '启用本地图片缓存 (CacheImages)', key: 'CacheImages' },
+  { label: '提前下载图像 (DownloadImagesInAdvance)', key: 'DownloadImagesInAdvance' },
+]
+
+const otherOptions = [
+  { label: '启用按文件多版本合并 (EnableMultiVersionByFiles)', key: 'EnableMultiVersionByFiles' },
+  { label: '启用按元数据多版本合并 (EnableMultiVersionByMetadata)', key: 'EnableMultiVersionByMetadata' },
+  { label: '允许刮削互联网元数据 (EnableInternetProviders)', key: 'EnableInternetProviders' },
+  { label: '优先使用内嵌标题 (EnableEmbeddedTitles)', key: 'EnableEmbeddedTitles' },
+  { label: '从搜索结果中排除此库 (ExcludeFromSearch)', key: 'ExcludeFromSearch' },
+  { label: '启用照片支持 (EnablePhotos)', key: 'EnablePhotos' },
+  { label: '启用 .plexignore 支持 (EnablePlexIgnore)', key: 'EnablePlexIgnore' },
+]
+
+const movieOptions = [
+  { label: '自动导入电影合集 (ImportCollections)', key: 'ImportCollections' },
+  { label: '启用多分段项目合并 (EnableMultiPartItems)', key: 'EnableMultiPartItems' },
+  { label: '允许成人元数据 (EnableAdultMetadata)', key: 'EnableAdultMetadata' },
+]
+
+const seriesOptions = [
+  { label: '自动将剧集分组 (EnableAutomaticSeriesGrouping)', key: 'EnableAutomaticSeriesGrouping' },
+  { label: '合并顶级文件夹内容 (MergeTopLevelFolders)', key: 'MergeTopLevelFolders' },
+  { label: '折叠单项目录 (CollapseSingleItemFolders)', key: 'CollapseSingleItemFolders' },
+  { label: '强制折叠单项目录 (ForceCollapseSingleItemFolders)', key: 'ForceCollapseSingleItemFolders' },
+]
+
+const isMovie = computed(() => (localData.value?.CollectionType || localData.value?.LibraryOptions?.ContentType) === 'movies')
+const isSeries = computed(() => (localData.value?.CollectionType || localData.value?.LibraryOptions?.ContentType) === 'tvshows')
+
+function getLibOption(key: string) {
+  return !!localData.value?.LibraryOptions?.[key]
+}
+
+function setLibOption(key: string, val: boolean) {
+  const data = JSON.parse(JSON.stringify(localData.value))
+  if (!data.LibraryOptions) data.LibraryOptions = {}
+  data.LibraryOptions[key] = val
+  localData.value = data
+}
+
+// === JSON 编辑器动态行数 ===
+const jsonRows = computed(() => {
+  const text = jsonRaw.value || ''
+  if (!text) return 10
+  const lines = text.split('\n').length
+  return Math.max(10, Math.min(lines + 1, 30))
+})
 
 onMounted(loadLibraries)
 </script>
@@ -221,105 +436,215 @@ onMounted(loadLibraries)
     </v-card>
 
     <!-- 新增媒体库弹窗 -->
-    <v-dialog v-model="showAddDialog" max-width="550" scrollable>
-      <v-card class="liquid-glass-card" rounded="xl">
-        <v-card-title class="pa-4">
-          <v-icon start>mdi-folder-plus-outline</v-icon>
-          新增媒体库
-        </v-card-title>
-        <v-divider />
-        <v-card-text class="pa-4">
-          <v-text-field v-model="addForm.name" label="显示名称" variant="outlined" density="compact" class="mb-3" />
-          <v-select v-model="addForm.type" :items="libraryTypeOptions" label="内容类型" variant="outlined" density="compact" class="mb-3" />
-          <v-text-field v-model="addForm.path" label="文件夹路径" variant="outlined" density="compact" hint="服务器绝对路径" persistent-hint />
-        </v-card-text>
-        <v-divider />
-        <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showAddDialog = false">取消</v-btn>
-          <v-btn color="primary" variant="flat" prepend-icon="mdi-plus" @click="addLibrary" :loading="adding">创建媒体库</v-btn>
-        </div>
-      </v-card>
-    </v-dialog>
+    <GlassDialog v-model="showAddDialog" :max-width="550" icon="mdi-folder-plus-outline" title="新增媒体库">
+      <v-text-field v-model="addForm.name" label="显示名称" variant="outlined" density="compact" class="mb-3" />
+      <v-select v-model="addForm.type" :items="libraryTypeOptions" label="内容类型" variant="outlined" density="compact" class="mb-3" />
+      <v-text-field v-model="addForm.path" label="文件夹路径" variant="outlined" density="compact" hint="服务器绝对路径" persistent-hint />
+      <template #actions>
+        <v-btn color="primary" variant="flat" prepend-icon="mdi-plus" @click="addLibrary" :loading="adding">创建媒体库</v-btn>
+      </template>
+    </GlassDialog>
 
     <!-- 编辑媒体库弹窗 -->
-    <v-dialog v-model="showEditDialog" max-width="1000" scrollable>
-      <v-card class="liquid-glass-card" rounded="xl">
-        <v-card-title class="pa-4">
-          <v-icon start>mdi-folder-cog-outline</v-icon>
-          配置媒体库: {{ editingLib?.Name }}
-        </v-card-title>
-        <v-divider />
+    <GlassDialog v-model="showEditDialog" :max-width="1000" icon="mdi-folder-cog-outline" :title="'配置媒体库: ' + (editingLib?.Name)">
+      <v-tabs v-model="activeEditTab" density="compact" color="primary" class="mb-4">
+        <v-tab value="basic"><v-icon start>mdi-information-outline</v-icon> 基础信息</v-tab>
+        <v-tab value="metadata"><v-icon start>mdi-database-search-outline</v-icon> 元数据下载器</v-tab>
+        <v-tab value="images"><v-icon start>mdi-image-multiple-outline</v-icon> 图片下载与参数</v-tab>
+        <v-tab value="features"><v-icon start>mdi-toggle-switch-outline</v-icon> 功能开关</v-tab>
+        <v-tab value="json"><v-icon start>mdi-code-block-braces</v-icon> 原始数据</v-tab>
+      </v-tabs>
 
-        <v-tabs v-model="activeEditTab" class="px-4">
-          <v-tab value="basic">基础信息</v-tab>
-          <v-tab value="features">功能开关</v-tab>
-          <v-tab value="json">原始数据 (JSON)</v-tab>
-        </v-tabs>
-        <v-divider />
+      <v-window v-model="activeEditTab">
+        <!-- 基础信息 -->
+        <v-window-item value="basic">
+          <v-text-field v-model="localData.Name" label="显示名称" variant="outlined" density="compact" class="mb-3" />
+          <v-text-field :model-value="localData.CollectionType" label="内容类型" variant="outlined" density="compact" readonly class="mb-3" />
 
-        <v-card-text class="pa-4" style="max-height: 60vh; overflow-y: auto;">
-          <v-window v-model="activeEditTab">
-            <!-- 基础信息 -->
-            <v-window-item value="basic">
-              <v-text-field v-model="localData.Name" label="显示名称" variant="outlined" density="compact" class="mb-3" />
-              <v-text-field :model-value="localData.CollectionType" label="内容类型" variant="outlined" density="compact" readonly class="mb-3" />
+          <div class="text-subtitle-2 font-weight-bold mb-2">语言与国家</div>
+          <v-text-field v-model="localData.LibraryOptions.PreferredMetadataLanguage" label="元数据语言 (PreferredMetadataLanguage)" variant="outlined" density="compact" placeholder="zh" class="mb-2" />
+          <v-text-field v-model="localData.LibraryOptions.PreferredImageLanguage" label="图片语言 (PreferredImageLanguage)" variant="outlined" density="compact" placeholder="zh" class="mb-2" />
+          <v-text-field v-model="localData.LibraryOptions.MetadataCountryCode" label="国家代码 (MetadataCountryCode)" variant="outlined" density="compact" placeholder="CN" class="mb-2" />
 
-              <div class="text-subtitle-2 font-weight-bold mb-2">语言与国家</div>
-              <v-text-field v-model="localData.LibraryOptions.PreferredMetadataLanguage" label="元数据语言 (PreferredMetadataLanguage)" variant="outlined" density="compact" placeholder="zh" class="mb-2" />
-              <v-text-field v-model="localData.LibraryOptions.PreferredImageLanguage" label="图片语言 (PreferredImageLanguage)" variant="outlined" density="compact" placeholder="zh" class="mb-2" />
-              <v-text-field v-model="localData.LibraryOptions.MetadataCountryCode" label="国家代码 (MetadataCountryCode)" variant="outlined" density="compact" placeholder="CN" class="mb-2" />
+          <v-divider class="my-3" />
+          <div class="text-subtitle-2 font-weight-bold mb-2">媒体路径</div>
+          <div v-for="(pi, index) in localData.LibraryOptions.PathInfos" :key="index" class="d-flex ga-2 mb-2">
+            <v-text-field v-model="localData.LibraryOptions.PathInfos[index].Path" :label="'路径 ' + (index + 1)" variant="outlined" density="compact" class="flex-grow-1" />
+            <v-btn v-if="localData.LibraryOptions.PathInfos.length > 1" icon variant="text" size="small" color="error" @click="localData.LibraryOptions.PathInfos.splice(index, 1)">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+          </div>
+          <v-btn size="small" variant="tonal" color="primary" @click="localData.LibraryOptions.PathInfos.push({ Path: '' })" prepend-icon="mdi-plus" class="mb-4">添加路径</v-btn>
 
-              <v-divider class="my-3" />
-              <div class="text-subtitle-2 font-weight-bold mb-2">媒体路径</div>
-              <div v-for="(pi, index) in localData.LibraryOptions.PathInfos" :key="index" class="d-flex ga-2 mb-2">
-                <v-text-field v-model="localData.LibraryOptions.PathInfos[index].Path" :label="'路径 ' + (index + 1)" variant="outlined" density="compact" class="flex-grow-1" />
-                <v-btn v-if="localData.LibraryOptions.PathInfos.length > 1" icon variant="text" size="small" color="error" @click="localData.LibraryOptions.PathInfos.splice(index, 1)">
-                  <v-icon>mdi-close</v-icon>
-                </v-btn>
-              </div>
-              <v-btn size="small" variant="tonal" color="primary" @click="localData.LibraryOptions.PathInfos.push({ Path: '' })" prepend-icon="mdi-plus">添加路径</v-btn>
-            </v-window-item>
+          <v-divider class="my-3" />
+          <div class="text-subtitle-2 font-weight-bold mb-2">刮削设置</div>
+          <div class="text-caption text-medium-emphasis mb-2">本地元数据读取器 (NFO)</div>
+          <v-checkbox
+            v-for="reader in ['Nfo', 'Emby Xml']"
+            :key="reader"
+            :model-value="localReaderOrder.includes(reader)"
+            :label="reader"
+            density="compact"
+            hide-details
+            @update:model-value="toggleLocalReader(reader)"
+          />
+        </v-window-item>
 
-            <!-- 功能开关 -->
-            <v-window-item value="features">
-              <div class="text-subtitle-2 font-weight-bold mb-2">通用功能</div>
-              <v-switch v-model="localData.LibraryOptions.EnableArchiveMediaFiles" label="启用存档媒体文件浏览 (EnableArchiveMediaFiles)" density="compact" class="mb-2" />
-              <v-switch v-model="localData.LibraryOptions.EnablePhotos" label="启用照片浏览 (EnablePhotos)" density="compact" class="mb-2" />
-              <v-switch v-model="localData.LibraryOptions.EnableRealtimeMonitor" label="启用实时监控 (EnableRealtimeMonitor)" density="compact" class="mb-2" />
-              <v-switch v-model="localData.LibraryOptions.EnableLUFSScan" label="启用 LUF 扫描 (EnableLUFSScan)" density="compact" class="mb-2" />
+        <!-- 元数据下载器 -->
+        <v-window-item value="metadata">
+          <v-alert variant="tonal" type="info" density="compact" class="mb-3" rounded="lg">
+            请选择各媒体类型所使用的元数据刮削器。
+          </v-alert>
+          <v-expansion-panels variant="accordion" multiple>
+            <v-expansion-panel v-for="typeKey in activeTypes" :key="typeKey">
+              <v-expansion-panel-title>{{ TYPE_LABELS[typeKey] || typeKey }}</v-expansion-panel-title>
+              <v-expansion-panel-text>
+                <div class="text-caption text-medium-emphasis mb-2">元数据下载器 (MetadataFetchers)</div>
+                <v-checkbox
+                  v-for="fetcher in getAvailableMetadataFetchers(typeKey)"
+                  :key="fetcher"
+                  :model-value="getTypeOption(typeKey).MetadataFetchers?.includes(fetcher)"
+                  :label="fetcher"
+                  density="compact"
+                  hide-details
+                  @update:model-value="toggleMetadataFetcher(typeKey, fetcher)"
+                />
+              </v-expansion-panel-text>
+            </v-expansion-panel>
+          </v-expansion-panels>
+        </v-window-item>
 
-              <v-divider class="my-3" />
-              <div v-if="localData.CollectionType === 'movies'" class="text-subtitle-2 font-weight-bold mb-2">电影专属</div>
-              <template v-if="localData.CollectionType === 'movies'">
-                <v-switch v-model="localData.LibraryOptions.EnableChapterImageExtraction" label="启用章节图片提取 (EnableChapterImageExtraction)" density="compact" class="mb-2" />
-                <v-switch v-model="localData.LibraryOptions.ExtractDuringLibraryScan" label="在媒体库扫描时提取 (ExtractDuringLibraryScan)" density="compact" class="mb-2" />
-              </template>
+        <!-- 图片下载与参数 -->
+        <v-window-item value="images">
+          <v-alert variant="tonal" type="info" density="compact" class="mb-3" rounded="lg">
+            配置各媒体类型所使用的图片下载器及图片参数。开启开关后可设置下载数量与最小宽度。
+          </v-alert>
+          <v-expansion-panels variant="accordion" multiple>
+            <v-expansion-panel v-for="typeKey in activeTypes" :key="typeKey">
+              <v-expansion-panel-title>{{ TYPE_LABELS[typeKey] || typeKey }}</v-expansion-panel-title>
+              <v-expansion-panel-text>
+                <div class="text-caption text-medium-emphasis mb-2">图片下载器 (ImageFetchers)</div>
+                <v-checkbox
+                  v-for="fetcher in getAvailableImageFetchers(typeKey)"
+                  :key="fetcher"
+                  :model-value="getTypeOption(typeKey).ImageFetchers?.includes(fetcher)"
+                  :label="fetcher"
+                  density="compact"
+                  hide-details
+                  class="mb-1"
+                  @update:model-value="toggleImageFetcher(typeKey, fetcher)"
+                />
 
-              <div v-if="localData.CollectionType === 'tvshows'" class="text-subtitle-2 font-weight-bold mb-2">电视节目专属</div>
-              <template v-if="localData.CollectionType === 'tvshows'">
-                <v-switch v-model="localData.LibraryOptions.EnableChapterImageExtraction" label="启用章节图片提取 (EnableChapterImageExtraction)" density="compact" class="mb-2" />
-                <v-switch v-model="localData.LibraryOptions.ExtractDuringLibraryScan" label="在媒体库扫描时提取 (ExtractDuringLibraryScan)" density="compact" class="mb-2" />
-                <v-switch v-model="localData.LibraryOptions.EnableAutomaticSeriesGrouping" label="启用自动系列分组 (EnableAutomaticSeriesGrouping)" density="compact" class="mb-2" />
-              </template>
-            </v-window-item>
+                <template v-if="getAllowedImages(typeKey).length">
+                  <v-divider class="my-3" />
+                  <div class="text-caption font-weight-bold mb-2">图片参数配置 (ImageOptions)</div>
+                  <v-card v-for="imgType in getAllowedImages(typeKey)" :key="imgType" variant="outlined" rounded="lg" class="mb-2 pa-3">
+                    <div class="d-flex align-center justify-space-between flex-wrap ga-2">
+                      <div class="d-flex align-center ga-2">
+                        <v-switch
+                          :model-value="isImageEnabled(typeKey, imgType)"
+                          density="compact"
+                          hide-details
+                          color="primary"
+                          @update:model-value="handleImageToggle(typeKey, imgType, $event)"
+                        />
+                        <span class="text-body-2 font-weight-medium">{{ imgType }}</span>
+                      </div>
+                      <div v-if="isImageEnabled(typeKey, imgType)" class="d-flex align-center ga-3">
+                        <v-text-field
+                          :model-value="getImageOptionValue(typeKey, imgType, 'Limit')"
+                          label="数量"
+                          type="number"
+                          variant="outlined"
+                          density="compact"
+                          hide-details
+                          style="max-width:90px"
+                          @update:model-value="updateImageOption(typeKey, imgType, 'Limit', Number($event))"
+                        />
+                        <v-text-field
+                          :model-value="getImageOptionValue(typeKey, imgType, 'MinWidth')"
+                          label="最小宽度"
+                          type="number"
+                          variant="outlined"
+                          density="compact"
+                          hide-details
+                          style="max-width:110px"
+                          @update:model-value="updateImageOption(typeKey, imgType, 'MinWidth', Number($event))"
+                        />
+                      </div>
+                    </div>
+                  </v-card>
+                </template>
+              </v-expansion-panel-text>
+            </v-expansion-panel>
+          </v-expansion-panels>
+        </v-window-item>
 
-            <!-- 原始数据 (JSON) -->
-            <v-window-item value="json">
-              <v-alert variant="tonal" type="info" density="compact" class="mb-3" rounded="lg">
-                高级操作：您可以直接编辑下方的原始 JSON 数据进行高级配置。
-              </v-alert>
-              <v-textarea v-model="jsonRaw" variant="outlined" rows="18" style="font-family: monospace" @update:model-value="handleJsonInput" />
-            </v-window-item>
-          </v-window>
-        </v-card-text>
+        <!-- 功能开关 -->
+        <v-window-item value="features">
+          <div class="text-subtitle-2 font-weight-bold mb-2">核心扫描与监控</div>
+          <v-row>
+            <v-col v-for="opt in scanOptions" :key="opt.key" cols="12" sm="6">
+              <v-switch :model-value="getLibOption(opt.key)" @update:model-value="setLibOption(opt.key, $event)" :label="opt.label" density="compact" hide-details />
+            </v-col>
+          </v-row>
 
-        <v-divider />
-        <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showEditDialog = false">取消</v-btn>
-          <v-btn variant="tonal" color="warning" prepend-icon="mdi-backup-restore" @click="handleBackup" :loading="backingUp">备份当前配置</v-btn>
-          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="handleSaveLib" :loading="savingLib">保存设置</v-btn>
-        </div>
-      </v-card>
-    </v-dialog>
+          <v-divider class="my-3" />
+          <div class="text-subtitle-2 font-weight-bold mb-2">元数据与保存设置</div>
+          <v-row>
+            <v-col v-for="opt in saveOptions" :key="opt.key" cols="12" sm="6">
+              <v-switch :model-value="getLibOption(opt.key)" @update:model-value="setLibOption(opt.key, $event)" :label="opt.label" density="compact" hide-details />
+            </v-col>
+          </v-row>
+
+          <v-divider class="my-3" />
+          <div class="text-subtitle-2 font-weight-bold mb-2">高级播放与刮削控制</div>
+          <v-row>
+            <v-col v-for="opt in otherOptions" :key="opt.key" cols="12" sm="6">
+              <v-switch :model-value="getLibOption(opt.key)" @update:model-value="setLibOption(opt.key, $event)" :label="opt.label" density="compact" hide-details />
+            </v-col>
+          </v-row>
+
+          <template v-if="isMovie">
+            <v-divider class="my-3" />
+            <div class="text-subtitle-2 font-weight-bold mb-2">电影库专属选项</div>
+            <v-row>
+              <v-col v-for="opt in movieOptions" :key="opt.key" cols="12" sm="6">
+                <v-switch :model-value="getLibOption(opt.key)" @update:model-value="setLibOption(opt.key, $event)" :label="opt.label" density="compact" hide-details />
+              </v-col>
+            </v-row>
+          </template>
+
+          <template v-if="isSeries">
+            <v-divider class="my-3" />
+            <div class="text-subtitle-2 font-weight-bold mb-2">电视节目库专属选项</div>
+            <v-row>
+              <v-col v-for="opt in seriesOptions" :key="opt.key" cols="12" sm="6">
+                <v-switch :model-value="getLibOption(opt.key)" @update:model-value="setLibOption(opt.key, $event)" :label="opt.label" density="compact" hide-details />
+              </v-col>
+            </v-row>
+          </template>
+        </v-window-item>
+
+        <!-- 原始数据 (JSON) -->
+        <v-window-item value="json">
+          <v-alert variant="tonal" type="info" density="compact" class="mb-3" rounded="lg">
+            高级操作：您可以直接编辑下方的原始 JSON 数据进行高级配置。
+          </v-alert>
+          <v-textarea v-model="jsonRaw" variant="outlined" :rows="jsonRows" auto-grow class="raw-json-textarea" style="font-family: monospace" @update:model-value="handleJsonInput" />
+        </v-window-item>
+      </v-window>
+
+      <template #actions>
+        <v-btn variant="tonal" color="warning" prepend-icon="mdi-backup-restore" @click="handleBackup" :loading="backingUp">备份当前配置</v-btn>
+        <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="handleSaveLib" :loading="savingLib">保存设置</v-btn>
+      </template>
+    </GlassDialog>
   </v-container>
 </template>
+
+<style scoped>
+.raw-json-textarea :deep(textarea) {
+  max-height: 55vh !important;
+}
+</style>

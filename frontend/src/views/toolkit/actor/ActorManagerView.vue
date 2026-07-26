@@ -2,6 +2,7 @@
 import { ref, reactive, watch } from 'vue'
 import { actorsApi } from '@/api/actors'
 import { useNotification } from '@/composables'
+import GlassDialog from '@/components/common/GlassDialog.vue'
 
 const { success, error: showError } = useNotification()
 
@@ -20,7 +21,8 @@ async function handleEmbySearch() {
   embyLoading.value = true
   try {
     const data = await actorsApi.searchEmby(embyQuery.value.trim())
-    embyResults.value = (data as any)?.results || Array.isArray(data) ? data : []
+    const res = data as any
+    embyResults.value = Array.isArray(res) ? res : (res?.results || [])
   } catch {
     showError('搜索失败')
   } finally {
@@ -76,7 +78,7 @@ function getEmbyAvatar(person: any) {
   <v-container fluid class="pa-6">
     <h1 class="text-h5 font-weight-bold mb-2">
       <v-icon start>mdi-account-star-outline</v-icon>
-      演员信息维护
+      Emby 演员信息维护
     </h1>
     <p class="text-body-2 text-medium-emphasis mb-6">检索并修改 Emby 库内的演员元数据，支持姓名更正与原始数据审计。</p>
 
@@ -170,24 +172,15 @@ function getEmbyAvatar(person: any) {
       </v-col>
     </v-row>
 
-    <!-- JSON 弹窗 -->
-    <v-dialog v-model="jsonModal.show" max-width="800" scrollable>
-      <v-card class="liquid-glass-card" rounded="xl">
-        <v-card-title class="pa-4">
-          <v-icon start>mdi-code-block-braces</v-icon>
-          演员原始元数据 (Raw JSON)
-        </v-card-title>
-        <v-divider />
-        <v-card-text class="pa-4">
-          <pre class="code-block">{{ JSON.stringify(jsonModal.data, null, 2) }}</pre>
-        </v-card-text>
-        <v-divider />
-        <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="jsonModal.show = false">关闭</v-btn>
-          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-copy" @click="copyRawJson">复制数据</v-btn>
-        </div>
-      </v-card>
-    </v-dialog>
+<!-- JSON 弹窗 -->
+<GlassDialog v-model="jsonModal.show" :max-width="800"
+  icon="mdi-code-block-braces" title="演员原始元数据 (Raw JSON)" cancel-text="关闭"
+>
+  <pre class="code-block code-block--flat">{{ JSON.stringify(jsonModal.data, null, 2) }}</pre>
+  <template #actions>
+    <v-btn color="primary" variant="flat" prepend-icon="mdi-content-copy" @click="copyRawJson">复制数据</v-btn>
+  </template>
+</GlassDialog>
   </v-container>
 </template>
 

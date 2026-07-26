@@ -3,6 +3,7 @@ import { ref, watch } from 'vue'
 import { embyBackupApi } from '@/api/embyBackup'
 import { useNotification } from '@/composables'
 import { useConfirm } from '@/composables'
+import GlassDialog from '@/components/common/GlassDialog.vue'
 
 const props = defineProps<{
   category: 'users' | 'libraries'
@@ -84,23 +85,8 @@ watch(showModal, (val) => {
     配置备份管理
   </v-btn>
 
-  <v-dialog v-model="showModal" max-width="750" scrollable>
-    <v-card class="liquid-glass-card" rounded="xl">
-      <v-card-title class="d-flex align-center pa-4">
-        <v-icon start>mdi-history</v-icon>
-        配置备份历史
-        <v-spacer />
-        <v-btn variant="tonal" color="warning" size="x-small" prepend-icon="mdi-restore" :loading="restoringAll" :disabled="!backups.length" @click="handleRestoreAll">一键还原最新备份</v-btn>
-        <v-btn variant="tonal" color="error" size="x-small" prepend-icon="mdi-delete-sweep-outline" class="ml-2" :disabled="!backups.length" @click="handleClearAll">清空所有备份</v-btn>
-      </v-card-title>
-      <v-divider />
-
-      <v-alert variant="tonal" type="info" density="compact" class="ma-4 mb-0" rounded="lg">
-        备份将保存当前选定对象的完整原始 JSON 配置。还原操作将直接覆盖服务器上的现有设置，请谨慎操作。
-      </v-alert>
-
-      <v-card-text class="pa-4">
-        <div v-if="loading" class="text-center py-4"><v-progress-circular indeterminate color="primary" /></div>
+  <GlassDialog v-model="showModal" :max-width="750" icon="mdi-history" title="配置备份历史" :cancel-visible="false">
+  <div v-if="loading" class="text-center py-4"><v-progress-circular indeterminate color="primary" /></div>
         <div v-else-if="!backups.length" class="text-center py-8 text-medium-emphasis">暂无备份数据</div>
         <v-table v-else class="bg-transparent" density="compact">
           <thead><tr><th>备份名称</th><th>备份时间</th><th class="text-right">操作</th></tr></thead>
@@ -115,7 +101,5 @@ watch(showModal, (val) => {
             </tr>
           </tbody>
         </v-table>
-      </v-card-text>
-    </v-card>
-  </v-dialog>
+</GlassDialog>
 </template>

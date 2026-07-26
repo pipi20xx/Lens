@@ -3,6 +3,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { pgsqlApi } from '@/api/pgsql'
 import { useNotification } from '@/composables'
 import { useConfirm } from '@/composables'
+import GlassDialog from '@/components/common/GlassDialog.vue'
 
 const { success, error: showError, info } = useNotification()
 const { confirm } = useConfirm()
@@ -783,44 +784,29 @@ onMounted(fetchHosts)
     </v-window>
 
     <!-- ==================== 管理主机弹窗 ==================== -->
-    <v-dialog v-model="showHostManagerDialog" max-width="650" scrollable>
-      <v-card class="liquid-glass-card" rounded="xl">
-        <v-card-title class="pa-4">
-          <v-icon start>mdi-server-outline</v-icon>
-          管理 PostgreSQL 主机
-        </v-card-title>
-        <v-divider />
-        <div class="pa-4">
-          <div class="d-flex justify-space-between mb-4">
-            <v-btn color="primary" variant="flat" size="small" prepend-icon="mdi-plus" @click="openAddHost">添加新主机</v-btn>
-            <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-refresh" @click="fetchHosts">刷新</v-btn>
-          </div>
-          <v-table density="compact" class="bg-transparent">
-            <thead><tr><th>名称</th><th>地址</th><th class="text-right">操作</th></tr></thead>
-            <tbody>
-              <tr v-for="h in hosts" :key="h.id">
-                <td class="font-weight-medium">{{ h.name }}</td>
-                <td class="text-medium-emphasis font-mono" style="font-size:12px">{{ h.host }}:{{ h.port }}</td>
-                <td class="text-right">
-                  <v-btn size="x-small" variant="tonal" color="primary" prepend-icon="mdi-pencil-outline" @click="openEditHost(h)">编辑</v-btn>
-                  <v-btn size="x-small" variant="tonal" color="error" prepend-icon="mdi-delete-outline" class="ml-1" @click="deleteHost(h.id)">移除</v-btn>
-                </td>
-              </tr>
-            </tbody>
-          </v-table>
-        </div>
-      </v-card>
-    </v-dialog>
+    <GlassDialog v-model="showHostManagerDialog" :max-width="650" icon="mdi-server-outline" title="管理 PostgreSQL 主机" :cancel-visible="false">
+      <div class="d-flex justify-space-between mb-4">
+        <v-btn color="primary" variant="flat" size="small" prepend-icon="mdi-plus" @click="openAddHost">添加新主机</v-btn>
+        <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-refresh" @click="fetchHosts">刷新</v-btn>
+      </div>
+      <v-table density="compact" class="bg-transparent">
+        <thead><tr><th>名称</th><th>地址</th><th class="text-right">操作</th></tr></thead>
+        <tbody>
+          <tr v-for="h in hosts" :key="h.id">
+            <td class="font-weight-medium">{{ h.name }}</td>
+            <td class="text-medium-emphasis font-mono" style="font-size:12px">{{ h.host }}:{{ h.port }}</td>
+            <td class="text-right">
+              <v-btn size="x-small" variant="tonal" color="primary" prepend-icon="mdi-pencil-outline" @click="openEditHost(h)">编辑</v-btn>
+              <v-btn size="x-small" variant="tonal" color="error" prepend-icon="mdi-delete-outline" class="ml-1" @click="deleteHost(h.id)">移除</v-btn>
+            </td>
+          </tr>
+        </tbody>
+      </v-table>
+    </GlassDialog>
 
     <!-- ==================== 添加/编辑主机弹窗 ==================== -->
-    <v-dialog v-model="showHostEditDialog" max-width="500" scrollable>
-      <v-card class="liquid-glass-card" rounded="xl">
-        <v-card-title class="pa-4">
-          {{ editingHostId ? '编辑数据库主机' : '配置数据库主机' }}
-        </v-card-title>
-        <v-divider />
-        <v-card-text class="pa-4" style="max-height:65vh;overflow-y:auto">
-          <v-text-field v-model="hostForm.name" label="显示名称" variant="outlined" density="compact"
+    <GlassDialog v-model="showHostEditDialog" :max-width="500" :title="editingHostId ? '编辑数据库主机' : '配置数据库主机'">
+  <v-text-field v-model="hostForm.name" label="显示名称" variant="outlined" density="compact"
             hint="例如: 生产环境库" persistent-hint class="mb-3" />
           <v-row class="mb-3">
             <v-col cols="8">
@@ -833,77 +819,47 @@ onMounted(fetchHosts)
           <v-text-field v-model="hostForm.username" label="用户名" variant="outlined" density="compact" class="mb-3" />
           <v-text-field v-model="hostForm.password" label="密码" type="password" variant="outlined" density="compact" class="mb-3" />
           <v-text-field v-model="hostForm.database" label="默认数据库" variant="outlined" density="compact" />
-        </v-card-text>
-        <v-divider />
-        <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showHostEditDialog = false">取消</v-btn>
-          <v-btn color="warning" variant="tonal" prepend-icon="mdi-lan-connect" :loading="hostTesting" @click="testHostConnection">测试连接</v-btn>
-          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveHost">{{ editingHostId ? '保存修改' : '保存主机' }}</v-btn>
-        </div>
-      </v-card>
-    </v-dialog>
+  <template #actions>
+    <v-btn color="warning" variant="tonal" prepend-icon="mdi-lan-connect" :loading="hostTesting" @click="testHostConnection">测试连接</v-btn>
+    <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveHost">{{ editingHostId ? '保存修改' : '保存主机' }}</v-btn>
+  </template>
+</GlassDialog>
 
     <!-- ==================== 数据值查看器弹窗 ==================== -->
-    <v-dialog v-model="showViewerDialog" max-width="1000" scrollable>
-      <v-card class="liquid-glass-card" rounded="xl">
-        <v-card-title class="d-flex align-center pa-4">
-          <v-icon start>mdi-eye-outline</v-icon>
-          查看: {{ viewerTitle }}
-          <v-spacer />
-          <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-content-copy" @click="copyViewerContent">复制内容</v-btn>
-          <v-btn icon="mdi-close" variant="text" size="small" @click="showViewerDialog = false" />
-        </v-card-title>
-        <v-divider />
-        <v-card-text class="pa-4">
-          <pre class="code-block">{{ formattedViewerContent }}</pre>
-        </v-card-text>
-      </v-card>
-    </v-dialog>
+<GlassDialog v-model="showViewerDialog" :max-width="1000" :cancel-visible="false">
+      <template #title>
+        <v-icon start>mdi-eye-outline</v-icon>
+        查看: {{ viewerTitle }}
+        <v-spacer />
+        <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-content-copy" @click="copyViewerContent">复制内容</v-btn>
+      </template>
+      <pre class="code-block code-block--flat">{{ formattedViewerContent }}</pre>
+    </GlassDialog>
 
     <!-- ==================== 创建数据库弹窗 ==================== -->
-    <v-dialog v-model="showCreateDbDialog" max-width="450" scrollable>
-      <v-card class="liquid-glass-card" rounded="xl">
-        <v-card-title class="pa-4">创建数据库</v-card-title>
-        <v-divider />
-        <v-card-text class="pa-4">
-          <v-text-field v-model="newDbName" label="数据库名称" variant="outlined" density="compact" class="mb-3" />
+    <GlassDialog v-model="showCreateDbDialog" :max-width="450" title="创建数据库">
+  <v-text-field v-model="newDbName" label="数据库名称" variant="outlined" density="compact" class="mb-3" />
           <v-select v-model="newDbOwner" :items="dbUserOptions" item-title="label" item-value="value"
             label="所有者" variant="outlined" density="compact" clearable hint="选择所有者 (可选)" persistent-hint />
-        </v-card-text>
-        <v-divider />
-        <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showCreateDbDialog = false">取消</v-btn>
-          <v-btn color="primary" variant="flat" prepend-icon="mdi-plus" :loading="creatingDb" @click="createDatabase">立即创建</v-btn>
-        </div>
-      </v-card>
-    </v-dialog>
+  <template #actions>
+    <v-btn color="primary" variant="flat" prepend-icon="mdi-plus" :loading="creatingDb" @click="createDatabase">立即创建</v-btn>
+  </template>
+</GlassDialog>
 
     <!-- ==================== 编辑数据库弹窗 ==================== -->
-    <v-dialog v-model="showEditDbDialog" max-width="500" scrollable>
-      <v-card class="liquid-glass-card" rounded="xl">
-        <v-card-title class="pa-4">编辑数据库: {{ editingDb?.name }}</v-card-title>
-        <v-divider />
-        <v-card-text class="pa-4">
-          <v-select v-model="editDbForm.owner" :items="dbUserOptions" item-title="label" item-value="value"
+    <GlassDialog v-model="showEditDbDialog" :max-width="500" :title="'编辑数据库:' + (editingDb?.name)">
+  <v-select v-model="editDbForm.owner" :items="dbUserOptions" item-title="label" item-value="value"
             label="所有者" variant="outlined" density="compact" class="mb-3" />
           <v-textarea v-model="editDbForm.description" label="备注/描述" variant="outlined" density="compact"
             rows="3" hint="为数据库添加描述信息..." persistent-hint />
-        </v-card-text>
-        <v-divider />
-        <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showEditDbDialog = false">取消</v-btn>
-          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" :loading="updatingDb" @click="updateDatabase">保存修改</v-btn>
-        </div>
-      </v-card>
-    </v-dialog>
+  <template #actions>
+    <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" :loading="updatingDb" @click="updateDatabase">保存修改</v-btn>
+  </template>
+</GlassDialog>
 
     <!-- ==================== 创建用户弹窗 ==================== -->
-    <v-dialog v-model="showCreateUserDialog" max-width="550" scrollable>
-      <v-card class="liquid-glass-card" rounded="xl">
-        <v-card-title class="pa-4">创建数据库用户/角色</v-card-title>
-        <v-divider />
-        <v-card-text class="pa-4" style="max-height:65vh;overflow-y:auto">
-          <v-text-field v-model="userForm.username" label="用户名/角色名" variant="outlined" density="compact" class="mb-3" />
+    <GlassDialog v-model="showCreateUserDialog" :max-width="550" title="创建数据库用户/角色">
+  <v-text-field v-model="userForm.username" label="用户名/角色名" variant="outlined" density="compact" class="mb-3" />
           <v-text-field v-model="userForm.password" label="密码" type="password" variant="outlined" density="compact" class="mb-3" />
           <v-text-field v-model="userForm.connection_limit" label="连接限制" type="number" variant="outlined" density="compact"
             hint="输入 -1 表示无限制" persistent-hint class="mb-3" />
@@ -918,22 +874,14 @@ onMounted(fetchHosts)
             <v-col cols="6"><v-switch v-model="userForm.replication" label="流复制 (REPLICATION)" density="compact" color="primary" hide-details /></v-col>
             <v-col cols="12"><v-switch v-model="userForm.bypass_rls" label="绕过 RLS (BYPASSRLS)" density="compact" color="primary" hide-details /></v-col>
           </v-row>
-        </v-card-text>
-        <v-divider />
-        <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showCreateUserDialog = false">取消</v-btn>
-          <v-btn color="primary" variant="flat" prepend-icon="mdi-plus" :loading="creatingUser" @click="createUser">创建角色</v-btn>
-        </div>
-      </v-card>
-    </v-dialog>
+  <template #actions>
+    <v-btn color="primary" variant="flat" prepend-icon="mdi-plus" :loading="creatingUser" @click="createUser">创建角色</v-btn>
+  </template>
+</GlassDialog>
 
     <!-- ==================== 编辑用户弹窗 ==================== -->
-    <v-dialog v-model="showEditUserDialog" max-width="550" scrollable>
-      <v-card class="liquid-glass-card" rounded="xl">
-        <v-card-title class="pa-4">编辑数据库用户: {{ editingUser?.username }}</v-card-title>
-        <v-divider />
-        <v-card-text class="pa-4" style="max-height:65vh;overflow-y:auto">
-          <v-text-field v-model="editUserForm.password" label="重置密码" type="password" variant="outlined" density="compact"
+    <GlassDialog v-model="showEditUserDialog" :max-width="550" :title="'编辑数据库用户:' + (editingUser?.username)">
+  <v-text-field v-model="editUserForm.password" label="重置密码" type="password" variant="outlined" density="compact"
             hint="留空则不修改" persistent-hint class="mb-3" />
           <v-text-field v-model="editUserForm.connection_limit" label="连接限制" type="number" variant="outlined" density="compact"
             hint="输入 -1 表示无限制" persistent-hint class="mb-3" />
@@ -948,40 +896,24 @@ onMounted(fetchHosts)
             <v-col cols="6"><v-switch v-model="editUserForm.replication" label="流复制 (REPLICATION)" density="compact" color="primary" hide-details /></v-col>
             <v-col cols="12"><v-switch v-model="editUserForm.bypass_rls" label="绕过 RLS (BYPASSRLS)" density="compact" color="primary" hide-details /></v-col>
           </v-row>
-        </v-card-text>
-        <v-divider />
-        <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showEditUserDialog = false">取消</v-btn>
-          <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" :loading="updatingUser" @click="updateUser">保存修改</v-btn>
-        </div>
-      </v-card>
-    </v-dialog>
+  <template #actions>
+    <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" :loading="updatingUser" @click="updateUser">保存修改</v-btn>
+  </template>
+</GlassDialog>
 
     <!-- ==================== 创建备份弹窗 ==================== -->
-    <v-dialog v-model="showCreateBackupDialog" max-width="450" scrollable>
-      <v-card class="liquid-glass-card" rounded="xl">
-        <v-card-title class="pa-4">创建数据库备份</v-card-title>
-        <v-divider />
-        <v-card-text class="pa-4">
-          <v-select v-model="selectedDbToBackup" :items="backupDbOptions" item-title="label" item-value="value"
+    <GlassDialog v-model="showCreateBackupDialog" :max-width="450" title="创建数据库备份">
+  <v-select v-model="selectedDbToBackup" :items="backupDbOptions" item-title="label" item-value="value"
             label="选择数据库" variant="outlined" density="compact" hint="请选择要备份的数据库" persistent-hint class="mb-3" />
           <div class="text-caption text-medium-emphasis">提示：备份将使用 pg_dump 生成 .bak 文件（自定义格式），支持高效还原。</div>
-        </v-card-text>
-        <v-divider />
-        <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showCreateBackupDialog = false">取消</v-btn>
-          <v-btn color="primary" variant="flat" prepend-icon="mdi-backup-restore" :loading="actionLoading" @click="createBackup">开始备份</v-btn>
-        </div>
-      </v-card>
-    </v-dialog>
+  <template #actions>
+    <v-btn color="primary" variant="flat" prepend-icon="mdi-backup-restore" :loading="actionLoading" @click="createBackup">开始备份</v-btn>
+  </template>
+</GlassDialog>
 
     <!-- ==================== 还原备份弹窗 ==================== -->
-    <v-dialog v-model="showRestoreDialog" max-width="450" scrollable>
-      <v-card class="liquid-glass-card" rounded="xl">
-        <v-card-title class="pa-4">还原备份: {{ selectedBackup?.filename }}</v-card-title>
-        <v-divider />
-        <v-card-text class="pa-4">
-          <v-select v-model="selectedDbToRestore" :items="backupDbOptions" item-title="label" item-value="value"
+    <GlassDialog v-model="showRestoreDialog" :max-width="450" :title="'还原备份:' + (selectedBackup?.filename)">
+  <v-select v-model="selectedDbToRestore" :items="backupDbOptions" item-title="label" item-value="value"
             label="目标数据库" variant="outlined" density="compact" hint="选择要还原到的目标数据库" persistent-hint class="mb-3" />
           <v-alert type="warning" variant="tonal" density="compact" class="mb-2">
             还原操作将执行以下步骤：<br />
@@ -990,14 +922,10 @@ onMounted(fetchHosts)
             3. 从备份文件恢复数据。<br />
             所有当前数据将被覆盖！
           </v-alert>
-        </v-card-text>
-        <v-divider />
-        <div class="d-flex justify-end ga-2 pa-4">
-          <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showRestoreDialog = false">取消</v-btn>
-          <v-btn color="error" variant="flat" prepend-icon="mdi-restore" :loading="actionLoading" @click="restoreBackup">确认还原</v-btn>
-        </div>
-      </v-card>
-    </v-dialog>
+  <template #actions>
+    <v-btn color="error" variant="flat" prepend-icon="mdi-restore" :loading="actionLoading" @click="restoreBackup">确认还原</v-btn>
+  </template>
+</GlassDialog>
   </v-container>
 </template>
 
