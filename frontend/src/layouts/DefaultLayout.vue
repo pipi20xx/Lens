@@ -25,10 +25,10 @@ const navGroups = [
     label: 'Emby 核心运维',
     icon: 'mdi-server-outline',
     items: [
-      { title: 'Emby 用户', icon: 'mdi-account-group-outline', to: '/emby/users' },
-      { title: '媒体库', icon: 'mdi-folder-multiple-outline', to: '/emby/libraries' },
-      { title: '定时任务', icon: 'mdi-clock-outline', to: '/emby/tasks' },
-      { title: '播放报告', icon: 'mdi-chart-bar', to: '/emby/playback-report' },
+      { title: 'Emby 用户管理', icon: 'mdi-account-group-outline', to: '/emby/users' },
+      { title: 'Emby 媒体库管理', icon: 'mdi-folder-multiple-outline', to: '/emby/libraries' },
+      { title: 'Emby 任务计划', icon: 'mdi-clock-outline', to: '/emby/tasks' },
+      { title: '播放统计报表', icon: 'mdi-chart-bar', to: '/emby/playback-report' },
     ],
   },
   {
@@ -36,15 +36,15 @@ const navGroups = [
     label: 'Emby 媒体工具',
     icon: 'mdi-tools',
     items: [
-      { title: '条目查询', icon: 'mdi-magnify', to: '/toolkit/emby-item-query' },
-      { title: 'TMDB 反向匹配', icon: 'mdi-link-variant', to: '/toolkit/tmdb-reverse-lookup' },
-      { title: 'TMDB ID 搜索', icon: 'mdi-identifier', to: '/toolkit/tmdb-id-search' },
-      { title: '重复检测', icon: 'mdi-content-duplicate', to: '/toolkit/dedupe' },
-      { title: '类型管理', icon: 'mdi-tag-outline', to: '/toolkit/type-manager' },
-      { title: '清理工具', icon: 'mdi-broom', to: '/toolkit/cleanup' },
-      { title: '锁定管理', icon: 'mdi-lock-outline', to: '/toolkit/lock-manager' },
-      { title: '自动标签', icon: 'mdi-tag-plus-outline', to: '/toolkit/autotags' },
-      { title: '演员管理', icon: 'mdi-account-star-outline', to: '/toolkit/actor-manager' },
+      { title: '项目元数据查询', icon: 'mdi-magnify', to: '/toolkit/emby-item-query' },
+      { title: '剧集 TMDB 反查', icon: 'mdi-link-variant', to: '/toolkit/tmdb-reverse-lookup' },
+      { title: 'TMDB ID 深度搜索', icon: 'mdi-identifier', to: '/toolkit/tmdb-id-search' },
+      { title: '重复项清理', icon: 'mdi-content-duplicate', to: '/toolkit/dedupe' },
+      { title: '类型映射管理', icon: 'mdi-tag-outline', to: '/toolkit/type-manager' },
+      { title: '媒体净化清理', icon: 'mdi-broom', to: '/toolkit/cleanup' },
+      { title: '元数据锁定器', icon: 'mdi-lock-outline', to: '/toolkit/lock-manager' },
+      { title: '自动标签助手', icon: 'mdi-tag-plus-outline', to: '/toolkit/autotags' },
+      { title: '演员信息维护', icon: 'mdi-account-star-outline', to: '/toolkit/actor-manager' },
     ],
   },
   {
@@ -128,7 +128,7 @@ onUnmounted(() => {
       :rail="rail && !isMobile"
       :permanent="!isMobile"
       :temporary="isMobile"
-      width="256"
+      width="280"
       rail-width="72"
     >
       <!-- Logo 区域 -->

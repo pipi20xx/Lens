@@ -11,6 +11,8 @@ export const dockerApi = {
   // ========== 容器管理 ==========
   getContainers: (hostId: string, details?: boolean) =>
     api.get(`/api/docker/${hostId}/containers`, { params: { details } }),
+  getStats: (hostId: string) =>
+    api.get(`/api/docker/${hostId}/containers/stats`),
   getContainerStats: (hostId: string) =>
     api.get(`/api/docker/${hostId}/containers/stats`),
   containerAction: (hostId: string, containerId: string, action: string) =>
@@ -19,6 +21,8 @@ export const dockerApi = {
     api.get(`/api/docker/${hostId}/containers/${containerId}/logs`, { params: { tail } }),
 
   // ========== Compose 项目 ==========
+  getProjects: (hostId: string) =>
+    api.get(`/api/docker/compose/${hostId}/projects`),
   getComposeProjects: (hostId: string) =>
     api.get(`/api/docker/compose/${hostId}/projects`),
   getComposeProject: (hostId: string, name: string) =>

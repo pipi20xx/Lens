@@ -20,13 +20,36 @@ export const terminalApi = {
 
   // ========== 快速命令 ==========
   getCommands: () => api.get('/api/terminal/commands'),
+  saveCommand: (data: any) =>
+    data.id ? api.put(`/api/terminal/commands/${data.id}`, data) : api.post('/api/terminal/commands', data),
   createCommand: (data: any) => api.post('/api/terminal/commands', data),
   updateCommand: (id: number, data: any) => api.put(`/api/terminal/commands/${id}`, data),
   deleteCommand: (id: number) => api.delete(`/api/terminal/commands/${id}`),
   reorderCommands: (ids: number[]) => api.post('/api/terminal/commands/reorder', ids),
 
+  // ========== 文件管理 ==========
+  ls: (hostId: number | string, path: string) =>
+    api.get(`/api/files/${hostId}/ls`, { params: { path } }),
+  read: (hostId: number | string, path: string) =>
+    api.get(`/api/files/${hostId}/read`, { params: { path } }),
+  write: (hostId: number | string, path: string, content: string) =>
+    api.post(`/api/files/${hostId}/write`, { path, content }),
+  action: (hostId: number | string, action: string, path: string, target?: string) =>
+    api.post(`/api/files/${hostId}/action`, { action, path, target }),
+  chmod: (hostId: number | string, data: any) =>
+    api.post(`/api/files/${hostId}/chmod`, data),
+  upload: (hostId: number | string, path: string, files: File[]) => {
+    const formData = new FormData()
+    formData.append('path', path)
+    files.forEach(file => formData.append('files', file))
+    return api.post(`/api/files/${hostId}/upload`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+  },
+  downloadUrl: (hostId: number | string, path: string) =>
+    `/api/files/${hostId}/download?path=${encodeURIComponent(path)}`,
+
   // ========== WebSocket 终端 ==========
-  // 获取 WebSocket 连接 URL (需在前端 new WebSocket(url) 使用)
   getWsUrl: (hostId: string | number) => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
     const host = window.location.host

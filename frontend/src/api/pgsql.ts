@@ -13,31 +13,31 @@ export const pgsqlApi = {
   // ========== 数据库操作 ==========
   getDatabases: (config: any) => api.post('/api/pgsql/databases', config),
   createDatabase: (config: any, req: { dbname: string; owner?: string }) =>
-    api.post('/api/pgsql/databases/create', { ...req, ...config }),
+    api.post('/api/pgsql/databases/create', { config, req }),
   updateDatabase: (dbname: string, config: any, req: { owner?: string; description?: string }) =>
-    api.patch(`/api/pgsql/databases/${dbname}`, { ...req, ...config }),
+    api.patch(`/api/pgsql/databases/${dbname}`, { config, req }),
   dropDatabase: (dbname: string, config: any) =>
-    api.delete(`/api/pgsql/databases/${dbname}`, { body: config }),
+    api.delete(`/api/pgsql/databases/${dbname}`, { data: config }),
 
   // ========== 用户/角色操作 ==========
   getUsers: (config: any) => api.post('/api/pgsql/users', config),
   createUser: (config: any, req: any) =>
-    api.post('/api/pgsql/users/create', { ...req, ...config }),
+    api.post('/api/pgsql/users/create', { config, req }),
   updateUser: (username: string, config: any, req: any) =>
-    api.patch(`/api/pgsql/users/${username}`, { ...req, ...config }),
+    api.patch(`/api/pgsql/users/${username}`, { config, req }),
   dropUser: (username: string, config: any) =>
-    api.delete(`/api/pgsql/users/${username}`, { body: config }),
+    api.delete(`/api/pgsql/users/${username}`, { data: config }),
 
   // ========== 数据/表操作 ==========
   getTables: (config: any) => api.post('/api/pgsql/tables', config),
   getTableData: (config: any, params: { table_name: string; page: number; page_size: number }) =>
-    api.post('/api/pgsql/data', { ...config, ...params }),
+    api.post('/api/pgsql/data', { config, params }),
 
   // ========== 备份管理 ==========
   getBackups: () => api.get('/api/pgsql/backups'),
-  createBackup: (config: any, dbname: string) =>
-    api.post('/api/pgsql/backups/create', { ...config, dbname }),
+  createBackup: (config: any, req: { dbname: string }) =>
+    api.post('/api/pgsql/backups/create', { config, req }),
   restoreBackup: (filename: string, config: any, dbname: string) =>
-    api.post(`/api/pgsql/backups/restore/${filename}`, { ...config, dbname }),
+    api.post(`/api/pgsql/backups/restore/${filename}`, config, { params: { dbname } }),
   deleteBackup: (filename: string) => api.delete(`/api/pgsql/backups/${filename}`),
 }

@@ -63,9 +63,18 @@ async def get_subject(subject_id: int):
     try:
         async with get_async_client(use_proxy=True) as client:
             response = await client.get(url, headers=headers)
+            if response.status_code == 401:
+                # Token 无效/过期 — 不带 token 重试一次
+                logger.warning(f"⚠️ Bangumi Token 无效/过期，尝试不带 Token 请求条目 {subject_id}")
+                headers_fallback = {"User-Agent": "Lens/1.0.0 (https://github.com/pipi20xx/Lens)"}
+                response = await client.get(url, headers=headers_fallback)
             if response.status_code != 200:
-                logger.error(f"❌ Bangumi 获取条目失败: {response.text}")
-                return {"error": "Bangumi API 返回错误", "details": response.json() if response.content else response.text}
+                error_detail = response.json() if response.content else response.text
+                logger.error(f"❌ Bangumi 获取条目失败: {response.status_code} - {response.text[:200]}")
+                # 如果是 401，给出更明确的提示
+                if response.status_code == 401:
+                    return {"error": "Bangumi API Token 已过期或无效，请在系统设置中更新 bangumi_api_token", "details": error_detail}
+                return {"error": "Bangumi API 返回错误", "details": error_detail}
             
             data = response.json()
             return data
@@ -86,8 +95,17 @@ async def get_characters(subject_id: int):
     try:
         async with get_async_client(use_proxy=True) as client:
             response = await client.get(url, headers=headers)
+            if response.status_code == 401:
+                # Token 无效/过期 — 不带 token 重试
+                logger.warning(f"⚠️ Bangumi Token 无效/过期，尝试不带 Token 请求角色 subject_id={subject_id}")
+                headers_fallback = {"User-Agent": "Lens/1.0.0 (https://github.com/pipi20xx/Lens)"}
+                response = await client.get(url, headers=headers_fallback)
             if response.status_code != 200:
-                return {"error": "Bangumi API 返回错误", "details": response.text}
+                error_detail = response.json() if response.content else response.text
+                logger.error(f"❌ Bangumi 获取角色失败: {response.status_code} - {response.text[:200]}")
+                if response.status_code == 401:
+                    return {"error": "Bangumi API Token 已过期或无效，请在系统设置中更新 bangumi_api_token", "details": error_detail}
+                return {"error": "Bangumi API 返回错误", "details": error_detail}
             
             data = response.json()
             return data
@@ -121,9 +139,17 @@ async def get_episodes(
     try:
         async with get_async_client(use_proxy=True) as client:
             response = await client.get(url, params=params, headers=headers)
+            if response.status_code == 401:
+                # Token 无效/过期 — 不带 token 重试
+                logger.warning(f"⚠️ Bangumi Token 无效/过期，尝试不带 Token 请求章节 subject_id={subject_id}")
+                headers_fallback = {"User-Agent": "Lens/1.0.0 (https://github.com/pipi20xx/Lens)"}
+                response = await client.get(url, params=params, headers=headers_fallback)
             if response.status_code != 200:
-                logger.error(f"❌ Bangumi 获取章节失败: {response.text}")
-                return {"error": "Bangumi API 返回错误", "details": response.json() if response.content else response.text}
+                error_detail = response.json() if response.content else response.text
+                logger.error(f"❌ Bangumi 获取章节失败: {response.status_code} - {response.text[:200]}")
+                if response.status_code == 401:
+                    return {"error": "Bangumi API Token 已过期或无效，请在系统设置中更新 bangumi_api_token", "details": error_detail}
+                return {"error": "Bangumi API 返回错误", "details": error_detail}
             
             data = response.json()
             return data

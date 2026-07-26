@@ -3,13 +3,15 @@ import { api } from './client'
 export const systemApi = {
   // ========== 系统配置 ==========
   getConfig: () => api.get('/api/system/config'),
-  updateConfig: (configs: any[]) => api.post('/api/system/config', { configs }),
+  saveConfig: (configs: any[]) => api.post('/api/system/config', { configs }),
   exportConfig: () => api.get('/api/system/config/export'),
   importConfig: (formData: FormData) => api.post('/api/system/config/import', formData),
   generateToken: () => api.post('/api/system/token/generate'),
 
   // ========== 版本 & 升级 ==========
   getVersion: () => api.get('/api/system/version'),
+  upgrade: (hostId?: string) =>
+    api.post('/api/system/upgrade', null, { params: { host_id: hostId } }),
   upgradeSystem: (hostId?: string) =>
     api.post('/api/system/upgrade', null, { params: { host_id: hostId } }),
 
@@ -26,7 +28,7 @@ export const systemApi = {
 
   // ========== 系统状态 ==========
   getStatus: () => api.get('/api/status'),
-  getStats: () => api.get('/api/stats'),
+  getStats: () => api.get('/api/stats/summary'),
 
   // ========== API 文档 ==========
   getDocsUrl: (token?: string) =>

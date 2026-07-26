@@ -79,6 +79,13 @@ export default defineConfig(({ mode }) => {
     server: {
       host: '0.0.0.0',
       port: 3000,
+      watch: {
+        // Docker 绑定挂载下 inotify 事件无法跨文件系统边界传递，
+        // 必须启用轮询模式才能触发 HMR 热更新。
+        // 本地裸机开发时性能影响可忽略，生产构建不涉及此配置。
+        usePolling: true,
+        interval: 100,
+      },
       proxy: {
         '/api': { target: 'http://backend:6565', changeOrigin: true },
         '/ws': { target: 'ws://backend:6565', ws: true, changeOrigin: true },
