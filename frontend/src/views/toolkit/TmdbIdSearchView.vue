@@ -66,7 +66,7 @@ function formatRuntime(ticks: number) {
           </v-card-title>
           <v-divider />
           <v-card-text class="pa-4">
-            <div class="d-flex ga-3 mb-3">
+            <div class="d-flex align-center ga-3 mb-3">
               <v-text-field v-model="form.tmdb_id" prepend-inner-icon="mdi-identifier" placeholder="输入 TMDB ID (如: 94359)"
                 variant="outlined" density="compact" hide-details clearable style="max-width:200px"
                 @keydown.enter="handleSearch" />

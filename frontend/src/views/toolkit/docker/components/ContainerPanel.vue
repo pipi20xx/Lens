@@ -5,6 +5,7 @@ import { useNotification } from '@/composables'
 import { useConfirm } from '@/composables'
 import { useDockerHost } from '../composables/useDockerHost'
 import GlassDialog from '@/components/common/GlassDialog.vue'
+import ContainerTerminalDialog from './ContainerTerminalDialog.vue'
 
 const { success, error: showError, info, warning } = useNotification()
 const { confirm } = useConfirm()
@@ -168,6 +169,33 @@ async function checkSingleUpdate(image: string) {
   finally { loadingActions.value[image] = false }
 }
 
+// ========== 终端 ==========
+const showTerminalDialog = ref(false)
+const terminalContainer = ref({ id: '', name: '', shell: '/bin/bash' })
+const showShellDialog = ref(false)
+const selectedShell = ref('/bin/bash')
+const shellOptions = [
+  { title: 'bash', value: '/bin/bash' },
+  { title: 'sh', value: '/bin/sh' },
+  { title: 'ash', value: '/bin/ash' },
+]
+
+function openTerminal(row: any) {
+  if (row.status !== 'running') {
+    warning('只有运行中的容器可以进入终端')
+    return
+  }
+  terminalContainer.value = { id: row.full_id || row.id, name: row.name, shell: '/bin/bash' }
+  selectedShell.value = '/bin/bash'
+  showShellDialog.value = true
+}
+
+function confirmOpenTerminal() {
+  terminalContainer.value.shell = selectedShell.value
+  showShellDialog.value = false
+  showTerminalDialog.value = true
+}
+
 // ========== 工具函数 ==========
 function getTargetIp() {
   const host = currentHost.value
@@ -205,15 +233,12 @@ defineExpose({ loadContainers, loadContainerSettings })
 
 <template>
   <div>
-    <div class="d-flex ga-3 mb-4 flex-wrap">
+    <div class="control-row mb-4">
       <v-text-field v-model="searchQuery" prepend-inner-icon="mdi-magnify" placeholder="搜索容器名称或镜像..." variant="outlined" density="compact" hide-details clearable style="max-width:360px" />
       <v-spacer />
       <v-btn prepend-icon="mdi-refresh" variant="tonal" size="small" @click="loadContainers" :loading="loading">刷新</v-btn>
       <v-btn prepend-icon="mdi-delete-sweep" variant="tonal" size="small" color="error" :loading="loadingActions['prune']" @click="handlePruneContainers">清理停止的容器</v-btn>
-      <div class="d-flex align-center ga-2">
-        <span class="text-caption text-medium-emphasis">增强监控</span>
-        <v-switch v-model="enhancedMode" density="compact" hide-details color="primary" />
-      </div>
+      <v-switch v-model="enhancedMode" label="增强监控" density="compact" hide-details color="primary" />
     </div>
 
     <v-progress-linear v-if="loading" indeterminate color="primary" class="mb-4" />
@@ -280,6 +305,7 @@ defineExpose({ loadContainers, loadContainerSettings })
             <v-btn size="small" :color="updateInfo[row.image]?.has_update ? 'error' : 'warning'" variant="tonal" prepend-icon="mdi-update" :loading="loadingActions[row.id]" @click="containerAction(row.id, 'recreate')">{{ updateInfo[row.image]?.has_update ? '发现新镜像' : '更新' }}</v-btn>
             <v-btn size="small" color="error" variant="tonal" prepend-icon="mdi-delete-outline" :loading="loadingActions[row.id]" @click="handleDeleteContainer(row)">删除</v-btn>
             <v-btn size="small" color="info" variant="tonal" @click="showLogs(row.id, row.name)"><v-icon start>mdi-text-box-outline</v-icon> 日志</v-btn>
+            <v-btn size="small" color="success" variant="tonal" prepend-icon="mdi-console" @click="openTerminal(row)">终端</v-btn>
             <v-btn size="small" variant="tonal" @click="openSettingsModal(row.name)"><v-icon start>mdi-cog-outline</v-icon> 设置</v-btn>
           </div>
         </div>
@@ -307,6 +333,27 @@ defineExpose({ loadContainers, loadContainerSettings })
         <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveContainerSettings">保存</v-btn>
       </template>
     </GlassDialog>
+
+    <!-- Shell 选择对话框 -->
+    <GlassDialog v-model="showShellDialog" :max-width="380"
+      icon="mdi-console" title="选择终端 Shell" cancel-text="取消"
+    >
+      <v-radio-group v-model="selectedShell" density="compact">
+        <v-radio v-for="opt in shellOptions" :key="opt.value" :value="opt.value" :label="opt.title" />
+      </v-radio-group>
+      <template #actions>
+        <v-btn color="primary" variant="flat" prepend-icon="mdi-console" @click="confirmOpenTerminal">进入终端</v-btn>
+      </template>
+    </GlassDialog>
+
+    <!-- 容器终端对话框 -->
+    <ContainerTerminalDialog
+      v-model="showTerminalDialog"
+      :host-id="hostId || ''"
+      :container-id="terminalContainer.id"
+      :container-name="terminalContainer.name"
+      :command="terminalContainer.shell"
+    />
   </div>
 </template>
 

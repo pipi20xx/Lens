@@ -52,7 +52,7 @@ function copyTmdb() {
           </v-card-title>
           <v-divider />
           <v-card-text class="pa-4">
-            <div class="d-flex ga-3">
+            <div class="d-flex align-center ga-3">
               <v-text-field v-model="episodeId" prepend-inner-icon="mdi-identifier" placeholder="输入 Episode ID (例如: 108)"
                 variant="outlined" density="compact" hide-details clearable style="max-width:320px"
                 @keydown.enter="handleLookup" />

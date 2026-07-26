@@ -88,7 +88,7 @@ function getEmbyAvatar(person: any) {
           </v-card-title>
           <v-divider />
           <v-card-text class="pa-4">
-            <div class="d-flex ga-3 mb-4">
+            <div class="d-flex align-center ga-3 mb-4">
               <v-select v-model="embyMode" :items="searchModes" variant="outlined" density="compact"
                 hide-details style="max-width:120px" />
               <v-text-field v-model="embyQuery"
@@ -140,7 +140,7 @@ function getEmbyAvatar(person: any) {
           <v-card-text class="pa-4">
             <div v-if="selectedEmby">
               <p class="text-caption text-medium-emphasis mb-2">显示姓名 (修改后即时同步至 Emby)</p>
-              <div class="d-flex ga-3">
+              <div class="d-flex align-center ga-3">
                 <v-text-field v-model="editName" placeholder="新姓名" variant="outlined" density="compact" hide-details />
                 <v-btn color="primary" variant="flat" prepend-icon="mdi-pencil-outline" @click="handleUpdateName" :loading="nameLoading">执行修改</v-btn>
               </div>

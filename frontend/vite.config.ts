@@ -87,7 +87,7 @@ export default defineConfig(({ mode }) => {
         interval: 100,
       },
       proxy: {
-        '/api': { target: 'http://backend:6565', changeOrigin: true },
+        '/api': { target: 'http://backend:6565', changeOrigin: true, ws: true },
         '/ws': { target: 'ws://backend:6565', ws: true, changeOrigin: true },
         '/nav_icons': { target: 'http://backend:6565', changeOrigin: true },
         '/nav_backgrounds': { target: 'http://backend:6565', changeOrigin: true },

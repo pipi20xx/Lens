@@ -418,7 +418,7 @@ onMounted(() => {
             <v-divider class="mb-4" />
 
             <p class="text-caption text-medium-emphasis mb-2">写入测试 (手动验证权限与解锁逻辑)</p>
-            <div class="d-flex ga-2">
+            <div class="d-flex align-center ga-2">
               <v-text-field v-model="testId" placeholder="Emby ID" variant="outlined" density="compact" hide-details style="max-width:120px" />
               <v-text-field v-model="testTag" placeholder="标签名" variant="outlined" density="compact" hide-details />
               <v-btn size="small" color="primary" variant="tonal" prepend-icon="mdi-pencil-outline" @click="testWrite">执行写入测试</v-btn>

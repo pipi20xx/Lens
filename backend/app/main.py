@@ -41,6 +41,10 @@ async def audit_middleware(request: Request, call_next):
     start_time = time.time()
     path = request.url.path
     
+    # --- 0. WebSocket 升级请求直接放行（由 WebSocket 端点自行鉴权）---
+    if request.headers.get("upgrade", "").lower() == "websocket":
+        return await call_next(request)
+
     # --- 1. 核心安全拦截逻辑 ---
     # 只保留必须公开的接口：登录、图片代理、API 文档、Webhook 接收端点
     public_paths = ["/api/auth/login", "/api/playback-report/image-proxy", "/api/system/docs", "/api/system/openapi.json"]
