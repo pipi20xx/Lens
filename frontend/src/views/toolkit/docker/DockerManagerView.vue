@@ -6,6 +6,7 @@ import ContainerPanel from './components/ContainerPanel.vue'
 import ComposePanel from './components/ComposePanel.vue'
 import SystemPanel from './components/SystemPanel.vue'
 import MaintenancePanel from './components/MaintenancePanel.vue'
+import FileBrowserPanel from './components/FileBrowserPanel.vue'
 import HostManagerDialog from './components/HostManagerDialog.vue'
 import AutoUpdateDialog from './components/AutoUpdateDialog.vue'
 
@@ -21,12 +22,14 @@ const containersActive = computed(() => activeTab.value === 'containers')
 const composeActive = computed(() => activeTab.value === 'compose')
 const systemActive = computed(() => activeTab.value === 'system')
 const maintenanceActive = computed(() => activeTab.value === 'maintenance')
+const filesActive = computed(() => activeTab.value === 'files')
 
 // 子组件 ref，用于 refreshAll
 const containerPanel = ref<InstanceType<typeof ContainerPanel> | null>(null)
 const composePanel = ref<InstanceType<typeof ComposePanel> | null>(null)
 const systemPanel = ref<InstanceType<typeof SystemPanel> | null>(null)
 const maintenancePanel = ref<InstanceType<typeof MaintenancePanel> | null>(null)
+const fileBrowserPanel = ref<InstanceType<typeof FileBrowserPanel> | null>(null)
 
 function removeScanPath(path: string) {
   if (!currentHost.value) return
@@ -75,6 +78,7 @@ onMounted(() => { fetchHosts() })
       <v-tab value="compose"><v-icon start>mdi-file-document-outline</v-icon> Compose 管理</v-tab>
       <v-tab value="system"><v-icon start>mdi-information-outline</v-icon> 环境检测</v-tab>
       <v-tab value="maintenance"><v-icon start>mdi-wrench-outline</v-icon> 配置</v-tab>
+      <v-tab value="files"><v-icon start>mdi-folder-outline</v-icon> 主机文件</v-tab>
     </v-tabs>
 
     <v-window v-model="activeTab">
@@ -89,6 +93,9 @@ onMounted(() => { fetchHosts() })
       </v-window-item>
       <v-window-item value="maintenance">
         <MaintenancePanel ref="maintenancePanel" :active="maintenanceActive" :host-id="selectedHostId" />
+      </v-window-item>
+      <v-window-item value="files">
+        <FileBrowserPanel ref="fileBrowserPanel" :active="filesActive" :host-id="selectedHostId" />
       </v-window-item>
     </v-window>
 
