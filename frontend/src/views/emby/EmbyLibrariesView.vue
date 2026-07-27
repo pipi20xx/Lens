@@ -585,7 +585,7 @@ onMounted(loadLibraries)
           <div class="text-subtitle-2 font-weight-bold mb-2">核心扫描与监控</div>
           <v-row>
             <v-col v-for="opt in scanOptions" :key="opt.key" cols="12" sm="6">
-              <v-switch :model-value="getLibOption(opt.key)" @update:model-value="setLibOption(opt.key, $event)" :label="opt.label" density="compact" hide-details />
+              <v-switch :model-value="getLibOption(opt.key)" @update:model-value="setLibOption(opt.key, $event)" :label="opt.label" density="compact" hide-details color="primary" />
             </v-col>
           </v-row>
 
@@ -593,7 +593,7 @@ onMounted(loadLibraries)
           <div class="text-subtitle-2 font-weight-bold mb-2">元数据与保存设置</div>
           <v-row>
             <v-col v-for="opt in saveOptions" :key="opt.key" cols="12" sm="6">
-              <v-switch :model-value="getLibOption(opt.key)" @update:model-value="setLibOption(opt.key, $event)" :label="opt.label" density="compact" hide-details />
+              <v-switch :model-value="getLibOption(opt.key)" @update:model-value="setLibOption(opt.key, $event)" :label="opt.label" density="compact" hide-details color="primary" />
             </v-col>
           </v-row>
 
@@ -601,7 +601,7 @@ onMounted(loadLibraries)
           <div class="text-subtitle-2 font-weight-bold mb-2">高级播放与刮削控制</div>
           <v-row>
             <v-col v-for="opt in otherOptions" :key="opt.key" cols="12" sm="6">
-              <v-switch :model-value="getLibOption(opt.key)" @update:model-value="setLibOption(opt.key, $event)" :label="opt.label" density="compact" hide-details />
+              <v-switch :model-value="getLibOption(opt.key)" @update:model-value="setLibOption(opt.key, $event)" :label="opt.label" density="compact" hide-details color="primary" />
             </v-col>
           </v-row>
 
@@ -610,7 +610,7 @@ onMounted(loadLibraries)
             <div class="text-subtitle-2 font-weight-bold mb-2">电影库专属选项</div>
             <v-row>
               <v-col v-for="opt in movieOptions" :key="opt.key" cols="12" sm="6">
-                <v-switch :model-value="getLibOption(opt.key)" @update:model-value="setLibOption(opt.key, $event)" :label="opt.label" density="compact" hide-details />
+                <v-switch :model-value="getLibOption(opt.key)" @update:model-value="setLibOption(opt.key, $event)" :label="opt.label" density="compact" hide-details color="primary" />
               </v-col>
             </v-row>
           </template>
@@ -620,7 +620,7 @@ onMounted(loadLibraries)
             <div class="text-subtitle-2 font-weight-bold mb-2">电视节目库专属选项</div>
             <v-row>
               <v-col v-for="opt in seriesOptions" :key="opt.key" cols="12" sm="6">
-                <v-switch :model-value="getLibOption(opt.key)" @update:model-value="setLibOption(opt.key, $event)" :label="opt.label" density="compact" hide-details />
+                <v-switch :model-value="getLibOption(opt.key)" @update:model-value="setLibOption(opt.key, $event)" :label="opt.label" density="compact" hide-details color="primary" />
               </v-col>
             </v-row>
           </template>
@@ -631,7 +631,7 @@ onMounted(loadLibraries)
           <v-alert variant="tonal" type="info" density="compact" class="mb-3" rounded="lg">
             高级操作：您可以直接编辑下方的原始 JSON 数据进行高级配置。
           </v-alert>
-          <v-textarea v-model="jsonRaw" variant="outlined" :rows="jsonRows" auto-grow class="raw-json-textarea" style="font-family: monospace" @update:model-value="handleJsonInput" />
+          <v-textarea v-model="jsonRaw" variant="outlined" :rows="jsonRows" auto-grow class="yaml-editor" @update:model-value="handleJsonInput" />
         </v-window-item>
       </v-window>
 
@@ -642,9 +642,3 @@ onMounted(loadLibraries)
     </GlassDialog>
   </v-container>
 </template>
-
-<style scoped>
-.raw-json-textarea :deep(textarea) {
-  max-height: 55vh !important;
-}
-</style>

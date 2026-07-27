@@ -235,7 +235,7 @@ defineExpose({ loadDaemonConfig })
         </div>
 
         <div v-if="previewPruneCommand" class="code-block mb-4">
-          <span class="text-caption text-medium-emphasis" style="font-size:12px">将要执行的命令：</span>
+          <span class="text-caption text-medium-emphasis">将要执行的命令：</span>
           <code>{{ previewPruneCommand }}</code>
         </div>
         <div class="d-flex align-center justify-space-between">
@@ -250,7 +250,7 @@ defineExpose({ loadDaemonConfig })
       icon="mdi-code-block-braces" title="直接编辑 daemon.json"
     >
       <v-alert type="warning" variant="tonal" density="compact" class="mb-3" text="警告：直接编辑 JSON 可能会导致 Docker 无法启动。系统将会在保存前验证 JSON 格式并自动创建备份。" />
-      <v-textarea v-model="rawJsonContent" variant="outlined" :rows="Math.min(rawJsonContent.split('\n').length, 30)" auto-grow style="font-family:'Fira Code','JetBrains Mono',monospace" :error-messages="rawJsonError ? [rawJsonError] : []" @update:model-value="validateRawJson" />
+      <v-textarea v-model="rawJsonContent" variant="outlined" :rows="Math.min(rawJsonContent.split('\n').length, 30)" auto-grow class="yaml-editor" :error-messages="rawJsonError ? [rawJsonError] : []" @update:model-value="validateRawJson" />
       <v-checkbox v-model="daemonForm.shouldRestart" density="compact" hide-details label="保存后重启 Docker 服务" class="mt-3" />
 
       <template #actions>

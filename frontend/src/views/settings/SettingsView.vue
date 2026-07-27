@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { serverApi } from '@/api/server'
 import { configApi } from '@/api/config'
 import { systemApi } from '@/api/system'
+import { downloadFile } from '@/api/client'
 import { useNotification, useClipboard } from '@/composables'
 import GlassDialog from '@/components/common/GlassDialog.vue'
 import SecretField from '@/components/common/SecretField.vue'
@@ -188,7 +189,7 @@ async function generateToken() {
 
 // ========== 配置导入导出 ==========
 function exportConfig() {
-  window.open('/api/system/config/export', '_blank')
+  downloadFile('/api/system/config/export', 'config.json')
 }
 
 async function importConfig(event: Event) {
@@ -276,7 +277,7 @@ onMounted(loadAll)
                       </div>
                       <div class="text-caption text-medium-emphasis font-mono mb-3">{{ server.url }}</div>
                       <div class="d-flex flex-wrap ga-2">
-                        <v-btn size="x-small" variant="tonal" color="secondary" prepend-icon="mdi-cog-outline" @click="openEditServer(server)">配置</v-btn>
+                        <v-btn size="x-small" variant="tonal" color="info" prepend-icon="mdi-cog-outline" @click="openEditServer(server)">配置</v-btn>
                         <v-btn v-if="server.id !== activeServerId" size="x-small" color="primary" variant="tonal" prepend-icon="mdi-check-circle-outline" @click="activateServer(server.id)">激活</v-btn>
                         <v-btn size="x-small" color="error" variant="tonal" prepend-icon="mdi-delete-outline" @click="deleteServer(server.id)">删除</v-btn>
                       </div>
@@ -434,7 +435,7 @@ onMounted(loadAll)
           <v-text-field v-model="serverForm.username" label="用户名 (用于登录)" variant="outlined" density="compact" class="mb-3" />
           <SecretField v-model="serverForm.password" label="密码" class="mb-3" />
   <template #actions>
-    <v-btn variant="text" prepend-icon="mdi-lan-connect" @click="testConnection">测试连接</v-btn>
+    <v-btn variant="tonal" color="warning" prepend-icon="mdi-lan-connect" @click="testConnection">测试连接</v-btn>
     <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveServer">保存</v-btn>
   </template>
 </GlassDialog>

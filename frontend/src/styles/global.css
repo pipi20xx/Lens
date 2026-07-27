@@ -2127,8 +2127,13 @@ code {
   color: rgba(0, 0, 0, 0.3);
 }
 
-/* ── 等宽字体工具类 — ContainerPanel ── */
+/* ── 等宽字体工具类 — Docker 面板等 ── */
 .font-mono {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+}
+
+/* ── YAML/代码编辑器 — textarea 等宽字体 ── */
+.yaml-editor :deep(textarea) {
   font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
 }
 

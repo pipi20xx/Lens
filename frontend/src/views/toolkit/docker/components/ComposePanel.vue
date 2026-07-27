@@ -141,9 +141,9 @@ defineExpose({ loadComposeProjects })
 
 <template>
   <div>
-    <div class="d-flex ga-3 mb-4 flex-wrap">
+    <div class="control-row mb-4">
       <v-btn prepend-icon="mdi-plus" color="primary" variant="tonal" size="small" @click="handleCreateProject">新建项目</v-btn>
-      <v-text-field v-model="composeSearchQuery" prepend-inner-icon="mdi-magnify" placeholder="搜索项目..." variant="outlined" density="compact" hide-details clearable style="max-width:300px" />
+      <v-text-field v-model="composeSearchQuery" prepend-inner-icon="mdi-magnify" placeholder="搜索项目..." variant="outlined" density="compact" hide-details clearable class="flex-grow-0" style="max-width:300px" />
       <v-spacer />
       <v-btn-group density="compact">
         <v-btn prepend-icon="mdi-refresh" variant="tonal" size="small" color="info" @click="loadComposeProjects" :loading="loadingCompose">刷新</v-btn>
@@ -161,27 +161,44 @@ defineExpose({ loadComposeProjects })
       </v-col>
     </v-row>
 
-    <div class="d-flex flex-column ga-3">
-      <v-card v-for="project in filteredComposeProjects" :key="project.name" class="status-card liquid-glass-card" rounded="lg" :class="{'is-running': project.status?.includes('running')}">
-        <div class="pa-4">
-          <div class="d-flex align-center mb-1">
-            <div class="d-flex align-center ga-1 flex-grow-1" style="min-width:0">
-              <span class="text-subtitle-2 font-weight-bold">{{ project.name }}</span>
-              <v-chip v-if="project.type === 'scanned'" size="x-small" variant="tonal" color="info">已记忆</v-chip>
-              <v-chip v-else size="x-small" variant="outlined" color="warning">探测到</v-chip>
-            </div>
-            <v-chip :color="project.status?.includes('running') ? 'success' : 'grey'" size="small" variant="tonal" label>{{ formatComposeStatus(project.status) }}</v-chip>
+    <div v-if="filteredComposeProjects.length" class="task-list">
+      <v-card
+        v-for="project in filteredComposeProjects"
+        :key="project.name"
+        class="status-card liquid-glass-card"
+        :class="{ 'is-running': project.status?.includes('running') }"
+        rounded="lg"
+      >
+        <!-- 卡片头部 -->
+        <div class="card-header pa-4 pb-2">
+          <div class="card-title">
+            <v-icon start color="primary" size="20">mdi-file-document-outline</v-icon>
+            <span class="text-subtitle-2 font-weight-bold">{{ project.name }}</span>
+            <v-chip v-if="project.type === 'scanned'" size="x-small" variant="tonal" color="info">已记忆</v-chip>
+            <v-chip v-else size="x-small" variant="outlined" color="warning">探测到</v-chip>
           </div>
-          <div class="text-caption text-medium-emphasis font-mono mb-2" style="opacity:0.6;word-break:break-all;font-size:11px">{{ project.config_file || project.path }}</div>
-          <v-divider class="my-2" />
-          <div class="d-flex flex-wrap ga-2">
-            <v-btn size="small" color="primary" variant="tonal" prepend-icon="mdi-play" :loading="loadingActions[project.name]" @click="composeAction(project.name, 'up', project.config_file || project.path)">启动/更新</v-btn>
-            <v-btn size="small" color="warning" variant="tonal" prepend-icon="mdi-download" :loading="loadingActions[project.name]" @click="composeAction(project.name, 'pull', project.config_file || project.path)">拉取</v-btn>
-            <v-btn size="small" color="error" variant="tonal" prepend-icon="mdi-stop" :loading="loadingActions[project.name]" @click="composeAction(project.name, 'down', project.config_file || project.path)">停止</v-btn>
-            <v-btn size="small" variant="tonal" color="warning" prepend-icon="mdi-pencil-outline" @click="editProject(project)">编辑</v-btn>
-            <v-btn size="small" color="error" variant="tonal" prepend-icon="mdi-delete-outline" @click="handleDeleteComposeProject(project)">删除</v-btn>
-            <v-btn size="small" color="info" variant="tonal" prepend-icon="mdi-backup-restore" @click="createBackupTask(project)">备份</v-btn>
+          <v-chip :color="project.status?.includes('running') ? 'success' : 'grey'" size="small" variant="tonal" label>
+            {{ formatComposeStatus(project.status) }}
+          </v-chip>
+        </div>
+
+        <!-- 信息行 -->
+        <div class="card-info px-4 pb-2">
+          <div class="info-item">
+            <span class="info-label">路径</span>
+            <span class="font-mono text-caption text-medium-emphasis text-truncate">{{ project.config_file || project.path }}</span>
           </div>
+        </div>
+
+        <!-- 操作按钮 -->
+        <v-divider class="mt-2" />
+        <div class="d-flex flex-wrap ga-2 pa-3">
+          <v-btn size="small" color="primary" variant="tonal" prepend-icon="mdi-play" :loading="loadingActions[project.name]" @click="composeAction(project.name, 'up', project.config_file || project.path)">启动/更新</v-btn>
+          <v-btn size="small" color="warning" variant="tonal" prepend-icon="mdi-download" :loading="loadingActions[project.name]" @click="composeAction(project.name, 'pull', project.config_file || project.path)">拉取</v-btn>
+          <v-btn size="small" color="error" variant="tonal" prepend-icon="mdi-stop" :loading="loadingActions[project.name]" @click="composeAction(project.name, 'down', project.config_file || project.path)">停止</v-btn>
+          <v-btn size="small" variant="tonal" color="warning" prepend-icon="mdi-pencil-outline" @click="editProject(project)">编辑</v-btn>
+          <v-btn size="small" color="error" variant="tonal" prepend-icon="mdi-delete-outline" @click="handleDeleteComposeProject(project)">删除</v-btn>
+          <v-btn size="small" color="info" variant="tonal" prepend-icon="mdi-backup-restore" @click="createBackupTask(project)">备份</v-btn>
         </div>
       </v-card>
     </div>
@@ -196,7 +213,7 @@ defineExpose({ loadComposeProjects })
         <v-text-field v-model="baseSavePath" label="基础保存路径" variant="outlined" density="compact" placeholder="选择存放项目的根目录" class="mb-3" />
         <div class="mb-3"><span class="text-body-2 text-medium-emphasis">完整保存路径：</span><code class="text-body-2">{{ finalSavePath }}</code></div>
       </template>
-      <v-textarea v-model="currentProject.content" label="YAML 内容" variant="outlined" placeholder="在此输入 docker-compose.yml 内容" :rows="Math.min(currentProject.content.split('\n').length, 30)" auto-grow style="font-family:'Fira Code','JetBrains Mono',monospace" :error-messages="yamlError ? [yamlError] : []" @update:model-value="handleYamlInput" />
+      <v-textarea v-model="currentProject.content" label="YAML 内容" variant="outlined" placeholder="在此输入 docker-compose.yml 内容" :rows="Math.min(currentProject.content.split('\n').length, 30)" auto-grow class="yaml-editor" :error-messages="yamlError ? [yamlError] : []" @update:model-value="handleYamlInput" />
 
       <template #actions>
         <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveProject" :disabled="!!yamlError">保存项目</v-btn>
@@ -204,5 +221,3 @@ defineExpose({ loadComposeProjects })
     </GlassDialog>
   </div>
 </template>
-
-

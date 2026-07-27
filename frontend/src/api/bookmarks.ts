@@ -1,4 +1,4 @@
-import { api } from './client'
+import { api, downloadFile } from './client'
 
 export const bookmarksApi = {
   /** 获取书签列表 (as_tree=true 返回树形结构) */
@@ -28,16 +28,9 @@ export const bookmarksApi = {
   /** 批量健康检查 */
   checkHealth: (urls: string[]) => api.post('/api/bookmarks/check-health', { urls }),
 
-  /** 导出书签 HTML */
-  export: () => api.get('/api/bookmarks/export', { responseType: 'blob' }),
-  exportBookmarks: () => {
-    const link = document.createElement('a')
-    link.href = '/api/bookmarks/export'
-    link.setAttribute('download', '')
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  },
+  /** 导出书签 HTML (带认证下载) */
+  export: () => api.get('/api/bookmarks/export', { responseType: 'blob' } as any),
+  exportBookmarks: () => downloadFile('/api/bookmarks/export', 'bookmarks.html'),
 
   /** 重新排序 */
   reorder: (orderedIds: string[], parentId: string | null = undefined) =>

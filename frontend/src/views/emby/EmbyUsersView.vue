@@ -240,9 +240,9 @@ onMounted(loadUsers)
             <v-window-item value="account">
               <v-switch v-model="policy.IsDisabled" label="禁用此账户 (IsDisabled)" density="compact" color="error" class="mb-2" />
               <v-switch v-model="policy.IsAdministrator" label="管理员权限 (IsAdministrator)" density="compact" color="warning" class="mb-2" />
-              <v-switch v-model="policy.IsHidden" label="在登录界面隐藏该用户 (IsHidden)" density="compact" class="mb-2" />
-              <v-switch v-model="policy.IsHiddenRemotely" label="远程访问时隐藏 (IsHiddenRemotely)" density="compact" class="mb-2" />
-              <v-switch v-model="policy.IsHiddenFromUnusedDevices" label="从不使用的设备中隐藏 (IsHiddenFromUnusedDevices)" density="compact" class="mb-2" />
+              <v-switch v-model="policy.IsHidden" label="在登录界面隐藏该用户 (IsHidden)" density="compact" color="warning" class="mb-2" />
+              <v-switch v-model="policy.IsHiddenRemotely" label="远程访问时隐藏 (IsHiddenRemotely)" density="compact" color="warning" class="mb-2" />
+              <v-switch v-model="policy.IsHiddenFromUnusedDevices" label="从不使用的设备中隐藏 (IsHiddenFromUnusedDevices)" density="compact" color="warning" class="mb-2" />
               <v-switch v-model="policy.EnableRemoteAccess" label="允许远程访问 (EnableRemoteAccess)" density="compact" color="success" class="mb-2" />
               <v-text-field v-model="policy.SimultaneousStreamLimit" label="同时播放数量限制 (SimultaneousStreamLimit)" type="number" variant="outlined" density="compact" hint="0 为无限制" persistent-hint class="mb-2" />
               <v-text-field v-model="policy.RemoteClientBitrateLimit" label="远程客户端比特率限制 (RemoteClientBitrateLimit)" type="number" variant="outlined" density="compact" hint="单位: bps (0 为无限制)" persistent-hint class="mb-2" />
@@ -251,41 +251,41 @@ onMounted(loadUsers)
             <!-- 播放与转码 -->
             <v-window-item value="playback">
               <v-switch v-model="policy.EnableMediaPlayback" label="允许媒体播放 (EnableMediaPlayback)" density="compact" color="success" class="mb-2" />
-              <v-switch v-model="policy.EnableAudioPlaybackTranscoding" label="允许音频转码 (EnableAudioPlaybackTranscoding)" density="compact" class="mb-2" />
-              <v-switch v-model="policy.EnableVideoPlaybackTranscoding" label="允许视频转码 (EnableVideoPlaybackTranscoding)" density="compact" class="mb-2" />
-              <v-switch v-model="policy.EnablePlaybackRemuxing" label="允许播放封装转换 (EnablePlaybackRemuxing)" density="compact" class="mb-2" />
-              <v-switch v-model="policy.EnableMediaConversion" label="允许媒体转换 (EnableMediaConversion)" density="compact" class="mb-2" />
-              <v-switch v-model="policy.EnableSyncTranscoding" label="允许同步转码 (EnableSyncTranscoding)" density="compact" class="mb-2" />
+              <v-switch v-model="policy.EnableAudioPlaybackTranscoding" label="允许音频转码 (EnableAudioPlaybackTranscoding)" density="compact" color="success" class="mb-2" />
+              <v-switch v-model="policy.EnableVideoPlaybackTranscoding" label="允许视频转码 (EnableVideoPlaybackTranscoding)" density="compact" color="success" class="mb-2" />
+              <v-switch v-model="policy.EnablePlaybackRemuxing" label="允许播放封装转换 (EnablePlaybackRemuxing)" density="compact" color="success" class="mb-2" />
+              <v-switch v-model="policy.EnableMediaConversion" label="允许媒体转换 (EnableMediaConversion)" density="compact" color="success" class="mb-2" />
+              <v-switch v-model="policy.EnableSyncTranscoding" label="允许同步转码 (EnableSyncTranscoding)" density="compact" color="success" class="mb-2" />
               <v-text-field v-model="policy.AutoRemoteQuality" label="自动远程质量 (AutoRemoteQuality)" type="number" variant="outlined" density="compact" hint="单位: Mbps" persistent-hint class="mb-2" />
             </v-window-item>
 
             <!-- 功能权限 -->
             <v-window-item value="features">
               <div class="text-subtitle-2 font-weight-bold mb-2">文件与下载</div>
-              <v-switch v-model="policy.EnableContentDeletion" label="允许删除媒体 (EnableContentDeletion)" density="compact" class="mb-2" />
-              <v-switch v-model="policy.EnableContentDownloading" label="允许下载媒体 (EnableContentDownloading)" density="compact" class="mb-2" />
-              <v-switch v-model="policy.EnableSubtitleDownloading" label="允许下载字幕 (EnableSubtitleDownloading)" density="compact" class="mb-2" />
-              <v-switch v-model="policy.EnableSubtitleManagement" label="允许管理字幕 (EnableSubtitleManagement)" density="compact" class="mb-2" />
-              <v-switch v-model="policy.AllowCameraUpload" label="允许相机上传 (AllowCameraUpload)" density="compact" class="mb-2" />
+              <v-switch v-model="policy.EnableContentDeletion" label="允许删除媒体 (EnableContentDeletion)" density="compact" color="error" class="mb-2" />
+              <v-switch v-model="policy.EnableContentDownloading" label="允许下载媒体 (EnableContentDownloading)" density="compact" color="success" class="mb-2" />
+              <v-switch v-model="policy.EnableSubtitleDownloading" label="允许下载字幕 (EnableSubtitleDownloading)" density="compact" color="success" class="mb-2" />
+              <v-switch v-model="policy.EnableSubtitleManagement" label="允许管理字幕 (EnableSubtitleManagement)" density="compact" color="primary" class="mb-2" />
+              <v-switch v-model="policy.AllowCameraUpload" label="允许相机上传 (AllowCameraUpload)" density="compact" color="info" class="mb-2" />
 
               <v-divider class="my-3" />
               <div class="text-subtitle-2 font-weight-bold mb-2">社交与远程控制</div>
-              <v-switch v-model="policy.EnablePublicSharing" label="允许公开分享内容 (EnablePublicSharing)" density="compact" class="mb-2" />
-              <v-switch v-model="policy.EnableRemoteControlOfOtherUsers" label="允许远程控制其他用户 (EnableRemoteControlOfOtherUsers)" density="compact" class="mb-2" />
-              <v-switch v-model="policy.EnableSharedDeviceControl" label="允许控制共享设备 (EnableSharedDeviceControl)" density="compact" class="mb-2" />
+              <v-switch v-model="policy.EnablePublicSharing" label="允许公开分享内容 (EnablePublicSharing)" density="compact" color="info" class="mb-2" />
+              <v-switch v-model="policy.EnableRemoteControlOfOtherUsers" label="允许远程控制其他用户 (EnableRemoteControlOfOtherUsers)" density="compact" color="warning" class="mb-2" />
+              <v-switch v-model="policy.EnableSharedDeviceControl" label="允许控制共享设备 (EnableSharedDeviceControl)" density="compact" color="info" class="mb-2" />
             </v-window-item>
 
             <!-- 媒体库范围 -->
             <v-window-item value="library">
               <div class="text-subtitle-2 font-weight-bold mb-2">访问范围</div>
               <v-switch v-model="policy.EnableAllFolders" label="允许访问所有媒体库 (EnableAllFolders)" density="compact" color="success" class="mb-2" />
-              <v-switch v-model="policy.EnableAllChannels" label="允许访问所有频道 (EnableAllChannels)" density="compact" class="mb-2" />
-              <v-switch v-model="policy.EnableAllDevices" label="允许在所有设备上登录 (EnableAllDevices)" density="compact" class="mb-2" />
+              <v-switch v-model="policy.EnableAllChannels" label="允许访问所有频道 (EnableAllChannels)" density="compact" color="success" class="mb-2" />
+              <v-switch v-model="policy.EnableAllDevices" label="允许在所有设备上登录 (EnableAllDevices)" density="compact" color="success" class="mb-2" />
 
               <v-divider class="my-3" />
               <div class="text-subtitle-2 font-weight-bold mb-2">直播电视</div>
-              <v-switch v-model="policy.EnableLiveTvAccess" label="允许观看直播电视 (EnableLiveTvAccess)" density="compact" class="mb-2" />
-              <v-switch v-model="policy.EnableLiveTvManagement" label="允许管理直播电视 (EnableLiveTvManagement)" density="compact" class="mb-2" />
+              <v-switch v-model="policy.EnableLiveTvAccess" label="允许观看直播电视 (EnableLiveTvAccess)" density="compact" color="success" class="mb-2" />
+              <v-switch v-model="policy.EnableLiveTvManagement" label="允许管理直播电视 (EnableLiveTvManagement)" density="compact" color="primary" class="mb-2" />
             </v-window-item>
 
             <!-- 修改密码 -->
@@ -299,7 +299,7 @@ onMounted(loadUsers)
               <v-alert variant="tonal" type="info" density="compact" class="mb-3" rounded="lg">
                 高级操作：您可以直接编辑下方的原始 JSON 数据。请确保格式正确，非法 JSON 将无法保存。
               </v-alert>
-              <v-textarea v-model="jsonRaw" variant="outlined" :rows="jsonRows" auto-grow class="raw-json-textarea" style="font-family: monospace" @update:model-value="handleJsonInput" />
+              <v-textarea v-model="jsonRaw" variant="outlined" :rows="jsonRows" auto-grow class="yaml-editor" @update:model-value="handleJsonInput" />
             </v-window-item>
       </v-window>
 
@@ -310,9 +310,3 @@ onMounted(loadUsers)
     </GlassDialog>
   </v-container>
 </template>
-
-<style scoped>
-.raw-json-textarea :deep(textarea) {
-  max-height: 55vh !important;
-}
-</style>

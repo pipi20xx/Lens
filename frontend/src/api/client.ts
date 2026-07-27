@@ -35,6 +35,9 @@ export async function apiFetch<T>(
     }
   }
 
+  // blob 下载模式跳过 JSON 解析
+  const isBlobRequest = (options as any)?.responseType === 'blob' || (rest as any)?.responseType === 'blob'
+
   const defaultHeaders: Record<string, string> = {
     'Content-Type': 'application/json',
   }
@@ -88,6 +91,11 @@ export async function apiFetch<T>(
       throw new Error(errorData.detail || errorData.message || `API Error: ${response.status}`)
     }
 
+    // blob 下载模式：直接返回 Blob
+    if (isBlobRequest) {
+      return (await response.blob()) as unknown as T
+    }
+
     const text = await response.text()
     return text ? JSON.parse(text) : {} as T
 
@@ -110,4 +118,26 @@ export const api = {
     }
     return apiFetch<T>(endpoint, { ...options, method: 'DELETE', body: bodyOrOptions })
   },
+}
+
+/**
+ * 带认证的文件下载
+ * 通过 apiFetch 发请求（自动携带 token），获取 Blob 后触发浏览器下载
+ */
+export async function downloadFile(
+  endpoint: string,
+  filename?: string
+): Promise<void> {
+  const blob = await api.get<Blob>(endpoint, { responseType: 'blob' } as any)
+
+  // 尝试从 blob 类型推断文件名，或使用默认名
+  const downloadName = filename || endpoint.split('/').pop() || 'download'
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = downloadName
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
 }

@@ -234,7 +234,7 @@ defineExpose({ loadContainers, loadContainerSettings })
 <template>
   <div>
     <div class="control-row mb-4">
-      <v-text-field v-model="searchQuery" prepend-inner-icon="mdi-magnify" placeholder="搜索容器名称或镜像..." variant="outlined" density="compact" hide-details clearable style="max-width:360px" />
+      <v-text-field v-model="searchQuery" prepend-inner-icon="mdi-magnify" placeholder="搜索容器名称或镜像..." variant="outlined" density="compact" hide-details clearable class="flex-grow-0" style="max-width:360px" />
       <v-spacer />
       <v-btn prepend-icon="mdi-refresh" variant="tonal" size="small" color="info" @click="loadContainers" :loading="loading">刷新</v-btn>
       <v-btn prepend-icon="mdi-delete-sweep" variant="tonal" size="small" color="error" :loading="loadingActions['prune']" @click="handlePruneContainers">清理停止的容器</v-btn>
@@ -250,64 +250,74 @@ defineExpose({ loadContainers, loadContainerSettings })
       </v-col>
     </v-row>
 
-    <div class="d-flex flex-column ga-3">
-      <v-card v-for="row in filteredContainers" :key="row.id" class="status-card liquid-glass-card" rounded="lg" :class="{'is-running': row.status === 'running'}">
-        <div class="pa-4">
-          <div class="d-flex align-center mb-1">
-            <div class="d-flex align-center ga-1 flex-grow-1" style="min-width:0">
-              <span class="text-subtitle-2 font-weight-bold" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ row.name }}</span>
-              <v-icon v-if="containerSettings[row.name]?.auto_update" size="16" color="success">mdi-autorenew</v-icon>
-            </div>
-            <v-chip :color="statusMap[row.status]?.color || 'grey'" size="small" variant="tonal" label>{{ statusMap[row.status]?.label || row.status }}</v-chip>
+    <div v-if="filteredContainers.length" class="task-list">
+      <v-card
+        v-for="row in filteredContainers"
+        :key="row.id"
+        class="status-card liquid-glass-card"
+        :class="{ 'is-running': row.status === 'running' }"
+        rounded="lg"
+      >
+        <!-- 卡片头部 -->
+        <div class="card-header pa-4 pb-2">
+          <div class="card-title">
+            <v-icon start :color="statusMap[row.status]?.color || 'grey'" size="20">mdi-package-variant-closed</v-icon>
+            <span class="text-subtitle-2 font-weight-bold text-truncate">{{ row.name }}</span>
+            <v-icon v-if="containerSettings[row.name]?.auto_update" size="16" color="success">mdi-autorenew</v-icon>
           </div>
+          <v-chip :color="statusMap[row.status]?.color || 'grey'" size="small" variant="tonal" label>
+            {{ statusMap[row.status]?.label || row.status }}
+          </v-chip>
+        </div>
 
-          <div class="text-caption font-mono" style="opacity:0.4;font-size:10px">{{ row.id }}</div>
-
-          <div class="d-flex align-center ga-1 mt-1 mb-1">
-            <span class="text-caption text-medium-emphasis" style="width:36px;flex-shrink:0;font-size:11px">镜像</span>
-            <span class="font-mono text-body-2" style="font-size:12px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" @click="checkSingleUpdate(row.image)">{{ row.image }}</span>
+        <!-- 信息行 -->
+        <div class="card-info px-4 pb-2">
+          <div class="info-item">
+            <span class="info-label">容器ID</span>
+            <span class="font-mono text-caption text-medium-emphasis">{{ row.id }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">镜像</span>
+            <span class="font-mono text-body-2 text-truncate" style="cursor:pointer" @click="checkSingleUpdate(row.image)">{{ row.image }}</span>
             <v-chip v-if="updateInfo[row.image]?.has_update" size="x-small" color="error" variant="flat">NEW</v-chip>
             <v-progress-circular v-else-if="loadingActions[row.image]" size="12" width="2" indeterminate color="primary" />
           </div>
-
           <template v-if="enhancedMode && row.status === 'running' && containerStats[row.name]">
-            <div class="d-flex align-center ga-1 mb-1">
-              <span class="text-caption text-medium-emphasis" style="width:36px;flex-shrink:0;font-size:11px">资源</span>
-              <span class="text-caption" style="font-size:11px">CPU: {{ containerStats[row.name].cpu }} | 内存: {{ containerStats[row.name].mem_perc }}</span>
-              <span class="text-caption text-medium-emphasis" style="font-size:10px">{{ containerStats[row.name].mem }}</span>
+            <div class="info-item">
+              <span class="info-label">资源</span>
+              <span class="text-caption">CPU: {{ containerStats[row.name].cpu }} | 内存: {{ containerStats[row.name].mem_perc }}</span>
+              <span class="text-caption text-medium-emphasis">{{ containerStats[row.name].mem }}</span>
             </div>
           </template>
-
           <template v-if="enhancedMode">
-            <div v-if="row.ip" class="d-flex align-center ga-1 mb-1">
-              <span class="text-caption text-medium-emphasis" style="width:36px;flex-shrink:0;font-size:11px">IP</span>
-              <span class="font-mono text-caption" style="font-size:12px">{{ row.ip }}</span>
+            <div v-if="row.ip" class="info-item">
+              <span class="info-label">IP</span>
+              <span class="font-mono text-caption">{{ row.ip }}</span>
             </div>
-            <div v-if="row.uptime" class="d-flex align-center ga-1 mb-1">
-              <span class="text-caption text-medium-emphasis" style="width:36px;flex-shrink:0;font-size:11px">运行</span>
-              <span class="text-caption" style="font-size:12px">{{ formatUptime(row.uptime) }}</span>
+            <div v-if="row.uptime" class="info-item">
+              <span class="info-label">运行</span>
+              <span class="text-caption">{{ formatUptime(row.uptime) }}</span>
             </div>
           </template>
-
-          <div class="d-flex flex-wrap ga-1 mb-1">
-            <span class="text-caption text-medium-emphasis" style="width:36px;flex-shrink:0;font-size:11px;line-height:24px">端口</span>
+          <div class="info-item">
+            <span class="info-label">端口</span>
             <template v-if="getPortBindings(row).length || containerSettings[row.name]?.custom_port">
               <v-chip v-for="port in getPortBindings(row)" :key="port.label" size="x-small" variant="tonal" color="primary" @click="openPort(getTargetIp(), port.hostPort)" style="cursor:pointer">{{ port.label }}</v-chip>
               <v-chip v-if="containerSettings[row.name]?.custom_port" size="x-small" variant="tonal" color="warning" @click="openPort(getTargetIp(), containerSettings[row.name].custom_port)" style="cursor:pointer">{{ containerSettings[row.name].custom_port }} (自定)</v-chip>
             </template>
-            <span v-else class="text-caption text-medium-emphasis" style="font-size:11px;line-height:24px">无映射</span>
+            <span v-else class="text-caption text-medium-emphasis">无映射</span>
           </div>
+        </div>
 
-          <v-divider class="my-2" />
-
-          <div class="d-flex flex-wrap ga-2">
-            <v-btn size="small" :color="row.status === 'running' ? 'error' : 'primary'" variant="tonal" :prepend-icon="row.status === 'running' ? 'mdi-stop' : 'mdi-play'" :loading="loadingActions[row.id]" @click="containerAction(row.id, row.status === 'running' ? 'stop' : 'start')">{{ row.status === 'running' ? '停止' : '启动' }}</v-btn>
-            <v-btn size="small" :color="updateInfo[row.image]?.has_update ? 'error' : 'warning'" variant="tonal" prepend-icon="mdi-update" :loading="loadingActions[row.id]" @click="containerAction(row.id, 'recreate')">{{ updateInfo[row.image]?.has_update ? '发现新镜像' : '更新' }}</v-btn>
-            <v-btn size="small" color="error" variant="tonal" prepend-icon="mdi-delete-outline" :loading="loadingActions[row.id]" @click="handleDeleteContainer(row)">删除</v-btn>
-            <v-btn size="small" color="info" variant="tonal" @click="showLogs(row.id, row.name)"><v-icon start>mdi-text-box-outline</v-icon> 日志</v-btn>
-            <v-btn size="small" color="success" variant="tonal" prepend-icon="mdi-console" @click="openTerminal(row)">终端</v-btn>
-            <v-btn size="small" variant="tonal" color="info" @click="openSettingsModal(row.name)"><v-icon start>mdi-cog-outline</v-icon> 设置</v-btn>
-          </div>
+        <!-- 操作按钮 -->
+        <v-divider class="mt-2" />
+        <div class="d-flex flex-wrap ga-2 pa-3">
+          <v-btn size="small" :color="row.status === 'running' ? 'error' : 'primary'" variant="tonal" :prepend-icon="row.status === 'running' ? 'mdi-stop' : 'mdi-play'" :loading="loadingActions[row.id]" @click="containerAction(row.id, row.status === 'running' ? 'stop' : 'start')">{{ row.status === 'running' ? '停止' : '启动' }}</v-btn>
+          <v-btn size="small" :color="updateInfo[row.image]?.has_update ? 'error' : 'warning'" variant="tonal" prepend-icon="mdi-update" :loading="loadingActions[row.id]" @click="containerAction(row.id, 'recreate')">{{ updateInfo[row.image]?.has_update ? '发现新镜像' : '更新' }}</v-btn>
+          <v-btn size="small" color="error" variant="tonal" prepend-icon="mdi-delete-outline" :loading="loadingActions[row.id]" @click="handleDeleteContainer(row)">删除</v-btn>
+          <v-btn size="small" color="info" variant="tonal" @click="showLogs(row.id, row.name)"><v-icon start>mdi-text-box-outline</v-icon> 日志</v-btn>
+          <v-btn size="small" color="success" variant="tonal" prepend-icon="mdi-console" @click="openTerminal(row)">终端</v-btn>
+          <v-btn size="small" variant="tonal" color="info" @click="openSettingsModal(row.name)"><v-icon start>mdi-cog-outline</v-icon> 设置</v-btn>
         </div>
       </v-card>
     </div>
@@ -317,7 +327,7 @@ defineExpose({ loadContainers, loadContainerSettings })
       icon="mdi-text-box-outline" :title="'日志 — ' + logContainerName" :cancel-visible="false"
     >
       <v-progress-linear v-if="loadingLogs" indeterminate color="primary" />
-      <pre class="code-block code-block--flat" style="border-radius:0 0 12px 12px">{{ containerLogs }}</pre>
+      <pre class="code-block code-block--flat">{{ containerLogs }}</pre>
       <template #actions>
         <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showLogsDialog = false">关闭</v-btn>
       </template>
@@ -356,4 +366,3 @@ defineExpose({ loadContainers, loadContainerSettings })
     />
   </div>
 </template>
-

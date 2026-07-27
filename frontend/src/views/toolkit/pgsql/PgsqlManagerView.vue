@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { pgsqlApi } from '@/api/pgsql'
-import { useNotification, useClipboard } from '@/composables'
+import { useNotification, useClipboard, useDragScroll } from '@/composables'
 import { useConfirm } from '@/composables'
 import GlassDialog from '@/components/common/GlassDialog.vue'
 import SecretField from '@/components/common/SecretField.vue'
@@ -550,6 +550,10 @@ watch(selectedHost, () => {
   fetchBackups()
 })
 
+// ========== 数据表格拖拽滑动 ==========
+const tableScrollRef = ref<HTMLElement | null>(null)
+useDragScroll(tableScrollRef)
+
 onMounted(fetchHosts)
 </script>
 
@@ -629,7 +633,7 @@ onMounted(fetchHosts)
                   <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-refresh" :loading="tableLoading" @click="fetchTableData">刷新数据</v-btn>
                 </div>
                 <v-divider />
-                <div style="overflow-x:auto">
+                <div ref="tableScrollRef" style="overflow-x:auto">
                   <v-table density="compact" class="bg-transparent">
                     <thead>
                       <tr>

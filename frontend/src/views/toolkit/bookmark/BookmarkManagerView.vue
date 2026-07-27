@@ -450,9 +450,9 @@ onMounted(loadBookmarks)
         variant="outlined" density="compact" hide-details clearable style="max-width:240px" />
       <v-btn variant="tonal" color="primary" size="small" prepend-icon="mdi-plus" @click="openAddBookmark">添加书签</v-btn>
       <v-btn variant="tonal" color="info" size="small" prepend-icon="mdi-folder-plus-outline" @click="openAddFolder">新建文件夹</v-btn>
-      <v-btn variant="tonal" size="small" prepend-icon="mdi-file-import-outline" @click="triggerImport">导入 HTML</v-btn>
-      <v-btn variant="tonal" size="small" prepend-icon="mdi-file-export-outline" @click="handleExport">导出</v-btn>
-      <v-btn variant="tonal" color="secondary" size="small" prepend-icon="mdi-stethoscope" @click="showHealthDialog = true">体检中心</v-btn>
+      <v-btn variant="tonal" color="success" size="small" prepend-icon="mdi-file-import-outline" @click="triggerImport">导入 HTML</v-btn>
+      <v-btn variant="tonal" color="info" size="small" prepend-icon="mdi-file-export-outline" @click="handleExport">导出HTML</v-btn>
+      <v-btn variant="tonal" color="warning" size="small" prepend-icon="mdi-stethoscope" @click="showHealthDialog = true">体检中心</v-btn>
       <v-btn variant="tonal" color="deep-purple" size="small" prepend-icon="mdi-robot-outline" :loading="isOrganizing" @click="handleAIAnalyze">AI 整理</v-btn>
       <v-spacer />
       <v-btn v-if="selectedItemIds.size > 0" variant="tonal" color="error" size="small" prepend-icon="mdi-delete-outline" @click="deleteSelected">
