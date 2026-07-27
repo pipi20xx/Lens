@@ -56,7 +56,7 @@ onMounted(() => { fetchHosts() })
     <v-card class="liquid-glass-card mb-4" rounded="xl">
       <div class="d-flex align-center pa-4 ga-3 flex-wrap">
         <v-select v-model="selectedHostId" :items="hostOptions" item-title="title" item-value="value" label="选择 Docker 主机" variant="outlined" density="compact" hide-details style="max-width:260px" prepend-inner-icon="mdi-server" />
-        <v-btn prepend-icon="mdi-cog-outline" variant="tonal" color="secondary" size="small" @click="showHostManager = true">管理主机</v-btn>
+        <v-btn prepend-icon="mdi-cog-outline" variant="tonal" color="primary" size="small" @click="showHostManager = true">管理主机</v-btn>
 
         <template v-if="selectedHostId && currentHost?.compose_scan_paths">
           <span class="text-caption text-medium-emphasis">扫描范围:</span>

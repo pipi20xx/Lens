@@ -110,10 +110,10 @@ onMounted(() => {
         </v-chip>
       </div>
       <div class="bar-right d-flex ga-1">
-        <v-btn icon variant="text" size="small" @click="clearActiveTerm" title="清屏">
+        <v-btn icon variant="text" size="small" color="info" @click="clearActiveTerm" title="清屏">
           <v-icon size="18">mdi-eraser</v-icon>
         </v-btn>
-        <v-btn icon variant="text" size="small" @click="reconnectActiveTerm" title="重连">
+        <v-btn icon variant="text" size="small" color="info" @click="reconnectActiveTerm" title="重连">
           <v-icon size="18">mdi-refresh</v-icon>
         </v-btn>
       </div>
@@ -185,7 +185,7 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 0 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.08);
 }
 
 .terminal-body {
@@ -198,7 +198,7 @@ onMounted(() => {
 .terminal-sider-left {
   width: 220px;
   flex-shrink: 0;
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  border-right: 1px solid rgba(var(--v-theme-on-surface), 0.08);
   overflow: hidden;
   transition: width 0.2s ease, opacity 0.2s ease;
 }
@@ -211,7 +211,7 @@ onMounted(() => {
 .terminal-sider-right {
   width: 260px;
   flex-shrink: 0;
-  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 1px solid rgba(var(--v-theme-on-surface), 0.08);
   overflow: hidden;
 }
 
@@ -229,8 +229,8 @@ onMounted(() => {
   display: flex;
   gap: 2px;
   padding: 4px 8px;
-  background: rgba(0, 0, 0, 0.2);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(var(--v-theme-on-surface), 0.03);
+  border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.06);
   overflow-x: auto;
   flex-shrink: 0;
 }
@@ -244,17 +244,17 @@ onMounted(() => {
   font-size: 13px;
   white-space: nowrap;
   transition: background 0.2s;
-  color: rgba(255, 255, 255, 0.5);
-  background: rgba(255, 255, 255, 0.03);
+  color: rgba(var(--v-theme-on-surface), 0.5);
+  background: rgba(var(--v-theme-on-surface), 0.03);
   user-select: none;
 }
 .session-tab:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.7);
+  background: rgba(var(--v-theme-on-surface), 0.06);
+  color: rgba(var(--v-theme-on-surface), 0.7);
 }
 .session-tab.active {
-  background: #1a1a2e;
-  color: #fff;
+  background: rgba(var(--v-theme-primary), 0.12);
+  color: rgb(var(--v-theme-primary));
 }
 .session-tab .tab-name {
   max-width: 120px;

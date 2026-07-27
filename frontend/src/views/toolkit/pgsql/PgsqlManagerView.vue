@@ -786,19 +786,22 @@ onMounted(fetchHosts)
         <v-btn color="primary" variant="flat" size="small" prepend-icon="mdi-plus" @click="openAddHost">添加新主机</v-btn>
         <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-refresh" @click="fetchHosts">刷新</v-btn>
       </div>
-      <v-table density="compact" class="bg-transparent">
-        <thead><tr><th>名称</th><th>地址</th><th class="text-right">操作</th></tr></thead>
-        <tbody>
-          <tr v-for="h in hosts" :key="h.id">
-            <td class="font-weight-medium">{{ h.name }}</td>
-            <td class="text-medium-emphasis font-mono" style="font-size:12px">{{ h.host }}:{{ h.port }}</td>
-            <td class="text-right">
-              <v-btn size="x-small" variant="tonal" color="primary" prepend-icon="mdi-pencil-outline" @click="openEditHost(h)">编辑</v-btn>
-              <v-btn size="x-small" variant="tonal" color="error" prepend-icon="mdi-delete-outline" class="ml-1" @click="deleteHost(h.id)">移除</v-btn>
-            </td>
-          </tr>
-        </tbody>
-      </v-table>
+      <div v-if="hosts.length" class="d-flex flex-column ga-2">
+        <v-card v-for="h in hosts" :key="h.id" rounded="lg" variant="tonal" class="list-card pa-3">
+          <div class="d-flex align-center justify-space-between w-100">
+            <div class="d-flex align-center ga-2">
+              <span class="font-weight-bold">{{ h.name }}</span>
+              <v-chip size="x-small" variant="tonal" color="info">{{ h.host }}:{{ h.port }}</v-chip>
+              <v-chip size="x-small" variant="tonal">{{ h.database }}</v-chip>
+            </div>
+            <div class="d-flex ga-1">
+              <v-btn size="small" variant="tonal" color="primary" prepend-icon="mdi-pencil-outline" @click="openEditHost(h)">编辑</v-btn>
+              <v-btn size="small" variant="tonal" color="error" prepend-icon="mdi-delete-outline" @click="deleteHost(h.id)">移除</v-btn>
+            </div>
+          </div>
+        </v-card>
+      </div>
+      <div v-else class="text-center py-8 text-medium-emphasis">暂无主机配置，请点击"添加新主机"</div>
     </GlassDialog>
 
     <!-- ==================== 添加/编辑主机弹窗 ==================== -->

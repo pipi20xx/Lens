@@ -246,14 +246,15 @@ function copyJsonData() {
                 <!-- 搜索结果列表 -->
                 <div v-if="searchResults.length > 0" class="mt-4">
                   <div class="text-subtitle-2 font-weight-bold mb-2">搜索结果</div>
-                  <v-list density="compact" class="bg-transparent" style="max-height:350px;overflow-y:auto">
-                    <v-list-item v-for="item in searchResults" :key="item.id" @click="fillDetail(item)" class="rounded-lg mb-1">
-                      <v-list-item-title class="text-body-2 font-weight-medium">{{ item.title || item.name }}</v-list-item-title>
-                      <v-list-item-subtitle class="text-caption text-medium-emphasis">
+                  <div class="d-flex flex-column ga-2" style="max-height:350px;overflow-y:auto">
+                    <v-card v-for="item in searchResults" :key="item.id" @click="fillDetail(item)"
+                      rounded="lg" variant="tonal" class="list-card pa-3 cursor-pointer">
+                      <div class="text-body-2 font-weight-medium">{{ item.title || item.name }}</div>
+                      <div class="text-caption text-medium-emphasis">
                         ID: {{ item.id }} | {{ item.release_date || item.first_air_date || '未知' }}
-                      </v-list-item-subtitle>
-                    </v-list-item>
-                  </v-list>
+                      </div>
+                    </v-card>
+                  </div>
                 </div>
               </v-window-item>
 
@@ -411,12 +412,12 @@ function copyJsonData() {
                       </v-btn>
                     </v-expansion-panel-title>
                     <v-expansion-panel-text>
-                      <v-list density="compact" class="bg-transparent">
-                        <v-list-item v-for="ep in season.episodes" :key="ep.id" class="mb-2">
-                          <v-list-item-title>
+                      <div class="d-flex flex-column ga-2">
+                        <v-card v-for="ep in season.episodes" :key="ep.id" rounded="lg" variant="tonal" class="list-card pa-3">
+                          <div class="d-flex align-center ga-2">
                             <span class="font-weight-bold">EP {{ ep.episode_number }}</span> - {{ ep.name }}
-                          </v-list-item-title>
-                          <v-list-item-subtitle class="d-flex align-center ga-2">
+                          </div>
+                          <div class="d-flex align-center ga-2 mt-1">
                             <v-chip size="x-small" variant="tonal" color="warning">⭐ {{ ep.vote_average }}</v-chip>
                             <v-chip size="x-small" variant="tonal" color="info">{{ ep.air_date }}</v-chip>
                             <v-chip v-if="ep.runtime" size="x-small" variant="tonal">{{ ep.runtime }} min</v-chip>
@@ -427,10 +428,10 @@ function copyJsonData() {
                             <v-btn icon variant="tonal" size="x-small" color="primary" @click="showJson(ep, 'episode', true)" title="全语言深度探针">
                               <v-icon size="14">mdi-magnify-scan</v-icon>
                             </v-btn>
-                          </v-list-item-subtitle>
+                          </div>
                           <div v-if="ep.overview" class="text-caption text-medium-emphasis mt-1">{{ ep.overview }}</div>
-                        </v-list-item>
-                      </v-list>
+                        </v-card>
+                      </div>
                     </v-expansion-panel-text>
                   </v-expansion-panel>
                 </v-expansion-panels>

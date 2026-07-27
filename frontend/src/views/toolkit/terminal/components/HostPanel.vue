@@ -105,7 +105,7 @@ defineExpose({ fetchHosts })
   <div class="host-panel">
     <div class="panel-header d-flex align-center justify-space-between px-4 py-3">
       <span class="text-subtitle-2 font-weight-bold">主机列表</span>
-      <v-btn icon="mdi-plus" variant="text" size="small" density="compact" @click="openAddDialog" />
+      <v-btn icon="mdi-plus" variant="text" size="small" density="compact" color="primary" @click="openAddDialog" />
     </div>
     <v-divider />
 
@@ -131,7 +131,7 @@ defineExpose({ fetchHosts })
         <v-icon size="18" class="mr-3">mdi-server</v-icon>
         <span class="text-body-2 flex-grow-1" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap" :title="h.host">{{ h.name }}</span>
         <div class="host-actions d-flex ga-1">
-          <v-btn icon="mdi-pencil-outline" variant="text" size="x-small" density="compact" @click.stop="openEditDialog(h)" />
+          <v-btn icon="mdi-pencil-outline" variant="text" size="x-small" density="compact" color="warning" @click.stop="openEditDialog(h)" />
           <v-btn icon="mdi-delete-outline" variant="text" size="x-small" density="compact" color="error" @click.stop="deleteHost(h.id)" />
         </div>
       </div>
@@ -177,7 +177,7 @@ defineExpose({ fetchHosts })
   transition: background 0.2s, color 0.2s;
 }
 .host-item:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(var(--v-theme-on-surface), 0.05);
 }
 .host-item.active {
   background: rgb(var(--v-theme-primary));

@@ -75,7 +75,7 @@ defineExpose({ loadSystemInfo })
         <v-icon start>mdi-information-outline</v-icon> 环境检测
         <v-spacer />
         <v-btn size="small" variant="tonal" color="warning" prepend-icon="mdi-wrench-outline" @click="showRepairModal = true" :loading="installing" class="mr-2">一键修复/安装</v-btn>
-        <v-btn size="small" variant="tonal" prepend-icon="mdi-refresh" @click="loadSystemInfo" :loading="systemInfoLoading">重新检测</v-btn>
+        <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-refresh" @click="loadSystemInfo" :loading="systemInfoLoading">重新检测</v-btn>
       </v-card-title>
       <v-divider />
       <v-progress-linear v-if="systemInfoLoading" indeterminate color="primary" class="ma-4" />

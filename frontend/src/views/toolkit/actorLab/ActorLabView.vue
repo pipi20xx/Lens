@@ -97,13 +97,18 @@ function copyRawJson() {
                 <v-btn block color="primary" variant="flat" prepend-icon="mdi-magnify" :loading="searchLoading" @click="handleSearch">执行搜索</v-btn>
                 <div v-if="searchResults.length > 0" class="mt-4">
                   <div class="text-subtitle-2 font-weight-bold mb-2">搜索结果</div>
-                  <v-list density="compact" class="bg-transparent" style="max-height:400px;overflow-y:auto">
-                    <v-list-item v-for="person in searchResults" :key="person.id" @click="fillId(person)" class="rounded-lg mb-1">
-                      <template #prepend><v-avatar size="40" rounded="xl" class="mr-3"><v-img v-if="person.profile_path" :src="'https://image.tmdb.org/t/p/w200' + person.profile_path" /><v-icon v-else icon="mdi-account" /></v-avatar></template>
-                      <v-list-item-title class="text-body-2 font-weight-medium">{{ person.name }}</v-list-item-title>
-                      <v-list-item-subtitle class="text-caption text-medium-emphasis">Known for: {{ person.known_for_department }} | ID: {{ person.id }}</v-list-item-subtitle>
-                    </v-list-item>
-                  </v-list>
+                  <div class="d-flex flex-column ga-2" style="max-height:400px;overflow-y:auto">
+                    <v-card v-for="person in searchResults" :key="person.id" @click="fillId(person)"
+                      rounded="lg" variant="tonal" class="list-card pa-3 cursor-pointer">
+                      <div class="d-flex align-center ga-3">
+                        <v-avatar size="40" rounded="xl"><v-img v-if="person.profile_path" :src="'https://image.tmdb.org/t/p/w200' + person.profile_path" /><v-icon v-else icon="mdi-account" /></v-avatar>
+                        <div style="min-width:0">
+                          <div class="text-body-2 font-weight-medium">{{ person.name }}</div>
+                          <div class="text-caption text-medium-emphasis">Known for: {{ person.known_for_department }} | ID: {{ person.id }}</div>
+                        </div>
+                      </div>
+                    </v-card>
+                  </div>
                 </div>
               </v-window-item>
               <v-window-item value="direct">

@@ -98,33 +98,32 @@ function getEmbyAvatar(person: any) {
               <v-btn color="primary" variant="tonal" prepend-icon="mdi-magnify" @click="handleEmbySearch" :loading="embyLoading">执行搜索</v-btn>
             </div>
 
-            <v-list density="compact" class="bg-transparent" style="max-height:600px;overflow-y:auto">
+            <div style="max-height:600px;overflow-y:auto">
               <template v-if="embyResults.length > 0">
-                <v-list-item v-for="person in embyResults" :key="person.Id"
-                  :active="selectedEmby?.Id === person.Id"
+                <v-card v-for="person in embyResults" :key="person.Id"
                   @click="selectedEmby = person"
-                  class="rounded-lg mb-1"
+                  rounded="lg" variant="tonal" class="list-card pa-3 mb-2 cursor-pointer"
                   :class="{ 'selected-item': selectedEmby?.Id === person.Id }">
-                  <template #prepend>
-                    <v-avatar size="40" rounded="lg" class="mr-3">
+                  <div class="d-flex align-center ga-3">
+                    <v-avatar size="40" rounded="lg">
                       <v-img v-if="getEmbyAvatar(person)" :src="getEmbyAvatar(person)" />
                       <v-icon v-else icon="mdi-account" />
                     </v-avatar>
-                  </template>
-                  <v-list-item-title class="font-weight-bold">{{ person.Name }}</v-list-item-title>
-                  <v-list-item-subtitle class="d-flex ga-2">
-                    <v-chip size="x-small" variant="tonal">EMBY ID: {{ person.Id }}</v-chip>
-                    <v-chip v-if="person.ProviderIds?.Tmdb" size="x-small" variant="tonal" color="info">TMDB ID: {{ person.ProviderIds.Tmdb }}</v-chip>
-                  </v-list-item-subtitle>
-                  <template #append>
+                    <div class="flex-grow-1" style="min-width:0">
+                      <div class="font-weight-bold text-body-2">{{ person.Name }}</div>
+                      <div class="d-flex ga-2 mt-1">
+                        <v-chip size="x-small" variant="tonal">EMBY ID: {{ person.Id }}</v-chip>
+                        <v-chip v-if="person.ProviderIds?.Tmdb" size="x-small" variant="tonal" color="info">TMDB ID: {{ person.ProviderIds.Tmdb }}</v-chip>
+                      </div>
+                    </div>
                     <v-btn icon variant="tonal" size="small" @click.stop="showJson(person)">
                       <v-icon size="18" color="primary">mdi-code-block-braces</v-icon>
                     </v-btn>
-                  </template>
-                </v-list-item>
+                  </div>
+                </v-card>
               </template>
               <div v-else class="text-center py-8 text-medium-emphasis">请输入姓名并点击搜索</div>
-            </v-list>
+            </div>
           </v-card-text>
         </v-card>
       </v-col>

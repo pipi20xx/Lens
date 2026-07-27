@@ -96,7 +96,7 @@ onMounted(fetchCommands)
   <div class="command-panel">
     <div class="panel-header d-flex align-center justify-space-between px-4 py-3">
       <span class="text-subtitle-2 font-weight-bold">快速命令</span>
-      <v-btn icon="mdi-plus" variant="text" size="small" density="compact" @click="openAddDialog" />
+      <v-btn icon="mdi-plus" variant="text" size="small" density="compact" color="primary" @click="openAddDialog" />
     </div>
     <v-divider />
 
@@ -123,7 +123,7 @@ onMounted(fetchCommands)
             <span class="text-body-2 font-weight-medium" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ cmd.title }}</span>
           </div>
           <div class="d-flex ga-1">
-            <v-btn icon="mdi-pencil-outline" variant="text" size="x-small" density="compact" @click.stop="openEditDialog(cmd)" />
+            <v-btn icon="mdi-pencil-outline" variant="text" size="x-small" density="compact" color="warning" @click.stop="openEditDialog(cmd)" />
             <v-btn icon="mdi-delete-outline" variant="text" size="x-small" density="compact" color="error" @click.stop="deleteCommand(cmd.id)" />
           </div>
         </div>
@@ -156,12 +156,12 @@ onMounted(fetchCommands)
   flex-direction: column;
 }
 .command-card {
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.08);
   transition: border-color 0.2s, background 0.2s;
 }
 .command-card:hover {
   border-color: rgb(var(--v-theme-primary));
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(var(--v-theme-on-surface), 0.03);
 }
 .drag-handle:hover {
   opacity: 1 !important;

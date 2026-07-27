@@ -37,7 +37,7 @@ export const toolkitApi = {
     testWrite: (itemId: string, tag: string) => api.post('/api/autotags/test-write', { item_id: itemId, tag }),
     execute: (data: any) => api.post('/api/autotags/execute', data),
     clearAll: () => api.post('/api/autotags/clear-all'),
-    clearSpecific: (data: any) => api.post('/api/autotags/clear-specific', data),
+    clearSpecific: (data: any) => api.post('/api/autotags/clear-specific', { tags: data }),
     getWebhookConfig: () => api.get('/api/autotags/webhook-config'),
     saveWebhookConfig: (data: any) => api.post('/api/autotags/webhook-config', data),
   },

@@ -116,20 +116,22 @@ async def get_hd_icons():
     
     return {"icons": []}
 
-from fastapi import APIRouter, Depends, HTTPException, Body, status, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, Body, status
 from app.services.notification_service import NotificationService
 
 # ... (GenreMapping and Request models remain same)
 
-async def run_genre_mapper_task(request: GenreMapperRequest, user_id: str):
-    service = get_emby_service()
+@router.post("/mapper", response_model=MetadataManagerResponse)
+async def genre_mapper(request: GenreMapperRequest, db: AsyncSession = Depends(get_db)):
+    service, user_id = await get_emby_context(db)
     processed = 0
     start_time = time.time()
-    
+    logger.info(f"🚀 开始 [类型映射] 任务: {request.genre_mappings}")
+
     mapping_dict = {}
     for m in request.genre_mappings:
         mapping_dict[m.old] = {
-            "Name": m.new_name, 
+            "Name": m.new_name,
             "Id": int(m.new_id) if (m.new_id and m.new_id.isdigit()) else None
         }
 
@@ -140,7 +142,7 @@ async def run_genre_mapper_task(request: GenreMapperRequest, user_id: str):
         for it_list in items:
             full_item = await _get_full_item(service, user_id, it_list["Id"])
             if not full_item: continue
-            
+
             genres = full_item.get("Genres", [])
             if any(g in mapping_dict for g in genres):
                 processed += 1
@@ -157,24 +159,15 @@ async def run_genre_mapper_task(request: GenreMapperRequest, user_id: str):
                         else: new_gi.append(gi)
                     full_item["GenreItems"] = new_gi
                     await service.update_item(full_item["Id"], full_item)
-    
+                logger.info(f"┃  ┣ 🎯 映射项目: {full_item.get('Name')}")
+
     duration = time.time() - start_time
     await NotificationService.emit(
-        "toolkit.genre_mapper", 
-        "类型映射任务完成", 
+        "toolkit.genre_mapper",
+        "类型映射任务完成",
         f"处理项目: {processed}\n耗时: {duration:.1f}s\n模式: {'预览' if request.dry_run else '执行'}"
     )
-
-@router.post("/mapper", response_model=MetadataManagerResponse)
-async def genre_mapper(request: GenreMapperRequest, background_tasks: BackgroundTasks, db: AsyncSession = Depends(get_db)):
-    _, user_id = await get_emby_context(db)
-    if request.dry_run:
-        # 预览模式依然同步返回，因为通常预览数量较少或用户需要即时反馈
-        # 但如果是执行模式，必须后台运行
-        pass 
-
-    background_tasks.add_task(run_genre_mapper_task, request, user_id)
-    return MetadataManagerResponse(message="任务已在后台启动，完成后将通过通知告知", processed_count=0, dry_run_active=request.dry_run)
+    return MetadataManagerResponse(message="映射完成", processed_count=processed, dry_run_active=request.dry_run)
 
 @router.post("/genre_adder", response_model=MetadataManagerResponse)
 async def genre_adder(request: GenreAdderRequest, db: AsyncSession = Depends(get_db)):
@@ -252,6 +245,7 @@ async def people_remover(request: PeopleRemoverRequest, db: AsyncSession = Depen
 
 @router.post("/metadata_field_unlocker", response_model=MetadataManagerResponse)
 async def metadata_field_unlocker(request: MetadataUnlockerRequest, db: AsyncSession = Depends(get_db)):
+    """元数据字段解锁：仅清空 LockedFields (小锁)，不动 LockData (主锁)"""
     service, user_id = await get_emby_context(db)
     processed = 0
     for lib_name in request.lib_names:
@@ -261,15 +255,16 @@ async def metadata_field_unlocker(request: MetadataUnlockerRequest, db: AsyncSes
         for it_list in items:
             full_item = await _get_full_item(service, user_id, it_list["Id"])
             if not full_item: continue
-            if full_item.get("LockedFields") or full_item.get("LockData"):
+            if full_item.get("LockedFields"):
                 processed += 1
                 if not request.dry_run:
-                    full_item["LockedFields"] = []; full_item["LockData"] = False
+                    full_item["LockedFields"] = []
                     await service.update_item(full_item["Id"], full_item)
-    return MetadataManagerResponse(message="操作完成", processed_count=processed, dry_run_active=request.dry_run)
+    return MetadataManagerResponse(message="字段解锁完成", processed_count=processed, dry_run_active=request.dry_run)
 
 @router.post("/item_locker", response_model=MetadataManagerResponse)
 async def item_locker(request: MetadataUnlockerRequest, db: AsyncSession = Depends(get_db)):
+    """项目整体锁定：设置 LockData = true (主锁)"""
     service, user_id = await get_emby_context(db)
     processed = 0
     for lib_name in request.lib_names:
@@ -284,11 +279,26 @@ async def item_locker(request: MetadataUnlockerRequest, db: AsyncSession = Depen
                 if not request.dry_run:
                     full_item["LockData"] = True
                     await service.update_item(full_item["Id"], full_item)
-    return MetadataManagerResponse(message="操作完成", processed_count=processed, dry_run_active=request.dry_run)
+    return MetadataManagerResponse(message="锁定完成", processed_count=processed, dry_run_active=request.dry_run)
 
 @router.post("/item_unlocker", response_model=MetadataManagerResponse)
 async def item_unlocker(request: MetadataUnlockerRequest, db: AsyncSession = Depends(get_db)):
-    return await metadata_field_unlocker(request, db)
+    """项目深度全解锁：主锁 + 小锁一起解除 (LockData=false + LockedFields清空)"""
+    service, user_id = await get_emby_context(db)
+    processed = 0
+    for lib_name in request.lib_names:
+        parent_id = await _get_library_id(service, lib_name)
+        if not parent_id: continue
+        items = await _get_lib_items(service, parent_id, request.item_types)
+        for it_list in items:
+            full_item = await _get_full_item(service, user_id, it_list["Id"])
+            if not full_item: continue
+            if full_item.get("LockedFields") or full_item.get("LockData"):
+                processed += 1
+                if not request.dry_run:
+                    full_item["LockedFields"] = []; full_item["LockData"] = False
+                    await service.update_item(full_item["Id"], full_item)
+    return MetadataManagerResponse(message="深度解锁完成", processed_count=processed, dry_run_active=request.dry_run)
 
 @router.post("/episode_deleter", response_model=MetadataManagerResponse)
 async def episode_deleter(request: BaseMetadataRequest, db: AsyncSession = Depends(get_db)):

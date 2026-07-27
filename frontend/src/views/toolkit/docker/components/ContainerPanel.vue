@@ -236,7 +236,7 @@ defineExpose({ loadContainers, loadContainerSettings })
     <div class="control-row mb-4">
       <v-text-field v-model="searchQuery" prepend-inner-icon="mdi-magnify" placeholder="搜索容器名称或镜像..." variant="outlined" density="compact" hide-details clearable style="max-width:360px" />
       <v-spacer />
-      <v-btn prepend-icon="mdi-refresh" variant="tonal" size="small" @click="loadContainers" :loading="loading">刷新</v-btn>
+      <v-btn prepend-icon="mdi-refresh" variant="tonal" size="small" color="info" @click="loadContainers" :loading="loading">刷新</v-btn>
       <v-btn prepend-icon="mdi-delete-sweep" variant="tonal" size="small" color="error" :loading="loadingActions['prune']" @click="handlePruneContainers">清理停止的容器</v-btn>
       <v-switch v-model="enhancedMode" label="增强监控" density="compact" hide-details color="primary" />
     </div>
@@ -306,7 +306,7 @@ defineExpose({ loadContainers, loadContainerSettings })
             <v-btn size="small" color="error" variant="tonal" prepend-icon="mdi-delete-outline" :loading="loadingActions[row.id]" @click="handleDeleteContainer(row)">删除</v-btn>
             <v-btn size="small" color="info" variant="tonal" @click="showLogs(row.id, row.name)"><v-icon start>mdi-text-box-outline</v-icon> 日志</v-btn>
             <v-btn size="small" color="success" variant="tonal" prepend-icon="mdi-console" @click="openTerminal(row)">终端</v-btn>
-            <v-btn size="small" variant="tonal" @click="openSettingsModal(row.name)"><v-icon start>mdi-cog-outline</v-icon> 设置</v-btn>
+            <v-btn size="small" variant="tonal" color="info" @click="openSettingsModal(row.name)"><v-icon start>mdi-cog-outline</v-icon> 设置</v-btn>
           </div>
         </div>
       </v-card>

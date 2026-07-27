@@ -146,7 +146,7 @@ defineExpose({ loadComposeProjects })
       <v-text-field v-model="composeSearchQuery" prepend-inner-icon="mdi-magnify" placeholder="搜索项目..." variant="outlined" density="compact" hide-details clearable style="max-width:300px" />
       <v-spacer />
       <v-btn-group density="compact">
-        <v-btn prepend-icon="mdi-refresh" variant="tonal" size="small" @click="loadComposeProjects" :loading="loadingCompose">刷新</v-btn>
+        <v-btn prepend-icon="mdi-refresh" variant="tonal" size="small" color="info" @click="loadComposeProjects" :loading="loadingCompose">刷新</v-btn>
         <v-btn prepend-icon="mdi-play" variant="tonal" size="small" color="success" @click="handleBulkComposeAction('up')">全部启动</v-btn>
         <v-btn prepend-icon="mdi-stop" variant="tonal" size="small" color="error" @click="handleBulkComposeAction('down')">全部停止</v-btn>
       </v-btn-group>
@@ -178,7 +178,7 @@ defineExpose({ loadComposeProjects })
             <v-btn size="small" color="primary" variant="tonal" prepend-icon="mdi-play" :loading="loadingActions[project.name]" @click="composeAction(project.name, 'up', project.config_file || project.path)">启动/更新</v-btn>
             <v-btn size="small" color="warning" variant="tonal" prepend-icon="mdi-download" :loading="loadingActions[project.name]" @click="composeAction(project.name, 'pull', project.config_file || project.path)">拉取</v-btn>
             <v-btn size="small" color="error" variant="tonal" prepend-icon="mdi-stop" :loading="loadingActions[project.name]" @click="composeAction(project.name, 'down', project.config_file || project.path)">停止</v-btn>
-            <v-btn size="small" variant="tonal" prepend-icon="mdi-pencil-outline" @click="editProject(project)">编辑</v-btn>
+            <v-btn size="small" variant="tonal" color="warning" prepend-icon="mdi-pencil-outline" @click="editProject(project)">编辑</v-btn>
             <v-btn size="small" color="error" variant="tonal" prepend-icon="mdi-delete-outline" @click="handleDeleteComposeProject(project)">删除</v-btn>
             <v-btn size="small" color="info" variant="tonal" prepend-icon="mdi-backup-restore" @click="createBackupTask(project)">备份</v-btn>
           </div>

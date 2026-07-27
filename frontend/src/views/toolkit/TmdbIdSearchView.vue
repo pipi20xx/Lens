@@ -159,24 +159,24 @@ function formatRuntime(ticks: number) {
                         <!-- 集列表 -->
                         <div v-if="season.Episodes && season.Episodes.length">
                           <div class="text-caption font-weight-bold mb-1">集列表</div>
-                          <v-list density="compact" class="bg-transparent pa-0">
-                            <v-list-item v-for="ep in season.Episodes" :key="ep.Id" class="px-2">
-                              <v-list-item-title class="d-flex align-center ga-2">
+                          <div class="d-flex flex-column ga-2">
+                            <v-card v-for="ep in season.Episodes" :key="ep.Id" rounded="lg" variant="tonal" class="list-card pa-3">
+                              <div class="d-flex align-center ga-2">
                                 <span class="font-weight-medium">EP {{ ep.IndexNumber }}</span> - {{ ep.Name }}
                                 <v-spacer />
                                 <v-btn icon variant="tonal" size="x-small" @click="showJson(ep)">
                                   <v-icon size="14" color="primary">mdi-code-block-braces</v-icon>
                                 </v-btn>
-                              </v-list-item-title>
-                              <v-list-item-subtitle class="d-flex ga-4 text-caption text-medium-emphasis">
+                              </div>
+                              <div class="d-flex ga-4 text-caption text-medium-emphasis mt-1">
                                 <span>ID: {{ ep.Id }}</span>
                                 <span>评分: {{ ep.CommunityRating || 'N/A' }}</span>
                                 <span>首播: {{ ep.PremiereDate?.split('T')[0] || 'N/A' }}</span>
                                 <span>时长: {{ formatRuntime(ep.RunTimeTicks) }} 分钟</span>
-                              </v-list-item-subtitle>
+                              </div>
                               <p v-if="ep.Overview" class="text-caption text-medium-emphasis mt-1 mb-0 pl-3" style="border-left:2px solid rgba(var(--v-theme-primary),0.3)">{{ ep.Overview }}</p>
-                            </v-list-item>
-                          </v-list>
+                            </v-card>
+                          </div>
                         </div>
                       </v-expansion-panel-text>
                     </v-expansion-panel>

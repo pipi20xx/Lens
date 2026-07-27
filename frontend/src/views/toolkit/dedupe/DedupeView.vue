@@ -66,12 +66,12 @@ onMounted(() => {
             @click="syncMedia" :loading="syncing">同步库</v-btn>
           <v-btn prepend-icon="mdi-auto-fix" variant="tonal" size="small" color="primary"
             @click="handleAutoSelect" :loading="analyzing">智能选中</v-btn>
-          <v-btn variant="tonal" size="small" :color="showOnlyDuplicates ? 'warning' : 'default'"
+          <v-btn variant="tonal" size="small" :color="showOnlyDuplicates ? 'warning' : 'info'"
             :prepend-icon="showOnlyDuplicates ? 'mdi-filter' : 'mdi-filter-outline'"
             @click="toggleDuplicateMode">
             {{ showOnlyDuplicates ? '显示全部' : '仅重复项' }}
           </v-btn>
-          <v-btn prepend-icon="mdi-cog-outline" variant="tonal" color="secondary" size="small" @click="showConfigDialog = true">
+          <v-btn prepend-icon="mdi-cog-outline" variant="tonal" color="primary" size="small" @click="showConfigDialog = true">
             规则配置
           </v-btn>
           <v-spacer />

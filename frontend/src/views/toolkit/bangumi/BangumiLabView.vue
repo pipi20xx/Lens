@@ -182,12 +182,13 @@ function copyJsonData() {
                 <v-btn block color="primary" variant="flat" prepend-icon="mdi-magnify" :loading="searchLoading" @click="handleSearch">执行搜索</v-btn>
                 <div v-if="searchResults.length > 0" class="mt-4">
                   <div class="text-subtitle-2 font-weight-bold mb-2">搜索结果</div>
-                  <v-list density="compact" class="bg-transparent" style="max-height:350px;overflow-y:auto">
-                    <v-list-item v-for="item in searchResults" :key="item.id" @click="fillSubject(item)" class="rounded-lg mb-1">
-                      <v-list-item-title class="text-body-2 font-weight-medium">{{ item.name_cn || item.name }}</v-list-item-title>
-                      <v-list-item-subtitle class="text-caption text-medium-emphasis">{{ item.name }} | ID: {{ item.id }}</v-list-item-subtitle>
-                    </v-list-item>
-                  </v-list>
+                  <div class="d-flex flex-column ga-2" style="max-height:350px;overflow-y:auto">
+                    <v-card v-for="item in searchResults" :key="item.id" @click="fillSubject(item)"
+                      rounded="lg" variant="tonal" class="list-card pa-3 cursor-pointer">
+                      <div class="text-body-2 font-weight-medium">{{ item.name_cn || item.name }}</div>
+                      <div class="text-caption text-medium-emphasis">{{ item.name }} | ID: {{ item.id }}</div>
+                    </v-card>
+                  </div>
                 </div>
               </v-window-item>
 

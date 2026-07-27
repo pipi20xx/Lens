@@ -426,6 +426,13 @@ body::-webkit-scrollbar-thumb:hover,
   background: transparent !important;
 }
 
+/* ── 小型列表卡片 — 关闭 overflow:hidden，内容完整展示不被裁剪 ── */
+/* v-card 默认 overflow:hidden 会裁剪内容；列表卡片需要完整显示 */
+.list-card {
+  overflow: visible !important;
+  border-radius: 12px !important;
+}
+
 /* hover — 液态形变效果 */
 .v-theme--dark .v-card--link:hover,
 .v-theme--dark .v-card[link]:hover {

@@ -101,8 +101,8 @@ async function handleAction(endpoint: string) {
               <v-divider />
               <v-card-text class="pa-4 flex-grow-1">
                 <p class="text-caption text-medium-emphasis">
-                  <strong>[深度释放]</strong><br />
-                  逻辑：清空 LockedFields 列表 (小锁) <strong>并</strong> 设置 LockData = false (主锁)。
+                  <strong>[仅解小锁]</strong><br />
+                  逻辑：仅清空 LockedFields 列表 (小锁)，<strong>不动</strong> LockData (主锁)。
                 </p>
               </v-card-text>
               <v-divider />
@@ -148,7 +148,7 @@ async function handleAction(endpoint: string) {
               <v-card-text class="pa-4 flex-grow-1">
                 <p class="text-caption text-medium-emphasis">
                   <strong>[彻底释放]</strong><br />
-                  逻辑：主锁、小锁一起解除 (LockData=false + 列表清空)。
+                  逻辑：主锁 + 小锁一起解除 (LockData=false + LockedFields 清空)。
                 </p>
               </v-card-text>
               <v-divider />
