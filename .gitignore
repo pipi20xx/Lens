@@ -36,3 +36,6 @@ cs123
 123123
 sytmdb
 frontend-old
+
+# Shared UI kit (extracted from Lens & SYTMDB for new project bootstrapping)
+shared-ui/
