@@ -125,7 +125,8 @@ async def audit_middleware(request: Request, call_next):
     exclude_paths = [
         "/api/system/logs", 
         "/api/system/audit/logs",
-        "/ws/"
+        "/ws/",
+        "/api/webhook/receive"
     ]
     
     is_api = request.url.path.startswith("/api")

@@ -27,17 +27,24 @@ async def receive_webhook(request: Request, full_path: str = "", db: AsyncSessio
     payload = {}
     try:
         content_type = request.headers.get("content-type", "")
-        if "multipart/form-data" in content_type:
-            logger.info(f"┣ 📦 识别为 Multipart 封装格式")
+        if "multipart/form-data" in content_type or "application/x-www-form-urlencoded" in content_type:
+            logger.info(f"┣ 📦 识别为表单封装格式: {content_type}")
             form_data = await request.form()
-            payload_str = form_data.get("data", "{}")
-            payload = json.loads(payload_str)
+            # Emby 通常将 JSON 放在 "data" 字段中
+            payload_str = form_data.get("data", "")
+            if payload_str:
+                payload = json.loads(payload_str)
+            else:
+                # 如果没有 "data" 字段，尝试将所有表单字段作为 payload
+                payload = dict(form_data)
         else:
             logger.info(f"┣ 📦 识别为纯 JSON 格式")
-            payload = await request.json()
+            body = await request.body()
+            if body:
+                payload = json.loads(body)
     except Exception as e:
         logger.error(f"┗ ❌ 载荷解析严重失败: {e}")
-        return {"status": "error", "message": "Parse Error"}
+        return {"status": "error", "message": "Parse Error", "detail": str(e)}
 
     # 2. 字段提取
     event_type = payload.get("Event", "unknown")

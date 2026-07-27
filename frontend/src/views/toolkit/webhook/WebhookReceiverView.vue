@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { webhookApi } from '@/api/webhook'
 import { useNotification, useClipboard } from '@/composables'
 import { useConfirm } from '@/composables'
+import GlassDialog from '@/components/common/GlassDialog.vue'
 
 const { success, error: showError } = useNotification()
 const { copy: copyToClipboard } = useClipboard()
@@ -45,6 +46,22 @@ async function clearLogs() {
   }
 }
 
+// ========== 原始 JSON 弹窗 ==========
+const detailDialog = ref(false)
+const selectedLog = ref<any>(null)
+
+function showDetail(log: any) {
+  selectedLog.value = log
+  detailDialog.value = true
+}
+
+function copyPayload() {
+  if (!selectedLog.value) return
+  const text = formatJson(selectedLog.value.payload || selectedLog.value)
+  copyToClipboard(text, '原始 JSON 已复制到剪贴板')
+}
+
+// ========== 工具函数 ==========
 function formatJson(data: any) {
   try {
     return JSON.stringify(typeof data === 'string' ? JSON.parse(data) : data, null, 2)
@@ -61,6 +78,30 @@ function formatTime(dt: string) {
   } catch {
     return dt
   }
+}
+
+/** 从 payload 中提取摘要信息 */
+function getSummary(log: any) {
+  const p = log.payload || {}
+  return {
+    event: p.Event || log.event_type || '未知事件',
+    item: p.Item?.Name || 'N/A',
+    user: p.User?.Name || 'N/A',
+  }
+}
+
+/** 事件类型对应颜色 */
+const EVENT_COLORS: Record<string, string> = {
+  'item.added': 'success',
+  'ItemAdded': 'success',
+  'library.new': 'success',
+  'LibraryChanged': 'info',
+  'playback.start': 'primary',
+  'playback.stop': 'warning',
+  'playback.progress': 'info',
+}
+function getEventColor(event: string) {
+  return EVENT_COLORS[event] || 'secondary'
 }
 
 onMounted(loadLogs)
@@ -97,6 +138,7 @@ onMounted(loadLogs)
       <v-card-title class="d-flex align-center pa-4">
         <v-icon start>mdi-history</v-icon>
         接收日志
+        <span v-if="logs.length" class="text-caption text-medium-emphasis ml-2">({{ logs.length }} 条)</span>
         <v-spacer />
         <v-btn prepend-icon="mdi-refresh" variant="tonal" color="info" size="small" @click="loadLogs" :loading="loading" class="mr-2">刷新</v-btn>
         <v-btn prepend-icon="mdi-delete-sweep-outline" variant="tonal" size="small" color="error" @click="clearLogs">清空日志</v-btn>
@@ -111,22 +153,78 @@ onMounted(loadLogs)
         <div class="text-caption mt-2">当 Emby 发送 Webhook 事件后，日志将在此显示</div>
       </div>
 
-      <div v-else class="d-flex flex-column ga-3 pa-4">
-        <v-card v-for="(log, idx) in logs" :key="idx" variant="outlined" rounded="lg">
-          <div class="d-flex align-center pa-3 pb-1">
-            <v-chip size="small" variant="tonal" :color="log.event_type ? 'primary' : 'grey'" class="mr-2">
-              {{ log.event_type || '未知事件' }}
+      <!-- 卡片式日志列表 -->
+      <div v-else class="d-flex flex-column ga-2 pa-4">
+        <v-card
+          v-for="(log, idx) in logs"
+          :key="idx"
+          variant="outlined"
+          rounded="lg"
+        >
+          <div class="d-flex align-center flex-wrap pa-3">
+            <!-- 事件类型标签 -->
+            <v-chip
+              size="small"
+              variant="tonal"
+              :color="getEventColor(getSummary(log).event)"
+              class="mr-3 font-weight-medium"
+            >
+              <v-icon start size="14">mdi-bell-ring-outline</v-icon>
+              {{ getSummary(log).event }}
             </v-chip>
-            <span v-if="log.source_ip" class="text-caption text-medium-emphasis mr-3">
-              <v-icon size="12">mdi-ip-network</v-icon> {{ log.source_ip }}
-            </span>
-            <span class="text-caption text-medium-emphasis">{{ formatTime(log.created_at) }}</span>
+
+            <!-- 摘要信息 -->
+            <div class="d-flex align-center ga-4 flex-wrap text-body-2 text-medium-emphasis">
+              <span v-if="getSummary(log).item !== 'N/A'" class="d-flex align-center">
+                <v-icon size="14" class="mr-1">mdi-movie-open-outline</v-icon>
+                {{ getSummary(log).item }}
+              </span>
+              <span v-if="getSummary(log).user !== 'N/A'" class="d-flex align-center">
+                <v-icon size="14" class="mr-1">mdi-account-outline</v-icon>
+                {{ getSummary(log).user }}
+              </span>
+              <span v-if="log.source_ip" class="d-flex align-center">
+                <v-icon size="14" class="mr-1">mdi-ip-network</v-icon>
+                {{ log.source_ip }}
+              </span>
+              <span class="d-flex align-center">
+                <v-icon size="14" class="mr-1">mdi-clock-outline</v-icon>
+                {{ formatTime(log.created_at) }}
+              </span>
+            </div>
+
+            <v-spacer />
+
+            <!-- 查看原始 JSON 按钮 -->
+            <v-btn
+              size="small"
+              variant="tonal"
+              color="primary"
+              prepend-icon="mdi-code-block-braces"
+              @click="showDetail(log)"
+            >
+              查看原始信息
+            </v-btn>
           </div>
-          <v-card-text class="pa-3 pt-0">
-            <pre class="code-block" style="max-height:200px">{{ formatJson(log.payload || log) }}</pre>
-          </v-card-text>
         </v-card>
       </div>
     </v-card>
+
+    <!-- 原始 JSON 弹窗 -->
+    <GlassDialog
+      v-model="detailDialog"
+      :max-width="800"
+      :title="selectedLog ? `原始 JSON - ${getSummary(selectedLog).event}` : '原始 JSON'"
+      icon="mdi-code-block-braces"
+    >
+      <pre v-if="selectedLog" class="code-block code-block--flat">{{ formatJson(selectedLog.payload || selectedLog) }}</pre>
+
+      <template #actions>
+        <v-btn variant="tonal" color="info" prepend-icon="mdi-content-copy" @click="copyPayload">
+          复制 JSON
+        </v-btn>
+      </template>
+    </GlassDialog>
   </v-container>
 </template>
+
