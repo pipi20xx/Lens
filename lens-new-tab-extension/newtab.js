@@ -3,9 +3,9 @@ chrome.storage.local.get(['baseUrl', 'appendHome'], (items) => {
     let targetUrl = items.baseUrl;
     
     if (targetUrl && targetUrl.startsWith('http')) {
-        // 如果开启了自动进入 /home 开关，则在末尾拼接
+        // 如果开启了自动进入站点导航开关，则在末尾拼接
         if (items.appendHome) {
-            targetUrl = targetUrl.endsWith('/') ? targetUrl + 'home' : targetUrl + '/home';
+            targetUrl = targetUrl.endsWith('/') ? targetUrl + 'toolkit/site-nav' : targetUrl + '/toolkit/site-nav';
         }
 
         // 使用 chrome.tabs API 强制更新当前标签页地址
