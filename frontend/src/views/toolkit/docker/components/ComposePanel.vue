@@ -118,8 +118,9 @@ async function saveProject() {
   if (!props.hostId) return
   if (!currentProject.value.name.trim()) { showError('请输入项目名称'); return }
   if (yamlError.value) { showError('请修正 YAML 错误后再保存'); return }
+  const savePath = isEditingProject.value ? currentProject.value.path : finalSavePath.value
   try {
-    await dockerApi.createComposeProject(props.hostId, { name: currentProject.value.name, content: currentProject.value.content })
+    await dockerApi.createComposeProject(props.hostId, { name: currentProject.value.name, content: currentProject.value.content }, savePath)
     success('保存成功')
     if (!isEditingProject.value) localStorage.setItem(storageKey.value, baseSavePath.value)
     showComposeModal.value = false; loadComposeProjects()

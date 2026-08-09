@@ -27,8 +27,8 @@ export const dockerApi = {
     api.get(`/api/docker/compose/${hostId}/projects`),
   getComposeProject: (hostId: string, name: string, path?: string) =>
     api.get(`/api/docker/compose/${hostId}/projects/${name}`, { params: { path } }),
-  createComposeProject: (hostId: string, data: any) =>
-    api.post(`/api/docker/compose/${hostId}/projects`, data),
+  createComposeProject: (hostId: string, data: any, path?: string) =>
+    api.post(`/api/docker/compose/${hostId}/projects`, data, { params: { path } }),
   composeProjectAction: (hostId: string, name: string, action: string, path?: string) =>
     api.post(`/api/docker/compose/${hostId}/projects/${name}/action`, { action, path }),
   composeBulkAction: (hostId: string, data: any) =>
