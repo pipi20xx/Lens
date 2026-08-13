@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, nextTick, watch } from 'vue'
+import { ref, nextTick, watch } from 'vue'
 import { useSystemStore } from '@/stores'
 import GlassDialog from '@/components/common/GlassDialog.vue'
 
@@ -7,7 +7,7 @@ const systemStore = useSystemStore()
 const logContainer = ref<HTMLElement>()
 
 const levelColors: Record<string, string> = {
-  INFO: '#4ecdc4',
+  INFO: '#38bdf8',
   WARNING: '#FFB74D',
   ERROR: '#EF5350',
   CRITICAL: '#F48FB1',
@@ -37,7 +37,7 @@ function clearLogs() {
 </script>
 
 <template>
-  <GlassDialog v-model="systemStore.showLogModal" :max-width="900" :cancel-visible="false">
+  <GlassDialog v-model="systemStore.showLogModal" :max-width="900" :cancel-visible="false" :scrollable="false">
     <template #title>
       <v-icon start>mdi-card-text-outline</v-icon>
       系统日志
@@ -50,7 +50,7 @@ function clearLogs() {
       <v-btn variant="text" size="small" icon="mdi-delete-outline" @click="clearLogs" />
       <v-btn variant="text" size="small" icon="mdi-close" @click="systemStore.showLogModal = false" />
     </template>
-    <div ref="logContainer" class="log-terminal" style="height: 500px;">
+    <div ref="logContainer" class="log-terminal" style="max-height: 60vh;">
       <div
         v-for="(entry, i) in systemStore.filteredLogs"
         :key="i"
@@ -58,7 +58,7 @@ function clearLogs() {
         :class="{ 'log-entry--error': entry.level === 'ERROR', 'log-entry--warn': entry.level === 'WARNING' }"
       >
         <span class="log-entry__time">{{ entry.time }}</span>
-        <span class="log-entry__level" :data-level="entry.level.toLowerCase()" :style="{ color: levelColors[entry.level] || '#4ecdc4' }">
+        <span class="log-entry__level" :data-level="entry.level.toLowerCase()" :style="{ color: levelColors[entry.level] || '#38bdf8' }">
           {{ entry.level }}
         </span>
         <span class="log-entry__msg">{{ entry.message }}</span>
