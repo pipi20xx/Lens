@@ -178,6 +178,11 @@
   color: #4ecdc4 !important;
 }
 
+/* 亮色模式 — 青色在白底不可读，改为深青 */
+.v-theme--light .text-accent-gold {
+  color: #0891b2 !important;
+}
+
 
 /* ============================================================
  * 1. 全局基础
@@ -1775,8 +1780,12 @@ code {
 }
 
 .tag-rules-explanation .explanation-positive {
-  color: #4caf50;
+  color: #2e7d32;
   font-weight: bold;
+}
+
+.v-theme--dark .tag-rules-explanation .explanation-positive {
+  color: #4caf50;
 }
 
 .tag-rules-explanation .explanation-negative {
@@ -1923,6 +1932,11 @@ code {
   font-size: inherit;
   white-space: nowrap;
   display: block;
+}
+
+/* 亮色模式 — 代码高亮色加深 */
+.v-theme--light .code-block code {
+  color: #2e7d32;
 }
 
 /* 兼容旧类名 */

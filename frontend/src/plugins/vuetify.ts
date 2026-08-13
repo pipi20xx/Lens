@@ -27,8 +27,8 @@ const lightTheme = {
     'secondary-darken-1': '#4b5563',
     accent: '#4ecdc4',
     error: '#ef4444',
-    info: '#4ecdc4',
-    success: '#10b981',
+    info: '#0891b2',    // 深青色 — 白底可读（原 #4ecdc4 在白底上几乎不可见）
+    success: '#059669', // 深绿色 — 白底可读（原 #10b981 对比度不足）
     warning: '#ff2d92',
   },
 }
