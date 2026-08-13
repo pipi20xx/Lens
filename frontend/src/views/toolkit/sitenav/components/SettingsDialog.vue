@@ -515,7 +515,7 @@ const sizeOptions = [
             <v-card-title class="text-subtitle-2 pa-3">导出配置</v-card-title>
             <v-card-text class="pa-3 pt-0">
               <div class="text-body-2 text-medium-emphasis mb-3">将当前所有导航数据导出为 .zip 压缩包，方便迁移到其他服务器。</div>
-              <v-btn variant="tonal" prepend-icon="mdi-download" @click="emit('export')">生成并下载全量备份</v-btn>
+              <v-btn variant="tonal" color="primary" prepend-icon="mdi-download" @click="emit('export')">生成并下载全量备份</v-btn>
             </v-card-text>
           </v-card>
 

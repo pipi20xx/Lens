@@ -74,6 +74,7 @@ watch(() => props.modelValue, (val) => {
     icon="mdi-shape-outline"
     title="HD-Icons 图标库"
     cancel-text="关闭"
+    :scrollable="true"
   >
     <!-- 工具栏 -->
     <div class="d-flex align-center ga-3 mb-4 flex-wrap">
@@ -134,10 +135,9 @@ watch(() => props.modelValue, (val) => {
 </template>
 
 <style scoped>
+/* 图标网格 — 由弹窗统一滚动，不设独立滚动条 */
 .icon-grid-wrapper {
   min-height: 300px;
-  max-height: 55vh;
-  overflow-y: auto;
   padding: 4px;
 }
 
