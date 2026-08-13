@@ -2,6 +2,13 @@
 import { ref, watch } from 'vue'
 import type { Category } from '../composables/useSiteNav'
 import GlassDialog from '@/components/common/GlassDialog.vue'
+import HDIconPicker from './HDIconPicker.vue'
+
+// 常用 Emoji 预设
+const COMMON_EMOJIS = [
+  '🏠', '🎬', '📺', '🎮', '📥', '🛠️', '⚙️', '📊', '🌐', '📁',
+  '🔍', '📚', '🎵', '📸', '🎨', '🛡️', '⚡', '☁️', '📱', '💻',
+]
 
 const props = defineProps<{
   modelValue: boolean
@@ -59,6 +66,31 @@ const editingCatName = ref('')
 const editingCatIcon = ref('')
 const dragCatId = ref<number | null>(null)
 const dragOverCatId = ref<number | null>(null)
+
+// === 图标选择 ===
+const showIconPicker = ref(false)
+const pickingFor = ref<'new' | 'edit'>('new')
+
+function openIconPicker(type: 'new' | 'edit') {
+  pickingFor.value = type
+  showIconPicker.value = true
+}
+
+function handleIconSelect(url: string) {
+  if (pickingFor.value === 'new') {
+    newCatIcon.value = url
+  } else {
+    editingCatIcon.value = url
+  }
+}
+
+function selectEmoji(emoji: string, type: 'new' | 'edit') {
+  if (type === 'new') {
+    newCatIcon.value = emoji
+  } else {
+    editingCatIcon.value = emoji
+  }
+}
 
 function handleAddCategory() {
   if (!newCatName.value) return
@@ -380,7 +412,27 @@ const sizeOptions = [
       <!-- 分类管理 ===== -->
       <div v-show="activeTab === 'categories'">
           <div class="settings-section-title mb-3">添加新分类</div>
-          <div class="d-flex ga-2 mb-4">
+          <div class="d-flex ga-2 mb-4 align-center">
+            <!-- Emoji + 图标库弹出菜单 -->
+            <v-menu :close-on-content-click="false" location="bottom start">
+              <template #activator="{ props: activatorProps }">
+                <v-btn v-bind="activatorProps" variant="tonal" size="small" color="info"
+                  :style="{ minWidth: '36px', maxWidth: '36px', padding: '0' }">
+                  <span v-if="newCatIcon && isEmoji(newCatIcon)" style="font-size:18px">{{ newCatIcon }}</span>
+                  <img v-else-if="newCatIcon" :src="newCatIcon" style="width:18px;height:18px;object-fit:contain" />
+                  <v-icon v-else>mdi-emoticon-outline</v-icon>
+                </v-btn>
+              </template>
+              <v-card rounded="lg" class="emoji-picker-card pa-2">
+                <div class="emoji-picker-grid">
+                  <span v-for="e in COMMON_EMOJIS" :key="e" class="emoji-item" @click="selectEmoji(e, 'new')">{{ e }}</span>
+                </div>
+                <v-btn block size="x-small" variant="text" color="primary" prepend-icon="mdi-shape-outline"
+                  @click="openIconPicker('new')" class="mt-1">
+                  HD-Icons 图标库
+                </v-btn>
+              </v-card>
+            </v-menu>
             <v-text-field v-model="newCatIcon" placeholder="图标/Emoji" variant="outlined" density="compact"
               style="max-width:120px" hide-details />
             <v-text-field v-model="newCatName" placeholder="新分类名称" variant="outlined" density="compact"
@@ -408,6 +460,26 @@ const sizeOptions = [
               <div class="cat-content">
                 <template v-if="editingCatId === cat.id">
                   <div class="d-flex ga-1 align-center">
+                    <!-- Emoji + 图标库弹出菜单 -->
+                    <v-menu :close-on-content-click="false" location="bottom start">
+                      <template #activator="{ props: activatorProps }">
+                        <v-btn v-bind="activatorProps" variant="tonal" size="x-small" color="info"
+                          :style="{ minWidth: '30px', maxWidth: '30px', padding: '0' }">
+                          <span v-if="editingCatIcon && isEmoji(editingCatIcon)" style="font-size:16px">{{ editingCatIcon }}</span>
+                          <img v-else-if="editingCatIcon" :src="editingCatIcon" style="width:16px;height:16px;object-fit:contain" />
+                          <v-icon v-else size="small">mdi-emoticon-outline</v-icon>
+                        </v-btn>
+                      </template>
+                      <v-card rounded="lg" class="emoji-picker-card pa-2">
+                        <div class="emoji-picker-grid">
+                          <span v-for="e in COMMON_EMOJIS" :key="e" class="emoji-item" @click="selectEmoji(e, 'edit')">{{ e }}</span>
+                        </div>
+                        <v-btn block size="x-small" variant="text" color="primary" prepend-icon="mdi-shape-outline"
+                          @click="openIconPicker('edit')" class="mt-1">
+                          HD-Icons 图标库
+                        </v-btn>
+                      </v-card>
+                    </v-menu>
                     <v-text-field v-model="editingCatIcon" placeholder="图标" variant="outlined" density="compact"
                       hide-details style="max-width:80px" />
                     <v-text-field v-model="editingCatName" placeholder="名称" variant="outlined" density="compact"
@@ -459,6 +531,9 @@ const sizeOptions = [
           </v-card>
         </div>
   </GlassDialog>
+
+  <!-- HD-Icons 图标库选择器 -->
+  <HDIconPicker v-model="showIconPicker" @select="handleIconSelect" />
 </template>
 
 <style scoped>
@@ -483,4 +558,31 @@ const sizeOptions = [
 .cat-name { font-weight: 500; font-size: 14px; }
 .is-dragging { opacity: 0.4; border-style: dashed; }
 .is-drag-over { border: 2px solid rgb(var(--v-theme-primary)); transform: scale(1.01); }
+
+.emoji-picker-card {
+  /* v-card 自带主题背景色，这里补充阴影和边框增强可读性 */
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3) !important;
+}
+.emoji-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+  width: 170px;
+}
+.emoji-item {
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+.emoji-item:hover {
+  background: rgba(var(--v-theme-primary), 0.15);
+  transform: scale(1.15);
+}
 </style>
