@@ -455,8 +455,7 @@ function formatTime(ts?: number) {
         v-model="editorContent"
         :loading="editorLoading"
         :disabled="editorLoading"
-        auto-grow
-        rows="20"
+        rows="24"
         class="yaml-editor"
         variant="outlined"
         hide-details

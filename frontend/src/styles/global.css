@@ -2147,9 +2147,42 @@ code {
   font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
 }
 
-/* ── YAML/代码编辑器 — textarea 等宽字体 ── */
-.yaml-editor :deep(textarea) {
+/* ── YAML/代码编辑器 — textarea 等宽字体 + 滚动条 ── */
+.yaml-editor textarea {
   font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  max-height: 60vh !important;
+  overflow-y: auto !important;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(59, 130, 246, 0.3) transparent;
+}
+
+.yaml-editor textarea::-webkit-scrollbar {
+  width: 6px;
+}
+
+.yaml-editor textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.yaml-editor textarea::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.3);
+  border-radius: 3px;
+}
+
+.yaml-editor textarea::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 130, 246, 0.5);
+}
+
+.v-theme--light .yaml-editor textarea {
+  scrollbar-color: rgba(168, 85, 247, 0.3) transparent;
+}
+
+.v-theme--light .yaml-editor textarea::-webkit-scrollbar-thumb {
+  background: rgba(168, 85, 247, 0.3);
+}
+
+.v-theme--light .yaml-editor textarea::-webkit-scrollbar-thumb:hover {
+  background: rgba(168, 85, 247, 0.5);
 }
 
 /* ── 清理分组 — MaintenancePanel ── */
