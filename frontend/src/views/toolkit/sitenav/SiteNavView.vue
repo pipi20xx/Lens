@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, nextTick } from 'vue'
+import { ref, computed, onMounted, watch, nextTick, defineAsyncComponent } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSiteNav } from './composables/useSiteNav'
 import { useConfirm } from '@/composables'
@@ -7,6 +7,19 @@ import NavClock from './components/NavClock.vue'
 import SiteCard from './components/SiteCard.vue'
 import SiteEditorDialog from './components/SiteEditorDialog.vue'
 import SettingsDialog from './components/SettingsDialog.vue'
+
+// ACG 玻璃主题样式
+import '@/glass/styles/glass-acg.scss'
+
+// 异步加载 GlassOpticalLayer 组件（WebGL 渲染层，体积较大）
+const GlassOpticalLayer = defineAsyncComponent(() =>
+  import('@/glass/components/GlassOpticalLayer.vue')
+)
+
+// 异步加载 GlassSettingsDialog 组件（玻璃设置弹窗）
+const GlassSettingsDialog = defineAsyncComponent(() =>
+  import('@/glass/components/GlassSettingsDialog.vue')
+)
 
 const router = useRouter()
 const { confirm } = useConfirm()
@@ -171,28 +184,102 @@ const getCategoryIcon = (categoryId: number) => {
   return cat?.icon || ''
 }
 
+// ========== ACG 玻璃主题模式 ==========
+import { useGlassWallpaper } from '@/glass'
+import { useThemeStore } from '@/stores/useThemeStore'
+import { applyStoredThemeCustomizerAppearance } from '@/glass/host/useThemeCustomizer'
+
+const themeStore = useThemeStore()
+const glassAcgEnabled = ref(localStorage.getItem('sitenav_glass_acg') === 'true')
+
+// 当 ACG 玻璃开启时，设置 themeStore 的 glassTheme 并初始化玻璃壁纸
+watch(glassAcgEnabled, (enabled) => {
+  if (enabled) {
+    themeStore.setGlassTheme('acg')
+    themeStore.setDarkMode(true)
+    document.documentElement.classList.add('glass-theme-acg')
+    // 初始化玻璃设置（如果用户未保存过设置，使用默认值）
+    applyStoredThemeCustomizerAppearance()
+  } else {
+    themeStore.setGlassTheme('none')
+    document.documentElement.classList.remove('glass-theme-acg')
+  }
+}, { immediate: true })
+
+// 玻璃壁纸管理（仅在 ACG 开启时生效）
+const {
+  wallpaperUrl,
+  previousWallpaperUrl,
+  transitionStartedAt,
+  transitionDuration,
+  shouldRenderGlassOpticalLayer,
+  glassMaterialTintColor,
+  opticalDeformationStrength,
+  opticalFlowStrength,
+  opticalQuality,
+  opticalReflectionStrength,
+  opticalTransparencyStrength,
+  opticalTransmissionStrength,
+  opticalTranslationStrength,
+} = useGlassWallpaper()
+
+// GlassOpticalLayer 的 props（仅在 shouldRenderGlassOpticalLayer 为 true 时渲染）
+const glassOpticalLayerProps = computed(() => {
+  if (!shouldRenderGlassOpticalLayer.value) return null
+  return {
+    appearance: 'clear' as const,
+    deformationStrength: opticalDeformationStrength.value,
+    flowStrength: opticalFlowStrength.value,
+    dynamicsMode: 'ripple' as const,
+    quality: opticalQuality.value === 'css' ? 'balanced' as const : opticalQuality.value as 'balanced' | 'high',
+    reflectionStrength: opticalReflectionStrength.value,
+    transparencyStrength: opticalTransparencyStrength.value,
+    transmissionStrength: opticalTransmissionStrength.value,
+    translationStrength: opticalTranslationStrength.value,
+    routeKey: 'sitenav',
+    tintColor: glassMaterialTintColor.value,
+    transitionDuration: transitionDuration,
+    transitionStartedAt: transitionStartedAt.value,
+    wallpaperUrl: wallpaperUrl.value,
+    previousWallpaperUrl: previousWallpaperUrl.value,
+  }
+})
+
+function toggleGlassAcg() {
+  glassAcgEnabled.value = !glassAcgEnabled.value
+  localStorage.setItem('sitenav_glass_acg', String(glassAcgEnabled.value))
+}
+
+// 玻璃设置弹窗
+const showGlassSettings = ref(false)
+
 // ========== CSS 变量 ==========
-const cssVars = computed(() => ({
-  '--nav-card-bg': navSettings.value.card_background || 'rgba(255, 255, 255, 0.12)',
-  '--nav-card-blur': `${navSettings.value.card_blur ?? 16}px`,
-  '--nav-card-border': navSettings.value.card_border_color || 'rgba(255, 255, 255, 0.15)',
-  '--nav-text-color': navSettings.value.text_color || '#ffffff',
-  '--nav-text-desc-color': navSettings.value.text_description_color || 'rgba(255, 255, 255, 0.7)',
-  '--nav-bg-color': navSettings.value.enable_background_color ? (navSettings.value.background_color || '#1e1e22') : 'transparent',
-  '--nav-category-color': navSettings.value.category_title_color || '#ffffff',
-  '--nav-content-width': `${navSettings.value.content_max_width || 90}%`,
-  '--nav-category-align': navSettings.value.category_alignment || 'left',
-  '--nav-header-align': navSettings.value.header_alignment || 'left',
-  '--nav-header-gap': `${navSettings.value.header_item_spacing ?? 12}px`,
-  '--nav-header-mt': `${navSettings.value.header_margin_top ?? 20}px`,
-  '--nav-header-mb': `${navSettings.value.header_margin_bottom ?? 30}px`,
-  '--nav-header-text-color': navSettings.value.header_text_color || '#ffffff',
-  '--nav-header-subtitle-color': navSettings.value.header_subtitle_color || 'rgba(255, 255, 255, 0.85)',
-  '--nav-clock-text-color': navSettings.value.clock_text_color || '#ffffff',
-  '--nav-hitokoto-bg': navSettings.value.hitokoto_background || 'rgba(30, 30, 35, 0.6)',
-  '--nav-hitokoto-text-color': navSettings.value.hitokoto_text_color || '#ffffff',
-  '--nav-hitokoto-from-color': navSettings.value.hitokoto_from_color || 'rgba(255, 255, 255, 0.7)',
-}))
+// ACG 玻璃开启时，卡片/背景相关变量由 glass-acg.scss 接管，
+// 这里将相关变量设为 transparent / none 避免高级设置的行内样式覆盖玻璃效果。
+const cssVars = computed(() => {
+  const acg = glassAcgEnabled.value
+  return {
+    '--nav-card-bg': acg ? 'transparent' : (navSettings.value.card_background || 'rgba(255, 255, 255, 0.12)'),
+    '--nav-card-blur': acg ? '0px' : `${navSettings.value.card_blur ?? 16}px`,
+    '--nav-card-border': acg ? 'transparent' : (navSettings.value.card_border_color || 'rgba(255, 255, 255, 0.15)'),
+    '--nav-text-color': navSettings.value.text_color || '#ffffff',
+    '--nav-text-desc-color': navSettings.value.text_description_color || 'rgba(255, 255, 255, 0.7)',
+    '--nav-bg-color': acg ? 'transparent' : (navSettings.value.enable_background_color ? (navSettings.value.background_color || '#1e1e22') : 'transparent'),
+    '--nav-category-color': navSettings.value.category_title_color || '#ffffff',
+    '--nav-content-width': `${navSettings.value.content_max_width || 90}%`,
+    '--nav-category-align': navSettings.value.category_alignment || 'left',
+    '--nav-header-align': navSettings.value.header_alignment || 'left',
+    '--nav-header-gap': `${navSettings.value.header_item_spacing ?? 12}px`,
+    '--nav-header-mt': `${navSettings.value.header_margin_top ?? 20}px`,
+    '--nav-header-mb': `${navSettings.value.header_margin_bottom ?? 30}px`,
+    '--nav-header-text-color': navSettings.value.header_text_color || '#ffffff',
+    '--nav-header-subtitle-color': navSettings.value.header_subtitle_color || 'rgba(255, 255, 255, 0.85)',
+    '--nav-clock-text-color': navSettings.value.clock_text_color || '#ffffff',
+    '--nav-hitokoto-bg': acg ? 'rgba(11, 19, 34, 0.4)' : (navSettings.value.hitokoto_background || 'rgba(30, 30, 35, 0.6)'),
+    '--nav-hitokoto-text-color': navSettings.value.hitokoto_text_color || '#ffffff',
+    '--nav-hitokoto-from-color': navSettings.value.hitokoto_from_color || 'rgba(255, 255, 255, 0.7)',
+  }
+})
 
 const headerAlignClass = computed(() => {
   const a = navSettings.value.header_alignment
@@ -208,7 +295,9 @@ const categoryAlignStyle = computed(() => {
   return 'flex-start'
 })
 
+// ACG 玻璃开启时不需要原来的遮罩层，WebGL 渲染层会接管背景
 const overlayBg = computed(() => {
+  if (glassAcgEnabled.value) return 'none'
   if (!navSettings.value.enable_background_color || isLightBackground(navSettings.value.background_color)) {
     return 'none'
   }
@@ -217,12 +306,10 @@ const overlayBg = computed(() => {
 </script>
 
 <template>
-  <div class="site-nav-page" :style="cssVars" @click="showContextMenu = false">
-    <!-- 背景层：底层实色 -->
-    <div class="bg-base"></div>
-
-    <!-- 背景层：顶层图片 -->
-    <transition name="fade-bg">
+  <div class="site-nav-page" :class="{ 'glass-acg': glassAcgEnabled }" :style="cssVars" @click="showContextMenu = false">
+    <!-- 非_ACG 背景层 -->
+    <div v-if="!glassAcgEnabled" class="bg-base"></div>
+    <transition v-if="!glassAcgEnabled" name="fade-bg">
       <div
         v-if="computedBgUrl"
         :key="computedBgUrl"
@@ -235,111 +322,131 @@ const overlayBg = computed(() => {
         }"
       ></div>
     </transition>
+    <div v-if="!glassAcgEnabled && !navSettings.enable_hd_mode" class="bg-overlay" :style="{ background: overlayBg }"></div>
 
-    <!-- 背景遮罩层 -->
-    <div v-if="!navSettings.enable_hd_mode" class="bg-overlay" :style="{ background: overlayBg }"></div>
+    <!-- ACG 玻璃光学渲染层（WebGL） -->
+    <GlassOpticalLayer
+      v-if="glassAcgEnabled && glassOpticalLayerProps"
+      v-bind="glassOpticalLayerProps"
+    />
 
-    <!-- 必应壁纸信息 -->
+    <!--
+      ACG 模式：整个页面用一块大玻璃卡片包裹。
+      WebGL 渲染器只需处理这一个光学表面，坐标映射与 body 壁纸天然对齐。
+      子卡片不再注册为独立光学表面，只做视觉装饰。
+    -->
     <div
-      v-if="navSettings.wallpaper_mode === 'bing' && navSettings.show_wallpaper_info && bingInfo.title"
-      class="wallpaper-info"
+      class="glass-page-surface"
+      :data-glass-optical-surface="glassAcgEnabled ? '' : undefined"
     >
-      <div class="wp-title">{{ bingInfo.title }}</div>
-      <div class="wp-copyright">{{ bingInfo.copyright }}</div>
-    </div>
-
-    <!-- 内容包裹层 -->
-    <div class="nav-content">
-      <!-- 顶部头部 -->
-      <div class="nav-header" :style="{ marginTop: 'var(--nav-header-mt)', marginBottom: 'var(--nav-header-mb)' }">
-        <div class="header-left" :class="headerAlignClass" :style="{ gap: 'var(--nav-header-gap)' }">
-          <!-- 时钟 -->
-          <NavClock
-            v-if="navSettings.show_clock"
-            :alignment="navSettings.header_alignment"
-            :text-color="navSettings.clock_text_color"
-          />
-
-          <div class="page-title">{{ navSettings.page_title || '站点导航' }}</div>
-          <div class="page-subtitle">{{ navSettings.page_subtitle || '' }}</div>
-
-          <!-- 每日一言 -->
-          <div
-            v-if="navSettings.show_hitokoto"
-            class="hitokoto-container"
-            :class="headerAlignClass"
-            @click="fetchHitokoto"
-          >
-            <span class="hitokoto-text">" {{ hitokoto.text }} "</span>
-            <span class="hitokoto-from">—— {{ hitokoto.from }}</span>
-          </div>
-        </div>
-
-        <div class="header-right">
-          <v-btn icon variant="text" size="small" @click="goBack" title="返回管理后台">
-            <v-icon>mdi-arrow-left</v-icon>
-          </v-btn>
-          <v-btn icon variant="text" size="small" @click="openAddSite()" title="添加站点">
-            <v-icon>mdi-plus</v-icon>
-          </v-btn>
-          <v-btn icon variant="text" size="small" @click="showSettings = true" title="设置">
-            <v-icon>mdi-cog-outline</v-icon>
-          </v-btn>
-          <v-btn icon variant="text" size="small" @click="loadAll" :loading="loading" title="刷新">
-            <v-icon>mdi-refresh</v-icon>
-          </v-btn>
-        </div>
+      <!-- 必应壁纸信息 -->
+      <div
+        v-if="navSettings.wallpaper_mode === 'bing' && navSettings.show_wallpaper_info && bingInfo.title"
+        class="wallpaper-info"
+      >
+        <div class="wp-title">{{ bingInfo.title }}</div>
+        <div class="wp-copyright">{{ bingInfo.copyright }}</div>
       </div>
 
-      <!-- 加载中 -->
-      <div v-if="loading && sites.length === 0" class="loading-state">
-        <v-progress-circular indeterminate size="48" color="white" />
-      </div>
+      <!-- 内容包裹层 -->
+      <div class="nav-content">
+        <!-- 顶部头部 -->
+        <div class="nav-header" :style="{ marginTop: 'var(--nav-header-mt)', marginBottom: 'var(--nav-header-mb)' }">
+          <div class="header-left" :class="headerAlignClass" :style="{ gap: 'var(--nav-header-gap)' }">
+            <!-- 时钟 -->
+            <NavClock
+              v-if="navSettings.show_clock"
+              :alignment="navSettings.header_alignment"
+              :text-color="navSettings.clock_text_color"
+            />
 
-      <!-- 空状态 -->
-      <div v-if="!loading && sites.length === 0" class="empty-state">
-        <v-icon size="64" color="rgba(255,255,255,0.5)" class="mb-4">mdi-compass-outline</v-icon>
-        <div class="empty-text">还没有站点</div>
-        <v-btn variant="tonal" color="white" class="mt-4" prepend-icon="mdi-plus" @click="openAddSite()">
-          添加第一个站点
-        </v-btn>
-      </div>
+            <div class="page-title">{{ navSettings.page_title || '站点导航' }}</div>
+            <div class="page-subtitle">{{ navSettings.page_subtitle || '' }}</div>
 
-      <!-- 分类分组展示 -->
-      <transition-group name="stagger" tag="div">
-        <div v-for="group in groupedSites" :key="group.id" class="category-section">
-          <div class="category-header" :style="{ justifyContent: categoryAlignStyle }">
-            <div class="category-title-container">
-              <span v-if="getCategoryIcon(group.id) && isEmoji(getCategoryIcon(group.id))" class="category-emoji">
-                {{ getCategoryIcon(group.id) }}
-              </span>
-              <img v-else-if="getCategoryIcon(group.id)" :src="getCategoryIcon(group.id)" class="category-img-icon" />
-              <div class="category-title">{{ group.name }}</div>
+            <!-- 每日一言 -->
+            <div
+              v-if="navSettings.show_hitokoto"
+              class="hitokoto-container"
+              :class="headerAlignClass"
+              @click="fetchHitokoto"
+            >
+              <span class="hitokoto-text">" {{ hitokoto.text }} "</span>
+              <span class="hitokoto-from">—— {{ hitokoto.from }}</span>
             </div>
-            <div v-if="navSettings.show_category_line" class="category-line"></div>
-            <v-btn icon variant="text" size="x-small" class="category-add-btn" @click="openAddSite(group.id)">
-              <v-icon size="16">mdi-plus-circle-outline</v-icon>
+          </div>
+
+          <div class="header-right">
+            <v-btn icon variant="text" size="small" @click="goBack" title="返回管理后台">
+              <v-icon>mdi-arrow-left</v-icon>
+            </v-btn>
+            <v-btn icon variant="text" size="small" @click="toggleGlassAcg" :title="glassAcgEnabled ? '关闭 ACG 玻璃' : '开启 ACG 玻璃'">
+              <v-icon>{{ glassAcgEnabled ? 'mdi-glass-mug-variant' : 'mdi-glass-mug-variant-outline' }}</v-icon>
+            </v-btn>
+            <v-btn v-if="glassAcgEnabled" icon variant="text" size="small" @click="showGlassSettings = true" title="玻璃设置">
+              <v-icon>mdi-tune-variant</v-icon>
+            </v-btn>
+            <v-btn icon variant="text" size="small" @click="openAddSite()" title="添加站点">
+              <v-icon>mdi-plus</v-icon>
+            </v-btn>
+            <v-btn icon variant="text" size="small" @click="showSettings = true" title="设置">
+              <v-icon>mdi-cog-outline</v-icon>
+            </v-btn>
+            <v-btn icon variant="text" size="small" @click="loadAll" :loading="loading" title="刷新">
+              <v-icon>mdi-refresh</v-icon>
             </v-btn>
           </div>
-
-          <div class="sites-grid">
-            <SiteCard
-              v-for="(site, index) in group.sites"
-              :key="site.id"
-              :site="site"
-              :style-mode="navSettings.card_style"
-              :is-dragging="dragSiteId === site.id"
-              :style="{ '--i': index }"
-              @click="openUrl(site.url)"
-              @contextmenu="handleContextMenu($event, site)"
-              @dragstart="onDragStart(site.id)"
-              @dragenter="onDragEnter(site.id)"
-              @dragend="onDragEnd"
-            />
-          </div>
         </div>
-      </transition-group>
-    </div>
+
+        <!-- 加载中 -->
+        <div v-if="loading && sites.length === 0" class="loading-state">
+          <v-progress-circular indeterminate size="48" color="white" />
+        </div>
+
+        <!-- 空状态 -->
+        <div v-if="!loading && sites.length === 0" class="empty-state">
+          <v-icon size="64" color="rgba(255,255,255,0.5)" class="mb-4">mdi-compass-outline</v-icon>
+          <div class="empty-text">还没有站点</div>
+          <v-btn variant="tonal" color="white" class="mt-4" prepend-icon="mdi-plus" @click="openAddSite()">
+            添加第一个站点
+          </v-btn>
+        </div>
+
+        <!-- 分类分组展示 -->
+        <transition-group name="stagger" tag="div">
+          <div v-for="group in groupedSites" :key="group.id" class="category-section">
+            <div class="category-header" :style="{ justifyContent: categoryAlignStyle }">
+              <div class="category-title-container">
+                <span v-if="getCategoryIcon(group.id) && isEmoji(getCategoryIcon(group.id))" class="category-emoji">
+                  {{ getCategoryIcon(group.id) }}
+                </span>
+                <img v-else-if="getCategoryIcon(group.id)" :src="getCategoryIcon(group.id)" class="category-img-icon" />
+                <div class="category-title">{{ group.name }}</div>
+              </div>
+              <div v-if="navSettings.show_category_line" class="category-line"></div>
+              <v-btn icon variant="text" size="x-small" class="category-add-btn" @click="openAddSite(group.id)">
+                <v-icon size="16">mdi-plus-circle-outline</v-icon>
+              </v-btn>
+            </div>
+
+            <div class="sites-grid">
+              <SiteCard
+                v-for="(site, index) in group.sites"
+                :key="site.id"
+                :site="site"
+                :style-mode="navSettings.card_style"
+                :is-dragging="dragSiteId === site.id"
+                :style="{ '--i': index }"
+                @click="openUrl(site.url)"
+                @contextmenu="handleContextMenu($event, site)"
+                @dragstart="onDragStart(site.id)"
+                @dragenter="onDragEnter(site.id)"
+                @dragend="onDragEnd"
+              />
+            </div>
+          </div>
+        </transition-group>
+      </div>
+    </div><!-- /glass-page-surface -->
 
     <!-- 右键菜单 -->
     <div
@@ -386,6 +493,12 @@ const overlayBg = computed(() => {
       @export="exportConfig"
       @import="handleImportConfig"
     />
+
+    <!-- 玻璃设置弹窗 -->
+    <GlassSettingsDialog
+      v-if="glassAcgEnabled"
+      v-model="showGlassSettings"
+    />
   </div>
 </template>
 
@@ -396,6 +509,14 @@ const overlayBg = computed(() => {
   width: 100vw;
   overflow-x: hidden;
   color: var(--nav-text-color, #fff);
+}
+
+/* === ACG 大玻璃卡片表面 === */
+.glass-page-surface {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  z-index: 4;
 }
 
 /* === 背景层 === */
@@ -432,7 +553,7 @@ const overlayBg = computed(() => {
 
 /* === 内容层 === */
 .nav-content {
-  position: relative; z-index: 4;
+  position: relative;
   max-width: var(--nav-content-width);
   margin: 0 auto;
   padding: 0 20px 60px;

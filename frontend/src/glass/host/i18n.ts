@@ -1,0 +1,55 @@
+import { createI18n } from 'vue-i18n'
+
+const messages = {
+  zh: {
+    theme: {
+      glassSettings: '玻璃设置',
+      glassAppearance: '材质',
+      glassAppearanceClear: '通透',
+      glassAppearanceTinted: '色调',
+      glassAppearanceFrosted: '磨砂',
+      glassAppearanceHint: '选择玻璃的材质表现：通透保留壁纸原色，色调增加主题染色，磨砂提供稳定半透明底。',
+      glassQuality: '质量',
+      glassQualityCss: '标准',
+      glassQualityBalanced: '均衡',
+      glassQualityHigh: '高质量',
+      glassQualityCssHint: '使用 CSS backdrop-filter，兼容性最好，性能消耗最低。',
+      glassQualityBalancedHint: '在标准基础上增加 WebGL 折射与交互动态，性能与效果均衡。',
+      glassQualityHighHint: '使用全质量 WebGL 渲染，包含时序流动场和高质量水纹，需要较强 GPU。',
+      glassQualityMobileHint: '移动端不支持 WebGL 光学层，将自动使用 CSS 标准。',
+      glassPreset: '方案',
+      glassPresetNatural: '自然',
+      glassPresetGlide: '滑移',
+      glassPresetLiquid: '液态',
+      glassPresetHint: '不同方案提供不同的光学动态风格，可在此基础上微调各参数。',
+      glassDynamicsMode: '动态效果',
+      glassDynamicsModeFluid: '流体',
+      glassDynamicsModeFluidHint: '基于速度场的连续流体动态，跟随光标方向产生流动形变。',
+      glassDynamicsModeRipple: '水纹',
+      glassDynamicsModeRippleHint: '基于波传播方程的局部水纹，点击和拖拽产生涟漪扩散。',
+      glassDynamicsModeOff: '关闭',
+      glassDynamicsModeOffHint: '不启用交互动态，只保留静态材质光学。',
+      glassMaterialTuning: '材质调节',
+      glassDynamicTuning: '动态调节',
+      glassTransparencyStrength: '通透度',
+      glassTransmissionStrength: '透射亮度',
+      glassReflectionStrength: '反射亮度',
+      glassMaterialStrengthHint: '控制玻璃的材质表现：通透度决定壁纸可见度，透射亮度调节内部明暗，反射亮度控制高光强度。',
+      glassTranslationStrength: '采样平移',
+      glassDeformationStrength: '局部形变',
+      glassFlowStrength: '流动强度',
+      glassOpticalStrengthHint: '控制交互动态的幅度：采样平移是壁纸跟随移动，局部形变是非均匀折射，流动强度控制轨迹与惯性。',
+    },
+    common: {
+      reset: '重置',
+      save: '保存',
+    },
+  },
+}
+
+export const glassI18n = createI18n({
+  legacy: false,
+  locale: 'zh',
+  fallbackLocale: 'zh',
+  messages,
+})

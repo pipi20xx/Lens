@@ -99,6 +99,7 @@ export default defineConfig(({ mode }) => {
           manualChunks(id) {
             if (id.includes('node_modules/vuetify') || id.includes('node_modules/.vite/deps/vuetify')) return 'vuetify'
             if (id.includes('node_modules/vue') || id.includes('node_modules/vue-router') || id.includes('node_modules/pinia')) return 'vue-vendor'
+            if (id.includes('node_modules/three') || id.includes('node_modules/.vite/deps/three')) return 'three-vendor'
           },
         },
       },

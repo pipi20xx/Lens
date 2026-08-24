@@ -24,6 +24,7 @@ from .bookmarks import router as bookmarks_router
 from .ai_lab import router as ai_lab_router
 from .playback_report import router as playback_report_router
 from .emby_tasks import router as emby_tasks_router
+from .appearance import router as appearance_router
 
 from .auth import router as auth_router
 from .session import router as session_router
@@ -67,6 +68,7 @@ router.include_router(image_builder_router, prefix="/image-builder", tags=["Imag
 router.include_router(ai_lab_router, prefix="/ai", tags=["AILab"])
 router.include_router(playback_report_router, prefix="/playback-report", tags=["PlaybackReport"])
 router.include_router(emby_tasks_router, prefix="/emby-tasks", tags=["EmbyTasks"])
+router.include_router(appearance_router, prefix="/appearance", tags=["Appearance"])
 
 @router.get("/status")
 async def get_status():
