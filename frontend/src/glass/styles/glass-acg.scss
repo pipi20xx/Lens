@@ -140,6 +140,7 @@ html.glass-theme-acg {
 
   // ═══════════════════════════════════════════════════════════════
   // 布局透明化（照搬 glass.scss 330-347）
+  // override global.css 的 !important 背景色，让 body 壁纸透过
   // ═══════════════════════════════════════════════════════════════
   .v-application,
   .v-layout,
@@ -147,11 +148,11 @@ html.glass-theme-acg {
   .layout-wrapper,
   .layout-content-wrapper,
   .page-content-container {
-    background: transparent;
+    background: transparent !important;
   }
 
   .layout-page-content {
-    background-color: transparent;
+    background-color: transparent !important;
   }
 
   .v-application {
@@ -177,31 +178,47 @@ html.glass-theme-acg {
   }
 
   // ═══════════════════════════════════════════════════════════════
-  // 标准表面 — 卡片/Sheet/折叠面板/Stepper/Table（照搬 glass.scss 366-380）
+  // 标准表面 — 卡片/Sheet/折叠面板/Stepper/Table
+  // 不使用 :where() 以确保 specificity 足以覆盖 global.css 的 !important 规则
   // ═══════════════════════════════════════════════════════════════
-  :where(
-    .app-surface:not(.no-blur),
-    .v-card:not(.no-blur, .bg-primary, .bg-success, .bg-info, .bg-warning, .bg-error),
-    .v-sheet:not(.no-blur, .bg-primary, .bg-success, .bg-info, .bg-warning, .bg-error),
-    .v-expansion-panel,
-    .v-stepper,
-    .v-table
-  ) {
+  .app-surface:not(.no-blur),
+  .v-card:not(.no-blur, .bg-primary, .bg-success, .bg-info, .bg-warning, .bg-error),
+  .v-sheet:not(.no-blur, .bg-primary, .bg-success, .bg-info, .bg-warning, .bg-error),
+  .v-expansion-panel,
+  .v-stepper,
+  .v-table {
     border-color: var(--glass-border) !important;
-    -webkit-backdrop-filter: var(--glass-surface-backdrop-filter);
-    backdrop-filter: var(--glass-surface-backdrop-filter);
+    -webkit-backdrop-filter: var(--glass-surface-backdrop-filter) !important;
+    backdrop-filter: var(--glass-surface-backdrop-filter) !important;
     background-color: var(--glass-surface) !important;
     background-image: var(--glass-sheen) !important;
     box-shadow: var(--glass-shadow) !important;
   }
 
   // ═══════════════════════════════════════════════════════════════
-  // 列表/底栏（照搬 glass.scss 382-387）
+  // 卡片变体覆盖 — global.css 中 .v-theme--dark .v-card--variant-* 的
+  // specificity 为 (0,3,0)，高于上面的 (0,2,1)，需要单独覆盖
   // ═══════════════════════════════════════════════════════════════
-  :where(.v-list, .v-footer) {
-    border-color: var(--glass-border);
-    -webkit-backdrop-filter: var(--glass-surface-backdrop-filter);
-    backdrop-filter: var(--glass-surface-backdrop-filter);
+  .v-card--variant-elevated,
+  .v-card--variant-outlined,
+  .v-card--variant-tonal,
+  .v-card--variant-flat {
+    background-color: var(--glass-surface) !important;
+    background-image: var(--glass-sheen) !important;
+    border-color: var(--glass-border) !important;
+    box-shadow: var(--glass-shadow) !important;
+    -webkit-backdrop-filter: var(--glass-surface-backdrop-filter) !important;
+    backdrop-filter: var(--glass-surface-backdrop-filter) !important;
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // 列表/底栏
+  // ═══════════════════════════════════════════════════════════════
+  .v-list,
+  .v-footer {
+    border-color: var(--glass-border) !important;
+    -webkit-backdrop-filter: var(--glass-surface-backdrop-filter) !important;
+    backdrop-filter: var(--glass-surface-backdrop-filter) !important;
     background-color: var(--glass-surface) !important;
   }
 
@@ -544,27 +561,51 @@ html.glass-theme-acg {
   }
 
   // ═══════════════════════════════════════════════════════════════
-  // 嵌套卡片去除重复材质（照搬 glass.scss 1289-1308）
+  // 嵌套卡片去除重复材质
   // 卡片内的卡片不重复 backdrop-filter，避免多层模糊叠加
+  // 不使用 :where() 以确保 specificity 足以覆盖 global.css 的 !important
   // ═══════════════════════════════════════════════════════════════
-  :where(.v-card, .v-sheet) :where(.app-surface, .v-card, .v-sheet, .v-list, .v-table, .v-expansion-panel, .v-stepper) {
+  .v-card .app-surface,
+  .v-card .v-card,
+  .v-card .v-sheet,
+  .v-card .v-list,
+  .v-card .v-table,
+  .v-card .v-expansion-panel,
+  .v-card .v-stepper,
+  .v-sheet .app-surface,
+  .v-sheet .v-card,
+  .v-sheet .v-sheet,
+  .v-sheet .v-list,
+  .v-sheet .v-table,
+  .v-sheet .v-expansion-panel,
+  .v-sheet .v-stepper {
     border-color: transparent !important;
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
     box-shadow: none !important;
     will-change: auto;
   }
 
-  :where(.v-card, .v-sheet)
-    :where(
-      .app-surface:not(.bg-primary, .bg-success, .bg-info, .bg-warning, .bg-error),
-      .v-card:not(.bg-primary, .bg-success, .bg-info, .bg-warning, .bg-error),
-      .v-sheet:not(.bg-primary, .bg-success, .bg-info, .bg-warning, .bg-error),
-      .v-list,
-      .v-table,
-      .v-expansion-panel,
-      .v-stepper
-    ) {
+  .v-card
+    .app-surface:not(.bg-primary, .bg-success, .bg-info, .bg-warning, .bg-error),
+  .v-card
+    .v-card:not(.bg-primary, .bg-success, .bg-info, .bg-warning, .bg-error),
+  .v-card
+    .v-sheet:not(.bg-primary, .bg-success, .bg-info, .bg-warning, .bg-error),
+  .v-card .v-list,
+  .v-card .v-table,
+  .v-card .v-expansion-panel,
+  .v-card .v-stepper,
+  .v-sheet
+    .app-surface:not(.bg-primary, .bg-success, .bg-info, .bg-warning, .bg-error),
+  .v-sheet
+    .v-card:not(.bg-primary, .bg-success, .bg-info, .bg-warning, .bg-error),
+  .v-sheet
+    .v-sheet:not(.bg-primary, .bg-success, .bg-info, .bg-warning, .bg-error),
+  .v-sheet .v-list,
+  .v-sheet .v-table,
+  .v-sheet .v-expansion-panel,
+  .v-sheet .v-stepper {
     background-color: transparent !important;
   }
 

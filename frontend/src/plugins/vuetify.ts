@@ -61,7 +61,7 @@ export default createVuetify({
     },
   },
   theme: {
-    defaultTheme: localStorage.getItem('theme_mode') === 'light' ? 'light' : 'dark',
+    defaultTheme: localStorage.getItem('app_theme') === 'light' ? 'light' : 'dark',
     themes: {
       light: lightTheme,
       dark: darkTheme,

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, nextTick, defineAsyncComponent } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSiteNav } from './composables/useSiteNav'
 import { useConfirm } from '@/composables'
@@ -8,18 +8,12 @@ import SiteCard from './components/SiteCard.vue'
 import SiteEditorDialog from './components/SiteEditorDialog.vue'
 import SettingsDialog from './components/SettingsDialog.vue'
 
-// ACG 玻璃主题样式
-import '@/glass/styles/glass-acg.scss'
+// ACG 主题状态由全局 DefaultLayout 管理（useGlassWallpaper / GlassOpticalLayer / GlassSettingsDialog）
+// SiteNavView 只读 themeStore.appTheme 来决定 CSS 变量和背景层显示
+import { useThemeStore } from '@/stores/useThemeStore'
 
-// 异步加载 GlassOpticalLayer 组件（WebGL 渲染层，体积较大）
-const GlassOpticalLayer = defineAsyncComponent(() =>
-  import('@/glass/components/GlassOpticalLayer.vue')
-)
-
-// 异步加载 GlassSettingsDialog 组件（玻璃设置弹窗）
-const GlassSettingsDialog = defineAsyncComponent(() =>
-  import('@/glass/components/GlassSettingsDialog.vue')
-)
+const themeStore = useThemeStore()
+const glassAcgEnabled = computed(() => themeStore.appTheme === 'acg')
 
 const router = useRouter()
 const { confirm } = useConfirm()
@@ -184,74 +178,9 @@ const getCategoryIcon = (categoryId: number) => {
   return cat?.icon || ''
 }
 
-// ========== ACG 玻璃主题模式 ==========
-import { useGlassWallpaper } from '@/glass'
-import { useThemeStore } from '@/stores/useThemeStore'
-import { applyStoredThemeCustomizerAppearance } from '@/glass/host/useThemeCustomizer'
-
-const themeStore = useThemeStore()
-const glassAcgEnabled = ref(localStorage.getItem('sitenav_glass_acg') === 'true')
-
-// 当 ACG 玻璃开启时，设置 themeStore 的 glassTheme 并初始化玻璃壁纸
-watch(glassAcgEnabled, (enabled) => {
-  if (enabled) {
-    themeStore.setGlassTheme('acg')
-    themeStore.setDarkMode(true)
-    document.documentElement.classList.add('glass-theme-acg')
-    // 初始化玻璃设置（如果用户未保存过设置，使用默认值）
-    applyStoredThemeCustomizerAppearance()
-  } else {
-    themeStore.setGlassTheme('none')
-    document.documentElement.classList.remove('glass-theme-acg')
-  }
-}, { immediate: true })
-
-// 玻璃壁纸管理（仅在 ACG 开启时生效）
-const {
-  wallpaperUrl,
-  previousWallpaperUrl,
-  transitionStartedAt,
-  transitionDuration,
-  shouldRenderGlassOpticalLayer,
-  glassMaterialTintColor,
-  opticalDeformationStrength,
-  opticalFlowStrength,
-  opticalQuality,
-  opticalReflectionStrength,
-  opticalTransparencyStrength,
-  opticalTransmissionStrength,
-  opticalTranslationStrength,
-} = useGlassWallpaper()
-
-// GlassOpticalLayer 的 props（仅在 shouldRenderGlassOpticalLayer 为 true 时渲染）
-const glassOpticalLayerProps = computed(() => {
-  if (!shouldRenderGlassOpticalLayer.value) return null
-  return {
-    appearance: 'clear' as const,
-    deformationStrength: opticalDeformationStrength.value,
-    flowStrength: opticalFlowStrength.value,
-    dynamicsMode: 'ripple' as const,
-    quality: opticalQuality.value === 'css' ? 'balanced' as const : opticalQuality.value as 'balanced' | 'high',
-    reflectionStrength: opticalReflectionStrength.value,
-    transparencyStrength: opticalTransparencyStrength.value,
-    transmissionStrength: opticalTransmissionStrength.value,
-    translationStrength: opticalTranslationStrength.value,
-    routeKey: 'sitenav',
-    tintColor: glassMaterialTintColor.value,
-    transitionDuration: transitionDuration,
-    transitionStartedAt: transitionStartedAt.value,
-    wallpaperUrl: wallpaperUrl.value,
-    previousWallpaperUrl: previousWallpaperUrl.value,
-  }
-})
-
-function toggleGlassAcg() {
-  glassAcgEnabled.value = !glassAcgEnabled.value
-  localStorage.setItem('sitenav_glass_acg', String(glassAcgEnabled.value))
-}
-
-// 玻璃设置弹窗
-const showGlassSettings = ref(false)
+// ========== ACG 主题：CSS 变量适配 ==========
+// ACG 玻璃渲染（WebGL、壁纸、设置弹窗）已移至全局 DefaultLayout。
+// 这里只负责站点导航页面的 CSS 变量适配。
 
 // ========== CSS 变量 ==========
 // ACG 玻璃开启时，卡片/背景相关变量由 glass-acg.scss 接管，
@@ -324,11 +253,7 @@ const overlayBg = computed(() => {
     </transition>
     <div v-if="!glassAcgEnabled && !navSettings.enable_hd_mode" class="bg-overlay" :style="{ background: overlayBg }"></div>
 
-    <!-- ACG 玻璃光学渲染层（WebGL） -->
-    <GlassOpticalLayer
-      v-if="glassAcgEnabled && glassOpticalLayerProps"
-      v-bind="glassOpticalLayerProps"
-    />
+    <!-- ACG 模式下背景由全局 WebGL 渲染层和 body 壁纸接管 -->
 
     <!--
       ACG 模式：整个页面用一块大玻璃卡片包裹。
@@ -378,12 +303,6 @@ const overlayBg = computed(() => {
           <div class="header-right">
             <v-btn icon variant="text" size="small" @click="goBack" title="返回管理后台">
               <v-icon>mdi-arrow-left</v-icon>
-            </v-btn>
-            <v-btn icon variant="text" size="small" @click="toggleGlassAcg" :title="glassAcgEnabled ? '关闭 ACG 玻璃' : '开启 ACG 玻璃'">
-              <v-icon>{{ glassAcgEnabled ? 'mdi-glass-mug-variant' : 'mdi-glass-mug-variant-outline' }}</v-icon>
-            </v-btn>
-            <v-btn v-if="glassAcgEnabled" icon variant="text" size="small" @click="showGlassSettings = true" title="玻璃设置">
-              <v-icon>mdi-tune-variant</v-icon>
             </v-btn>
             <v-btn icon variant="text" size="small" @click="openAddSite()" title="添加站点">
               <v-icon>mdi-plus</v-icon>
@@ -494,11 +413,6 @@ const overlayBg = computed(() => {
       @import="handleImportConfig"
     />
 
-    <!-- 玻璃设置弹窗 -->
-    <GlassSettingsDialog
-      v-if="glassAcgEnabled"
-      v-model="showGlassSettings"
-    />
   </div>
 </template>
 

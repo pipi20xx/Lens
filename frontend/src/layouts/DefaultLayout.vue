@@ -1,10 +1,27 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, defineAsyncComponent } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useThemeStore, useSystemStore } from '@/stores'
 import { useNotification } from '@/composables'
 import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 import LogTerminal from '@/components/common/LogTerminal.vue'
+
+// ACG 玻璃主题样式（全局）
+import '@/glass/styles/glass-acg.scss'
+
+// 异步加载 GlassOpticalLayer 组件（WebGL 渲染层，体积较大）
+const GlassOpticalLayer = defineAsyncComponent(() =>
+  import('@/glass/components/GlassOpticalLayer.vue')
+)
+
+// 异步加载 GlassSettingsDialog 组件（玻璃设置弹窗）
+const GlassSettingsDialog = defineAsyncComponent(() =>
+  import('@/glass/components/GlassSettingsDialog.vue')
+)
+
+// ACG 玻璃壁纸管理
+import { useGlassWallpaper } from '@/glass'
+import { applyStoredThemeCustomizerAppearance } from '@/glass/host/useThemeCustomizer'
 
 const route = useRoute()
 const router = useRouter()
@@ -101,6 +118,74 @@ const currentTitle = computed(() => {
   const item = route.meta.title as string
   return item || 'Lens'
 })
+
+// 主题切换图标与颜色
+const themeIcon = computed(() => {
+  switch (themeStore.appTheme) {
+    case 'light': return 'mdi-white-balance-sunny'
+    case 'acg': return 'mdi-glass-mug-variant'
+    default: return 'mdi-weather-night'
+  }
+})
+const themeColor = computed(() => {
+  switch (themeStore.appTheme) {
+    case 'light': return 'warning'
+    case 'acg': return 'primary'
+    default: return 'info'
+  }
+})
+
+// ========== ACG 玻璃主题（全局） ==========
+const glassAcgEnabled = computed(() => themeStore.appTheme === 'acg')
+
+// ACG 玻璃开启时初始化玻璃设置
+watch(glassAcgEnabled, (enabled) => {
+  if (enabled) {
+    applyStoredThemeCustomizerAppearance()
+  }
+}, { immediate: true })
+
+// 玻璃壁纸管理
+const {
+  wallpaperUrl,
+  previousWallpaperUrl,
+  transitionStartedAt,
+  transitionDuration,
+  shouldRenderGlassOpticalLayer,
+  glassMaterialTintColor,
+  opticalDeformationStrength,
+  opticalFlowStrength,
+  opticalQuality,
+  opticalReflectionStrength,
+  opticalTransparencyStrength,
+  opticalTransmissionStrength,
+  opticalTranslationStrength,
+} = useGlassWallpaper()
+
+// GlassOpticalLayer 的 props
+const glassOpticalLayerProps = computed(() => {
+  if (!shouldRenderGlassOpticalLayer.value) return null
+  return {
+    appearance: 'clear' as const,
+    deformationStrength: opticalDeformationStrength.value,
+    flowStrength: opticalFlowStrength.value,
+    dynamicsMode: 'ripple' as const,
+    quality: opticalQuality.value === 'css' ? 'balanced' as const : opticalQuality.value as 'balanced' | 'high',
+    reflectionStrength: opticalReflectionStrength.value,
+    transparencyStrength: opticalTransparencyStrength.value,
+    transmissionStrength: opticalTransmissionStrength.value,
+    translationStrength: opticalTranslationStrength.value,
+    routeKey: 'global',
+    tintColor: glassMaterialTintColor.value,
+    transitionDuration: transitionDuration,
+    transitionStartedAt: transitionStartedAt.value,
+    wallpaperUrl: wallpaperUrl.value,
+    previousWallpaperUrl: previousWallpaperUrl.value,
+  }
+})
+
+// 玻璃设置弹窗
+const showGlassSettings = ref(false)
 
 function handleLogout() {
   localStorage.removeItem('lens_access_token')
@@ -237,14 +322,52 @@ onUnmounted(() => {
             {{ systemStore.isConnected ? '已连接' : '断开' }}
           </v-chip>
 
-          <!-- 主题切换 -->
+          <!-- 主题切换：白天 / 夜晚 / ACG -->
+          <v-menu>
+            <template #activator="{ props: themeProps }">
+              <v-btn
+                v-bind="themeProps"
+                variant="text"
+                density="comfortable"
+                size="small"
+                :icon="themeIcon"
+                :color="themeColor"
+              />
+            </template>
+            <v-list density="compact" min-width="140" nav>
+              <v-list-item
+                prepend-icon="mdi-white-balance-sunny"
+                title="白天"
+                :active="themeStore.appTheme === 'light'"
+                @click="themeStore.setAppTheme('light')"
+                rounded="xl"
+              />
+              <v-list-item
+                prepend-icon="mdi-weather-night"
+                title="夜晚"
+                :active="themeStore.appTheme === 'dark'"
+                @click="themeStore.setAppTheme('dark')"
+                rounded="xl"
+              />
+              <v-list-item
+                prepend-icon="mdi-glass-mug-variant"
+                title="ACG"
+                :active="themeStore.appTheme === 'acg'"
+                @click="themeStore.setAppTheme('acg')"
+                rounded="xl"
+              />
+            </v-list>
+          </v-menu>
+
+          <!-- ACG 玻璃设置（仅 ACG 主题时显示） -->
           <v-btn
+            v-if="glassAcgEnabled"
             variant="text"
             density="comfortable"
             size="small"
-            :color="themeStore.isDarkMode ? 'warning' : 'info'"
-            :icon="themeStore.isDarkMode ? 'mdi-white-balance-sunny' : 'mdi-weather-night'"
-            @click="themeStore.toggleDarkMode()"
+            color="primary"
+            icon="mdi-tune-variant"
+            @click="showGlassSettings = true"
           />
 
           <!-- 任务日志 -->
@@ -296,6 +419,12 @@ onUnmounted(() => {
       </router-view>
     </v-main>
 
+    <!-- ACG 玻璃光学渲染层（WebGL，全局） -->
+    <GlassOpticalLayer
+      v-if="glassAcgEnabled && glassOpticalLayerProps"
+      v-bind="glassOpticalLayerProps"
+    />
+
     <!-- 系统日志终端 -->
     <LogTerminal />
 
@@ -315,6 +444,12 @@ onUnmounted(() => {
         <v-btn variant="text" icon="mdi-close" size="small" @click="notifyState.show = false" />
       </template>
     </v-snackbar>
+
+    <!-- ACG 玻璃设置弹窗 -->
+    <GlassSettingsDialog
+      v-if="glassAcgEnabled"
+      v-model="showGlassSettings"
+    />
   </v-app>
 </template>
 
