@@ -52,6 +52,28 @@ const darkTheme = {
   },
 }
 
+// ACG 玻璃主题 — 颜色复用 dark 主题，但 Vuetify 会生成 .v-theme--acg 类
+// 这样 global.css 中的 .v-theme--dark 规则不会在 ACG 模式下生效，
+// 避免了与 glass-acg.scss 的 CSS 优先级冲突
+const acgTheme = {
+  dark: true,
+  colors: {
+    background: '#0b1322',
+    surface: '#0b1322',
+    'surface-variant': '#1a1a2e',
+    'on-surface-variant': '#BFC2CE',
+    primary: '#3b82f6',
+    'primary-darken-1': '#2563eb',
+    secondary: '#9ca3af',
+    'secondary-darken-1': '#6b7280',
+    accent: '#38bdf8',
+    error: '#ff6b6b',
+    info: '#38bdf8',
+    success: '#34d399',
+    warning: '#fbbf24',
+  },
+}
+
 export default createVuetify({
   icons: {
     defaultSet: 'mdi',
@@ -61,10 +83,16 @@ export default createVuetify({
     },
   },
   theme: {
-    defaultTheme: localStorage.getItem('app_theme') === 'light' ? 'light' : 'dark',
+    defaultTheme: (() => {
+      const t = localStorage.getItem('app_theme')
+      if (t === 'light') return 'light'
+      if (t === 'acg') return 'acg'
+      return 'dark'
+    })(),
     themes: {
       light: lightTheme,
       dark: darkTheme,
+      acg: acgTheme,
     },
   },
   defaults: {

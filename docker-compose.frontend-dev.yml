@@ -24,7 +24,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: lens
+    container_name: lens123
     ports:
       - "6565:6565"
     volumes:
@@ -44,7 +44,7 @@ services:
     container_name: lens-dev-frontend
     working_dir: /frontend
     ports:
-      - "3000:3000"    # Vite Dev Server
+      - "3050:3000"    # Vite Dev Server
     volumes:
       # 挂载前端源码（修改后 HMR 即时生效）
       - ./frontend:/frontend

@@ -196,8 +196,9 @@ html.glass-theme-acg {
   }
 
   // ═══════════════════════════════════════════════════════════════
-  // 卡片变体覆盖 — global.css 中 .v-theme--dark .v-card--variant-* 的
-  // specificity 为 (0,3,0)，高于上面的 (0,2,1)，需要单独覆盖
+  // 卡片变体覆盖 — ACG 主题使用 .v-theme--acg（独立 Vuetify 主题），
+  // global.css 中 .v-theme--dark 规则不再生效，但 Vuetify 默认组件样式
+  // 仍需覆盖，保留 !important 确保玻璃材质生效
   // ═══════════════════════════════════════════════════════════════
   .v-card--variant-elevated,
   .v-card--variant-outlined,
@@ -274,30 +275,20 @@ html.glass-theme-acg {
   }
 
   // ═══════════════════════════════════════════════════════════════
-  // 侧边导航背景层（照搬 glass.scss 479-501）
+  // 侧边导航背景层
+  // Lens: 直接在 .v-navigation-drawer 上应用玻璃材质（与顶栏一致），
+  // 不再使用 ::before 伪元素，确保透明度一致。
+  // 原始 MP 使用 ::before 是因为 MP 的导航栏需要单独的背景层，
+  // Lens 的 Vuetify 导航栏没有这个需求。
   // ═══════════════════════════════════════════════════════════════
   .layout-vertical-nav,
   .v-navigation-drawer {
-    isolation: isolate;
-    border-inline-end: 0;
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    background: transparent !important;
-    box-shadow: none !important;
-
-    &::before {
-      position: absolute;
-      z-index: -1;
-      border-inline-end: 1px solid var(--glass-border-raised);
-      -webkit-backdrop-filter: var(--glass-fixed-shell-backdrop-filter);
-      backdrop-filter: var(--glass-fixed-shell-backdrop-filter);
-      background-color: var(--glass-surface-raised);
-      background-image: var(--glass-sheen);
-      box-shadow: var(--glass-shadow-raised);
-      content: '';
-      inset: 0;
-      pointer-events: none;
-    }
+    border-inline-end: 1px solid var(--glass-border-raised);
+    -webkit-backdrop-filter: var(--glass-fixed-shell-backdrop-filter) !important;
+    backdrop-filter: var(--glass-fixed-shell-backdrop-filter) !important;
+    background-color: var(--glass-surface-raised) !important;
+    background-image: var(--glass-sheen) !important;
+    box-shadow: var(--glass-shadow-raised) !important;
   }
 
   // ═══════════════════════════════════════════════════════════════
@@ -434,12 +425,37 @@ html.glass-theme-acg {
   }
 
   .v-btn:not(.v-btn--variant-text, .v-btn--variant-plain) {
-    border: 1px solid var(--glass-border);
-    -webkit-backdrop-filter: var(--glass-control-backdrop-filter);
-    backdrop-filter: var(--glass-control-backdrop-filter);
+    border: 1px solid var(--glass-border) !important;
+    -webkit-backdrop-filter: var(--glass-control-backdrop-filter) !important;
+    backdrop-filter: var(--glass-control-backdrop-filter) !important;
     background-color: var(--glass-button-surface) !important;
     background-image: none !important;
     box-shadow: var(--glass-control-shadow) !important;
+  }
+
+  // 变体覆盖 — global.css 中 .v-theme--dark .v-btn--variant-* 的
+  // specificity (0,3,0) 会覆盖上面的 (0,3,1) 中的 non-!important 属性
+  // 这里统一用 !important + 高 specificity 覆盖
+  .v-btn--variant-flat,
+  .v-btn--variant-tonal,
+  .v-btn--variant-outlined,
+  .v-btn--variant-elevated {
+    -webkit-backdrop-filter: var(--glass-control-backdrop-filter) !important;
+    backdrop-filter: var(--glass-control-backdrop-filter) !important;
+    background-color: var(--glass-button-surface) !important;
+    background-image: none !important;
+    border-color: var(--glass-border) !important;
+    box-shadow: var(--glass-control-shadow) !important;
+  }
+
+  .v-btn--variant-flat:hover,
+  .v-btn--variant-tonal:hover,
+  .v-btn--variant-outlined:hover,
+  .v-btn--variant-elevated:hover {
+    background-color: var(--glass-button-surface-hover) !important;
+    background-image: none !important;
+    border-color: var(--glass-border-hover) !important;
+    box-shadow: var(--glass-control-shadow-active) !important;
   }
 
   // 语义色按钮 — 半透明底色
@@ -835,11 +851,11 @@ html.glass-theme-acg[data-glass-appearance='frosted']:is(
 }
 
 // 渲染器 ready 后恢复导航栏和弹窗的 backdrop-filter
-html:is([data-glass-quality='balanced'], [data-glass-quality='high'])[data-glass-renderer-state='ready']
-  body.glass-theme-acg {
-.layout-vertical-nav::before,
-.layout-navbar {
--webkit-backdrop-filter: var(--glass-surface-backdrop-filter) !important;
+// Lens: glass-theme-acg 类在 <html> 上，不是 <body>
+html.glass-theme-acg:is([data-glass-quality='balanced'], [data-glass-quality='high'])[data-glass-renderer-state='ready'] {
+  .v-navigation-drawer::before,
+  .v-app-bar {
+    -webkit-backdrop-filter: var(--glass-surface-backdrop-filter) !important;
     backdrop-filter: var(--glass-surface-backdrop-filter) !important;
   }
 
@@ -853,11 +869,10 @@ html:is([data-glass-quality='balanced'], [data-glass-quality='high'])[data-glass
 html.glass-theme-acg[data-glass-appearance='frosted']:is(
     [data-glass-quality='balanced'],
     [data-glass-quality='high']
-  )[data-glass-renderer-state='ready']
-  body.glass-theme-acg {
-.layout-vertical-nav::before,
-.layout-navbar {
--webkit-backdrop-filter: none !important;
+  )[data-glass-renderer-state='ready'] {
+  .v-navigation-drawer::before,
+  .v-app-bar {
+    -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
   }
 }
@@ -865,8 +880,8 @@ html.glass-theme-acg[data-glass-appearance='frosted']:is(
 // 滚动表面由原生 backdrop 持有壁纸基底；完整内容覆盖的排除子树不再采样。
 // 这是水纹效果的关键规则：渲染器 ready 后，标准表面和交互卡片使用原生磨砂基底，
 // 渲染器在其上叠加折射与交互动态（水纹）。
-html:is([data-glass-quality='balanced'], [data-glass-quality='high'])[data-glass-renderer-state='ready']
-  body.glass-theme-acg {
+// Lens: glass-theme-acg 类在 <html> 上，不是 <body>
+html.glass-theme-acg:is([data-glass-quality='balanced'], [data-glass-quality='high'])[data-glass-renderer-state='ready'] {
   :is(
       [data-glass-optical-surface],
       .app-hover-lift-card
@@ -877,7 +892,7 @@ html:is([data-glass-quality='balanced'], [data-glass-quality='high'])[data-glass
 }
 
 // 登录页只保留内容保护表面
-html.glass-theme-acg body.glass-theme-acg {
+html.glass-theme-acg {
   .login-card {
     box-shadow:
       inset 0 0 0 1px rgba(255, 255, 255, 0.14),

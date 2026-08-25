@@ -13,9 +13,12 @@ const systemStore = useSystemStore()
 // 判断当前路由是否为独立全屏页面（不带 DefaultLayout）
 const isStandalone = computed(() => route.meta.standalone === true)
 
-// 同步主题：light → Vuetify light；dark/acg → Vuetify dark
+// 同步主题：light → Vuetify light；dark → Vuetify dark；acg → Vuetify acg
+// 关键：ACG 主题使用独立的 Vuetify 主题名 'acg'，这样 Vuetify 会添加
+// .v-theme--acg 类而非 .v-theme--dark，global.css 中的 .v-theme--dark
+// 规则不会生效，从根本上避免了 CSS 优先级冲突
 function applyTheme(appTheme: 'light' | 'dark' | 'acg') {
-  const vuetifyThemeName = appTheme === 'light' ? 'light' : 'dark'
+  const vuetifyThemeName = appTheme // 'light' | 'dark' | 'acg' 直接映射
   if (typeof theme.change === 'function') {
     theme.change(vuetifyThemeName)
   } else {

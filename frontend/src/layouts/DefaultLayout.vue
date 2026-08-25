@@ -6,8 +6,23 @@ import { useNotification } from '@/composables'
 import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 import LogTerminal from '@/components/common/LogTerminal.vue'
 
-// ACG 玻璃主题样式（全局）
-import '@/glass/styles/glass-acg.scss'
+// ACG 玻璃主题样式 — 动态加载/卸载
+// 只在 ACG 主题激活时加载 glass-acg.scss，切换回白天/夜晚时自动卸载
+// 这样不同主题使用各自的 CSS，从根本上避免优先级冲突
+let glassAcgCssModule: { unmount?: () => void } | null = null
+
+async function loadGlassAcgCss() {
+  if (!glassAcgCssModule) {
+    glassAcgCssModule = await import('@/glass/styles/glass-acg.scss')
+  }
+}
+
+function unloadGlassAcgCss() {
+  if (glassAcgCssModule?.unmount) {
+    glassAcgCssModule.unmount()
+  }
+  glassAcgCssModule = null
+}
 
 // 异步加载 GlassOpticalLayer 组件（WebGL 渲染层，体积较大）
 const GlassOpticalLayer = defineAsyncComponent(() =>
@@ -138,10 +153,13 @@ const themeColor = computed(() => {
 // ========== ACG 玻璃主题（全局） ==========
 const glassAcgEnabled = computed(() => themeStore.appTheme === 'acg')
 
-// ACG 玻璃开启时初始化玻璃设置
-watch(glassAcgEnabled, (enabled) => {
+// ACG 玻璃开启时初始化玻璃设置 + 动态加载 ACG 样式
+watch(glassAcgEnabled, async (enabled) => {
   if (enabled) {
+    await loadGlassAcgCss()
     applyStoredThemeCustomizerAppearance()
+  } else {
+    unloadGlassAcgCss()
   }
 }, { immediate: true })
 
@@ -206,6 +224,7 @@ onMounted(() => {
 })
 onUnmounted(() => {
   window.removeEventListener('resize', checkMobile)
+  unloadGlassAcgCss()
 })
 </script>
 

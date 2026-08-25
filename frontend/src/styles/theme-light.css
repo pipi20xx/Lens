@@ -1,0 +1,583 @@
+/**
+ * theme-light.css — 白天主题专用样式
+ *
+ * 仅在 appTheme === 'light' 时动态加载，不与 ACG 主题冲突。
+ * 所有 .v-theme--light 选择器规则从 global.css 迁移至此。
+ */
+
+/* ============================================================
+ * 白天模式滚动条 — 紫色
+ * ============================================================ */
+.v-theme--light html,
+.v-theme--light body,
+.v-theme--light .v-main,
+.v-theme--light .v-main__scroller {
+  scrollbar-color: rgba(168, 85, 247, 0.25) transparent;
+}
+
+.v-theme--light html::-webkit-scrollbar-thumb,
+.v-theme--light body::-webkit-scrollbar-thumb,
+.v-theme--light .v-main::-webkit-scrollbar-thumb,
+.v-theme--light .v-main__scroller::-webkit-scrollbar-thumb {
+  background: rgba(168, 85, 247, 0.25);
+}
+
+.v-theme--light html::-webkit-scrollbar-thumb:hover,
+.v-theme--light body::-webkit-scrollbar-thumb:hover,
+.v-theme--light .v-main::-webkit-scrollbar-thumb:hover,
+.v-theme--light .v-main__scroller::-webkit-scrollbar-thumb:hover {
+  background: rgba(168, 85, 247, 0.4);
+}
+
+/* ============================================================
+ * 白天模式 — Liquid Glass Light
+ * 统一底色：侧边栏/顶栏 纯白，内容区 #F5F7FA 微灰
+ * ============================================================ */
+.v-theme--light .v-application {
+  background: #F5F7FA !important;
+}
+
+.v-theme--light .v-main {
+  background: #F5F7FA !important;
+}
+
+.v-theme--light .v-navigation-drawer {
+  background: #FFFFFF !important;
+  border-right: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+.v-theme--light .v-app-bar {
+  background: #FFFFFF !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+.v-theme--light .v-navigation-drawer .v-list-item--active .v-list-item-title {
+  font-weight: 600;
+  color: #a855f7 !important;
+}
+
+.v-theme--light .v-navigation-drawer .v-list-item--active .v-icon {
+  color: #a855f7 !important;
+}
+
+/* ============================================================
+ * 亮色卡片
+ * ============================================================ */
+.v-theme--light {
+  --v-border-opacity: 0.14 !important;
+}
+
+.v-theme--light .v-card {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(0, 0, 0, 0.4) !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06) !important;
+  transition: all 0.3s ease-out !important;
+  border-radius: 16px !important;
+}
+
+.v-theme--light .v-card--variant-elevated {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
+}
+
+.v-theme--light .v-card--variant-outlined {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(0, 0, 0, 0.4) !important;
+  box-shadow: none !important;
+}
+
+.v-theme--light .v-card--link:hover,
+.v-theme--light .v-card[link]:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
+  transform: translateY(-2px);
+}
+
+/* ============================================================
+ * 亮色对话框
+ * ============================================================ */
+.v-theme--light .v-dialog .v-card,
+.v-theme--light .v-overlay__content .v-card {
+  background: #FFFFFF !important;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+/* ============================================================
+ * 亮色下拉面板
+ * ============================================================ */
+.v-theme--light .v-overlay .v-list,
+.v-theme--light .v-menu .v-card,
+.v-theme--light .v-menu .v-list {
+  background: #FFFFFF !important;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(124, 58, 237, 0.18) !important;
+  border: none !important;
+  border-radius: 20px !important;
+}
+
+.v-theme--light .v-overlay .v-list .v-list-item-title {
+  color: rgba(0, 0, 0, 0.87) !important;
+}
+
+.v-theme--light .v-list-item:hover {
+  background: rgba(168, 85, 247, 0.06) !important;
+}
+
+.v-theme--light .v-list-item--active {
+  background: rgba(168, 85, 247, 0.1) !important;
+  color: #a855f7 !important;
+}
+
+.v-theme--light .v-select .v-list-item:hover,
+.v-theme--light .v-autocomplete .v-list-item:hover,
+.v-theme--light .v-combobox .v-list-item:hover,
+.v-theme--light .v-menu .v-list-item:hover {
+  background: rgba(168, 85, 247, 0.08) !important;
+}
+
+.v-theme--light .v-select .v-list-item--active,
+.v-theme--light .v-autocomplete .v-list-item--active,
+.v-theme--light .v-combobox .v-list-item--active,
+.v-theme--light .v-menu .v-list-item--active {
+  background: rgba(168, 85, 247, 0.12) !important;
+  color: #a855f7 !important;
+}
+
+.v-theme--light .v-select .v-field__input,
+.v-theme--light .v-autocomplete .v-field__input,
+.v-theme--light .v-combobox .v-field__input {
+  color: rgba(0, 0, 0, 0.87) !important;
+}
+
+.v-theme--light .v-select .v-field__append-inner .v-icon {
+  color: rgba(0, 0, 0, 0.4) !important;
+}
+
+.v-theme--light .v-autocomplete .v-field--variant-outlined.v-field--focused,
+.v-theme--light .v-combobox .v-field--variant-outlined.v-field--focused {
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.15), inset 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+}
+
+.v-theme--light .v-select .v-chip--variant-tonal {
+  background: rgba(168, 85, 247, 0.1) !important;
+  color: #7c3aed !important;
+}
+
+/* ============================================================
+ * 亮色 Sheet
+ * ============================================================ */
+.v-theme--light .v-sheet {
+  background: #FFFFFF !important;
+  border-color: rgba(0, 0, 0, 0.4) !important;
+}
+
+/* ============================================================
+ * 亮色输入框
+ * ============================================================ */
+.v-theme--light .v-field--variant-outlined {
+  background: #FFFFFF !important;
+  border-radius: 12px !important;
+}
+
+.v-theme--light .v-field--variant-outlined .v-field__outline__start,
+.v-theme--light .v-field--variant-outlined .v-field__outline__notch::before,
+.v-theme--light .v-field--variant-outlined .v-field__outline__notch::after,
+.v-theme--light .v-field--variant-outlined .v-field__outline__end {
+  border-color: rgba(124, 58, 237, 0.42) !important;
+}
+
+.v-theme--light .v-field--variant-outlined:hover .v-field__outline__start,
+.v-theme--light .v-field--variant-outlined:hover .v-field__outline__notch::before,
+.v-theme--light .v-field--variant-outlined:hover .v-field__outline__notch::after,
+.v-theme--light .v-field--variant-outlined:hover .v-field__outline__end {
+  border-color: rgba(124, 58, 237, 0.6) !important;
+}
+
+.v-theme--light .v-field--variant-outlined.v-field--focused .v-field__outline__start,
+.v-theme--light .v-field--variant-outlined.v-field--focused .v-field__outline__notch::before,
+.v-theme--light .v-field--variant-outlined.v-field--focused .v-field__outline__notch::after,
+.v-theme--light .v-field--variant-outlined.v-field--focused .v-field__outline__end {
+  border-color: #a855f7 !important;
+}
+
+.v-theme--light .v-field--variant-outlined.v-field--focused {
+  box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.12) !important;
+  background: #FFFFFF !important;
+}
+
+.v-theme--light .v-field .v-label {
+  color: rgba(0, 0, 0, 0.55) !important;
+}
+
+.v-theme--light .v-field--focused .v-label {
+  color: #a855f7 !important;
+}
+
+.v-theme--light .v-field__input {
+  color: rgba(0, 0, 0, 0.87) !important;
+}
+
+.v-theme--light .v-input input,
+.v-theme--light .v-input textarea {
+  color: rgba(0, 0, 0, 0.87) !important;
+}
+
+/* ============================================================
+ * 亮色分割线
+ * ============================================================ */
+.v-theme--light .v-divider {
+  border-color: rgba(0, 0, 0, 0.10) !important;
+}
+
+/* ============================================================
+ * 亮色表格
+ * ============================================================ */
+.v-theme--light .v-table {
+  background: #FFFFFF !important;
+}
+
+.v-theme--light .v-table tr:hover {
+  background: rgba(168, 85, 247, 0.04) !important;
+}
+
+/* ============================================================
+ * 亮色标签页
+ * ============================================================ */
+.v-theme--light .v-tab--selected .v-tab__slider {
+  color: #a855f7 !important;
+}
+
+.v-theme--light .v-tab--selected {
+  color: #a855f7 !important;
+}
+
+/* ============================================================
+ * 亮色按钮
+ * ============================================================ */
+.v-theme--light .v-btn--variant-flat {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(255, 45, 146, 0.1)) !important;
+  color: #7c3aed !important;
+  font-weight: 600;
+  transition: all 0.5s ease-out !important;
+}
+
+.v-theme--light .v-btn--variant-flat:hover {
+  box-shadow: 0 0 16px rgba(168, 85, 247, 0.25) !important;
+}
+
+.v-theme--light .v-btn--variant-tonal {
+  font-weight: 500;
+  transition: all 0.5s ease-out !important;
+}
+
+.v-theme--light .v-btn--variant-tonal:hover {
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.15) !important;
+}
+
+.v-theme--light .v-btn--variant-outlined {
+  border-color: rgba(0, 0, 0, 0.12) !important;
+  transition: all 0.5s ease-out !important;
+}
+
+/* ============================================================
+ * 亮色 Checkbox / Radio
+ * ============================================================ */
+.v-theme--light .v-checkbox .v-selection-control--dirty .v-checkbox-btn__icon {
+  color: #a855f7 !important;
+}
+
+.v-theme--light .v-checkbox .v-selection-control--dirty .v-icon {
+  color: #a855f7 !important;
+}
+
+.v-theme--light .v-radio .v-selection-control--dirty .v-radio-btn__icon {
+  color: #a855f7 !important;
+}
+
+.v-theme--light .v-radio .v-selection-control--dirty .v-icon {
+  color: #a855f7 !important;
+}
+
+/* ============================================================
+ * 亮色 BtnToggle
+ * ============================================================ */
+.v-theme--light .v-btn-toggle {
+  background: rgba(0, 0, 0, 0.03) !important;
+  border: none !important;
+  border-radius: 16px !important;
+}
+
+.v-theme--light .v-btn-toggle .v-btn--active {
+  background: rgba(168, 85, 247, 0.1) !important;
+}
+
+/* ============================================================
+ * 亮色 Slider
+ * ============================================================ */
+.v-theme--light .v-slider .v-slider-track__fill {
+  background: linear-gradient(90deg, #a855f7, #4ecdc4) !important;
+}
+
+/* ============================================================
+ * 亮色 Code 标签
+ * ============================================================ */
+.v-theme--light code {
+  background: rgba(168, 85, 247, 0.06) !important;
+  color: #7c3aed !important;
+}
+
+/* ============================================================
+ * 亮色补丁
+ * ============================================================ */
+.v-theme--light .workflow-task-params {
+  background: rgba(0, 0, 0, 0.02) !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+}
+
+.v-theme--light .log-window {
+  background: rgba(0, 0, 0, 0.02) !important;
+}
+
+.v-theme--light .drop-zone {
+  border-color: rgba(0, 0, 0, 0.15) !important;
+}
+
+.v-theme--light .merge-table th {
+  color: rgba(0, 0, 0, 0.85) !important;
+  text-shadow: none;
+}
+
+.v-theme--light .liquid-avatar {
+  background: rgba(168, 85, 247, 0.1) !important;
+  border: 1px solid rgba(168, 85, 247, 0.2) !important;
+  color: #a855f7 !important;
+  backdrop-filter: blur(20px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(150%) !important;
+}
+
+.v-theme--light .liquid-avatar:hover {
+  background: rgba(168, 85, 247, 0.18) !important;
+  border-color: rgba(168, 85, 247, 0.35) !important;
+  box-shadow: 0 0 14px rgba(168, 85, 247, 0.2) !important;
+}
+
+.v-theme--light .media-liquid-card:hover {
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.08), 0 0 16px rgba(168, 85, 247, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+  background: rgba(255, 255, 255, 0.75) !important;
+}
+
+.v-theme--light .glass-btn-accent {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(255, 45, 146, 0.1)) !important;
+  color: #7c3aed !important;
+}
+
+.v-theme--light .liquid-glass-subtitle {
+  color: rgba(0, 0, 0, 0.8) !important;
+  text-shadow: none;
+}
+
+.v-theme--light .text-accent-gold {
+  color: #0891b2 !important;
+}
+
+/* ============================================================
+ * 亮色 SnackBar
+ * ============================================================ */
+.v-theme--light .v-snackbar {
+  background: rgba(30, 30, 40, 0.9) !important;
+  backdrop-filter: blur(40px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12) !important;
+}
+
+/* ============================================================
+ * 亮色 Alert
+ * ============================================================ */
+.v-theme--light .v-alert--variant-tonal {
+  background: rgba(168, 85, 247, 0.06) !important;
+  border: none !important;
+}
+
+/* ============================================================
+ * 亮色 Expansion Panel
+ * ============================================================ */
+.v-theme--light .v-expansion-panel {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(0, 0, 0, 0.4) !important;
+  border-radius: 12px !important;
+}
+
+/* ============================================================
+ * 亮色 Progress
+ * ============================================================ */
+.v-theme--light .v-progress-linear__determinate {
+  background: linear-gradient(90deg, #a855f7, #4ecdc4) !important;
+}
+
+/* ============================================================
+ * 亮色 Switch
+ * ============================================================ */
+.v-theme--light .v-switch .v-switch__track {
+  background: rgba(0, 0, 0, 0.26) !important;
+  border-radius: 999px !important;
+  opacity: 1 !important;
+}
+
+.v-theme--light .v-switch .v-switch__thumb {
+  background: #FFFFFF !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
+}
+
+.v-theme--light .v-switch .v-selection-control--dirty .v-switch__track {
+  background: #a855f7 !important;
+  opacity: 1 !important;
+}
+
+.v-theme--light .v-switch .v-selection-control--dirty .v-switch__thumb {
+  background: #FFFFFF !important;
+  box-shadow: 0 2px 6px rgba(168, 85, 247, 0.5) !important;
+}
+
+/* ============================================================
+ * 亮色 Tooltip
+ * ============================================================ */
+.v-theme--light .v-tooltip .v-overlay__content {
+  background: rgba(30, 30, 40, 0.9) !important;
+  backdrop-filter: blur(20px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(150%) !important;
+}
+
+/* ============================================================
+ * 亮色边框面板等
+ * ============================================================ */
+.v-theme--light .border-primary {
+  border-color: #a855f7 !important;
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.2);
+}
+
+.v-theme--light .border-success {
+  border-color: #059669 !important;
+  box-shadow: 0 0 12px rgba(5, 150, 105, 0.2);
+}
+
+.v-theme--light .border.rounded {
+  border-color: rgba(0, 0, 0, 0.4) !important;
+}
+
+.v-theme--light .bg-success-darken-4 {
+  background: rgba(56, 189, 248, 0.06) !important;
+  border-color: rgba(56, 189, 248, 0.1) !important;
+}
+
+.v-theme--light .preview-img {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 0 16px rgba(168, 85, 247, 0.08);
+}
+
+.v-theme--light .log-terminal {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.v-theme--light .log-entry:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.v-theme--light .log-entry--error {
+  background: rgba(198, 40, 40, 0.04);
+}
+
+.v-theme--light .log-entry--warn {
+  background: rgba(230, 81, 0, 0.04);
+}
+
+.v-theme--light .log-entry__level[data-level="info"] {
+  color: #7c3aed;
+}
+
+.v-theme--light .log-entry__level[data-level="warn"],
+.v-theme--light .log-entry__level[data-level="warning"] {
+  color: #E65100;
+}
+
+.v-theme--light .log-entry__level[data-level="error"] {
+  color: #C62828;
+}
+
+.v-theme--light .log-entry__level[data-level="critical"] {
+  color: #AD1457;
+}
+
+.v-theme--light .log-entry__level[data-level="debug"] {
+  color: rgba(0, 0, 0, 0.35);
+}
+
+.v-theme--light .log-entry__level[data-level="success"] {
+  color: #2E7D32;
+}
+
+.v-theme--light .code-block {
+  background: rgba(0, 0, 0, 0.06);
+  color: rgba(0, 0, 0, 0.87);
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+.v-theme--light .code-block code {
+  color: #2e7d32;
+}
+
+.v-theme--light .status-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.v-theme--light .season-card:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1), 0 0 20px rgba(168, 85, 247, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+  transform: translateY(-2px);
+}
+
+.v-theme--light .episode-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08), 0 0 16px rgba(168, 85, 247, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+  transform: translateY(-1px);
+}
+
+.v-theme--light .filter-btn-active {
+  background: rgba(168, 85, 247, 0.08) !important;
+  box-shadow: 0 0 8px rgba(168, 85, 247, 0.12) !important;
+}
+
+.v-theme--light .thumb-select--selected {
+  border-color: rgba(124, 58, 237, 0.7) !important;
+  box-shadow:
+    0 0 0 2px rgba(124, 58, 237, 0.2),
+    0 0 18px rgba(124, 58, 237, 0.15),
+    0 4px 16px rgba(0, 0, 0, 0.12) !important;
+}
+
+.v-theme--light .thumb-select-check {
+  background: rgba(124, 58, 237, 0.9);
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
+}
+
+.v-theme--light .terminal-input::placeholder {
+  color: rgba(0, 0, 0, 0.3);
+}
+
+.v-theme--light .yaml-editor textarea {
+  scrollbar-color: rgba(168, 85, 247, 0.3) transparent;
+}
+
+.v-theme--light .yaml-editor textarea::-webkit-scrollbar-thumb {
+  background: rgba(168, 85, 247, 0.3);
+}
+
+.v-theme--light .yaml-editor textarea::-webkit-scrollbar-thumb:hover {
+  background: rgba(168, 85, 247, 0.5);
+}
+
+.v-theme--light .prune-group {
+  border-left-color: rgba(0, 0, 0, 0.1);
+}
+
+.v-theme--light .hoverable:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.v-theme--light .tag-rules-explanation .explanation-positive {
+  color: #2e7d32;
+}
