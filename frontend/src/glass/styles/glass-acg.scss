@@ -275,20 +275,32 @@ html.glass-theme-acg {
   }
 
   // ═══════════════════════════════════════════════════════════════
-  // 侧边导航背景层
-  // Lens: 直接在 .v-navigation-drawer 上应用玻璃材质（与顶栏一致），
-  // 不再使用 ::before 伪元素，确保透明度一致。
-  // 原始 MP 使用 ::before 是因为 MP 的导航栏需要单独的背景层，
-  // Lens 的 Vuetify 导航栏没有这个需求。
+  // 侧边导航背景层（照搬 AM/MP glass.scss 479-501）
+  // 导航栏本身保持透明，通过 ::before 伪元素渲染玻璃材质，
+  // 确保与顶栏透明度一致，且 Fixed Shell Backplate 能正确裁剪。
   // ═══════════════════════════════════════════════════════════════
   .layout-vertical-nav,
   .v-navigation-drawer {
-    border-inline-end: 1px solid var(--glass-border-raised);
-    -webkit-backdrop-filter: var(--glass-fixed-shell-backdrop-filter) !important;
-    backdrop-filter: var(--glass-fixed-shell-backdrop-filter) !important;
-    background-color: var(--glass-surface-raised) !important;
-    background-image: var(--glass-sheen) !important;
-    box-shadow: var(--glass-shadow-raised) !important;
+    isolation: isolate;
+    border-inline-end: 0;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: transparent !important;
+    box-shadow: none !important;
+
+    &::before {
+      position: absolute;
+      z-index: -1;
+      border-inline-end: 1px solid var(--glass-border-raised);
+      -webkit-backdrop-filter: var(--glass-fixed-shell-backdrop-filter);
+      backdrop-filter: var(--glass-fixed-shell-backdrop-filter);
+      background-color: var(--glass-surface-raised);
+      background-image: var(--glass-sheen);
+      box-shadow: var(--glass-shadow-raised);
+      content: '';
+      inset: 0;
+      pointer-events: none;
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════

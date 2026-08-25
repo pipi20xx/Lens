@@ -418,33 +418,26 @@ interface PreparedWallpaperTexture {
 }
 
 const SURFACE_SELECTORS = [
-  { rank: 1, selector: '.agent-assistant-panel', space: 'fixed' },
-  { rank: 1, selector: '.login-card', space: 'fixed' },
-  // MoviePilot selectors
-  { rank: 2, selector: '.layout-vertical-nav', space: 'fixed' },
-  { rank: 2, selector: '.layout-navbar', space: 'fixed' },
-  // Lens selectors — v-navigation-drawer and v-app-bar are the fixed shell surfaces
-  { rank: 2, selector: '.v-navigation-drawer', space: 'fixed' },
-  { rank: 2, selector: '.v-app-bar', space: 'fixed' },
-  {
-    rank: 3,
-    selector: '.dashboard-grid-item-content > .dashboard-grid-auto-size > .dashboard-grid-content-measure > .v-card',
-    space: 'scroll',
-  },
-  {
-    rank: 3,
-    selector:
-      '.dashboard-grid-item-content > .dashboard-grid-auto-size > .dashboard-grid-content-measure > :first-child > .v-card',
-    space: 'scroll',
-  },
-  { rank: 3, selector: '[data-glass-optical-surface]', space: 'scroll' },
-  // 推荐、订阅、媒体详情与设置页共用该交互卡片契约，不按业务路由维护 renderer 白名单。
-  { rank: 4, selector: '.app-hover-lift-card', space: 'scroll' },
-  // 顶层业务卡片共享玻璃表面语义；嵌套卡片由表面收集阶段折叠，避免按页面维护白名单。
-  // MoviePilot: .layout-page-content .v-card
-  // Lens: .v-main .v-card (page content lives inside <v-main>)
-  { rank: 5, selector: '.layout-page-content .v-card', space: 'scroll' },
-  { rank: 5, selector: '.v-main .v-card', space: 'scroll' },
+{ rank: 1, selector: '.agent-assistant-panel', space: 'fixed' },
+{ rank: 1, selector: '.login-card', space: 'fixed' },
+{ rank: 2, selector: '.layout-vertical-nav', space: 'fixed' },
+{ rank: 2, selector: '.layout-navbar', space: 'fixed' },
+{
+rank: 3,
+selector: '.dashboard-grid-item-content > .dashboard-grid-auto-size > .dashboard-grid-content-measure > .v-card',
+space: 'scroll',
+},
+{
+rank: 3,
+selector:
+'.dashboard-grid-item-content > .dashboard-grid-auto-size > .dashboard-grid-content-measure > :first-child > .v-card',
+space: 'scroll',
+},
+{ rank: 3, selector: '[data-glass-optical-surface]', space: 'scroll' },
+// 推荐、订阅、媒体详情与设置页共用该交互卡片契约，不按业务路由维护 renderer 白名单。
+{ rank: 4, selector: '.app-hover-lift-card', space: 'scroll' },
+// 顶层业务卡片共享玻璃表面语义；嵌套卡片由表面收集阶段折叠，避免按页面维护白名单。
+{ rank: 5, selector: '.layout-page-content .v-card', space: 'scroll' },
 ] as const
 const SURFACE_SELECTOR_QUERY = SURFACE_SELECTORS.map(({ selector }) => selector).join(',')
 const INTERACTION_CLIP_SELECTOR = '.app-hover-lift-card'
