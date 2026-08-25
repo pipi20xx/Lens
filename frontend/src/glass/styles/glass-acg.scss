@@ -1594,25 +1594,31 @@ html.glass-theme-acg .login-glass-panel .v-btn--variant-flat.v-btn--bg-primary {
 
 // ═══════════════════════════════════════════════════════════════
 // 站点导航页面 — ACG 玻璃效果覆盖
-// 站点导航使用一个 .glass-page-surface 大卡片包裹整个页面内容。
-// 这个大卡片是唯一的 WebGL 光学表面 (data-glass-optical-surface)。
-// 渲染器 ready 后，大卡片的 backdrop-filter 被设为 none（由 WebGL 接管折射）。
-// 子卡片只做视觉装饰（边框、半透明背景、阴影），不再注册为光学表面。
+// 站点导航是 standalone 页面，壁纸由 App.vue 的 background-container 直接渲染。
+// .glass-page-surface 标记了 data-glass-optical-surface，作为光学表面注册到 WebGL 渲染器。
+// 渲染器通过 SURFACE_SELECTORS 中的 [data-glass-optical-surface] 选择器发现该表面，
+// 在其矩形区域上渲染水纹折射效果。
+//
+// 渲染器 ready 后，CSS 规则会给所有 [data-glass-optical-surface] 自动设置
+// backdrop-filter: blur(16px)（磨砂基底）。但站点导航需要保持卡片完全透明，
+// 水纹效果由 WebGL canvas 直接渲染，不需要 DOM 磨砂基底。
+// 因此用更高优先级的选择器覆盖掉 backdrop-filter，保持透明。
 // ═══════════════════════════════════════════════════════════════
 
 html.glass-theme-acg .site-nav-page.glass-acg {
-  // 页面背景由 WebGL 渲染层和 body 壁纸接管
+  // 页面背景由 App.vue 的 background-container 直接渲染壁纸
   background: transparent;
 
-  // ── 大玻璃卡片表面：WebGL ready 后 backdrop-filter 交给渲染器 ──
+  // ── 大玻璃卡片表面：标记为光学表面但保持完全透明 ──
+  // WebGL 渲染器发现该表面后在其区域渲染水纹折射；
+  // DOM 本身不磨砂，壁纸直接可见。
   .glass-page-surface {
-    // 非 ready 状态：CSS 回退磨砂
-    -webkit-backdrop-filter: var(--glass-native-surface-backdrop-filter);
-    backdrop-filter: var(--glass-native-surface-backdrop-filter);
-    background-color: var(--glass-surface);
-    background-image: var(--glass-sheen);
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--glass-shadow);
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    background-color: transparent !important;
+    background-image: none !important;
+    border: none;
+    box-shadow: none;
   }
 
   // ── 站点卡片：半透明装饰卡片（不是光学表面）──
@@ -1746,9 +1752,16 @@ html.glass-theme-acg .site-nav-page.glass-acg {
   }
 }
 
-// 渲染器 ready 后，站点导航大玻璃表面的 backdrop-filter 交给 WebGL 折射
-html.glass-theme-acg:is([data-glass-quality='balanced'], [data-glass-quality='high'])[data-glass-renderer-state='ready']
-  .site-nav-page.glass-acg .glass-page-surface {
+// 渲染器 ready 后，.glass-page-surface 保持完全透明，
+// 水纹效果由全局 WebGL canvas 直接在该表面区域渲染折射/水纹。
+// 渲染器 ready 规则会用 !important 给 [data-glass-optical-surface] 设置
+// backdrop-filter: blur(16px)。这里用更高 specificity 的选择器覆盖，
+// 确保 DOM 保持透明，水纹只由 WebGL canvas 渲染。
+
+html:is([data-glass-quality='balanced'], [data-glass-quality='high'])[data-glass-renderer-state='ready']
+  body.glass-theme-acg .site-nav-page.glass-acg .glass-page-surface[data-glass-optical-surface] {
   -webkit-backdrop-filter: none !important;
   backdrop-filter: none !important;
+  background-color: transparent !important;
+  background-image: none !important;
 }

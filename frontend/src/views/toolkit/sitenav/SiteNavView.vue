@@ -257,13 +257,11 @@ const overlayBg = computed(() => {
 
     <!--
       ACG 模式：整个页面用一块大玻璃卡片包裹。
-      WebGL 渲染器只需处理这一个光学表面，坐标映射与 body 壁纸天然对齐。
-      子卡片不再注册为独立光学表面，只做视觉装饰。
+      标记 data-glass-optical-surface 让 WebGL 渲染器发现该表面并渲染水纹折射。
+      CSS 中覆盖掉 [data-glass-optical-surface] 自动添加的 backdrop-filter: blur(16px)，
+      保持卡片本身完全透明——水纹效果由 WebGL canvas 直接渲染，不需要 DOM 磨砂基底。
     -->
-    <div
-      class="glass-page-surface"
-      :data-glass-optical-surface="glassAcgEnabled ? '' : undefined"
-    >
+    <div class="glass-page-surface" :data-glass-optical-surface="glassAcgEnabled ? '' : undefined">
       <!-- 必应壁纸信息 -->
       <div
         v-if="navSettings.wallpaper_mode === 'bing' && navSettings.show_wallpaper_info && bingInfo.title"
