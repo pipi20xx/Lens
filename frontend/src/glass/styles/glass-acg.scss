@@ -276,8 +276,9 @@ html.glass-theme-acg {
 
   // ═══════════════════════════════════════════════════════════════
   // 侧边导航背景层（照搬 AM/MP glass.scss 479-501）
-  // 导航栏本身保持透明，通过 ::before 伪元素渲染玻璃材质，
-  // 确保与顶栏透明度一致，且 Fixed Shell Backplate 能正确裁剪。
+  // 导航栏本身保持透明，通过 ::before 伪元素渲染玻璃材质。
+  // 渲染器 ready 后由 WebGL canvas 接管背景采样，
+  // ::before 的 backdrop-filter 被设为 none，避免双重模糊。
   // ═══════════════════════════════════════════════════════════════
   .layout-vertical-nav,
   .v-navigation-drawer {
@@ -301,6 +302,21 @@ html.glass-theme-acg {
       inset: 0;
       pointer-events: none;
     }
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // 导航栏内的 v-list 去除重复材质
+  // .v-list 全局规则会给它加上 backdrop-filter + background-color，
+  // 但在导航栏内这会导致与 ::before 伪元素的玻璃材质叠加，
+  // 使导航列表区域（Logo/分组导航/底部设置）出现透明度差异。
+  // 去除 .v-list 自身的材质，让它完全依赖 .v-navigation-drawer::before。
+  // ═══════════════════════════════════════════════════════════════
+  .v-navigation-drawer .v-list {
+    border-color: transparent !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
   }
 
   // ═══════════════════════════════════════════════════════════════
@@ -863,10 +879,10 @@ html.glass-theme-acg[data-glass-appearance='frosted']:is(
 }
 
 // 渲染器 ready 后恢复导航栏和弹窗的 backdrop-filter
-// Lens: glass-theme-acg 类在 <html> 上，不是 <body>
-html.glass-theme-acg:is([data-glass-quality='balanced'], [data-glass-quality='high'])[data-glass-renderer-state='ready'] {
-  .v-navigation-drawer::before,
-  .v-app-bar {
+html:is([data-glass-quality='balanced'], [data-glass-quality='high'])[data-glass-renderer-state='ready']
+  body.glass-theme-acg {
+  .layout-vertical-nav::before,
+  .layout-navbar {
     -webkit-backdrop-filter: var(--glass-surface-backdrop-filter) !important;
     backdrop-filter: var(--glass-surface-backdrop-filter) !important;
   }
@@ -881,9 +897,10 @@ html.glass-theme-acg:is([data-glass-quality='balanced'], [data-glass-quality='hi
 html.glass-theme-acg[data-glass-appearance='frosted']:is(
     [data-glass-quality='balanced'],
     [data-glass-quality='high']
-  )[data-glass-renderer-state='ready'] {
-  .v-navigation-drawer::before,
-  .v-app-bar {
+  )[data-glass-renderer-state='ready']
+  body.glass-theme-acg {
+  .layout-vertical-nav::before,
+  .layout-navbar {
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
   }
@@ -892,8 +909,8 @@ html.glass-theme-acg[data-glass-appearance='frosted']:is(
 // 滚动表面由原生 backdrop 持有壁纸基底；完整内容覆盖的排除子树不再采样。
 // 这是水纹效果的关键规则：渲染器 ready 后，标准表面和交互卡片使用原生磨砂基底，
 // 渲染器在其上叠加折射与交互动态（水纹）。
-// Lens: glass-theme-acg 类在 <html> 上，不是 <body>
-html.glass-theme-acg:is([data-glass-quality='balanced'], [data-glass-quality='high'])[data-glass-renderer-state='ready'] {
+html:is([data-glass-quality='balanced'], [data-glass-quality='high'])[data-glass-renderer-state='ready']
+  body.glass-theme-acg {
   :is(
       [data-glass-optical-surface],
       .app-hover-lift-card
@@ -904,7 +921,7 @@ html.glass-theme-acg:is([data-glass-quality='balanced'], [data-glass-quality='hi
 }
 
 // 登录页只保留内容保护表面
-html.glass-theme-acg {
+html.glass-theme-acg body.glass-theme-acg {
   .login-card {
     box-shadow:
       inset 0 0 0 1px rgba(255, 255, 255, 0.14),

@@ -10,6 +10,12 @@ export const useSystemStore = defineStore('system', () => {
   const showLogModal = ref(false)
   const logFilter = ref<string>('all')
 
+  // 登录状态 —— 从 localStorage 读取 token 判断
+  // App.vue 的玻璃壁纸渲染需要此属性来决定是否加载背景层
+  const isLoggedIn = ref<boolean>(
+    !!(localStorage.getItem('lens_access_token')),
+  )
+
   let socket: WebSocket | null = null
   let reconnectInterval: ReturnType<typeof setInterval> | null = null
 
@@ -82,7 +88,7 @@ export const useSystemStore = defineStore('system', () => {
 
   return {
     scanProgress, downloadProgress,
-    isConnected, logs, filteredLogs, logFilter, showLogModal,
+    isConnected, isLoggedIn, logs, filteredLogs, logFilter, showLogModal,
     connect, disconnect, clearLogs,
   }
 })

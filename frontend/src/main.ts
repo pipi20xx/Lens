@@ -7,6 +7,7 @@ import { glassI18n } from '@/glass/host/i18n'
 
 // 全局样式
 import '@/styles/global.css'
+import '@/styles/tokens.css'
 
 const app = createApp(App)
 

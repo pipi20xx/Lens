@@ -243,7 +243,9 @@ provideGlassFixedShellBackplate({
 
 // 启动 WebSocket 连接
 onMounted(() => {
-  systemStore.connect()
+  if (systemStore.isLoggedIn) {
+    systemStore.connect()
+  }
 })
 </script>
 

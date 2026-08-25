@@ -1,0 +1,12 @@
+/**
+ * tokens.css — ACG 玻璃主题 CSS 变量
+ *
+ * 定义壁纸源 URL 供 useGlassWallpaper 通过 getComputedStyle 读取。
+ * 其他材质令牌由 glass-acg.scss 统一管理，此文件只保留壁纸源。
+ */
+
+html.glass-theme-acg {
+  /* 随机壁纸 API —— useGlassWallpaper 通过 getComputedStyle 读取此变量，
+     然后经后端 /api/appearance/wallpaper_proxy 代理加载，避免 CORS 问题。 */
+  --am-wallpaper-source: https://www.loliapi.com/acg/pc/;
+}
