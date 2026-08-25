@@ -1218,6 +1218,7 @@ html.glass-theme-acg .v-card-title,
 html.glass-theme-acg .v-card-subtitle,
 html.glass-theme-acg .v-list-item-title,
 html.glass-theme-acg .v-label,
+html.glass-theme-acg .text-h5,
 html.glass-theme-acg .text-h6,
 html.glass-theme-acg .text-subtitle-1,
 html.glass-theme-acg .text-body-2,
@@ -1399,9 +1400,12 @@ html.glass-theme-acg .seasonal-tab .v-field .v-icon {
 /* ================================================================
  * 4. 页面标题 — 最强光晕
  *    页面标题不在卡片内，直接暴露在壁纸上，需要最强光晕。
+ *    .text-h5 常被各页面用作 <h1> 标题，与 .page-title 同等对待。
  * ================================================================ */
 
-html.glass-theme-acg .page-title {
+html.glass-theme-acg .page-title,
+html.glass-theme-acg h1.text-h5,
+html.glass-theme-acg .text-h5.font-weight-bold {
   color: #f5f5f5 !important;
   text-shadow:
     0 0 1px rgba(0, 0, 0, 1),
@@ -1612,7 +1616,16 @@ html.glass-theme-acg .site-nav-page.glass-acg {
   // ── 大玻璃卡片表面：标记为光学表面但保持完全透明 ──
   // WebGL 渲染器发现该表面后在其区域渲染水纹折射；
   // DOM 本身不磨砂，壁纸直接可见。
+  // 使用 fixed 定位覆盖整个视口，确保顶部没有空隙。
   .glass-page-surface {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    min-height: 0 !important;
+    overflow-y: auto;
+    overflow-x: hidden;
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
     background-color: transparent !important;
@@ -1757,9 +1770,15 @@ html.glass-theme-acg .site-nav-page.glass-acg {
 // 渲染器 ready 规则会用 !important 给 [data-glass-optical-surface] 设置
 // backdrop-filter: blur(16px)。这里用更高 specificity 的选择器覆盖，
 // 确保 DOM 保持透明，水纹只由 WebGL canvas 渲染。
+// 同时确保 position: fixed 覆盖整个视口，不被渲染器规则重置。
 
 html:is([data-glass-quality='balanced'], [data-glass-quality='high'])[data-glass-renderer-state='ready']
   body.glass-theme-acg .site-nav-page.glass-acg .glass-page-surface[data-glass-optical-surface] {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
   -webkit-backdrop-filter: none !important;
   backdrop-filter: none !important;
   background-color: transparent !important;
