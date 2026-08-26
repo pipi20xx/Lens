@@ -94,8 +94,8 @@ html.glass-theme-liquid.glass-dark {
 }
 
 /* Vuetify 组件变量 */
+/* --v-theme-primary 不再在此硬编码，由 useThemeCustomizer 通过 primaryColor 统一管理 */
 html.glass-theme-liquid .v-theme--light {
-  --v-theme-primary: 94, 92, 230;
   --v-theme-surface: 255, 255, 255;
   --v-theme-surface-light: 255, 255, 255;
   --v-theme-background: 198, 207, 238;
@@ -296,6 +296,51 @@ html.glass-theme-liquid.glass-light .v-menu .v-list-item--active {
 html.glass-theme-liquid.glass-dark .v-menu .v-list-item--active {
   background: rgba(var(--v-theme-primary), .18) !important;
   background-color: rgba(var(--v-theme-primary), .18) !important;
+}
+
+/* ================================================================
+ * tonal 按钮：语义色底 + 白字
+ * 参照 liquid-glass 参考CSS：primary 实色底+白字，其他语义色半透明底+白字
+ * ================================================================ */
+html.glass-theme-liquid .v-btn--variant-tonal.text-primary,
+html.glass-theme-liquid .v-btn--variant-tonal.v-btn--bg-primary {
+  background-color: rgb(var(--v-theme-primary)) !important;
+  color: #fff !important;
+}
+
+html.glass-theme-liquid .v-btn--variant-tonal.text-info,
+html.glass-theme-liquid .v-btn--variant-tonal.v-btn--bg-info {
+  background-color: rgba(var(--v-theme-info), 80%) !important;
+  color: #fff !important;
+}
+
+html.glass-theme-liquid .v-btn--variant-tonal.text-success,
+html.glass-theme-liquid .v-btn--variant-tonal.v-btn--bg-success {
+  background-color: rgba(var(--v-theme-success), 80%) !important;
+  color: #fff !important;
+}
+
+html.glass-theme-liquid .v-btn--variant-tonal.text-warning,
+html.glass-theme-liquid .v-btn--variant-tonal.v-btn--bg-warning {
+  background-color: rgba(var(--v-theme-warning), 80%) !important;
+  color: #fff !important;
+}
+
+html.glass-theme-liquid .v-btn--variant-tonal.text-error,
+html.glass-theme-liquid .v-btn--variant-tonal.v-btn--bg-error {
+  background-color: rgba(var(--v-theme-error), 80%) !important;
+  color: #fff !important;
+}
+
+html.glass-theme-liquid .v-btn--variant-tonal.text-secondary,
+html.glass-theme-liquid .v-btn--variant-tonal.v-btn--bg-secondary {
+  background-color: rgba(var(--v-theme-secondary), 80%) !important;
+  color: #fff !important;
+}
+
+/* tonal 无 color — 中性底 + 继承文字色 */
+html.glass-theme-liquid .v-btn--variant-tonal:not(.text-primary):not(.v-btn--bg-primary):not(.text-info):not(.v-btn--bg-info):not(.text-success):not(.v-btn--bg-success):not(.text-warning):not(.v-btn--bg-warning):not(.text-error):not(.v-btn--bg-error):not(.text-secondary):not(.v-btn--bg-secondary) {
+  color: inherit !important;
 }
 
 /* tonal chip 文字色 */
@@ -761,4 +806,59 @@ html.glass-theme-liquid.glass-light .log-entry--warning {
   html.glass-theme-liquid .v-dialog .v-overlay__content {
     contain: layout paint style;
   }
+}
+
+
+/* ================================================================
+ * Liquid 主题阴影预设覆盖
+ * tokens.css 中的 html[data-theme-shadow='xxx'] 选择器在此主题下
+ * 特异性可能不足以覆盖 html.glass-theme-liquid 直接定义的 --lg-shadow，
+ * 因此需要组合选择器确保阴影预设对 Liquid 主题生效。
+ * ================================================================ */
+
+html.glass-theme-liquid[data-theme-shadow='none'] {
+  --lg-shadow: none;
+  --lg-shadow-lift: none;
+}
+
+html.glass-theme-liquid[data-theme-shadow='subtle'] {
+  --lg-shadow: 0 2px 8px -4px rgba(31, 38, 135, 0.12);
+  --lg-shadow-lift: 0 4px 12px -6px rgba(31, 38, 135, 0.16);
+}
+
+html.glass-theme-liquid[data-theme-shadow='prominent'] {
+  --lg-shadow: 0 14px 42px -12px rgba(31, 38, 135, 0.38), 0 4px 12px -4px rgba(31, 38, 135, 0.22);
+  --lg-shadow-lift: 0 28px 60px -14px rgba(31, 38, 135, 0.46), 0 6px 16px -6px rgba(31, 38, 135, 0.28);
+}
+
+html.glass-theme-liquid[data-theme-shadow='dramatic'] {
+  --lg-shadow: 0 20px 56px -12px rgba(31, 38, 135, 0.46), 0 6px 16px -4px rgba(31, 38, 135, 0.28);
+  --lg-shadow-lift: 0 36px 72px -14px rgba(31, 38, 135, 0.54), 0 8px 20px -6px rgba(31, 38, 135, 0.34);
+}
+
+/* ================================================================
+ * Liquid 主题边框预设覆盖
+ * tokens.css 中的 html[data-theme-border='xxx'] 选择器在此主题下
+ * 特异性可能不足以覆盖 html.glass-theme-liquid 直接定义的 --lg-border，
+ * 因此需要组合选择器确保边框预设对 Liquid 主题生效。
+ * ================================================================ */
+
+html.glass-theme-liquid[data-theme-border='none'] {
+  --lg-border: transparent;
+  --lg-border-strong: transparent;
+}
+
+html.glass-theme-liquid[data-theme-border='subtle'] {
+  --lg-border: rgba(var(--v-theme-on-surface), 0.04);
+  --lg-border-strong: rgba(var(--v-theme-on-surface), 0.06);
+}
+
+html.glass-theme-liquid[data-theme-border='prominent'] {
+  --lg-border: rgba(var(--v-theme-on-surface), 0.14);
+  --lg-border-strong: rgba(var(--v-theme-on-surface), 0.2);
+}
+
+html.glass-theme-liquid[data-theme-border='dramatic'] {
+  --lg-border: rgba(var(--v-theme-on-surface), 0.22);
+  --lg-border-strong: rgba(var(--v-theme-on-surface), 0.3);
 }

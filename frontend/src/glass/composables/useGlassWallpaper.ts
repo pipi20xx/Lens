@@ -116,9 +116,21 @@ export function useGlassWallpaper() {
   const opticalFlowStrength = computed(() => effectiveGlassSettings.value.glassFlowStrength)
   const opticalQuality = computed(() => effectiveGlassSettings.value.glassQuality)
   const opticalReflectionStrength = computed(() => effectiveGlassSettings.value.glassReflectionStrength)
+  const opticalSurfaceMode = computed(() => effectiveGlassSettings.value.glassSurfaceMode)
   const opticalTransparencyStrength = computed(() => effectiveGlassSettings.value.glassTransparencyStrength)
   const opticalTransmissionStrength = computed(() => effectiveGlassSettings.value.glassTransmissionStrength)
   const opticalTranslationStrength = computed(() => effectiveGlassSettings.value.glassTranslationStrength)
+
+  // 壁纸亮度模式与值 —— 手动模式时直接写入 CSS 变量，实时预览
+  const wallpaperBrightnessMode = computed(() => effectiveGlassSettings.value.glassWallpaperBrightnessMode)
+  const wallpaperBrightness = computed(() => effectiveGlassSettings.value.glassWallpaperBrightness)
+
+  watch([wallpaperBrightnessMode, wallpaperBrightness], ([mode, brightness]) => {
+    if (mode === 'manual') {
+      document.documentElement.style.setProperty('--glass-wallpaper-brightness', String(brightness))
+    }
+    // auto 模式由 loadWallpaperTone 重新写入，不在此覆盖
+  })
 
   /** 设置壁纸源 URL（内部会自动转换为代理 URL） */
   function setWallpaperUrl(url: string) {
@@ -151,6 +163,20 @@ export function useGlassWallpaper() {
     try {
       const result = await loadGlassWallpaperTone(proxyUrl)
       wallpaperToneProfile.value = result.profile
+      // 同步亮度 CSS 变量，确保登录页面（不渲染 .background-container）也能使用正确的亮度
+      const settings = effectiveGlassSettings.value
+      if (settings.glassWallpaperBrightnessMode === 'manual') {
+        document.documentElement.style.setProperty(
+          '--glass-wallpaper-brightness',
+          String(settings.glassWallpaperBrightness),
+        )
+      } else {
+        const materialExposure = settings.glassAppearance === 'frosted' ? 0.82 : settings.glassAppearance === 'tinted' ? 0.85 : 0.86
+        document.documentElement.style.setProperty(
+          '--glass-wallpaper-brightness',
+          String(materialExposure * result.profile.exposure),
+        )
+      }
     } catch {
       wallpaperToneProfile.value = DEFAULT_GLASS_WALLPAPER_TONE_PROFILE
     }
@@ -204,11 +230,14 @@ export function useGlassWallpaper() {
     opticalFlowStrength,
     opticalQuality,
     opticalReflectionStrength,
+    opticalSurfaceMode,
     opticalTransparencyStrength,
     opticalTransmissionStrength,
     opticalTranslationStrength,
     effectiveGlassSettings,
     wallpaperToneProfile,
+    wallpaperBrightnessMode,
+    wallpaperBrightness,
     setWallpaperUrl,
   }
 }

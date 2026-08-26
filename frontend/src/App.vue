@@ -288,6 +288,7 @@ onMounted(() => {
       :flow-strength="glass.opticalFlowStrength.value"
       :quality="glass.opticalQuality.value === 'high' ? 'high' : 'balanced'"
       :reflection-strength="glass.opticalReflectionStrength.value"
+      :surface-mode="glass.opticalSurfaceMode.value"
       :transparency-strength="glass.opticalTransparencyStrength.value"
       :transmission-strength="glass.opticalTransmissionStrength.value"
       :translation-strength="glass.opticalTranslationStrength.value"

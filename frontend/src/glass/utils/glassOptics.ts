@@ -10,7 +10,7 @@ export const GLASS_OPTICAL_STRENGTH_MAX = 100
 export const GLASS_OPTICAL_STRENGTH_MIN = 0
 export const GLASS_OPTICAL_REFERENCE_STRENGTH = 70
 
-export type GlassAppearance = 'clear' | 'frosted' | 'tinted'
+export type GlassAppearance = 'clear' | 'frosted' | 'tinted' | 'transparent'
 export type GlassOpticalCapability = 'balanced' | 'css' | 'high'
 export type GlassOpticalPreset = 'glide' | 'liquid' | 'natural'
 export type GlassOpticalPresetKey = `${GlassAppearance}:${GlassOpticalCapability}:${GlassOpticalPreset}`
@@ -196,6 +196,21 @@ const GLASS_OPTICAL_PRESET_MATRIX: Record<GlassAppearance, GlassOpticalCapabilit
       liquid: { deformation: 79, flow: 77, reflection: 37, transmission: 56, translation: 52, transparency: 44 },
     },
   },
+  transparent: {
+    css: {
+      natural: { deformation: 48, flow: 48, reflection: 42, transmission: 67, translation: 48, transparency: 52 },
+    },
+    balanced: {
+      natural: { deformation: 48, flow: 48, reflection: 42, transmission: 65, translation: 48, transparency: 50 },
+      glide: { deformation: 29, flow: 42, reflection: 35, transmission: 70, translation: 70, transparency: 60 },
+      liquid: { deformation: 67, flow: 73, reflection: 43, transmission: 61, translation: 54, transparency: 55 },
+    },
+    high: {
+      natural: { deformation: 48, flow: 48, reflection: 38, transmission: 64, translation: 48, transparency: 49 },
+      glide: { deformation: 31, flow: 44, reflection: 34, transmission: 67, translation: 71, transparency: 59 },
+      liquid: { deformation: 71, flow: 77, reflection: 42, transmission: 60, translation: 55, transparency: 54 },
+    },
+  },
 }
 
 /** 返回材质、质量与预置共同确定的六个具体参数，调用方可以安全修改返回值。 */
@@ -241,11 +256,13 @@ const GLASS_BACKGROUND_VISIBILITY: Record<GlassAppearance, readonly number[]> = 
   clear: [0.18, 0.3, 0.58, 0.77, 0.9, 0.96],
   tinted: [0.08, 0.2, 0.48, 0.7, 0.84, 0.92],
   frosted: [0.04, 0.22, 0.52, 0.72, 0.89, 0.98],
+  transparent: [0, 0, 0, 0, 0, 0],
 }
 const GLASS_SURFACE_DENSITY: Record<GlassAppearance, readonly number[]> = {
   clear: [1, 0.88, 0.62, 0.42, 0.26, 0.18],
   tinted: [1, 0.92, 0.72, 0.52, 0.39, 0.3],
   frosted: [1, 0.9, 0.7, 0.52, 0.36, 0.22],
+  transparent: [0, 0, 0, 0, 0, 0],
 }
 const GLASS_TINT_DENSITY = [1, 0.9, 0.65, 0.48, 0.36, 0.28] as const
 const GLASS_FROST_DENSITY = [1, 0.9, 0.7, 0.34, 0.12, 0.04] as const

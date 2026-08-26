@@ -4,6 +4,7 @@ import type {
   ThemeCustomizerGlassAppearance,
   ThemeCustomizerGlassDynamicsMode,
   ThemeCustomizerGlassQuality,
+  ThemeCustomizerGlassSurfaceMode,
 } from '../host/useThemeCustomizer'
 import { useGlassMobilePresentation } from '../composables/useGlassPresentationCapabilities'
 import { usePagePresentationMotion } from '../composables/usePagePresentationMotion'
@@ -29,6 +30,8 @@ const props = defineProps<{
   quality: Exclude<ThemeCustomizerGlassQuality, 'css'>
   /** 用户选择的亮边、镜面高光与焦散强度。 */
   reflectionStrength: number
+  /** 玻璃表面模式：卡片级或整页级。 */
+  surfaceMode: ThemeCustomizerGlassSurfaceMode
   /** 用户选择的真实壁纸可见度。 */
   transparencyStrength: number
   /** 玻璃内部壁纸采样的透射亮度；不会改变外层壁纸的曝光合同。 */
@@ -105,6 +108,7 @@ const fixedRenderer = useGlassOpticalRenderer({
   interactionSource,
   quality: () => props.quality,
   reflectionStrength: () => props.reflectionStrength,
+  surfaceMode: () => props.surfaceMode,
   transparencyStrength: () => props.transparencyStrength,
   transmissionStrength: () => props.transmissionStrength,
   translationStrength: () => props.translationStrength,
@@ -132,6 +136,7 @@ const scrollRenderer = useGlassOpticalRenderer({
   pageMotion: pagePresentationMotion.reader,
   quality: () => props.quality,
   reflectionStrength: () => props.reflectionStrength,
+  surfaceMode: () => props.surfaceMode,
   transparencyStrength: () => props.transparencyStrength,
   transmissionStrength: () => props.transmissionStrength,
   translationStrength: () => props.translationStrength,

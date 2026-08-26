@@ -19,11 +19,15 @@ import { normalizeThemeMaterialAccent } from '../utils/glassColor'
 
 // ─── 类型定义 ───────────────────────────────────────────────
 
-export type ThemeCustomizerGlassAppearance = 'clear' | 'frosted' | 'tinted'
+export type ThemeCustomizerGlassAppearance = 'clear' | 'frosted' | 'tinted' | 'transparent'
 export type ThemeCustomizerGlassDynamicsMode = 'fluid' | 'ripple' | 'off'
 export type ThemeCustomizerGlassQuality = 'balanced' | 'css' | 'high'
+export type ThemeCustomizerGlassSurfaceMode = 'card' | 'page'
+export type ThemeCustomizerGlassWallpaperBrightnessMode = 'auto' | 'manual'
 export type ThemeCustomizerLayout = 'collapsed' | 'horizontal' | 'vertical'
+export type ThemeCustomizerBorder = 'default' | 'dramatic' | 'none' | 'prominent' | 'subtle'
 export type ThemeCustomizerRadius = 'default' | 'extra' | 'large' | 'none' | 'small'
+export type ThemeCustomizerShadow = 'default' | 'dramatic' | 'none' | 'prominent' | 'subtle'
 export type ThemeCustomizerSkin = 'bordered' | 'default'
 export type ThemeCustomizerTheme = 'auto' | 'dark' | 'glass' | 'light' | 'purple' | 'transparent'
 
@@ -36,14 +40,18 @@ export interface ThemeCustomizerSettings {
   glassPresetOverrides: GlassOpticalPresetOverrides
   glassQuality: ThemeCustomizerGlassQuality
   glassReflectionStrength: number
+  glassSurfaceMode: ThemeCustomizerGlassSurfaceMode
   glassTransmissionStrength: number
   glassTranslationStrength: number
   glassTransparencyStrength: number
+  glassWallpaperBrightnessMode: ThemeCustomizerGlassWallpaperBrightnessMode
+  glassWallpaperBrightness: number
+  border: ThemeCustomizerBorder
   layout: ThemeCustomizerLayout
   primaryColor: string
   radius: ThemeCustomizerRadius
   semiDarkMenu: boolean
-  shadow: string
+  shadow: ThemeCustomizerShadow
   skin: ThemeCustomizerSkin
   theme: ThemeCustomizerTheme
 }
@@ -58,9 +66,12 @@ export type ThemeCustomizerGlassSettings = Pick<
   | 'glassPresetOverrides'
   | 'glassQuality'
   | 'glassReflectionStrength'
+  | 'glassSurfaceMode'
   | 'glassTransmissionStrength'
   | 'glassTranslationStrength'
   | 'glassTransparencyStrength'
+  | 'glassWallpaperBrightnessMode'
+  | 'glassWallpaperBrightness'
 >
 
 // ─── 常量 ───────────────────────────────────────────────────
@@ -85,13 +96,16 @@ export const themeCustomizerPrimaryColors = [
 ] as const
 
 const defaultPrimaryColor = themeCustomizerPrimaryColors[0].value
-const validGlassAppearances: ThemeCustomizerGlassAppearance[] = ['clear', 'tinted', 'frosted']
+const validGlassAppearances: ThemeCustomizerGlassAppearance[] = ['clear', 'tinted', 'frosted', 'transparent']
 const validGlassDynamicsModes: ThemeCustomizerGlassDynamicsMode[] = ['fluid', 'ripple', 'off']
 const validGlassPresets: GlassOpticalPreset[] = ['natural', 'glide', 'liquid']
 const validGlassQualities: ThemeCustomizerGlassQuality[] = ['css', 'balanced', 'high']
+const validGlassSurfaceModes: ThemeCustomizerGlassSurfaceMode[] = ['card', 'page']
 const defaultGlassQuality: ThemeCustomizerGlassQuality = 'balanced'
 const validLayouts: ThemeCustomizerLayout[] = ['vertical', 'collapsed', 'horizontal']
+const validBorders: ThemeCustomizerBorder[] = ['none', 'subtle', 'default', 'prominent', 'dramatic']
 const validRadii: ThemeCustomizerRadius[] = ['none', 'small', 'default', 'large', 'extra']
+const validShadows: ThemeCustomizerShadow[] = ['none', 'subtle', 'default', 'prominent', 'dramatic']
 const validSkins: ThemeCustomizerSkin[] = ['default', 'bordered']
 const validThemes: ThemeCustomizerTheme[] = ['auto', 'light', 'dark', 'purple', 'transparent', 'glass']
 
@@ -103,6 +117,15 @@ function isBrowser() {
 
 function isHexColor(color: unknown): color is string {
   return typeof color === 'string' && /^#[\da-f]{6}$/i.test(color)
+}
+
+/** 将 #RRGGBB 转为 "R, G, B" 字符串，供 CSS 变量使用。 */
+function hexToRgb(hex: string): string | undefined {
+  if (!isHexColor(hex)) return undefined
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  return `${r}, ${g}, ${b}`
 }
 
 function clampGlass(value: unknown, min: number, max: number, fallback: number): number {
@@ -126,20 +149,24 @@ export function getDefaultGlassCustomizerSettings(
     glassPresetOverrides: {},
     glassQuality: quality,
     glassReflectionStrength: glassParameters.reflection,
+    glassSurfaceMode: 'card',
     glassTransmissionStrength: glassParameters.transmission,
     glassTranslationStrength: glassParameters.translation,
     glassTransparencyStrength: glassParameters.transparency,
+    glassWallpaperBrightnessMode: 'auto',
+    glassWallpaperBrightness: 0.86,
   }
 }
 
 function getDefaultThemeCustomizerSettings(): ThemeCustomizerSettings {
   return {
     ...getDefaultGlassCustomizerSettings(),
+    border: 'default',
     layout: 'vertical',
     primaryColor: defaultPrimaryColor,
     radius: 'default',
     semiDarkMenu: false,
-    shadow: '0',
+    shadow: 'default',
     skin: 'default',
     theme: 'glass',
   }
@@ -162,9 +189,19 @@ function normalizeThemeCustomizerSettings(raw: Partial<ThemeCustomizerSettings>)
     ? (raw.glassQuality as ThemeCustomizerGlassQuality)
     : defaults.glassQuality
 
+  const glassSurfaceMode = validGlassSurfaceModes.includes(raw.glassSurfaceMode as ThemeCustomizerGlassSurfaceMode)
+    ? (raw.glassSurfaceMode as ThemeCustomizerGlassSurfaceMode)
+    : defaults.glassSurfaceMode
+  const glassWallpaperBrightnessMode = raw.glassWallpaperBrightnessMode === 'manual' ? 'manual' : 'auto'
+  const glassWallpaperBrightness = clampGlass(raw.glassWallpaperBrightness, 0.2, 1.5, defaults.glassWallpaperBrightness)
+
   const glassPreset = validGlassPresets.includes(raw.glassPreset as GlassOpticalPreset)
     ? (raw.glassPreset as GlassOpticalPreset)
     : defaults.glassPreset
+
+  const border = validBorders.includes(raw.border as ThemeCustomizerBorder)
+    ? (raw.border as ThemeCustomizerBorder)
+    : defaults.border
 
   const layout = validLayouts.includes(raw.layout as ThemeCustomizerLayout)
     ? (raw.layout as ThemeCustomizerLayout)
@@ -184,7 +221,9 @@ function normalizeThemeCustomizerSettings(raw: Partial<ThemeCustomizerSettings>)
 
   const primaryColor = isHexColor(raw.primaryColor) ? raw.primaryColor : defaults.primaryColor
   const semiDarkMenu = typeof raw.semiDarkMenu === 'boolean' ? raw.semiDarkMenu : defaults.semiDarkMenu
-  const shadow = typeof raw.shadow === 'string' ? raw.shadow : defaults.shadow
+  const shadow = validShadows.includes(raw.shadow as ThemeCustomizerShadow)
+    ? (raw.shadow as ThemeCustomizerShadow)
+    : defaults.shadow
 
   return {
     glassAppearance,
@@ -198,9 +237,13 @@ function normalizeThemeCustomizerSettings(raw: Partial<ThemeCustomizerSettings>)
         : defaults.glassPresetOverrides,
     glassQuality,
     glassReflectionStrength: clampGlass(raw.glassReflectionStrength, 0, 100, defaults.glassReflectionStrength),
+    glassSurfaceMode,
     glassTransmissionStrength: clampGlass(raw.glassTransmissionStrength, 0, 100, defaults.glassTransmissionStrength),
     glassTranslationStrength: clampGlass(raw.glassTranslationStrength, 0, 100, defaults.glassTranslationStrength),
     glassTransparencyStrength: clampGlass(raw.glassTransparencyStrength, 0, 100, defaults.glassTransparencyStrength),
+    glassWallpaperBrightnessMode,
+    glassWallpaperBrightness,
+    border,
     layout,
     primaryColor,
     radius,
@@ -241,12 +284,17 @@ const effectiveGlassSettings = computed(() => ({
   glassQuality: glassPreviewState.value?.glassQuality ?? settingsState.value.glassQuality,
   glassReflectionStrength:
     glassPreviewState.value?.glassReflectionStrength ?? settingsState.value.glassReflectionStrength,
+  glassSurfaceMode: glassPreviewState.value?.glassSurfaceMode ?? settingsState.value.glassSurfaceMode,
   glassTransmissionStrength:
     glassPreviewState.value?.glassTransmissionStrength ?? settingsState.value.glassTransmissionStrength,
   glassTranslationStrength:
     glassPreviewState.value?.glassTranslationStrength ?? settingsState.value.glassTranslationStrength,
   glassTransparencyStrength:
     glassPreviewState.value?.glassTransparencyStrength ?? settingsState.value.glassTransparencyStrength,
+  glassWallpaperBrightnessMode:
+    glassPreviewState.value?.glassWallpaperBrightnessMode ?? settingsState.value.glassWallpaperBrightnessMode,
+  glassWallpaperBrightness:
+    glassPreviewState.value?.glassWallpaperBrightness ?? settingsState.value.glassWallpaperBrightness,
 }))
 
 /** 提供当前实际生效的玻璃设置；临时预览优先于已持久化设置。 */
@@ -276,9 +324,11 @@ function dispatchThemeCustomizerChange(settings: ThemeCustomizerSettings) {
 export function applyThemeCustomizerRootSettings(
   settings: Pick<
     ThemeCustomizerSettings,
+    | 'border'
     | 'glassAppearance'
     | 'glassQuality'
     | 'glassReflectionStrength'
+    | 'glassSurfaceMode'
     | 'glassTransmissionStrength'
     | 'glassTransparencyStrength'
     | 'layout'
@@ -296,6 +346,8 @@ export function applyThemeCustomizerRootSettings(
   const overlayClarityBlur = getGlassOverlayClarityBlur(settings.glassTransparencyStrength)
   const materialAccent =
     normalizeThemeMaterialAccent(settings.primaryColor) ?? normalizeThemeMaterialAccent(defaultPrimaryColor)!
+  /** 将 hex 主色转为 "R, G, B" 字符串，用于覆盖 --v-theme-primary 和自定义变量。 */
+  const primaryRgb = hexToRgb(settings.primaryColor) ?? hexToRgb(defaultPrimaryColor)!
   const applyGlassResponse = (element: HTMLElement) => {
     element.style.setProperty('--glass-background-visibility', String(materialResponse.backgroundVisibility))
     element.style.setProperty('--glass-frost-blur-scale', String(materialResponse.frostBlurScale))
@@ -308,8 +360,17 @@ export function applyThemeCustomizerRootSettings(
     element.style.setProperty('--glass-material-accent-rgb', materialAccent.rgb)
   }
 
+  // ── 主题色应用 ──
+  // 主色不分白天/夜晚，统一写入 :root 的 --v-theme-primary 和 --am-primary-rgb，
+  // Vuetify 组件通过 CSS 变量继承自动响应。
+  // JS 侧的 Vuetify theme 对象同步由 App.vue 中 watch primaryColor 完成。
+  document.documentElement.style.setProperty('--v-theme-primary', primaryRgb)
+  document.documentElement.style.setProperty('--am-primary-rgb', primaryRgb)
+  document.documentElement.style.setProperty('--am-primary-hex', settings.primaryColor)
+
   document.documentElement.setAttribute('data-glass-appearance', settings.glassAppearance)
   document.documentElement.setAttribute('data-glass-quality', settings.glassQuality)
+  document.documentElement.setAttribute('data-glass-surface-mode', settings.glassSurfaceMode)
   document.documentElement.style.setProperty(
     '--glass-reflection',
     String(normalizeGlassOpticalStrength(settings.glassReflectionStrength) / GLASS_OPTICAL_STRENGTH_MAX),
@@ -323,6 +384,7 @@ export function applyThemeCustomizerRootSettings(
     String(getGlassOpticalCssTransmissionBrightness(settings.glassTransmissionStrength)),
   )
   applyGlassResponse(document.documentElement)
+  document.documentElement.setAttribute('data-theme-border', settings.border)
   document.documentElement.setAttribute('data-theme-layout', settings.layout)
   document.documentElement.setAttribute('data-theme-radius', settings.radius)
   document.documentElement.setAttribute('data-theme-semi-dark-menu', String(settings.semiDarkMenu))
@@ -330,6 +392,7 @@ export function applyThemeCustomizerRootSettings(
   document.documentElement.setAttribute('data-theme-skin', settings.skin)
   document.body.setAttribute('data-glass-appearance', settings.glassAppearance)
   document.body.setAttribute('data-glass-quality', settings.glassQuality)
+  document.body.setAttribute('data-glass-surface-mode', settings.glassSurfaceMode)
   document.body.style.setProperty(
     '--glass-reflection',
     String(normalizeGlassOpticalStrength(settings.glassReflectionStrength) / GLASS_OPTICAL_STRENGTH_MAX),
@@ -343,6 +406,7 @@ export function applyThemeCustomizerRootSettings(
     String(getGlassOpticalCssTransmissionBrightness(settings.glassTransmissionStrength)),
   )
   applyGlassResponse(document.body)
+  document.body.setAttribute('data-theme-border', settings.border)
   document.body.setAttribute('data-theme-layout', settings.layout)
   document.body.setAttribute('data-theme-radius', settings.radius)
   document.body.setAttribute('data-theme-semi-dark-menu', String(settings.semiDarkMenu))
@@ -386,9 +450,12 @@ export function previewGlassSettings(patch: Partial<ThemeCustomizerGlassSettings
     glassPresetOverrides: previewSettings.glassPresetOverrides,
     glassQuality: previewSettings.glassQuality,
     glassReflectionStrength: previewSettings.glassReflectionStrength,
+    glassSurfaceMode: previewSettings.glassSurfaceMode,
     glassTransmissionStrength: previewSettings.glassTransmissionStrength,
     glassTranslationStrength: previewSettings.glassTranslationStrength,
     glassTransparencyStrength: previewSettings.glassTransparencyStrength,
+    glassWallpaperBrightnessMode: previewSettings.glassWallpaperBrightnessMode,
+    glassWallpaperBrightness: previewSettings.glassWallpaperBrightness,
   }
   applyThemeCustomizerRootSettings({
     ...settingsState.value,
@@ -432,6 +499,7 @@ export function isDefaultThemeCustomizerSettings(settings: ThemeCustomizerSettin
     settings.glassPreset === defaults.glassPreset &&
     settings.glassQuality === defaults.glassQuality &&
     settings.glassReflectionStrength === defaults.glassReflectionStrength &&
+    settings.glassSurfaceMode === defaults.glassSurfaceMode &&
     settings.glassTransmissionStrength === defaults.glassTransmissionStrength &&
     settings.glassTranslationStrength === defaults.glassTranslationStrength &&
     settings.glassTransparencyStrength === defaults.glassTransparencyStrength
@@ -539,6 +607,10 @@ export function useThemeCustomizer() {
     return updateSettings({ glassDynamicsMode })
   }
 
+  function setGlassSurfaceMode(glassSurfaceMode: ThemeCustomizerGlassSurfaceMode) {
+    return updateSettings({ glassSurfaceMode })
+  }
+
   function setGlassFlowStrength(glassFlowStrength: number) {
     return updateGlassPresetOverride({ flow: normalizeGlassOpticalStrength(glassFlowStrength) })
   }
@@ -608,12 +680,16 @@ export function useThemeCustomizer() {
     return updateSettings({ theme })
   }
 
-  function setShadow(shadow: string) {
+  function setShadow(shadow: ThemeCustomizerShadow) {
     return updateSettings({ shadow })
   }
 
   function setSkin(skin: ThemeCustomizerSkin) {
     return updateSettings({ skin })
+  }
+
+  function setBorder(border: ThemeCustomizerBorder) {
+    return updateSettings({ border })
   }
 
   function setLayout(layout: ThemeCustomizerLayout) {
@@ -627,11 +703,12 @@ export function useThemeCustomizer() {
   function resetSettings() {
     updateSettings({
       ...getDefaultGlassCustomizerSettings(),
+      border: 'default',
       layout: 'vertical',
       primaryColor: defaultPrimaryColor,
       radius: 'default',
       semiDarkMenu: false,
-      shadow: '0',
+      shadow: 'default',
       skin: 'default',
       theme: 'glass',
     })
@@ -656,9 +733,11 @@ export function useThemeCustomizer() {
     setGlassPreset,
     setGlassQuality,
     setGlassReflectionStrength,
+    setGlassSurfaceMode,
     setGlassTransmissionStrength,
     setGlassTranslationStrength,
     setGlassTransparencyStrength,
+    setBorder,
     setLayout,
     setPrimaryColor,
     setRadius,

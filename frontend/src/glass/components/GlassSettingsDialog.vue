@@ -7,6 +7,7 @@ import {
   type ThemeCustomizerGlassAppearance,
   type ThemeCustomizerGlassDynamicsMode,
   type ThemeCustomizerGlassQuality,
+  type ThemeCustomizerGlassSurfaceMode,
 } from '../host/useThemeCustomizer'
 import {
   GLASS_OPTICAL_STRENGTH_MAX,
@@ -50,6 +51,7 @@ const draftPreset = ref<GlassOpticalPreset>(settings.value.glassPreset)
 const draftPresetOverrides = ref<GlassOpticalPresetOverrides>({ ...settings.value.glassPresetOverrides })
 const draftQuality = ref<ThemeCustomizerGlassQuality>(settings.value.glassQuality)
 const draftReflectionStrength = ref(settings.value.glassReflectionStrength)
+const draftSurfaceMode = ref<ThemeCustomizerGlassSurfaceMode>(settings.value.glassSurfaceMode)
 const draftTransmissionStrength = ref(settings.value.glassTransmissionStrength)
 const draftTranslationStrength = ref(settings.value.glassTranslationStrength)
 const draftTransparencyStrength = ref(settings.value.glassTransparencyStrength)
@@ -57,6 +59,7 @@ const isSaving = ref(false)
 const usesRealtimeOptics = computed(() => draftQuality.value !== 'css')
 const showsDynamicsMode = computed(() => usesRealtimeOptics.value && !usesMobilePresentation.value)
 const showsDynamicTuning = computed(() => showsDynamicsMode.value && draftDynamicsMode.value !== 'off')
+const showsSurfaceMode = computed(() => usesRealtimeOptics.value && !usesMobilePresentation.value)
 const availablePresets = computed(() => getAvailableGlassOpticalPresets(draftQuality.value))
 const activePreset = computed<GlassOpticalPreset>(() =>
   availablePresets.value.includes(draftPreset.value) ? draftPreset.value : 'natural',
@@ -84,6 +87,7 @@ watch(
       draftPresetOverrides.value = { ...settings.value.glassPresetOverrides }
       draftQuality.value = settings.value.glassQuality
       draftReflectionStrength.value = settings.value.glassReflectionStrength
+      draftSurfaceMode.value = settings.value.glassSurfaceMode
       draftTransmissionStrength.value = settings.value.glassTransmissionStrength
       draftTranslationStrength.value = settings.value.glassTranslationStrength
       draftTransparencyStrength.value = settings.value.glassTransparencyStrength
@@ -99,6 +103,7 @@ const appearanceOptions: Array<{
   value: ThemeCustomizerGlassAppearance
 }> = [
   { label: 'theme.glassAppearanceClear', value: 'clear' },
+  { label: 'theme.glassAppearanceTransparent', value: 'transparent' },
   { label: 'theme.glassAppearanceTinted', value: 'tinted' },
   { label: 'theme.glassAppearanceFrosted', value: 'frosted' },
 ]
@@ -137,10 +142,29 @@ const dynamicsModeOptions: Array<{
 const dynamicsModeHint = computed(
   () => dynamicsModeOptions.find(option => option.value === draftDynamicsMode.value)?.hint ?? '',
 )
+const surfaceModeOptions: Array<{
+  hint: string
+  label: string
+  value: ThemeCustomizerGlassSurfaceMode
+}> = [
+  { hint: 'theme.glassSurfaceModeCardHint', label: 'theme.glassSurfaceModeCard', value: 'card' },
+  { hint: 'theme.glassSurfaceModePageHint', label: 'theme.glassSurfaceModePage', value: 'page' },
+]
+const surfaceModeHint = computed(
+  () => surfaceModeOptions.find(option => option.value === draftSurfaceMode.value)?.hint ?? '',
+)
+
+function updateSurfaceMode(value: unknown) {
+  const option = surfaceModeOptions.find(item => item.value === value)
+  if (!option) return
+
+  draftSurfaceMode.value = option.value
+  previewDraftParameters()
+}
 
 /** 仅允许已实现的材质进入待保存设置。 */
 function updateAppearance(value: unknown) {
-  if (value !== 'clear' && value !== 'tinted' && value !== 'frosted') return
+  if (value !== 'clear' && value !== 'transparent' && value !== 'tinted' && value !== 'frosted') return
 
   draftAppearance.value = value
   applyPreset(activePreset.value)
@@ -175,6 +199,7 @@ function previewDraftParameters() {
     glassPresetOverrides: draftPresetOverrides.value,
     glassQuality: draftQuality.value,
     glassReflectionStrength: draftReflectionStrength.value,
+    glassSurfaceMode: draftSurfaceMode.value,
     glassTransmissionStrength: draftTransmissionStrength.value,
     glassTranslationStrength: draftTranslationStrength.value,
     glassTransparencyStrength: draftTransparencyStrength.value,
@@ -291,6 +316,7 @@ async function saveSettings() {
       glassPresetOverrides: draftPresetOverrides.value,
       glassQuality: draftQuality.value,
       glassReflectionStrength: draftReflectionStrength.value,
+      glassSurfaceMode: draftSurfaceMode.value,
       glassTransmissionStrength: draftTransmissionStrength.value,
       glassTranslationStrength: draftTranslationStrength.value,
       glassTransparencyStrength: draftTransparencyStrength.value,
@@ -354,6 +380,28 @@ onScopeDispose(cancelGlassPreview)
             </VBtn>
           </VBtnToggle>
           <p class="glass-settings-dialog__hint">{{ t('theme.glassAppearanceHint') }}</p>
+        </section>
+
+        <section v-if="showsSurfaceMode" class="glass-settings-dialog__surface-mode-section">
+          <h3 class="glass-settings-dialog__label">{{ t('theme.glassSurfaceMode') }}</h3>
+          <VBtnToggle
+            :model-value="draftSurfaceMode"
+            mandatory
+            color="primary"
+            variant="text"
+            class="glass-settings-dialog__surface-mode"
+            @update:model-value="updateSurfaceMode"
+          >
+            <VBtn
+              v-for="option in surfaceModeOptions"
+              :key="option.value"
+              :value="option.value"
+              class="glass-settings-dialog__surface-mode-option"
+            >
+              {{ t(option.label) }}
+            </VBtn>
+          </VBtnToggle>
+          <p class="glass-settings-dialog__hint">{{ t(surfaceModeHint) }}</p>
         </section>
 
         <section>
@@ -642,7 +690,8 @@ onScopeDispose(cancelGlassPreview)
 .glass-settings-dialog__appearance,
 .glass-settings-dialog__dynamics-mode,
 .glass-settings-dialog__quality,
-.glass-settings-dialog__preset {
+.glass-settings-dialog__preset,
+.glass-settings-dialog__surface-mode {
   display: grid;
   overflow: hidden;
   border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
@@ -655,7 +704,7 @@ onScopeDispose(cancelGlassPreview)
 
 .glass-settings-dialog__appearance {
   block-size: 42px !important;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .glass-settings-dialog__dynamics-mode {
@@ -678,12 +727,16 @@ onScopeDispose(cancelGlassPreview)
   block-size: 32px !important;
   inline-size: 100%;
   letter-spacing: 0;
+  min-inline-size: 0;
+  padding-inline: 4px;
+  font-size: 0.75rem;
 }
 
 .glass-settings-dialog__appearance-option,
 .glass-settings-dialog__dynamics-mode-option,
 .glass-settings-dialog__quality-option,
-.glass-settings-dialog__preset-option {
+.glass-settings-dialog__preset-option,
+.glass-settings-dialog__surface-mode-option {
   border: 0 !important;
   border-radius: 7px !important;
   box-shadow: none !important;
@@ -705,10 +758,21 @@ onScopeDispose(cancelGlassPreview)
   block-size: 32px !important;
 }
 
+.glass-settings-dialog__surface-mode {
+  block-size: 42px !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-block-start: 10px;
+}
+
+.glass-settings-dialog__surface-mode-option {
+  block-size: 32px !important;
+}
+
 .glass-settings-dialog__appearance-option:deep(.v-btn--active),
 .glass-settings-dialog__dynamics-mode-option:deep(.v-btn--active),
 .glass-settings-dialog__quality-option:deep(.v-btn--active),
-.glass-settings-dialog__preset-option:deep(.v-btn--active) {
+.glass-settings-dialog__preset-option:deep(.v-btn--active),
+.glass-settings-dialog__surface-mode-option:deep(.v-btn--active) {
   background-color: rgba(var(--v-theme-primary), 0.14) !important;
   box-shadow: inset 0 0 0 1px rgba(var(--v-theme-primary), 0.38) !important;
 }

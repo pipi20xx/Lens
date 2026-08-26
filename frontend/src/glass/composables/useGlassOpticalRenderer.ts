@@ -45,7 +45,7 @@ import {
   type GlassOpticalSurfaceMode,
   type GlassOpticalSurfaceSlot,
 } from '../utils/glassOptics'
-import type { ThemeCustomizerGlassAppearance, ThemeCustomizerGlassDynamicsMode } from '../host/useThemeCustomizer'
+import type { ThemeCustomizerGlassAppearance, ThemeCustomizerGlassDynamicsMode, ThemeCustomizerGlassSurfaceMode } from '../host/useThemeCustomizer'
 import {
   createGlassRippleDynamics,
   type GlassRippleDynamics,
@@ -371,6 +371,8 @@ interface UseGlassOpticalRendererOptions {
   pageMotion?: PagePresentationMotionReader
   quality: MaybeRefOrGetter<GlassOpticalQuality>
   reflectionStrength?: MaybeRefOrGetter<number>
+  /** 玻璃表面模式：card 逐卡片收集，page 全屏单一表面。 */
+  surfaceMode?: MaybeRefOrGetter<ThemeCustomizerGlassSurfaceMode>
   previousWallpaperUrl?: MaybeRefOrGetter<string>
   /** 下一张壁纸可在提交切换前完成解码和 GPU 上传。 */
   pendingWallpaperUrl?: MaybeRefOrGetter<string>
@@ -649,12 +651,17 @@ vec3 compressWallpaperLuminance(vec3 color, float wallpaperExposure) {
 
 vec3 toneMapWallpaper(vec3 color, vec2 uv, float wallpaperExposure) {
   float tinted = step(0.5, uAppearance) * (1.0 - step(1.5, uAppearance));
-  float frosted = step(1.5, uAppearance);
+  float frosted = step(1.5, uAppearance) * (1.0 - step(2.5, uAppearance));
+  float transparent = step(2.5, uAppearance);
   float exposure = mix(0.86, 0.85, tinted);
   exposure = mix(exposure, 0.82, frosted);
   float saturation = mix(0.82, 0.95, tinted);
   saturation = mix(saturation, 0.9, frosted);
   float contrast = mix(1.02, 1.0, frosted);
+  // transparent 材质不调整壁纸色调，保持原始视觉
+  exposure = mix(exposure, 0.86, transparent);
+  saturation = mix(saturation, 1.0, transparent);
+  contrast = mix(contrast, 1.0, transparent);
   vec3 normalized = compressWallpaperLuminance(color, wallpaperExposure);
   float luminance = dot(normalized, vec3(0.2126, 0.7152, 0.0722));
   vec3 mapped = mix(vec3(luminance), normalized, saturation);
@@ -667,6 +674,7 @@ vec3 toneMapWallpaper(vec3 color, vec2 uv, float wallpaperExposure) {
   vec2 radialDelta = (uv - vec2(0.5, 0.82)) / vec2(0.78, 1.0);
   float radialAbsorption = smoothstep(0.24, 0.92, length(radialDelta)) * mix(0.12, 0.14, tinted);
   radialAbsorption *= 1.0 - frosted;
+  radialAbsorption *= 1.0 - transparent;
   vec3 absorbed = mapped * (1.0 - linearAbsorption) * (1.0 - radialAbsorption);
   float transmissionResponse =
     pow(clamp(uTransmissionStrength, 0.0, 1.0), mix(0.9, 0.78, uQuality));
@@ -678,6 +686,8 @@ vec3 toneMapWallpaper(vec3 color, vec2 uv, float wallpaperExposure) {
     smoothstep(0.6, 0.96, uBackgroundVisibility);
   float frostedTransmissionScale = mix(0.42, 0.72, frostedTransparencyProgress);
   transmissionMaterialScale = mix(transmissionMaterialScale, frostedTransmissionScale, frosted);
+  // transparent 材质不缩射透射亮度
+  transmissionMaterialScale = mix(transmissionMaterialScale, 1.0, transparent);
   float highlightProtection = smoothstep(0.68, 0.92, luminance);
   vec3 transmissionReference = normalized;
   float referenceLift =
@@ -709,7 +719,7 @@ vec3 sampleWallpaper(vec2 uv) {
   vec2 previousUv = vec2(0.5) + (viewportUv - vec2(0.5)) * uPreviousCoverScale;
   vec3 previous;
   vec3 current;
-  if (uAppearance > 1.5 && uHasFrostedTexture > 0.5) {
+  if (uAppearance > 1.5 && uAppearance < 2.5 && uHasFrostedTexture > 0.5) {
     float frostLod = (1.0 - uFrostDetailLevel) * 6.0;
     // 低分辨率预滤已经扩大了每个 texel 的原图 footprint，LOD 只追加当前纹理内的低通层级。
     float frostGradientScale = exp2(frostLod);
@@ -853,8 +863,11 @@ ${GLASS_FLUID_FRAGMENT_TRAIL_AND_FIELD}
   vec2 rippleRefraction =
     rippleGradient * mix(230.0, 335.0, uQuality) * uRippleDeformationStrength;
   rippleRefraction /= max(uPresentationSize, vec2(1.0));
-  float frosted = step(1.5, uAppearance);
+  float frosted = step(1.5, uAppearance) * (1.0 - step(2.5, uAppearance));
+  float transparent = step(2.5, uAppearance);
   float rippleAppearanceScale = uAppearance > 1.5 ? 1.25 : (uAppearance > 0.5 ? 0.86 : 0.72);
+  // transparent 材质使用与 clear 相同的折射尺度
+  rippleAppearanceScale = mix(rippleAppearanceScale, 0.72, transparent);
   rippleRefraction *= rippleAppearanceScale;
 
   for (int i = 0; i < 8; i++) {
@@ -972,10 +985,17 @@ ${GLASS_FLUID_FRAGMENT_SURFACE_REFRACTION}
   float clearVisibilityProgress = clamp((uBackgroundVisibility - 0.18) / 0.78, 0.0, 1.0);
   float clearBaseAlpha = mix(0.08, 0.34, clearVisibilityProgress);
   float materialAlpha = clearBaseAlpha * mix(1.0, 2.5, liquidPresence);
+  // transparent 材质：去除暗色底，但保留动态能量驱动的最小可见度，
+  // 使水纹折射和高光仍能被感知。
+  float transparentBaseAlpha = mix(0.04, 0.16, liquidPresence);
+  materialAlpha = mix(materialAlpha, transparentBaseAlpha, transparent);
   float proceduralEdgeAlpha = 0.14;
   float proceduralCausticAlpha = 0.075;
+  // transparent 材质移除边缘高光分割线
+  edgeHighlightMix = mix(edgeHighlightMix, 0.0, transparent);
+  proceduralEdgeAlpha = mix(proceduralEdgeAlpha, 0.0, transparent);
 
-  if (uAppearance > 1.5) {
+  if (uAppearance > 1.5 && uAppearance < 2.5) {
     highlight = vec3(0.94, 0.97, 1.0);
     edgeHighlightMix = 0.15;
     causticHighlightMix = 0.042;
@@ -983,7 +1003,7 @@ ${GLASS_FLUID_FRAGMENT_SURFACE_REFRACTION}
     materialAlpha = frostedBaseAlpha * mix(0.9, 1.0, liquidPresence);
     proceduralEdgeAlpha = 0.16;
     proceduralCausticAlpha = 0.045;
-  } else if (uAppearance > 0.5) {
+  } else if (uAppearance > 0.5 && uAppearance < 1.5) {
     highlight = mix(vec3(1.0), uTintColor, mix(0.28, 0.72, uTintDensity));
     edgeHighlightMix = 0.17;
     causticHighlightMix = 0.085;
@@ -1019,6 +1039,8 @@ ${GLASS_FLUID_FRAGMENT_SURFACE_REFRACTION}
     );
   float absorption =
     clamp(backlightAbsorption * mix(0.035, 0.075, frosted) * uReflectionStrength, 0.0, 0.14);
+  // transparent 材质不吸收背光，保持壁纸原始亮度
+  absorption *= 1.0 - transparent;
   refracted *= 1.0 - absorption;
   refracted = mix(refracted, highlight, reflectionMix);
   refracted += highlight * caustic * causticHighlightMix * uReflectionStrength * highlightBudget;
@@ -1027,6 +1049,8 @@ ${GLASS_FLUID_FRAGMENT_SURFACE_REFRACTION}
     float dynamicsPresence = max(materialEnergy, sharedMotionPresence * 0.36);
     float dynamicsAlpha =
       clamp(dynamicsPresence * mix(0.5, 0.72, uQuality) * mix(1.0, 1.12, frosted), 0.0, 0.82);
+    // transparent 材质在 dynamics-only 模式下提升动态可见度
+    dynamicsAlpha = mix(dynamicsAlpha, clamp(dynamicsAlpha + 0.12, 0.0, 0.88), transparent);
     gl_FragColor = vec4(refracted, dynamicsAlpha);
     return;
   }
@@ -1038,9 +1062,9 @@ ${GLASS_FLUID_FRAGMENT_SURFACE_REFRACTION}
         (
           materialAlpha +
           (
-            directionalReflection * 0.065 +
-            topPrism * 0.05 +
-            caustic * mix(0.028, 0.04, uQuality)
+            directionalReflection * mix(0.065, 0.0, transparent) +
+            topPrism * mix(0.05, 0.0, transparent) +
+            caustic * mix(mix(0.028, 0.04, uQuality), mix(0.04, 0.06, uQuality), transparent)
           ) *
             uReflectionStrength *
             highlightBudget
@@ -1216,6 +1240,7 @@ export function collectGlassOpticalRects(
 function getGlassAppearanceUniformValue(appearance: ThemeCustomizerGlassAppearance) {
   if (appearance === 'tinted') return 1
   if (appearance === 'frosted') return 2
+  if (appearance === 'transparent') return 3
 
   return 0
 }
@@ -1331,13 +1356,21 @@ export function useGlassOpticalRenderer(options: UseGlassOpticalRendererOptions)
   const usesDynamicsOnly = () =>
     presentationSpace === 'scroll' || (presentationSpace === 'fixed' && toValue(options.appearance) === 'frosted')
   const wallpaperSourceCache = options.wallpaperSourceCache ?? createGlassWallpaperSourceCache()
+  const getSurfaceMode = (): ThemeCustomizerGlassSurfaceMode => toValue(options.surfaceMode) ?? 'card'
+  const isPageSurfaceMode = () => getSurfaceMode() === 'page'
 
   /** 滚动期间由原生 backdrop 接管壁纸；稳定态恢复完整纹理折射与流体反馈。 */
   function syncWallpaperSamplingMode() {
     if (!resources) return
 
+    /**
+     * 滚动期间由原生 backdrop 接管壁纸；稳定态恢复完整纹理折射与流体反馈。
+     * page 模式下整页为单一 WebGL 表面，壁纸纹理是 GPU 纹理而非 DOM 采样，
+     * 滚动时无需降级，避免壁纸折射↔程序化反射的 alpha 跳变导致亮度闪烁。
+     */
+    const shouldSuppress = presentationSpace === 'scroll' && scrollWallpaperSamplingSuppressed && !isPageSurfaceMode()
     resources.uniforms.uHasWallpaperTexture.value =
-      activeHasWallpaperTexture && !(presentationSpace === 'scroll' && scrollWallpaperSamplingSuppressed) ? 1 : 0
+      activeHasWallpaperTexture && !shouldSuppress ? 1 : 0
   }
 
   function clearScrollPresentationRestoreTimer() {
@@ -2080,6 +2113,45 @@ export function useGlassOpticalRenderer(options: UseGlassOpticalRendererOptions)
 
   function updateSurfaceUniforms(timestamp = performance.now(), scheduleRender = true) {
     if (!resources) return
+
+    if (isPageSurfaceMode()) {
+      // page 模式：跳过 DOM 表面收集，使用全屏单一表面
+      const viewportWidth = window.innerWidth
+      const viewportHeight = window.innerHeight
+      const presentation = getCommittedPresentationSize()
+      const coordinateOffsetX = presentationSpace === 'scroll' ? window.scrollX : 0
+      const coordinateOffsetY = presentationSpace === 'scroll' ? window.scrollY : 0
+      const pageSurface: GlassOpticalSurfaceDescriptor = {
+        key: document.documentElement,
+        mode: 'dynamic',
+        rect: {
+          height: presentationSpace === 'scroll' ? presentation.height : viewportHeight,
+          radii: [0, 0, 0, 0] as GlassCornerRadii,
+          rank: 0,
+          width: presentationSpace === 'scroll' ? presentation.width : viewportWidth,
+          x: coordinateOffsetX,
+          y: coordinateOffsetY,
+        },
+      }
+      surfaceRegistry = [pageSurface]
+      availableSurfaces = [pageSurface]
+      const maxCount = viewportWidth <= 600 ? GLASS_OPTICAL_MAX_SURFACES_MOBILE : GLASS_OPTICAL_MAX_SURFACES_DESKTOP
+      surfaceSlots = reconcileGlassOpticalSurfaceSlots(
+        surfaceSlots,
+        availableSurfaces,
+        maxCount,
+        undefined,
+        undefined,
+      )
+      activeSurface = null
+      outgoingSurface = null
+      interactionClipMembershipDirty = false
+      interactionClipConstrainedOwners = new Set()
+      interactionClips = []
+      writeSurfaceUniforms(timestamp)
+      if (scheduleRender) scheduleFrame()
+      return
+    }
 
     const viewportWidth = window.innerWidth
     const nextObservedSurfaces: HTMLElement[] = []
@@ -3233,6 +3305,8 @@ export function useGlassOpticalRenderer(options: UseGlassOpticalRendererOptions)
     }
 
     surfaceMutationObserver = new MutationObserver(mutations => {
+      // page 模式不依赖 DOM 表面收集，跳过所有 mutation 处理
+      if (isPageSurfaceMode()) return
       // Vuetify 可能在首个弹层打开时才创建容器，后续变更需要纳入同一个表面生命周期。
       observeMutationRoot(document.querySelector('.v-overlay-container'), true)
       if (!mutationTouchesOpticalSurface(mutations)) return
@@ -4313,6 +4387,24 @@ export function useGlassOpticalRenderer(options: UseGlassOpticalRendererOptions)
       if (presentationSpace === 'scroll' && options.pageMotion) {
         scheduleSurfaceStabilityUpdate(toValue(options.pageMotion.epoch))
       } else scheduleSurfaceUpdate()
+    },
+  )
+
+  watch(
+    () => toValue(options.surfaceMode ?? 'card'),
+    () => {
+      if (!resources) return
+
+      // 表面模式切换时清除旧表面状态并立即重建
+      interactionClipMembershipDirty = true
+      activeSurface = null
+      outgoingSurface = null
+      interactionClips = []
+      interactionClipConstrainedOwners = new Set()
+      surfaceSlots = []
+      observedSurfaces = []
+      observeResizeTargets()
+      updateSurfaceUniforms(performance.now())
     },
   )
 
