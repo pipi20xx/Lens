@@ -1,0 +1,161 @@
+/**
+ * components.css — Vuetify 组件结构覆盖（四层架构第 1 层）
+ *
+ * 只放纯结构规则：布局、间距、尺寸、对齐、裁剪。
+ * 视觉风格（颜色/背景/模糊/边框/阴影）由 visual.css 统一处理。
+ */
+
+/* ============================================================
+ * 1. 图标-文字对齐修复
+ *     Vuetify 3 中 MDI 图标字体与文本字体的行盒高度不一致，
+ *     导致 prepend-icon / append-icon 与文字垂直不对齐。
+ *     注意：不能用 line-height:1 压文字行高（会在缩放时子像素取整导致偏移），
+ *     正确做法是纯 flexbox 居中，不改变任何盒子的固有高度。
+ * ============================================================ */
+
+/* ── 按钮内图标与文字垂直居中 ── */
+.v-btn {
+  align-items: center !important;
+}
+
+.v-btn .v-btn__prepend,
+.v-btn .v-btn__append {
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+}
+
+.v-btn .v-btn__content {
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+}
+
+.v-btn .v-btn__prepend .v-icon,
+.v-btn .v-btn__append .v-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── 列表项内图标与文字垂直居中 ── */
+.v-list-item .v-list-item__prepend,
+.v-list-item .v-list-item__append {
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+}
+
+/* ── 芯片内图标与文字垂直居中 ── */
+.v-chip .v-chip__prepend,
+.v-chip .v-chip__append {
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+}
+
+.v-chip .v-chip__content {
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+}
+
+/* ── Alert / Banner 内图标对齐 ── */
+.v-alert .v-alert__prepend {
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+}
+
+/* ============================================================
+ * 2. 下拉菜单 / Select / Autocomplete — 结构
+ * ============================================================ */
+
+/* ── 下拉菜单内容容器 — 圆角裁剪 + 滚动 ── */
+.v-menu .v-overlay__content {
+  border-radius: 20px !important;
+  overflow: hidden !important;
+}
+
+.v-select .v-overlay__content,
+.v-autocomplete .v-overlay__content,
+.v-combobox .v-overlay__content {
+  border-radius: 20px !important;
+  overflow: hidden !important;
+}
+
+/* 下拉面板内 list — 去掉默认 padding，用 item margin 替代 */
+.v-select .v-list,
+.v-autocomplete .v-list,
+.v-combobox .v-list,
+.v-menu .v-list {
+  padding: 6px !important;
+}
+
+/* ── 下拉列表项 — 圆角 + 间距 ── */
+.v-select .v-list-item,
+.v-autocomplete .v-list-item,
+.v-combobox .v-list-item,
+.v-menu .v-list-item {
+  border-radius: 12px !important;
+  margin: 2px 0 !important;
+  min-height: 38px !important;
+  transition: all 0.2s ease-out !important;
+}
+
+/* ── 下拉箭头图标旋转 ── */
+.v-select .v-field__append-inner .v-icon {
+  transition: transform 0.3s ease-out !important;
+}
+
+.v-select--active .v-field__append-inner .v-icon {
+  transform: rotate(180deg) !important;
+}
+
+/* ============================================================
+ * 3. 表单控件间距 — 纯结构
+ * ============================================================ */
+.v-card-text .v-text-field,
+.v-card-text .v-select,
+.v-card-text .v-textarea,
+.v-card-text .v-combobox,
+.v-card-text .v-autocomplete {
+  margin-top: 6px;
+  margin-bottom: 6px;
+}
+
+.v-card-text .v-input--persistent-hint {
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+/* ── v-switch 对齐修复 ── */
+/* v-switch 的 .v-input__control 缺少 margin-inline（对比 v-slider 有 8px），
+   导致 switch 开关和 label 比上方 v-select / v-slider 偏左，超出卡片内容区 */
+.v-card-text .v-switch .v-input__control {
+  margin-inline: 8px;
+}
+
+.v-card-title + .v-card-text {
+  padding-top: 12px;
+}
+
+.v-window-item > .v-form > :first-child,
+.v-window-item > :first-child {
+  padding-top: 8px;
+}
+
+/* ── Tab 内容溢出修复 ── */
+.v-tab .v-btn__content {
+  overflow: visible !important;
+}
+
+/* ============================================================
+ * 4. switch / checkbox / radio 在 flex 行中对齐
+ *     确保 SelectionControl 的 label 与开关/勾选框垂直居中
+ * ============================================================ */
+.v-switch .v-input__control,
+.v-checkbox .v-input__control,
+.v-radio .v-input__control {
+  align-items: center;
+}

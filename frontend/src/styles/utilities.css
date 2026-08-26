@@ -1,0 +1,158 @@
+/**
+ * utilities.css — 通用复用工具类（四层架构第 1 层）
+ *
+ * Liquid Glass 工具类、旧 class 兼容、通用功能性工具。
+ * 视觉强度（颜色/模糊/阴影）主题差异由 visual.css 的
+ * .v-theme--light / .v-theme--dark 覆盖规则处理。
+ */
+
+/* ============================================================
+ * 1. Liquid Glass 工具类
+ * ============================================================ */
+
+/* Liquid Glass 卡片 — 玻璃面板 */
+.liquid-glass-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(40px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  border-radius: 24px !important;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+  transition: all 0.5s ease-out !important;
+  overflow: hidden;
+}
+
+/* Liquid Glass 面板 — 较浅的玻璃（用于内嵌区域） */
+.liquid-glass-panel {
+  position: relative;
+  background: rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(30px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(150%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  border-radius: 20px !important;
+  transition: all 0.5s ease-out !important;
+}
+
+/* Liquid Glass 按钮 — 强调色 */
+.liquid-glass-btn {
+  position: relative;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(56, 189, 248, 0.2)) !important;
+  backdrop-filter: blur(40px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+  border: none !important;
+  border-radius: 20px !important;
+  color: white !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em;
+  overflow: hidden;
+  transition: all 0.5s ease-out !important;
+}
+
+.liquid-glass-btn:hover {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.35), rgba(56, 189, 248, 0.3)) !important;
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.3) !important;
+}
+
+/* Liquid Glass 标题文字 — 渐变填充 + 青色描边 + 3D阴影 */
+.liquid-glass-title {
+  background: linear-gradient(to right, #3b82f6, #38bdf8, #3b82f6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  -webkit-text-stroke: 2px #38bdf8;
+  text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.4), 0 0 15px rgba(56, 189, 248, 0.4);
+  filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.3));
+}
+
+/* Liquid Glass Hero 标题 — 更粗描边 */
+.liquid-glass-hero {
+  background: linear-gradient(to right, #3b82f6, #38bdf8, #3b82f6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  -webkit-text-stroke: 3px #38bdf8;
+  text-shadow: 4px 4px 0 rgba(0, 0, 0, 0.5), 0 0 20px rgba(56, 189, 248, 0.5), 0 0 40px rgba(59, 130, 246, 0.3);
+  filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.4));
+}
+
+/* Liquid Glass 副标题 — 青色发光 */
+.liquid-glass-subtitle {
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 0 20px rgba(56, 189, 248, 0.6), 0 0 40px rgba(56, 189, 248, 0.3), 2px 2px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* ============================================================
+ * 2. 兼容旧 class 名
+ * ============================================================ */
+.glass-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(40px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  border-radius: 24px !important;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+  transition: all 0.5s ease-out !important;
+  overflow: hidden;
+}
+
+.glass-panel {
+  position: relative;
+  background: rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(30px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(150%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  border-radius: 20px !important;
+  transition: all 0.5s ease-out !important;
+}
+
+.glass-btn {
+  transition: all 0.5s ease-out !important;
+}
+
+.glass-btn-accent {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(56, 189, 248, 0.25)) !important;
+  backdrop-filter: blur(40px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+  color: white !important;
+  font-weight: 600 !important;
+  transition: all 0.5s ease-out !important;
+}
+
+.glass-btn-accent:hover {
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.35) !important;
+}
+
+.text-accent-gold {
+  color: #38bdf8 !important;
+}
+
+/* ============================================================
+ * 3. 通用功能性工具类
+ * ============================================================ */
+
+/* 可滚动内容区 — 高度可由 CSS 变量定制 */
+.content-scrollable {
+  height: var(--scrollable-height, calc(85vh - 250px));
+  max-height: var(--scrollable-max, 600px);
+  overflow-y: auto;
+}
+
+/* 多行文本截断 */
+.text-truncate-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 等宽字体工具类 — Docker 面板等 */
+.font-mono {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+}

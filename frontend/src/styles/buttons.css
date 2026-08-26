@@ -1,0 +1,91 @@
+/**
+ * buttons.css — 按钮结构（四层架构第 1 层）
+ *
+ * 只放按钮的纯结构规则：按下态、同行控件等高。
+ * 视觉风格（渐变背景/发光阴影）由 visual.css 统一处理。
+ */
+
+/* ============================================================
+ * 1. 按钮按下态 — 液态压缩
+ * ============================================================ */
+.v-btn:active {
+  transform: scale(0.98);
+}
+
+/* ============================================================
+ * 2. 表单控件高度统一 — 解决同行按钮/输入框/开关高度不一致
+ *
+ *     问题根因：Vuetify 4 各组件默认高度不同
+ *       v-text-field / v-select / v-autocomplete   density="compact" → 40px
+ *       v-btn   size="small"                       → 28px
+ *       v-btn   (default)                           → 36px
+ *       v-switch density="compact"                  → 40px
+ *
+ *     策略（不全局改按钮高度，仅在同行有表单控件时才对齐）：
+ *       1. .control-row 工具类 — 显式声明，行内所有控件强制 40px 等高
+ *       2. :has() 自动检测 — 水平 flex 行中同时有输入框/开关 + 按钮时，
+ *          按钮自动提升至 40px；单独按钮不受影响，保持 Vuetify 原生 28px
+ *
+ *     浏览器支持：:has() — Chrome 105+ / Firefox 121+ / Safari 15.4+
+ * ============================================================ */
+
+/* ── 1. .control-row — 同行控件等高容器（显式使用）── */
+/*
+ * 用法：<div class="control-row"> … </div>
+ * 替代 <div class="d-flex align-center ga-3 flex-wrap">
+ * 行内所有 small/default 按钮强制 40px，与 compact 输入框完全等高。
+ */
+.control-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* control-row 内：small / default 非图标按钮 → 40px */
+.control-row .v-btn--size-small.v-btn--density-default:not(.v-btn--icon),
+.control-row .v-btn--size-default.v-btn--density-default:not(.v-btn--icon) {
+  height: 40px !important;
+}
+
+/* control-row 内：small / default 图标按钮 → 40×40px */
+.control-row .v-btn--icon.v-btn--size-small.v-btn--density-default,
+.control-row .v-btn--icon.v-btn--size-default.v-btn--density-default {
+  width: 40px !important;
+  height: 40px !important;
+}
+
+/* control-row 紧凑变体：所有控件 36px（适合空间有限的工具栏）*/
+.control-row--tight {
+  gap: 8px;
+}
+
+.control-row--tight .v-btn--size-small.v-btn--density-default:not(.v-btn--icon),
+.control-row--tight .v-btn--size-default.v-btn--density-default:not(.v-btn--icon) {
+  height: 36px !important;
+}
+
+.control-row--tight .v-btn--icon.v-btn--size-small.v-btn--density-default,
+.control-row--tight .v-btn--icon.v-btn--size-default.v-btn--density-default {
+  width: 36px !important;
+  height: 36px !important;
+}
+
+/* ── 2. :has() 自动检测 — flex 行中有表单控件时按钮自动对齐 ── */
+/*
+ * 当水平 flex 容器（.d-flex 且非 flex-column）内含输入框 / 开关 /
+ * 勾选框 / 单选框时，行内 small 按钮自动提升至 40px 对齐。
+ * 单独出现的按钮（不在含表单控件的 flex 行中）保持 Vuetify 原生 28px。
+ */
+
+/* 含表单控件的水平 flex 行 → small 非图标按钮 40px */
+.d-flex:not(.flex-column):not(.flex-column-reverse):has(.v-field, .v-switch, .v-checkbox, .v-radio)
+  .v-btn--size-small.v-btn--density-default:not(.v-btn--icon) {
+  height: 40px !important;
+}
+
+/* 含表单控件的水平 flex 行 → default 非图标按钮也统一 40px */
+.d-flex:not(.flex-column):not(.flex-column-reverse):has(.v-field, .v-switch, .v-checkbox, .v-radio)
+  .v-btn--size-default.v-btn--density-default:not(.v-btn--icon) {
+  height: 40px !important;
+}

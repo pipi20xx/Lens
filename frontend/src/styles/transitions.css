@@ -1,0 +1,58 @@
+/**
+ * transitions.css — 全局过渡（四层架构第 1 层）
+ *
+ * 只放过渡动画结构与可访问性规则。
+ */
+
+/* ============================================================
+ * 1. 全局过渡 — Liquid Glass 流体 500ms
+ * ============================================================ */
+.v-card,
+.v-btn,
+.v-list-item,
+.v-chip {
+  transition: all 0.5s ease-out !important;
+}
+
+/* ============================================================
+ * 2. Vue 过渡动画 — fade
+ * ============================================================ */
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+}
+
+/* ============================================================
+ * 3. 勾选角标动画 — fade-check
+ * ============================================================ */
+.fade-check-enter-active {
+  transition: all 0.2s ease-out;
+}
+.fade-check-leave-active {
+  transition: all 0.15s ease-in;
+}
+.fade-check-enter-from {
+  opacity: 0;
+  transform: scale(0.5);
+}
+.fade-check-leave-to {
+  opacity: 0;
+  transform: scale(0.5);
+}
+
+/* ============================================================
+ * 4. prefers-reduced-motion
+ * ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .login-light-wells {
+    animation: none;
+  }
+}

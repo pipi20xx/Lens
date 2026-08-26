@@ -53,7 +53,7 @@ const darkTheme = {
 }
 
 // ACG 玻璃主题 — 颜色复用 dark 主题，但 Vuetify 会生成 .v-theme--acg 类
-// 这样 global.css 中的 .v-theme--dark 规则不会在 ACG 模式下生效，
+// 这样 visual.css 中的 .v-theme--dark 规则不会在 ACG 模式下生效，
 // 避免了与 glass-acg.scss 的 CSS 优先级冲突
 const acgTheme = {
   dark: true,

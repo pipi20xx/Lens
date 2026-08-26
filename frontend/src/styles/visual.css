@@ -1,0 +1,593 @@
+/**
+ * visual.css — 共享组件视觉规则层（四层架构第 3 层）
+ *
+ * 对齐 Anime-Manager：此文件中的规则不带任何主题前缀
+ * （.v-theme--light / .v-theme--dark / html.glass-theme-xxx），
+ * 通过 tokens.css 的 CSS 变量级联自动适应当前激活的主题：
+ *   - classic（白天/夜晚）：令牌定义在 html.glass-theme-classic .v-theme--light/--dark
+ *   - ACG：令牌定义在 html.glass-theme-acg，材质细节由第 4 层 glass-acg.scss 覆盖
+ *
+ * 主题文件只需覆盖令牌值，无需重复写组件规则。
+ */
+
+/* ============================================================
+ * 0. 应用底色
+ * ============================================================ */
+
+.v-application,
+.v-main {
+  background: var(--am-app-bg) !important;
+}
+
+/* ============================================================
+ * 1. Surface — 卡片 / Sheet / 折叠面板
+ * ============================================================ */
+
+.v-card,
+.v-card--variant-elevated,
+.v-card--variant-flat,
+.v-card--variant-tonal {
+  background: var(--am-surface-bg) !important;
+  background-color: var(--am-surface-bg) !important;
+  backdrop-filter: var(--am-surface-blur) !important;
+  -webkit-backdrop-filter: var(--am-surface-blur) !important;
+  border: var(--am-surface-border) !important;
+  box-shadow: var(--am-surface-shadow) !important;
+  border-radius: var(--am-surface-radius) !important;
+  transition: var(--am-transition) !important;
+}
+
+.v-card--variant-elevated {
+  box-shadow: var(--am-surface-elevated-shadow) !important;
+}
+
+.v-card--variant-outlined {
+  background: var(--am-surface-outlined-bg) !important;
+  border: var(--am-surface-border) !important;
+  box-shadow: none !important;
+}
+
+.v-card--link:hover,
+.v-card[link]:hover {
+  background: var(--am-surface-hover-bg) !important;
+  box-shadow: var(--am-surface-hover-shadow) !important;
+  transform: var(--am-surface-hover-transform);
+}
+
+.v-sheet:not(.v-snackbar__wrapper) {
+  background: var(--am-surface-bg) !important;
+  background-color: var(--am-surface-bg) !important;
+  border: var(--am-surface-border) !important;
+  border-radius: var(--am-surface-radius) !important;
+}
+
+.v-expansion-panel {
+  background: var(--am-surface-bg) !important;
+  background-color: var(--am-surface-bg) !important;
+  backdrop-filter: var(--am-surface-blur) !important;
+  -webkit-backdrop-filter: var(--am-surface-blur) !important;
+  border: var(--am-surface-border) !important;
+  border-radius: var(--am-surface-radius) !important;
+}
+
+/* ============================================================
+ * 2. Overlay — 弹窗 / 下拉菜单 / 浮层
+ * ============================================================ */
+
+.v-dialog > .v-card,
+.v-overlay__content > .v-card {
+  border-radius: var(--am-dialog-radius) !important;
+}
+
+.v-dialog .v-card,
+.v-overlay__content .v-card {
+  background: var(--am-dialog-bg) !important;
+  background-color: var(--am-dialog-bg) !important;
+  backdrop-filter: var(--am-dialog-blur) !important;
+  -webkit-backdrop-filter: var(--am-dialog-blur) !important;
+  box-shadow: var(--am-dialog-shadow) !important;
+  border: var(--am-dialog-border) !important;
+}
+
+/* 下拉菜单面板 */
+.v-menu .v-overlay__content,
+.v-select .v-overlay__content,
+.v-autocomplete .v-overlay__content,
+.v-combobox .v-overlay__content {
+  border-radius: var(--am-menu-radius) !important;
+  overflow: hidden !important;
+}
+
+.v-overlay .v-list,
+.v-menu .v-card,
+.v-menu .v-list {
+  background: var(--am-overlay-bg) !important;
+  backdrop-filter: var(--am-overlay-blur) !important;
+  -webkit-backdrop-filter: var(--am-overlay-blur) !important;
+  box-shadow: var(--am-overlay-shadow) !important;
+  border: var(--am-overlay-border) !important;
+  border-radius: var(--am-menu-radius) !important;
+}
+
+/* 下拉列表项 */
+.v-list-item {
+  border-radius: var(--am-list-item-radius) !important;
+}
+
+.v-list-item:hover {
+  background: var(--am-list-hover-bg) !important;
+}
+
+.v-list-item--active {
+  background: var(--am-list-active-bg) !important;
+  color: var(--am-list-active-color) !important;
+}
+
+.v-list-item--active .v-list-item-title {
+  text-shadow: var(--am-nav-active-title-shadow);
+}
+
+/* 下拉列表项文字 */
+.v-overlay .v-list .v-list-item-title {
+  color: var(--am-list-title) !important;
+}
+
+/* 下拉面板输入框文字 */
+.v-select .v-field__input,
+.v-autocomplete .v-field__input,
+.v-combobox .v-field__input {
+  color: var(--am-input-text) !important;
+}
+
+/* 下拉箭头颜色 */
+.v-select .v-field__append-inner .v-icon {
+  color: var(--am-dropdown-arrow) !important;
+}
+
+/* 多选 chips 在 select 内 */
+.v-select .v-chip--variant-tonal {
+  background: var(--am-chip-tonal-bg) !important;
+  color: var(--am-chip-tonal-color) !important;
+}
+
+/* ============================================================
+ * 3. Scrim — 遮罩
+ * ============================================================ */
+
+.v-overlay__scrim {
+  background: var(--am-scrim-bg) !important;
+  backdrop-filter: var(--am-scrim-blur) !important;
+  -webkit-backdrop-filter: var(--am-scrim-blur) !important;
+}
+
+/* ============================================================
+ * 4. Nav — 侧边栏 / 顶栏
+ * ============================================================ */
+
+.v-navigation-drawer {
+  background: var(--am-nav-bg) !important;
+  background-color: var(--am-nav-bg) !important;
+  backdrop-filter: var(--am-nav-blur) !important;
+  -webkit-backdrop-filter: var(--am-nav-blur) !important;
+  border-right: var(--am-nav-border) !important;
+  box-shadow: var(--am-nav-shadow) !important;
+}
+
+.v-app-bar,
+.v-toolbar {
+  background: var(--am-nav-bg) !important;
+  background-color: var(--am-nav-bg) !important;
+  backdrop-filter: var(--am-nav-blur) !important;
+  -webkit-backdrop-filter: var(--am-nav-blur) !important;
+  border-bottom: var(--am-nav-border) !important;
+  box-shadow: var(--am-nav-shadow) !important;
+}
+
+/* 导航列表项 */
+.v-navigation-drawer .v-list-item {
+  border-radius: var(--am-nav-list-item-radius) !important;
+  transition: var(--am-transition-fluid) !important;
+}
+
+.v-navigation-drawer .v-list-item:hover {
+  background: var(--am-nav-hover-bg) !important;
+}
+
+.v-navigation-drawer .v-list-item--active {
+  background: var(--am-nav-active-bg) !important;
+}
+
+/* 导航激活色 */
+.v-navigation-drawer .v-list-item--active .v-list-item-title {
+  font-weight: 600;
+  color: var(--am-nav-active-color) !important;
+  text-shadow: var(--am-nav-active-title-shadow);
+}
+
+.v-navigation-drawer .v-list-item--active .v-icon {
+  color: var(--am-nav-active-color) !important;
+  filter: var(--am-nav-active-icon-filter);
+}
+
+/* 激活项指示条 */
+.v-navigation-drawer .v-list-item--active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 20%;
+  bottom: 20%;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--am-nav-indicator-bg);
+  box-shadow: var(--am-nav-indicator-shadow);
+}
+
+/* ============================================================
+ * 5. Field — 输入框
+ * ============================================================ */
+
+.v-field--variant-outlined {
+  background: var(--am-field-bg) !important;
+  border-radius: var(--am-field-radius) !important;
+}
+
+.v-field--variant-outlined .v-field__outline__start,
+.v-field--variant-outlined .v-field__outline__notch::before,
+.v-field--variant-outlined .v-field__outline__notch::after,
+.v-field--variant-outlined .v-field__outline__end {
+  border-color: var(--am-field-outline-color) !important;
+}
+
+.v-field--variant-outlined:hover .v-field__outline__start,
+.v-field--variant-outlined:hover .v-field__outline__notch::before,
+.v-field--variant-outlined:hover .v-field__outline__notch::after,
+.v-field--variant-outlined:hover .v-field__outline__end {
+  border-color: var(--am-field-outline-hover-color) !important;
+}
+
+.v-field--variant-outlined.v-field--focused .v-field__outline__start,
+.v-field--variant-outlined.v-field--focused .v-field__outline__notch::before,
+.v-field--variant-outlined.v-field--focused .v-field__outline__notch::after,
+.v-field--variant-outlined.v-field--focused .v-field__outline__end {
+  border-color: var(--am-field-outline-focus-color) !important;
+}
+
+.v-field--variant-outlined.v-field--focused {
+  box-shadow: var(--am-field-focus-shadow) !important;
+  background: var(--am-field-focus-bg) !important;
+}
+
+.v-autocomplete .v-field--variant-outlined.v-field--focused,
+.v-combobox .v-field--variant-outlined.v-field--focused {
+  box-shadow: var(--am-field-focus-shadow) !important;
+}
+
+/* label 和文字 */
+.v-field .v-label {
+  color: var(--am-label-color) !important;
+}
+
+.v-field--focused .v-label {
+  color: var(--am-label-focus-color) !important;
+}
+
+.v-field__input {
+  color: var(--am-input-text) !important;
+}
+
+.v-input input,
+.v-input textarea {
+  color: var(--am-input-text) !important;
+}
+
+/* ============================================================
+ * 6. Divider — 分割线
+ * ============================================================ */
+
+.v-divider {
+  border-color: var(--am-divider-color) !important;
+}
+
+/* ============================================================
+ * 7. Table — 表格
+ * ============================================================ */
+
+.v-table {
+  background: var(--am-table-bg) !important;
+}
+
+.v-table tr:hover {
+  background: var(--am-table-hover-bg) !important;
+}
+
+/* ============================================================
+ * 8. Tab — 标签页
+ * ============================================================ */
+
+.v-tab--selected .v-tab__slider {
+  color: var(--am-tab-active-color) !important;
+}
+
+.v-tab--selected {
+  color: var(--am-tab-active-color) !important;
+  text-shadow: var(--am-tab-active-shadow);
+  font-weight: var(--am-tab-active-weight) !important;
+}
+
+/* ============================================================
+ * 9. Button — 按钮
+ * ============================================================ */
+
+/* flat 按钮 */
+.v-btn--variant-flat {
+  background: var(--am-btn-bg) !important;
+  backdrop-filter: var(--am-btn-blur) !important;
+  -webkit-backdrop-filter: var(--am-btn-blur) !important;
+  border: var(--am-btn-border) !important;
+  border-radius: var(--am-btn-radius) !important;
+  color: var(--am-btn-text-color) !important;
+  font-weight: var(--am-btn-font-weight);
+  transition: var(--am-transition-fluid) !important;
+}
+
+.v-btn--variant-flat:hover {
+  background: var(--am-btn-hover-bg) !important;
+  box-shadow: var(--am-btn-hover-shadow) !important;
+}
+
+/* tonal 按钮 */
+.v-btn--variant-tonal {
+  font-weight: 500;
+  transition: var(--am-transition-fluid) !important;
+}
+
+.v-btn--variant-tonal .v-btn__overlay {
+  background: var(--am-btn-overlay-bg) !important;
+}
+
+.v-btn--variant-tonal:hover .v-btn__overlay {
+  background: var(--am-btn-overlay-hover-bg) !important;
+}
+
+.v-btn--variant-tonal:hover {
+  box-shadow: var(--am-btn-tonal-hover-shadow) !important;
+}
+
+/* text 按钮 */
+.v-btn--variant-text {
+  font-weight: 500;
+  transition: var(--am-transition-fluid) !important;
+}
+
+/* outlined 按钮 */
+.v-btn--variant-outlined {
+  border-color: var(--am-btn-outlined-border) !important;
+  border-radius: var(--am-btn-radius) !important;
+  transition: var(--am-transition-fluid) !important;
+}
+
+.v-btn--variant-outlined:hover {
+  border-color: var(--am-btn-outlined-hover-border) !important;
+  box-shadow: var(--am-btn-outlined-hover-shadow) !important;
+}
+
+/* ============================================================
+ * 10. Checkbox / Radio
+ * ============================================================ */
+
+.v-checkbox .v-selection-control--dirty .v-checkbox-btn__icon,
+.v-checkbox .v-selection-control--dirty .v-icon,
+.v-radio .v-selection-control--dirty .v-radio-btn__icon,
+.v-radio .v-selection-control--dirty .v-icon {
+  color: var(--am-check-active-color) !important;
+  text-shadow: var(--am-check-active-shadow);
+}
+
+/* ============================================================
+ * 11. BtnToggle — 按钮组
+ * ============================================================ */
+
+.v-btn-toggle {
+  background: var(--am-btn-toggle-bg) !important;
+  border: var(--am-btn-toggle-border) !important;
+  border-radius: var(--am-btn-toggle-radius) !important;
+}
+
+.v-btn-toggle .v-btn--active {
+  background: var(--am-btn-toggle-active-bg) !important;
+  box-shadow: var(--am-btn-toggle-active-shadow) !important;
+}
+
+/* ============================================================
+ * 12. Slider — 滑块
+ * ============================================================ */
+
+.v-slider .v-slider-track {
+  background: var(--am-slider-track-bg) !important;
+}
+
+.v-slider .v-slider-track__fill {
+  background: var(--am-slider-fill-bg) !important;
+  box-shadow: var(--am-slider-fill-shadow);
+}
+
+.v-slider .v-slider-thumb__surface {
+  background: var(--am-slider-thumb-bg) !important;
+  box-shadow: var(--am-slider-thumb-shadow) !important;
+}
+
+/* ============================================================
+ * 13. Progress — 进度条
+ * ============================================================ */
+
+.v-progress-linear__determinate {
+  background: var(--am-progress-fill-bg) !important;
+  box-shadow: var(--am-progress-glow);
+}
+
+.v-progress-circular__overlay {
+  stroke: var(--am-progress-circular-stroke) !important;
+  filter: var(--am-progress-circular-glow);
+}
+
+/* ============================================================
+ * 14. Avatar — 头像
+ * ============================================================ */
+
+.v-avatar--variant-tonal {
+  background: var(--am-avatar-tonal-bg) !important;
+  backdrop-filter: var(--am-avatar-blur) !important;
+  -webkit-backdrop-filter: var(--am-avatar-blur) !important;
+}
+
+/* ============================================================
+ * 15. Code — 行内代码
+ * ============================================================ */
+
+code {
+  background: var(--am-code-bg) !important;
+  color: var(--am-code-color) !important;
+  padding: 2px 6px;
+  border-radius: var(--am-code-radius);
+  font-size: 0.85em;
+}
+
+/* ============================================================
+ * 16. Chip — 芯片
+ * ============================================================ */
+
+.v-chip--variant-tonal {
+  background: var(--am-chip-tonal-bg) !important;
+  color: var(--am-chip-tonal-color) !important;
+  backdrop-filter: var(--am-chip-blur) !important;
+  -webkit-backdrop-filter: var(--am-chip-blur) !important;
+}
+
+/* ============================================================
+ * 17. SnackBar — 提示条
+ * ============================================================ */
+
+.v-snackbar {
+  background: var(--am-snackbar-bg) !important;
+  backdrop-filter: var(--am-snackbar-blur) !important;
+  -webkit-backdrop-filter: var(--am-snackbar-blur) !important;
+  box-shadow: var(--am-snackbar-shadow) !important;
+  border-radius: var(--am-snackbar-radius) !important;
+}
+
+/* ============================================================
+ * 18. Alert — 警告条
+ * ============================================================ */
+
+.v-alert--variant-tonal {
+  background: var(--am-alert-tonal-bg) !important;
+  backdrop-filter: var(--am-alert-blur) !important;
+  -webkit-backdrop-filter: var(--am-alert-blur) !important;
+  border: var(--am-alert-border) !important;
+}
+
+/* ============================================================
+ * 19. Switch — 开关
+ * ============================================================ */
+
+/* 关闭状态 */
+.v-switch .v-switch__track {
+  background: var(--am-switch-track-bg) !important;
+  border-radius: 999px !important;
+  opacity: 1 !important;
+}
+
+.v-switch .v-switch__thumb {
+  background: var(--am-switch-thumb-bg) !important;
+  box-shadow: var(--am-switch-thumb-shadow) !important;
+}
+
+/* 开启状态 */
+.v-switch .v-selection-control--dirty .v-switch__track {
+  background: var(--am-switch-track-active-bg) !important;
+  opacity: 1 !important;
+  box-shadow: var(--am-switch-track-active-shadow) !important;
+}
+
+.v-switch .v-selection-control--dirty .v-switch__thumb {
+  background: var(--am-switch-thumb-bg) !important;
+  box-shadow: var(--am-switch-thumb-active-shadow) !important;
+}
+
+/* ============================================================
+ * 20. Tooltip — 工具提示
+ * ============================================================ */
+
+.v-tooltip .v-overlay__content {
+  background: var(--am-tooltip-bg) !important;
+  backdrop-filter: var(--am-tooltip-blur) !important;
+  -webkit-backdrop-filter: var(--am-tooltip-blur) !important;
+}
+
+/* ============================================================
+ * 21. Scrollbar — 滚动条
+ *     统一风格，主区域 8px / 子区域 6px
+ * ============================================================ */
+
+/* Firefox — 所有可滚动区域统一 */
+html, body, .v-main, .v-main__scroller,
+.v-navigation-drawer, .v-navigation-drawer .v-navigation-drawer__content, .v-navigation-drawer .v-list,
+.v-dialog .v-card-text,
+.v-select .v-list, .v-autocomplete .v-list, .v-combobox .v-list, .v-menu .v-list {
+  scrollbar-width: thin;
+  scrollbar-color: var(--am-scrollbar-color) transparent;
+}
+
+/* WebKit — 主区域滚动条 */
+html::-webkit-scrollbar, body::-webkit-scrollbar,
+.v-main::-webkit-scrollbar, .v-main__scroller::-webkit-scrollbar {
+  width: var(--am-scrollbar-width);
+}
+html::-webkit-scrollbar-track, body::-webkit-scrollbar-track,
+.v-main::-webkit-scrollbar-track, .v-main__scroller::-webkit-scrollbar-track {
+  background: transparent;
+}
+html::-webkit-scrollbar-thumb, body::-webkit-scrollbar-thumb,
+.v-main::-webkit-scrollbar-thumb, .v-main__scroller::-webkit-scrollbar-thumb {
+  background: var(--am-scrollbar-color);
+  border-radius: var(--am-scrollbar-radius);
+}
+html::-webkit-scrollbar-thumb:hover, body::-webkit-scrollbar-thumb:hover,
+.v-main::-webkit-scrollbar-thumb:hover, .v-main__scroller::-webkit-scrollbar-thumb:hover {
+  background: var(--am-scrollbar-hover);
+}
+
+/* WebKit — 子区域滚动条 */
+.v-navigation-drawer::-webkit-scrollbar,
+.v-navigation-drawer .v-navigation-drawer__content::-webkit-scrollbar,
+.v-navigation-drawer .v-list::-webkit-scrollbar,
+.v-dialog .v-card-text::-webkit-scrollbar,
+.v-select .v-list::-webkit-scrollbar, .v-autocomplete .v-list::-webkit-scrollbar,
+.v-combobox .v-list::-webkit-scrollbar, .v-menu .v-list::-webkit-scrollbar {
+  width: var(--am-scrollbar-nav-width);
+}
+.v-navigation-drawer::-webkit-scrollbar-track,
+.v-navigation-drawer .v-navigation-drawer__content::-webkit-scrollbar-track,
+.v-navigation-drawer .v-list::-webkit-scrollbar-track,
+.v-dialog .v-card-text::-webkit-scrollbar-track,
+.v-select .v-list::-webkit-scrollbar-track, .v-autocomplete .v-list::-webkit-scrollbar-track,
+.v-combobox .v-list::-webkit-scrollbar-track, .v-menu .v-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.v-navigation-drawer::-webkit-scrollbar-thumb,
+.v-navigation-drawer .v-navigation-drawer__content::-webkit-scrollbar-thumb,
+.v-navigation-drawer .v-list::-webkit-scrollbar-thumb,
+.v-dialog .v-card-text::-webkit-scrollbar-thumb,
+.v-select .v-list::-webkit-scrollbar-thumb, .v-autocomplete .v-list::-webkit-scrollbar-thumb,
+.v-combobox .v-list::-webkit-scrollbar-thumb, .v-menu .v-list::-webkit-scrollbar-thumb {
+  background: var(--am-scrollbar-color);
+  border-radius: var(--am-scrollbar-nav-radius);
+}
+.v-navigation-drawer::-webkit-scrollbar-thumb:hover,
+.v-navigation-drawer .v-navigation-drawer__content::-webkit-scrollbar-thumb:hover,
+.v-navigation-drawer .v-list::-webkit-scrollbar-thumb:hover,
+.v-dialog .v-card-text::-webkit-scrollbar-thumb:hover,
+.v-select .v-list::-webkit-scrollbar-thumb:hover, .v-autocomplete .v-list::-webkit-scrollbar-thumb:hover,
+.v-combobox .v-list::-webkit-scrollbar-thumb:hover, .v-menu .v-list::-webkit-scrollbar-thumb:hover {
+  background: var(--am-scrollbar-hover);
+}

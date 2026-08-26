@@ -24,10 +24,12 @@ const systemStore = useSystemStore()
 // 判断当前路由是否为独立全屏页面（不带 DefaultLayout）
 const isStandalone = computed(() => route.meta.standalone === true)
 
-// 同步主题：light → Vuetify light；dark → Vuetify dark；acg → Vuetify acg
-// 关键：ACG 主题使用独立的 Vuetify 主题名 'acg'，这样 Vuetify 会添加
-// .v-theme--acg 类而非 .v-theme--dark，global.css 中的 .v-theme--dark
-// 规则不会生效，从根本上避免了 CSS 优先级冲突
+// 同步主题：light/dark → classic 主题的明暗两态；acg → ACG 玻璃主题
+// 对齐 Anime-Manager：
+//   - Vuetify 主题名直接映射（acg 生成 .v-theme--acg 类）
+//   - html/body 挂 glass-theme-classic / glass-theme-acg class，
+//     tokens.css 的主题令牌块据此激活
+//   - classic 下再挂 glass-light / glass-dark 区分明暗
 function applyTheme(appTheme: 'light' | 'dark' | 'acg') {
   const vuetifyThemeName = appTheme // 'light' | 'dark' | 'acg' 直接映射
   if (typeof theme.change === 'function') {
@@ -36,11 +38,16 @@ function applyTheme(appTheme: 'light' | 'dark' | 'acg') {
     theme.global.name.value = vuetifyThemeName
   }
 
-  // ACG 玻璃 class 管理
   const html = document.documentElement
   const body = document.body
+
+  // 玻璃主题 class 管理（classic / acg 互斥）
   html.classList.remove('glass-theme-acg', 'glass-theme-liquid', 'glass-theme-classic')
   body.classList.remove('glass-theme-acg', 'glass-theme-liquid', 'glass-theme-classic')
+
+  // 明暗 class 管理（classic 内部区分白天/夜晚）
+  html.classList.toggle('glass-dark', appTheme !== 'light')
+  html.classList.toggle('glass-light', appTheme === 'light')
 
   if (appTheme === 'acg') {
     html.classList.add('glass-theme-acg')
@@ -49,6 +56,8 @@ function applyTheme(appTheme: 'light' | 'dark' | 'acg') {
     html.setAttribute('data-theme', 'glass')
     body.setAttribute('data-theme', 'glass')
   } else {
+    html.classList.add('glass-theme-classic')
+    body.classList.add('glass-theme-classic')
     html.removeAttribute('data-theme')
     body.removeAttribute('data-theme')
   }

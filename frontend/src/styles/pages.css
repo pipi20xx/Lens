@@ -1,0 +1,894 @@
+/**
+ * pages.css — 页面级样式（四层架构第 1 层）
+ *
+ * 从各 .vue scoped 迁移的统一样式（去重合并，统一命名）。
+ * 以后改样式只改 styles/ 目录即可，不用翻 .vue 文件。
+ * 亮/暗主题视觉差异通过 .v-theme--light / .v-theme--dark 前缀规则实现。
+ */
+
+/* ============================================================
+ * 1. 选中边框 — 暗色蓝色发光 / 亮色紫色发光
+ * ============================================================ */
+.border-primary {
+  border-width: 2px;
+}
+
+.v-theme--dark .border-primary {
+  border-color: #38bdf8 !important;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
+}
+
+.v-theme--light .border-primary {
+  border-color: #a855f7 !important;
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.2);
+}
+
+.border-success {
+  border-width: 2px;
+}
+
+.v-theme--dark .border-success {
+  border-color: #38bdf8 !important;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
+}
+
+.v-theme--light .border-success {
+  border-color: #059669 !important;
+  box-shadow: 0 0 12px rgba(5, 150, 105, 0.2);
+}
+
+/* ── 合并表格 — ActorsView ── */
+.merge-table th {
+  font-weight: 600;
+  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 0 8px rgba(56, 189, 248, 0.2);
+}
+
+/* ── 日志终端 — LogTerminal / BangumiView 通用 ── */
+
+/* 容器 */
+.log-terminal {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+  font-size: 12px;
+  line-height: 1.7;
+  max-height: 500px;
+  overflow-y: auto;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 0 0 24px 24px;
+
+  /* 统一滚动条 — 蓝色半透明 */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(59, 130, 246, 0.25) transparent;
+}
+
+.log-terminal::-webkit-scrollbar { width: 6px; }
+.log-terminal::-webkit-scrollbar-track { background: transparent; }
+.log-terminal::-webkit-scrollbar-thumb { background: rgba(59, 130, 246, 0.25); border-radius: 3px; }
+.log-terminal::-webkit-scrollbar-thumb:hover { background: rgba(59, 130, 246, 0.4); }
+
+.v-theme--light .log-terminal { background: rgba(0, 0, 0, 0.02); }
+.v-theme--dark .log-terminal { background: rgba(255, 255, 255, 0.02); }
+
+/* 日志行 */
+.log-entry {
+  display: flex;
+  gap: 8px;
+  padding: 2px 4px;
+  border-radius: 8px;
+  transition: background 0.2s ease-out;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.log-entry:hover { background: rgba(255, 255, 255, 0.04); }
+.v-theme--light .log-entry:hover { background: rgba(0, 0, 0, 0.03); }
+
+/* 时间列 */
+.log-entry__time {
+  flex-shrink: 0;
+  font-size: 11px;
+  opacity: 0.45;
+  min-width: 56px;
+}
+
+/* 级别列 — Liquid Glass 强调色 */
+.log-entry__level {
+  flex-shrink: 0;
+  font-weight: 700;
+  font-size: 11px;
+  min-width: 48px;
+  letter-spacing: 0.02em;
+}
+
+/* 暗色模式级别色 — 蓝色系 */
+.log-entry__level[data-level="info"]    { color: #38bdf8; }
+.log-entry__level[data-level="warn"],
+.log-entry__level[data-level="warning"]  { color: #FFB74D; }
+.log-entry__level[data-level="error"]    { color: #EF5350; }
+.log-entry__level[data-level="critical"] { color: #F48FB1; }
+.log-entry__level[data-level="debug"]    { color: rgba(255, 255, 255, 0.4); }
+.log-entry__level[data-level="success"]  { color: #81C784; }
+
+/* 亮色模式级别色 — 紫色系 */
+.v-theme--light .log-entry__level[data-level="info"]    { color: #7c3aed; }
+.v-theme--light .log-entry__level[data-level="warn"],
+.v-theme--light .log-entry__level[data-level="warning"]  { color: #E65100; }
+.v-theme--light .log-entry__level[data-level="error"]    { color: #C62828; }
+.v-theme--light .log-entry__level[data-level="critical"] { color: #AD1457; }
+.v-theme--light .log-entry__level[data-level="debug"]    { color: rgba(0, 0, 0, 0.35); }
+.v-theme--light .log-entry__level[data-level="success"]  { color: #2E7D32; }
+
+/* 消息列 */
+.log-entry__msg {
+  flex: 1;
+  word-break: break-all;
+  white-space: pre-wrap;
+}
+
+/* 行级别着色 (ERROR / WARN 背景) */
+.log-entry--error { background: rgba(239, 83, 80, 0.06); }
+.log-entry--warn  { background: rgba(255, 183, 77, 0.05); }
+
+.v-theme--light .log-entry--error { background: rgba(198, 40, 40, 0.04); }
+.v-theme--light .log-entry--warn  { background: rgba(230, 81, 0, 0.04); }
+
+/* 兼容旧 log-window / log-line (BangumiView 等) */
+.log-window {
+  overflow-y: auto;
+  max-height: 500px;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 12px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.log-line {
+  margin-bottom: 2px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* ── 登录页 — LoginView ── */
+.login-container {
+  background:
+    radial-gradient(ellipse 800px 600px at 85% 15%, rgba(59, 130, 246, 0.2) 0%, transparent 70%),
+    radial-gradient(ellipse 600px 500px at 10% 85%, rgba(56, 189, 248, 0.2) 0%, transparent 70%),
+    radial-gradient(ellipse 400px 300px at 50% 50%, rgba(56, 189, 248, 0.1) 0%, transparent 70%),
+    linear-gradient(135deg, #0a0a1a 0%, #0f0f2a 50%, #0a0a1a 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.login-light-wells {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 500px 400px at 80% 20%, rgba(56, 189, 248, 0.15) 0%, transparent 70%),
+    radial-gradient(ellipse 400px 300px at 15% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 70%),
+    radial-gradient(ellipse 300px 200px at 50% 50%, rgba(56, 189, 248, 0.06) 0%, transparent 70%);
+  animation: login-breathe 8s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+@keyframes login-breathe {
+  0% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+.login-card {
+  position: relative;
+  z-index: 1;
+}
+
+.login-btn {
+  font-weight: 600;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+}
+
+/* ── Liquid Glass Avatar — DefaultLayout / LoginView ── */
+.liquid-avatar {
+  backdrop-filter: blur(40px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+  transition: all 0.5s ease-out;
+}
+
+.v-theme--dark .liquid-avatar {
+  background: rgba(56, 189, 248, 0.15) !important;
+  border: 1px solid rgba(56, 189, 248, 0.3) !important;
+  color: #38bdf8 !important;
+}
+
+.v-theme--dark .liquid-avatar:hover {
+  background: rgba(56, 189, 248, 0.25) !important;
+  border-color: rgba(56, 189, 248, 0.5) !important;
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.3) !important;
+}
+
+/* ── 媒体卡片 — MediaCard ── */
+.media-liquid-card {
+  transition: all 0.5s ease-out !important;
+  overflow: hidden;
+}
+
+.media-liquid-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2), 0 0 24px rgba(59, 130, 246, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.media-liquid-card .v-img {
+  position: relative;
+}
+
+.media-liquid-card .v-img::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40%;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.08), transparent);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ── 预览图 — CoverGeneratorView ── */
+.preview-img {
+  border-radius: 16px;
+}
+
+.v-theme--dark .preview-img {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), 0 0 16px rgba(56, 189, 248, 0.1);
+}
+
+.v-theme--light .preview-img {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 0 16px rgba(168, 85, 247, 0.08);
+}
+
+/* ── 工作流任务参数区 — HomeView ── */
+.workflow-task-params {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ── 拖拽上传区 — BangumiImportModal ── */
+.drop-zone {
+  border: 2px dashed rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+}
+
+/* ── AI 测试结果 / 当前会话高亮 — SettingsView ── */
+.bg-success-darken-4 {
+  border-radius: 16px !important;
+}
+
+.v-theme--dark .bg-success-darken-4 {
+  background: rgba(56, 189, 248, 0.08) !important;
+  border: 1px solid rgba(56, 189, 248, 0.15) !important;
+}
+
+/* ── 通用边框面板（日志面板、会话列表等） ── */
+.border.rounded {
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  border-radius: 16px !important;
+}
+
+/* ── 季/集卡片 — DetailsSeasons — Liquid Glass 风格 ── */
+
+/* 季度卡片 */
+.season-card {
+  transition: all 0.5s ease-out !important;
+}
+
+.v-theme--light .season-card:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1), 0 0 20px rgba(168, 85, 247, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+  transform: translateY(-2px);
+}
+
+.v-theme--dark .season-card:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3), 0 0 24px rgba(59, 130, 246, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+  transform: translateY(-2px);
+}
+
+/* 剧集卡片 */
+.episode-card {
+  transition: all 0.5s ease-out !important;
+}
+
+.v-theme--light .episode-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08), 0 0 16px rgba(168, 85, 247, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+  transform: translateY(-1px);
+}
+
+.v-theme--dark .episode-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25), 0 0 20px rgba(59, 130, 246, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+  transform: translateY(-1px);
+}
+
+/* 剧集缩略图容器 */
+.episode-thumb-wrap {
+  overflow: hidden;
+}
+
+/* 季度海报容器 */
+.season-poster-wrap {
+  overflow: hidden;
+}
+
+/* 季度海报响应式宽度 */
+@media (min-width: 600px) {
+  .episode-thumb-wrap {
+    width: 200px;
+    min-width: 200px;
+    max-width: 240px;
+  }
+  .season-poster-wrap {
+    width: 160px;
+    min-width: 160px;
+    max-width: 180px;
+  }
+}
+
+.v-theme--light .border.rounded {
+  border-color: rgba(0, 0, 0, 0.4) !important;
+}
+
+.v-theme--light .bg-success-darken-4 {
+  background: rgba(56, 189, 248, 0.06) !important;
+  border-color: rgba(56, 189, 248, 0.1) !important;
+}
+
+/* ============================================================
+ * 2. 高级筛选按钮 — 激活态
+ * ============================================================ */
+.filter-btn-active {
+  border-color: rgba(59, 130, 246, 0.3) !important;
+}
+
+.v-theme--dark .filter-btn-active {
+  background: rgba(59, 130, 246, 0.12) !important;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.15) !important;
+}
+
+.v-theme--light .filter-btn-active {
+  background: rgba(168, 85, 247, 0.08) !important;
+  box-shadow: 0 0 8px rgba(168, 85, 247, 0.12) !important;
+}
+
+/* ============================================================
+ * 3. 标签规则匹配说明文档
+ * ============================================================ */
+.tag-rules-explanation h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.tag-rules-explanation h4 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-top: 20px;
+  margin-bottom: 8px;
+}
+
+.tag-rules-explanation p {
+  margin-bottom: 6px;
+  line-height: 1.7;
+}
+
+.tag-rules-explanation ul {
+  margin-left: 20px;
+  margin-bottom: 10px;
+}
+
+.tag-rules-explanation li {
+  margin-bottom: 4px;
+  line-height: 1.6;
+}
+
+.tag-rules-explanation .explanation-keyword {
+  font-weight: bold;
+  color: rgb(var(--v-theme-primary));
+}
+
+.tag-rules-explanation .explanation-positive {
+  color: #2e7d32;
+  font-weight: bold;
+}
+
+.v-theme--dark .tag-rules-explanation .explanation-positive {
+  color: #4caf50;
+}
+
+.tag-rules-explanation .explanation-negative {
+  color: #f44336;
+  font-weight: bold;
+}
+
+.tag-rules-explanation .explanation-note {
+  font-style: italic;
+  opacity: 0.75;
+  font-size: 0.9em;
+}
+
+.v-theme--dark .tag-rules-explanation .explanation-positive {
+  color: #66bb6a;
+}
+
+.v-theme--dark .tag-rules-explanation .explanation-negative {
+  color: #ef5350;
+}
+
+/* ============================================================
+ * 4. 可选缩略图 — 选中态（Liquid Glass 风格）
+ *    用于 PreviewGeneratorView / CoverGeneratorView 等
+ * ============================================================ */
+
+/* ── 通用缩略图容器 ── */
+.thumb-select-wrapper {
+  position: relative;
+  border-radius: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  transition: all 0.25s ease-out;
+  overflow: hidden;
+}
+
+.thumb-select-wrapper:hover {
+  border-color: rgba(59, 130, 246, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+/* ── 选中态 — 发光边框 + 微放大 ── */
+.thumb-select--selected {
+  border-color: rgba(56, 189, 248, 0.8) !important;
+  box-shadow:
+    0 0 0 2px rgba(56, 189, 248, 0.3),
+    0 0 18px rgba(56, 189, 248, 0.25),
+    0 4px 16px rgba(0, 0, 0, 0.3) !important;
+  transform: translateY(-2px) scale(1.02);
+}
+
+.v-theme--light .thumb-select--selected {
+  border-color: rgba(124, 58, 237, 0.7) !important;
+  box-shadow:
+    0 0 0 2px rgba(124, 58, 237, 0.2),
+    0 0 18px rgba(124, 58, 237, 0.15),
+    0 4px 16px rgba(0, 0, 0, 0.12) !important;
+}
+
+/* ── 选中勾选角标 ── */
+.thumb-select-check {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: #fff;
+}
+
+.v-theme--dark .thumb-select-check {
+  background: rgba(56, 189, 248, 0.9);
+  box-shadow: 0 2px 8px rgba(56, 189, 248, 0.4);
+}
+
+.v-theme--light .thumb-select-check {
+  background: rgba(124, 58, 237, 0.9);
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
+}
+
+/* ── 小尺寸角标变体（用于 CoverGeneratorView 样式卡片） ── */
+.thumb-select-check--sm {
+  width: 24px;
+  height: 24px;
+  top: 4px;
+  right: 4px;
+}
+
+/* ============================================================
+ * 5. 从各 .vue scoped 迁移的统一样式
+ *    去重合并，统一命名
+ * ============================================================ */
+
+/* ── 代码块 — 统一替代 .code-block / .json-code-wrapper / .json-viewer / .cmd-preview ── */
+.code-block {
+  background: rgba(0, 0, 0, 0.3);
+  color: #d4d4d4;
+  padding: 16px;
+  border-radius: 12px;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin: 0;
+  overflow-x: auto;
+  max-height: 65vh;
+  overflow-y: auto;
+}
+
+.v-theme--light .code-block {
+  background: rgba(0, 0, 0, 0.06);
+  color: rgba(0, 0, 0, 0.87);
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+/* ── 代码块修饰类 — 用于 scrollable 弹窗内部，移除自身滚动避免双重滚动条 ── */
+.code-block--flat {
+  max-height: none !important;
+  overflow-y: visible !important;
+}
+
+/* 代码块内行高亮 */
+.code-block code {
+  color: #7ec699;
+  font-family: inherit;
+  font-size: inherit;
+  white-space: nowrap;
+  display: block;
+}
+
+/* 亮色模式 — 代码高亮色加深 */
+.v-theme--light .code-block code {
+  color: #2e7d32;
+}
+
+/* 兼容旧类名 */
+.json-code-wrapper {
+  background: rgba(0, 0, 0, 0.3);
+  color: #d4d4d4;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-x: auto;
+}
+
+.json-viewer {
+  background: rgba(0, 0, 0, 0.3);
+  color: #d4d4d4;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-x: auto;
+}
+
+/* ── 状态指示卡片 — 统一替代 task-card / container-card / project-card / history-card ── */
+.status-card {
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.status-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: transparent;
+  transition: background 0.2s;
+}
+
+.status-card.is-success::before,
+.status-card.is-running::before {
+  background: rgb(var(--v-theme-success));
+}
+
+.status-card.is-warning::before {
+  background: rgb(var(--v-theme-warning));
+}
+
+.status-card.is-error::before,
+.status-card.is-failed::before {
+  background: rgb(var(--v-theme-error));
+}
+
+.status-card.is-info::before {
+  background: rgb(var(--v-theme-info));
+}
+
+.status-card.is-auto::before {
+  background: rgb(var(--v-theme-success));
+}
+
+.status-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.v-theme--light .status-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* 运行中卡片背景 */
+.running-card {
+  border-color: rgb(var(--v-theme-success)) !important;
+  background: rgba(var(--v-theme-success), 0.04);
+}
+
+/* ── 卡片头部/信息行 — BackupManagerView ── */
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.card-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.info-label {
+  opacity: 0.5;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.card-message {
+  padding-top: 4px;
+}
+
+/* ── 拖拽规则卡片 — AutoTagsView ── */
+.rules-grid {
+  min-height: 100px;
+}
+
+.rule-card {
+  cursor: grab;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.rule-card:active {
+  cursor: grabbing;
+}
+
+.rule-card:hover {
+  border-color: rgb(var(--v-theme-primary));
+  transform: translateY(-2px);
+}
+
+.rule-card.is-dragging {
+  opacity: 0.5;
+  border: 1px dashed rgb(var(--v-theme-primary));
+}
+
+.drag-handle {
+  cursor: grab;
+  color: #666;
+}
+
+.drag-handle:hover {
+  color: rgb(var(--v-theme-primary));
+}
+
+/* ── 选中项高亮 — ActorManagerView ── */
+.selected-item {
+  background: rgba(var(--v-theme-primary), 0.08) !important;
+  border-left: 4px solid rgb(var(--v-theme-primary)) !important;
+}
+
+/* ── 左边框高亮 — SettingsView ── */
+.border-left-primary {
+  border-left: 3px solid rgb(var(--v-theme-primary)) !important;
+}
+
+/* ── 领奖台项目 — PlaybackReportView ── */
+.podium-item {
+  transition: transform 0.3s ease;
+}
+
+.podium-item:hover {
+  transform: translateY(-5px);
+}
+
+/* ── 终端输入框 — TerminalView ── */
+.terminal-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: inherit;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 14px;
+}
+
+.terminal-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.v-theme--light .terminal-input::placeholder {
+  color: rgba(0, 0, 0, 0.3);
+}
+
+/* ── YAML/代码编辑器 — textarea 等宽字体 + 滚动条 ── */
+.yaml-editor textarea {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  max-height: 60vh !important;
+  overflow-y: auto !important;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(59, 130, 246, 0.3) transparent;
+}
+
+.yaml-editor textarea::-webkit-scrollbar {
+  width: 6px;
+}
+
+.yaml-editor textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.yaml-editor textarea::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.3);
+  border-radius: 3px;
+}
+
+.yaml-editor textarea::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 130, 246, 0.5);
+}
+
+.v-theme--light .yaml-editor textarea {
+  scrollbar-color: rgba(168, 85, 247, 0.3) transparent;
+}
+
+.v-theme--light .yaml-editor textarea::-webkit-scrollbar-thumb {
+  background: rgba(168, 85, 247, 0.3);
+}
+
+.v-theme--light .yaml-editor textarea::-webkit-scrollbar-thumb:hover {
+  background: rgba(168, 85, 247, 0.5);
+}
+
+/* ── 清理分组 — MaintenancePanel ── */
+.prune-group {
+  padding: 8px 12px;
+  border-left: 3px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0 12px 12px 0;
+}
+
+.prune-group + .prune-group {
+  margin-top: 4px;
+}
+
+.v-theme--light .prune-group {
+  border-left-color: rgba(0, 0, 0, 0.1);
+}
+
+/* ── 可悬浮行 — BackupManagerView ── */
+.hoverable:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.v-theme--light .hoverable:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+/* ── 任务卡片 hover — EmbyTasksView ── */
+.task-card-hover {
+  transition: all 0.2s ease;
+}
+
+.task-card-hover:hover {
+  transform: translateY(-2px);
+}
+
+/* ── 列表容器 — BackupManagerView ── */
+.task-list,
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* ── 布局样式 — DefaultLayout ── */
+.logo-header {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  gap: 12px;
+}
+.logo-header--rail {
+  flex-direction: column;
+  padding: 12px 8px;
+  gap: 6px;
+}
+.logo-text {
+  flex: 1;
+  overflow: hidden;
+  min-width: 0;
+}
+.sidebar-version {
+  font-size: 10px;
+  opacity: 0.4;
+  user-select: none;
+  margin-top: 2px;
+}
+
+/* ============================================================
+ * 亮色模式可读性补丁 — 自旧 visual.css 12h 段迁移
+ * （页面级/自定义类的白底可读性修正，保留 .v-theme--light 前缀）
+ * ============================================================ */
+
+.v-theme--light .workflow-task-params {
+  background: rgba(0, 0, 0, 0.02) !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+}
+
+.v-theme--light .log-window {
+  background: rgba(0, 0, 0, 0.02) !important;
+}
+
+.v-theme--light .drop-zone {
+  border-color: rgba(0, 0, 0, 0.15) !important;
+}
+
+.v-theme--light .merge-table th {
+  color: rgba(0, 0, 0, 0.85) !important;
+  text-shadow: none;
+}
+
+.v-theme--light .liquid-avatar {
+  background: rgba(168, 85, 247, 0.1) !important;
+  border: 1px solid rgba(168, 85, 247, 0.2) !important;
+  color: #a855f7 !important;
+  backdrop-filter: blur(20px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(150%) !important;
+}
+
+.v-theme--light .liquid-avatar:hover {
+  background: rgba(168, 85, 247, 0.18) !important;
+  border-color: rgba(168, 85, 247, 0.35) !important;
+  box-shadow: 0 0 14px rgba(168, 85, 247, 0.2) !important;
+}
+
+.v-theme--light .media-liquid-card:hover {
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.08), 0 0 16px rgba(168, 85, 247, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+  background: rgba(255, 255, 255, 0.75) !important;
+}
+
+.v-theme--light .glass-btn-accent {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(255, 45, 146, 0.1)) !important;
+  color: #7c3aed !important;
+}
+
+.v-theme--light .liquid-glass-subtitle {
+  color: rgba(0, 0, 0, 0.8) !important;
+  text-shadow: none;
+}
+
+.v-theme--light .text-accent-gold {
+  color: #0891b2 !important;
+}

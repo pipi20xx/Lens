@@ -179,7 +179,7 @@ html.glass-theme-acg {
 
   // ═══════════════════════════════════════════════════════════════
   // 布局透明化（照搬 glass.scss 330-347）
-  // override global.css 的 !important 背景色，让 body 壁纸透过
+  // override visual.css 的 !important 背景色，让 body 壁纸透过
   // ═══════════════════════════════════════════════════════════════
   .v-application,
   .v-layout,
@@ -218,7 +218,7 @@ html.glass-theme-acg {
 
   // ═══════════════════════════════════════════════════════════════
   // 标准表面 — 卡片/Sheet/折叠面板/Stepper/Table
-  // 不使用 :where() 以确保 specificity 足以覆盖 global.css 的 !important 规则
+  // 不使用 :where() 以确保 specificity 足以覆盖 visual.css 的 !important 规则
   // ═══════════════════════════════════════════════════════════════
   .app-surface:not(.no-blur),
   .v-card:not(.no-blur, .bg-primary, .bg-success, .bg-info, .bg-warning, .bg-error),
@@ -236,7 +236,7 @@ html.glass-theme-acg {
 
   // ═══════════════════════════════════════════════════════════════
   // 卡片变体覆盖 — ACG 主题使用 .v-theme--acg（独立 Vuetify 主题），
-  // global.css 中 .v-theme--dark 规则不再生效，但 Vuetify 默认组件样式
+  // visual.css 中 .v-theme--dark 规则不再生效，但 Vuetify 默认组件样式
   // 仍需覆盖，保留 !important 确保玻璃材质生效
   // ═══════════════════════════════════════════════════════════════
   .v-card--variant-elevated,
@@ -500,7 +500,7 @@ html.glass-theme-acg {
     box-shadow: var(--glass-control-shadow) !important;
   }
 
-  // 变体覆盖 — global.css 中 .v-theme--dark .v-btn--variant-* 的
+  // 变体覆盖 — visual.css 中 .v-theme--dark .v-btn--variant-* 的
   // specificity (0,3,0) 会覆盖上面的 (0,3,1) 中的 non-!important 属性
   // 这里统一用 !important + 高 specificity 覆盖
   .v-btn--variant-flat,

@@ -1,15 +1,568 @@
 /**
- * tokens.css — ACG 玻璃主题 CSS 变量
+ * tokens.css — 设计令牌（Design Tokens）
  *
- * 定义壁纸源 URL 供 useGlassWallpaper 通过 getComputedStyle 读取。
- * 其他材质令牌由 glass-acg.scss 统一管理，此文件只保留壁纸源。
+ * 对齐 Anime-Manager：主题完全独立，互不混合：
+ *   :root                            → 仅跨主题中性值（过渡、尺寸等）
+ *   html.glass-theme-acg             → ACG 主题值（暗色玻璃）
+ *   html.glass-theme-classic         → 经典主题值（白天/夜晚两态）
+ *
+ * 规则：
+ *   1. :root 只放三主题完全相同的值（过渡时长、滚动条宽度等）
+ *   2. 每个主题在自己的 html.glass-theme-xxx 前缀下定义完整令牌
+ *   3. classic 主题内部用 .v-theme--light / .v-theme--dark 区分白天/夜晚
+ *   4. 只放变量声明，不放选择器规则
+ *   5. 档位控制块（data-theme-radius/shadow/border）在本文件末尾，
+ *      声明在主题块之后 —— 同特异性下后者覆盖，这是档位生效的机制
  */
 
-html.glass-theme-acg {
-  /* 随机壁纸 API —— useGlassWallpaper 通过 getComputedStyle 读取此变量，
-     然后经后端 /api/appearance/wallpaper_proxy 代理加载，避免 CORS 问题。 */
-  --am-wallpaper-source: https://www.loliapi.com/acg/pc/;
+/* ============================================================
+ * 0. 中性令牌 — 三主题完全相同，不随主题变化
+ * ============================================================ */
+
+:root {
+  /* 过渡 */
+  --am-transition: all 0.3s ease;
+  --am-transition-fast: all 0.2s ease;
+  --am-transition-fluid: all 0.5s ease-out;
+
+  /* 禁用态 */
+  --am-disabled-opacity: 0.5;
+
+  /* 滚动条尺寸 */
+  --am-scrollbar-width: 8px;
+  --am-scrollbar-radius: 4px;
+  --am-scrollbar-nav-width: 6px;
+  --am-scrollbar-nav-radius: 3px;
+
+  /* 列表项尺寸 */
+  --am-list-item-min-height: 38px;
+
+  /* 开关/滑块拇指（白色圆点，三主题统一） */
+  --am-slider-thumb-bg: #fff;
+
+  /* 卡片悬浮位移 */
+  --am-surface-hover-transform: translateY(-2px);
+
+  /* 折叠面板（引用 surface-radius，自动随主题/档位） */
+  --am-panel-radius: var(--am-surface-radius);
+
+  /* 标签页选中字重 */
+  --am-tab-active-weight: 600;
+
+  /* 登录标题色（仅区分明暗，不区分主题） */
+  --am-login-title-color: rgba(0, 0, 0, 0.87);
 }
+.v-theme--dark {
+  --am-login-title-color: rgba(255, 255, 255, 0.92);
+}
+
+/* ============================================================
+ * 1. ACG 主题 — 二次元壁纸 + 暗色毛玻璃
+ *    html.glass-theme-acg 激活（仅支持 dark 模式）
+ *    组件材质细节由 glass-acg.scss（第 4 层）接管，
+ *    此块提供 visual.css 令牌规则所需的基值。
+ * ============================================================ */
+
+html.glass-theme-acg {
+  /* 壁纸源 — useGlassWallpaper 读取后经后端代理加载 */
+  --am-wallpaper-source: https://www.loliapi.com/acg/pc/;
+
+  /* App / Nav — 透明，壁纸透出 */
+  --am-app-bg: transparent;
+  --am-nav-bg: transparent;
+  --am-nav-blur: blur(1px) saturate(110%);
+  --am-nav-border: 1px solid rgba(255, 255, 255, 0.06);
+  --am-nav-shadow: none;
+  --am-nav-hover-bg: rgba(255, 255, 255, 0.06);
+  --am-nav-active-bg: rgba(var(--v-theme-primary), 0.22);
+  --am-nav-active-color: rgb(var(--v-theme-primary));
+  --am-nav-active-title-shadow: none;
+  --am-nav-active-icon-filter: none;
+  --am-nav-list-item-radius: 12px;
+  --am-nav-indicator-bg: transparent;
+  --am-nav-indicator-shadow: none;
+
+  /* Surface */
+  --am-surface-bg: transparent;
+  --am-surface-blur: blur(1px) saturate(110%);
+  --am-surface-border: 1px solid rgba(255, 255, 255, 0.06);
+  --am-surface-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  --am-surface-radius: 16px;
+  --am-surface-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --am-surface-elevated-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --am-surface-outlined-bg: transparent;
+  --am-surface-hover-bg: transparent;
+
+  /* Overlay（下拉菜单） */
+  --am-overlay-bg: rgba(20, 20, 40, 0.2);
+  --am-overlay-blur: blur(8px) saturate(140%);
+  --am-overlay-border: 1px solid rgba(255, 255, 255, 0.08);
+  --am-overlay-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  --am-menu-radius: 20px;
+
+  /* Dialog */
+  --am-dialog-bg: rgba(20, 20, 40, 0.2);
+  --am-dialog-blur: blur(8px) saturate(140%);
+  --am-dialog-border: 1px solid rgba(255, 255, 255, 0.08);
+  --am-dialog-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  --am-dialog-radius: 24px;
+
+  /* Scrim */
+  --am-scrim-bg: rgba(0, 0, 0, 0.45);
+  --am-scrim-blur: blur(4px);
+
+  /* Field */
+  --am-field-bg: transparent;
+  --am-field-radius: 16px;
+  --am-field-shadow: none;
+  --am-field-focus-shadow: 0 0 0 3px rgba(var(--v-theme-primary), 0.2);
+  --am-field-focus-bg: transparent;
+  --am-field-outline-color: rgba(255, 255, 255, 0.12);
+  --am-field-outline-hover-color: rgba(255, 255, 255, 0.25);
+  --am-field-outline-focus-color: rgb(var(--v-theme-primary));
+
+  /* Text */
+  --am-label-color: rgba(255, 255, 255, 0.9);
+  --am-label-focus-color: rgb(var(--v-theme-primary));
+  --am-input-text: rgba(255, 255, 255, 0.9);
+  --am-dropdown-arrow: rgba(255, 255, 255, 0.5);
+  --am-list-title: rgba(255, 255, 255, 0.87);
+  --am-list-active-color: rgb(var(--v-theme-primary));
+  --am-list-hover-bg: rgba(255, 255, 255, 0.06);
+  --am-list-active-bg: rgba(var(--v-theme-primary), 0.15);
+  --am-list-item-radius: 12px;
+
+  /* Divider */
+  --am-divider-color: rgba(255, 255, 255, 0.06);
+
+  /* Table */
+  --am-table-bg: transparent;
+  --am-table-hover-bg: rgba(255, 255, 255, 0.06);
+
+  /* Tab */
+  --am-tab-active-color: rgb(var(--v-theme-primary));
+  --am-tab-active-shadow: none;
+
+  /* Button */
+  --am-btn-bg: transparent;
+  --am-btn-blur: blur(1px) saturate(110%);
+  --am-btn-text-color: rgba(255, 255, 255, 0.9);
+  --am-btn-font-weight: 600;
+  --am-btn-radius: 12px;
+  --am-btn-border: none;
+  --am-btn-hover-bg: rgba(255, 255, 255, 0.12);
+  --am-btn-hover-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --am-btn-overlay-bg: rgba(255, 255, 255, 0.06);
+  --am-btn-overlay-hover-bg: rgba(255, 255, 255, 0.1);
+  --am-btn-tonal-hover-shadow: 0 0 14px rgba(var(--v-theme-primary), 0.2);
+  --am-btn-outlined-border: 1px solid rgba(255, 255, 255, 0.08);
+  --am-btn-outlined-hover-border: 1px solid rgba(var(--v-theme-primary), 0.4);
+  --am-btn-outlined-hover-shadow: 0 0 14px rgba(var(--v-theme-primary), 0.15);
+
+  /* Checkbox / Radio */
+  --am-check-active-color: rgb(var(--v-theme-primary));
+  --am-check-active-shadow: none;
+  --am-check-inactive-color: rgba(150, 158, 172, 0.55);
+
+  /* BtnToggle */
+  --am-btn-toggle-bg: rgba(255, 255, 255, 0.05);
+  --am-btn-toggle-border: none;
+  --am-btn-toggle-radius: 16px;
+  --am-btn-toggle-active-bg: rgba(66, 165, 245, 0.3);
+  --am-btn-toggle-active-shadow: none;
+
+  /* Slider */
+  --am-slider-track-bg: rgba(255, 255, 255, 0.1);
+  --am-slider-fill-bg: linear-gradient(90deg, rgb(var(--v-theme-primary)), #4ecdc4);
+  --am-slider-fill-shadow: none;
+  --am-slider-thumb-shadow: 0 0 10px rgba(78, 205, 196, 0.4);
+
+  /* Progress */
+  --am-progress-fill-bg: linear-gradient(90deg, rgb(var(--v-theme-primary)), #4ecdc4);
+  --am-progress-glow: 0 0 12px rgba(78, 205, 196, 0.4);
+  --am-progress-circular-stroke: rgb(var(--v-theme-primary));
+  --am-progress-circular-glow: none;
+
+  /* Avatar */
+  --am-avatar-tonal-bg: rgba(var(--v-theme-primary), 0.12);
+  --am-avatar-blur: blur(1px) saturate(110%);
+
+  /* Chip */
+  --am-chip-blur: blur(1px) saturate(110%);
+  --am-chip-radius: 8px;
+  --am-chip-tonal-bg: rgba(255, 255, 255, 0.06);
+  --am-chip-tonal-color: rgba(255, 255, 255, 0.9);
+
+  /* Snackbar */
+  --am-snackbar-bg: rgba(20, 20, 40, 0.15);
+  --am-snackbar-blur: blur(3px) saturate(110%);
+  --am-snackbar-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  --am-snackbar-radius: 14px;
+  --am-snackbar-text: rgba(255, 255, 255, 0.9);
+
+  /* Alert */
+  --am-alert-tonal-bg: rgba(255, 255, 255, 0.05);
+  --am-alert-blur: blur(1px) saturate(110%);
+  --am-alert-border: none;
+
+  /* Tooltip */
+  --am-tooltip-bg: rgba(20, 20, 40, 0.9);
+  --am-tooltip-blur: blur(1px) saturate(110%);
+
+  /* Scrollbar */
+  --am-scrollbar-color: rgba(var(--am-primary-rgb, var(--v-theme-primary)), 0.25);
+  --am-scrollbar-hover: rgba(var(--am-primary-rgb, var(--v-theme-primary)), 0.4);
+
+  /* Switch */
+  --am-switch-track-bg: rgba(150, 158, 172, 0.35);
+  --am-switch-track-active-bg: rgb(var(--v-theme-primary));
+  --am-switch-track-active-shadow: none;
+  --am-switch-thumb-bg: #fff;
+  --am-switch-thumb-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  --am-switch-thumb-active-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+
+  /* Code（行内） */
+  --am-code-bg: rgba(var(--v-theme-primary), 0.1);
+  --am-code-color: rgb(var(--v-theme-primary));
+  --am-code-radius: 6px;
+}
+
+@media (orientation: portrait) {
+  html.glass-theme-acg {
+    --am-wallpaper-source: https://www.loliapi.com/acg/pe/;
+  }
+}
+
+/* ============================================================
+ * 2. 经典主题 — html.glass-theme-classic 激活
+ *    白天（.v-theme--light）/ 夜晚（.v-theme--dark）两态
+ *    值来源：原 visual.css 中 light/dark 写死值
+ * ============================================================ */
+
+/* ── 2a. Classic 白天令牌 ── */
+html.glass-theme-classic .v-theme--light {
+  /* App / Nav — 白底 + 紫色系强调 */
+  --am-app-bg: #F5F7FA;
+  --am-nav-bg: #FFFFFF;
+  --am-nav-blur: none;
+  --am-nav-border: 1px solid rgba(0, 0, 0, 0.08);
+  --am-nav-shadow: none;
+  --am-nav-hover-bg: rgba(0, 0, 0, 0.04);
+  --am-nav-active-bg: rgba(168, 85, 247, 0.08);
+  --am-nav-active-color: #a855f7;
+  --am-nav-active-title-shadow: none;
+  --am-nav-active-icon-filter: none;
+  --am-nav-list-item-radius: 12px;
+  --am-nav-indicator-bg: linear-gradient(to bottom, #a855f7, #4ecdc4, #a855f7);
+  --am-nav-indicator-shadow: none;
+
+  /* Surface */
+  --am-surface-bg: #FFFFFF;
+  --am-surface-blur: none;
+  --am-surface-border: 1px solid rgba(0, 0, 0, 0.4);
+  --am-surface-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  --am-surface-radius: 16px;
+  --am-surface-hover-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  --am-surface-elevated-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  --am-surface-outlined-bg: #FFFFFF;
+  --am-surface-hover-bg: #FFFFFF;
+
+  /* Overlay（下拉菜单） — 实心白底 + 紫色描边环 */
+  --am-overlay-bg: #FFFFFF;
+  --am-overlay-blur: none;
+  --am-overlay-border: none;
+  --am-overlay-shadow: 0 12px 40px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(124, 58, 237, 0.18);
+  --am-menu-radius: 20px;
+
+  /* Dialog */
+  --am-dialog-bg: #FFFFFF;
+  --am-dialog-blur: none;
+  --am-dialog-border: 1px solid rgba(0, 0, 0, 0.08);
+  --am-dialog-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+  --am-dialog-radius: 24px;
+
+  /* Scrim */
+  --am-scrim-bg: rgba(0, 0, 0, 0.4);
+  --am-scrim-blur: blur(4px);
+
+  /* Field */
+  --am-field-bg: #FFFFFF;
+  --am-field-radius: 12px;
+  --am-field-shadow: none;
+  --am-field-focus-shadow: 0 0 0 2px rgba(168, 85, 247, 0.12);
+  --am-field-focus-bg: #FFFFFF;
+  --am-field-outline-color: rgba(124, 58, 237, 0.42);
+  --am-field-outline-hover-color: rgba(124, 58, 237, 0.6);
+  --am-field-outline-focus-color: #a855f7;
+
+  /* Text */
+  --am-label-color: rgba(0, 0, 0, 0.55);
+  --am-label-focus-color: #a855f7;
+  --am-input-text: rgba(0, 0, 0, 0.87);
+  --am-dropdown-arrow: rgba(0, 0, 0, 0.4);
+  --am-list-title: rgba(0, 0, 0, 0.87);
+  --am-list-active-color: #a855f7;
+  --am-list-hover-bg: rgba(168, 85, 247, 0.08);
+  --am-list-active-bg: rgba(168, 85, 247, 0.12);
+  --am-list-item-radius: 12px;
+
+  /* Divider */
+  --am-divider-color: rgba(0, 0, 0, 0.10);
+
+  /* Table */
+  --am-table-bg: #FFFFFF;
+  --am-table-hover-bg: rgba(168, 85, 247, 0.04);
+
+  /* Tab */
+  --am-tab-active-color: #a855f7;
+  --am-tab-active-shadow: none;
+
+  /* Button */
+  --am-btn-bg: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(255, 45, 146, 0.1));
+  --am-btn-blur: none;
+  --am-btn-text-color: #7c3aed;
+  --am-btn-font-weight: 600;
+  --am-btn-radius: 4px;
+  --am-btn-border: none;
+  --am-btn-hover-bg: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(255, 45, 146, 0.1));
+  --am-btn-hover-shadow: 0 0 16px rgba(168, 85, 247, 0.25);
+  --am-btn-overlay-bg: rgba(0, 0, 0, 0.04);
+  --am-btn-overlay-hover-bg: rgba(0, 0, 0, 0.08);
+  --am-btn-tonal-hover-shadow: 0 0 12px rgba(168, 85, 247, 0.15);
+  --am-btn-outlined-border: 1px solid rgba(0, 0, 0, 0.12);
+  --am-btn-outlined-hover-border: 1px solid rgba(0, 0, 0, 0.24);
+  --am-btn-outlined-hover-shadow: none;
+
+  /* Checkbox / Radio */
+  --am-check-active-color: #a855f7;
+  --am-check-active-shadow: none;
+  --am-check-inactive-color: rgba(0, 0, 0, 0.42);
+
+  /* BtnToggle */
+  --am-btn-toggle-bg: rgba(0, 0, 0, 0.03);
+  --am-btn-toggle-border: none;
+  --am-btn-toggle-radius: 16px;
+  --am-btn-toggle-active-bg: rgba(168, 85, 247, 0.1);
+  --am-btn-toggle-active-shadow: none;
+
+  /* Slider */
+  --am-slider-track-bg: rgba(0, 0, 0, 0.12);
+  --am-slider-fill-bg: linear-gradient(90deg, #a855f7, #4ecdc4);
+  --am-slider-fill-shadow: none;
+  --am-slider-thumb-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+
+  /* Progress */
+  --am-progress-fill-bg: linear-gradient(90deg, #a855f7, #4ecdc4);
+  --am-progress-glow: none;
+  --am-progress-circular-stroke: rgb(var(--v-theme-primary));
+  --am-progress-circular-glow: none;
+
+  /* Avatar */
+  --am-avatar-tonal-bg: rgba(var(--v-theme-primary), 0.12);
+  --am-avatar-blur: none;
+
+  /* Chip */
+  --am-chip-blur: none;
+  --am-chip-radius: 8px;
+  --am-chip-tonal-bg: rgba(168, 85, 247, 0.1);
+  --am-chip-tonal-color: #7c3aed;
+
+  /* Snackbar */
+  --am-snackbar-bg: rgba(30, 30, 40, 0.9);
+  --am-snackbar-blur: blur(40px) saturate(180%);
+  --am-snackbar-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  --am-snackbar-radius: 4px;
+  --am-snackbar-text: #ffffff;
+
+  /* Alert */
+  --am-alert-tonal-bg: rgba(168, 85, 247, 0.06);
+  --am-alert-blur: none;
+  --am-alert-border: none;
+
+  /* Tooltip */
+  --am-tooltip-bg: rgba(30, 30, 40, 0.9);
+  --am-tooltip-blur: blur(20px) saturate(150%);
+
+  /* Scrollbar — 紫色 */
+  --am-scrollbar-color: rgba(168, 85, 247, 0.25);
+  --am-scrollbar-hover: rgba(168, 85, 247, 0.4);
+
+  /* Switch */
+  --am-switch-track-bg: rgba(0, 0, 0, 0.26);
+  --am-switch-track-active-bg: #a855f7;
+  --am-switch-track-active-shadow: none;
+  --am-switch-thumb-bg: #FFFFFF;
+  --am-switch-thumb-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  --am-switch-thumb-active-shadow: 0 2px 6px rgba(168, 85, 247, 0.5);
+
+  /* Code（行内） */
+  --am-code-bg: rgba(168, 85, 247, 0.06);
+  --am-code-color: #7c3aed;
+  --am-code-radius: 6px;
+}
+
+/* ── 2b. Classic 夜晚令牌 ── */
+html.glass-theme-classic .v-theme--dark {
+  /* App / Nav — 深底 + 蓝色系强调 */
+  --am-app-bg: #0e0e1a;
+  --am-nav-bg: #0e0e1a;
+  --am-nav-blur: none;
+  --am-nav-border: 1px solid rgba(255, 255, 255, 0.06);
+  --am-nav-shadow: none;
+  --am-nav-hover-bg: rgba(255, 255, 255, 0.06);
+  --am-nav-active-bg: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(56, 189, 248, 0.1));
+  --am-nav-active-color: #38bdf8;
+  --am-nav-active-title-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+  --am-nav-active-icon-filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.4));
+  --am-nav-list-item-radius: 16px;
+  --am-nav-indicator-bg: linear-gradient(to bottom, #3b82f6, #38bdf8, #3b82f6);
+  --am-nav-indicator-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
+
+  /* Surface — 玻璃面板 */
+  --am-surface-bg: rgba(255, 255, 255, 0.07);
+  --am-surface-blur: blur(20px) saturate(150%);
+  --am-surface-border: 1px solid rgba(255, 255, 255, 0.4);
+  --am-surface-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+  --am-surface-radius: 16px;
+  --am-surface-hover-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  --am-surface-elevated-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  --am-surface-outlined-bg: rgba(255, 255, 255, 0.05);
+  --am-surface-hover-bg: rgba(255, 255, 255, 0.1);
+
+  /* Overlay（下拉菜单） — 深蓝底 + 天蓝描边环 */
+  --am-overlay-bg: #1a1a3e;
+  --am-overlay-blur: none;
+  --am-overlay-border: none;
+  --am-overlay-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(56, 189, 248, 0.18);
+  --am-menu-radius: 20px;
+
+  /* Dialog */
+  --am-dialog-bg: #141428;
+  --am-dialog-blur: blur(20px) saturate(150%);
+  --am-dialog-border: 1px solid rgba(255, 255, 255, 0.4);
+  --am-dialog-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+  --am-dialog-radius: 24px;
+
+  /* Scrim */
+  --am-scrim-bg: rgba(0, 0, 0, 0.6);
+  --am-scrim-blur: blur(8px);
+
+  /* Field */
+  --am-field-bg: rgba(255, 255, 255, 0.07);
+  --am-field-radius: 12px;
+  --am-field-shadow: none;
+  --am-field-focus-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2), 0 0 20px rgba(59, 130, 246, 0.1);
+  --am-field-focus-bg: rgba(255, 255, 255, 0.1);
+  --am-field-outline-color: rgba(255, 255, 255, 0.12);
+  --am-field-outline-hover-color: rgba(255, 255, 255, 0.25);
+  --am-field-outline-focus-color: #38bdf8;
+
+  /* Text */
+  --am-label-color: rgba(255, 255, 255, 0.7);
+  --am-label-focus-color: #38bdf8;
+  --am-input-text: rgba(255, 255, 255, 0.9);
+  --am-dropdown-arrow: rgba(255, 255, 255, 0.5);
+  --am-list-title: rgba(255, 255, 255, 0.87);
+  --am-list-active-color: #38bdf8;
+  --am-list-hover-bg: rgba(255, 255, 255, 0.08);
+  --am-list-active-bg: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(56, 189, 248, 0.1));
+  --am-list-item-radius: 12px;
+
+  /* Divider */
+  --am-divider-color: rgba(255, 255, 255, 0.06);
+
+  /* Table */
+  --am-table-bg: rgba(255, 255, 255, 0.05);
+  --am-table-hover-bg: rgba(255, 255, 255, 0.04);
+
+  /* Tab */
+  --am-tab-active-color: #38bdf8;
+  --am-tab-active-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
+
+  /* Button */
+  --am-btn-bg: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(56, 189, 248, 0.12));
+  --am-btn-blur: blur(20px) saturate(150%);
+  --am-btn-text-color: #ffffff;
+  --am-btn-font-weight: 600;
+  --am-btn-radius: 4px;
+  --am-btn-border: none;
+  --am-btn-hover-bg: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(56, 189, 248, 0.2));
+  --am-btn-hover-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+  --am-btn-overlay-bg: rgba(255, 255, 255, 0.06);
+  --am-btn-overlay-hover-bg: rgba(255, 255, 255, 0.1);
+  --am-btn-tonal-hover-shadow: 0 0 14px rgba(59, 130, 246, 0.2);
+  --am-btn-outlined-border: 1px solid rgba(255, 255, 255, 0.15);
+  --am-btn-outlined-hover-border: 1px solid rgba(56, 189, 248, 0.4);
+  --am-btn-outlined-hover-shadow: 0 0 14px rgba(56, 189, 248, 0.15);
+
+  /* Checkbox / Radio */
+  --am-check-active-color: #38bdf8;
+  --am-check-active-shadow: 0 0 6px rgba(56, 189, 248, 0.4);
+  --am-check-inactive-color: rgba(255, 255, 255, 0.4);
+
+  /* BtnToggle */
+  --am-btn-toggle-bg: rgba(255, 255, 255, 0.05);
+  --am-btn-toggle-border: none;
+  --am-btn-toggle-radius: 16px;
+  --am-btn-toggle-active-bg: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(56, 189, 248, 0.1));
+  --am-btn-toggle-active-shadow: 0 0 10px rgba(56, 189, 248, 0.15);
+
+  /* Slider */
+  --am-slider-track-bg: rgba(255, 255, 255, 0.1);
+  --am-slider-fill-bg: linear-gradient(90deg, #3b82f6, #38bdf8);
+  --am-slider-fill-shadow: 0 0 8px rgba(56, 189, 248, 0.3);
+  --am-slider-thumb-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+
+  /* Progress */
+  --am-progress-fill-bg: linear-gradient(90deg, #3b82f6, #38bdf8);
+  --am-progress-glow: 0 0 12px rgba(56, 189, 248, 0.4);
+  --am-progress-circular-stroke: #38bdf8;
+  --am-progress-circular-glow: drop-shadow(0 0 4px rgba(56, 189, 248, 0.3));
+
+  /* Avatar */
+  --am-avatar-tonal-bg: rgba(56, 189, 248, 0.12);
+  --am-avatar-blur: blur(20px) saturate(150%);
+
+  /* Chip */
+  --am-chip-blur: blur(10px) saturate(150%);
+  --am-chip-radius: 8px;
+  --am-chip-tonal-bg: rgba(56, 189, 248, 0.12);
+  --am-chip-tonal-color: #38bdf8;
+
+  /* Snackbar */
+  --am-snackbar-bg: rgba(30, 30, 60, 0.9);
+  --am-snackbar-blur: blur(40px) saturate(180%);
+  --am-snackbar-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  --am-snackbar-radius: 4px;
+  --am-snackbar-text: #ffffff;
+
+  /* Alert */
+  --am-alert-tonal-bg: rgba(255, 255, 255, 0.05);
+  --am-alert-blur: blur(20px) saturate(150%);
+  --am-alert-border: none;
+
+  /* Tooltip */
+  --am-tooltip-bg: rgba(30, 30, 60, 0.92);
+  --am-tooltip-blur: blur(20px) saturate(150%);
+
+  /* Scrollbar — 蓝色 */
+  --am-scrollbar-color: rgba(59, 130, 246, 0.25);
+  --am-scrollbar-hover: rgba(59, 130, 246, 0.4);
+
+  /* Switch */
+  --am-switch-track-bg: rgba(255, 255, 255, 0.22);
+  --am-switch-track-active-bg: #3b82f6;
+  --am-switch-track-active-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
+  --am-switch-thumb-bg: #FFFFFF;
+  --am-switch-thumb-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+  --am-switch-thumb-active-shadow: 0 2px 8px rgba(59, 130, 246, 0.5);
+
+  /* Code（行内） */
+  --am-code-bg: rgba(59, 130, 246, 0.1);
+  --am-code-color: #38bdf8;
+  --am-code-radius: 6px;
+}
+
 /* ════════════════════════════════════════════════════════════════
  * 全局圆角控制 — 由 useThemeCustomizer 的 radius 设置驱动
  * data-theme-radius 属性由 applyThemeCustomizerRootSettings 写入。
@@ -21,7 +574,8 @@ html.glass-theme-acg {
  *   large    — 大圆角（20-28px）
  *   extra    — 更大圆角（28-36px）
  *
- * 注意：pill 形（999px）的 tab/btn 在 none/small 档位会被强制转为直角/小圆角。
+ * 注意：档位块声明在主题块之后（同特异性靠后者覆盖），
+ * 这正是档位设置对三个主题统一生效的机制。
  * ════════════════════════════════════════════════════════════════ */
 
 /* ── 无圆角 ── */

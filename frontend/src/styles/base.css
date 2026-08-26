@@ -1,0 +1,42 @@
+/**
+ * base.css — 基础 / 结构（四层架构第 1 层）
+ *
+ * 只放"不管哪个主题都需要"的基础规则：
+ *   - 全局重置（字体平滑）
+ *   - 组件内部透明（卡片/折叠面板/侧边导航列表）
+ *
+ * 不放任何视觉风格（颜色/背景/模糊/边框/阴影/滚动条样式），
+ * 那些由 tokens.css（设计令牌）+ visual.css（共享视觉规则）统一处理，
+ * 主题专属效果由 glass-acg.scss 动态加载处理。
+ */
+
+/* ============================================================
+ * 1. 全局重置
+ * ============================================================ */
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================================
+ * 2. 组件内部透明
+ *    卡片/折叠面板内的子组件必须透明，否则实色会盖住玻璃效果
+ * ============================================================ */
+
+/* 卡片内部 */
+.v-card-text,
+.v-card-title,
+.v-card-actions,
+.v-card-item {
+  background: transparent !important;
+}
+
+/* 折叠面板内容 */
+.v-expansion-panel-text {
+  background: transparent !important;
+}
+
+/* 侧边栏导航列表保持透明（继承导航栏的毛玻璃背景） */
+.v-navigation-drawer .v-list {
+  background: transparent !important;
+}

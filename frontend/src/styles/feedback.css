@@ -1,0 +1,42 @@
+/**
+ * feedback.css — 反馈组件结构（四层架构第 1 层）
+ *
+ * 只放芯片/反馈组件的纯结构规则：字号、尺寸、间距。
+ * 视觉风格（背景/模糊/边框/阴影）由 visual.css 统一处理。
+ */
+
+/* ============================================================
+ * 1. 芯片 — 字重与尺寸
+ * ============================================================ */
+.v-chip {
+  font-weight: 500;
+}
+
+/* x-small chip 太小，统一限制最小字号 */
+.v-chip--size-x-small {
+  font-size: 0.75rem !important;
+  min-height: 24px !important;
+  padding: 0 8px !important;
+}
+
+.v-chip--size-x-small .v-chip__content {
+  font-size: 0.75rem !important;
+}
+
+/* x-small chip 太小，统一限制最小字号 */
+.v-chip--size-x-small {
+  font-size: 0.75rem !important;
+  min-height: 24px !important;
+  padding: 0 8px !important;
+}
+
+.v-chip--size-x-small .v-chip__content {
+  font-size: 0.75rem !important;
+}
+
+/* ============================================================
+ * 2. Select 内多选 chips 间距
+ * ============================================================ */
+.v-select .v-chip {
+  margin: 2px 4px 2px 0 !important;
+}
