@@ -421,7 +421,7 @@ interface PreparedWallpaperTexture {
 
 const SURFACE_SELECTORS = [
 { rank: 1, selector: '.agent-assistant-panel', space: 'fixed' },
-{ rank: 1, selector: '.login-card', space: 'fixed' },
+{ rank: 1, selector: '.login-glass-panel', space: 'fixed' },
 { rank: 2, selector: '.layout-vertical-nav', space: 'fixed' },
 { rank: 2, selector: '.layout-navbar', space: 'fixed' },
 {
@@ -457,12 +457,12 @@ function isGlassOpticalElementEligible(element: Element) {
   return !element.closest('.v-overlay') && !isGlassOpticalElementExcluded(element)
 }
 
-/** 登录卡片随文档弹性合成，其余固定表面继续使用 viewport 坐标。 */
+/** 登录卡片呈现空间：固定表面使用 viewport 坐标。 */
 function getSurfacePresentationSpace(
   selector: (typeof SURFACE_SELECTORS)[number]['selector'],
   defaultSpace: GlassPresentationSpace,
 ) {
-  return selector === '.login-card' && document.querySelector('.login-root') ? 'scroll' : defaultSpace
+  return selector === '.login-glass-panel' ? 'fixed' : defaultSpace
 }
 
 /** 判断新增或移除的 DOM 子树是否会改变光学表面集合。 */

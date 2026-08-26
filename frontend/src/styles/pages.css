@@ -149,49 +149,24 @@
   word-break: break-all;
 }
 
-/* ── 登录页 — LoginView ── */
-.login-container {
-  background:
-    radial-gradient(ellipse 800px 600px at 85% 15%, rgba(59, 130, 246, 0.2) 0%, transparent 70%),
-    radial-gradient(ellipse 600px 500px at 10% 85%, rgba(56, 189, 248, 0.2) 0%, transparent 70%),
-    radial-gradient(ellipse 400px 300px at 50% 50%, rgba(56, 189, 248, 0.1) 0%, transparent 70%),
-    linear-gradient(135deg, #0a0a1a 0%, #0f0f2a 50%, #0a0a1a 100%);
-  position: relative;
-  overflow: hidden;
-}
-
-.login-light-wells {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(ellipse 500px 400px at 80% 20%, rgba(56, 189, 248, 0.15) 0%, transparent 70%),
-    radial-gradient(ellipse 400px 300px at 15% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 70%),
-    radial-gradient(ellipse 300px 200px at 50% 50%, rgba(56, 189, 248, 0.06) 0%, transparent 70%);
-  animation: login-breathe 8s ease-in-out infinite alternate;
-  pointer-events: none;
-}
-
-@keyframes login-breathe {
-  0% { opacity: 0.6; }
-  100% { opacity: 1; }
-}
-
-.login-card {
-  position: relative;
-  z-index: 1;
-}
-
-.login-btn {
-  font-weight: 600;
-  font-size: 1rem;
-  letter-spacing: 0.02em;
-}
+/* ── 登录页 — LoginView ──
+ * 页面结构与样式对齐 Anime-Manager：
+ * v-app + v-main + fill-height 容器铺满全屏，
+ * 卡片视觉走 visual.css 的 .login-glass-panel 令牌规则，
+ * 背景由 App.vue 的 .background-container 壁纸层渲染。
+ */
 
 /* ── Liquid Glass Avatar — DefaultLayout / LoginView ── */
 .liquid-avatar {
   backdrop-filter: blur(40px) saturate(180%) !important;
   -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
   transition: all 0.5s ease-out;
+}
+
+/* 登录页 Logo（对齐 Anime-Manager LoginView 的 .app-logo，40px） */
+.app-logo--login {
+  width: 40px;
+  height: 40px;
 }
 
 .v-theme--dark .liquid-avatar {
@@ -829,6 +804,15 @@
   flex: 1;
   overflow: hidden;
   min-width: 0;
+}
+/* Logo 图标（对齐 Anime-Manager）：mask 引用 SVG 源图，
+ * 矢量任意缩放不糊，颜色跟随主题色 */
+.app-logo {
+  width: 28px;
+  height: 28px;
+  -webkit-mask: url('/favicon.svg') center / contain no-repeat;
+  mask: url('/favicon.svg') center / contain no-repeat;
+  background-color: rgb(var(--v-theme-primary));
 }
 .sidebar-version {
   font-size: 10px;

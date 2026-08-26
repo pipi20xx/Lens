@@ -268,7 +268,7 @@ onUnmounted(() => {
       <!-- Logo 区域 -->
       <div class="logo-header" :class="{ 'logo-header--rail': rail && !isMobile }">
         <v-avatar class="liquid-avatar" rounded="xl" size="40">
-          <v-icon icon="mdi-eye-outline" size="24" />
+          <div class="app-logo" role="img" aria-label="Lens" />
         </v-avatar>
         <div v-if="!rail || isMobile" class="logo-text">
           <div class="text-subtitle-1 font-weight-bold liquid-glass-subtitle">LENS</div>

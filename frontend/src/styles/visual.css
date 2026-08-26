@@ -525,7 +525,38 @@ code {
 }
 
 /* ============================================================
- * 21. Scrollbar — 滚动条
+ * 21. Login — 登录面板
+ *     令牌 --am-login-* 在 tokens.css 各主题块中定义，
+ *     档位（圆角/阴影/边框）块可全局覆盖
+ * ============================================================ */
+
+.login-glass-panel {
+  background: var(--am-login-bg) !important;
+  backdrop-filter: var(--am-login-blur) !important;
+  -webkit-backdrop-filter: var(--am-login-blur) !important;
+  border: var(--am-login-border) !important;
+  box-shadow: var(--am-login-shadow) !important;
+  border-radius: var(--am-login-radius) !important;
+}
+
+.login-glass-panel .text-h4,
+.login-glass-panel .text-h5,
+.login-glass-panel .text-body-2 {
+  color: var(--am-login-title-color);
+}
+
+.login-glass-panel .v-field--variant-outlined {
+  background: var(--am-field-bg);
+  border-radius: var(--am-field-radius) !important;
+}
+
+.login-glass-panel .v-btn--variant-flat.v-btn--bg-primary {
+  background: var(--am-btn-primary-bg) !important;
+  color: var(--am-btn-primary-color) !important;
+}
+
+/* ============================================================
+ * 22. Scrollbar — 滚动条
  *     统一风格，主区域 8px / 子区域 6px
  * ============================================================ */
 

@@ -6,7 +6,9 @@ const routes: RouteRecordRaw[] = [
     path: '/login',
     name: 'login',
     component: () => import('@/views/LoginView.vue'),
-    meta: { requiresAuth: false },
+    // standalone: 脱离 DefaultLayout 独立渲染（App.vue 据此直接走 router-view，
+    // 不套侧边栏/顶栏布局），登录页是独立 URL 页面
+    meta: { requiresAuth: false, standalone: true },
   },
   // ── 仪表盘 ──
   {

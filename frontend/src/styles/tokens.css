@@ -213,6 +213,17 @@ html.glass-theme-acg {
   --am-scrollbar-color: rgba(var(--am-primary-rgb, var(--v-theme-primary)), 0.25);
   --am-scrollbar-hover: rgba(var(--am-primary-rgb, var(--v-theme-primary)), 0.4);
 
+  /* Login — 玻璃登录面板（对齐 AM ACG 值） */
+  --am-login-bg: rgba(20, 20, 40, 0.1);
+  --am-login-blur: blur(3px) saturate(110%);
+  --am-login-border: 1px solid rgba(255, 255, 255, 0.06);
+  --am-login-shadow: 0 18px 42px -26px rgba(0, 0, 0, 0.7);
+  --am-login-radius: 24px;
+
+  /* Button primary — tonal 风格 */
+  --am-btn-primary-bg: transparent;
+  --am-btn-primary-color: rgb(var(--v-theme-primary));
+
   /* Switch */
   --am-switch-track-bg: rgba(150, 158, 172, 0.35);
   --am-switch-track-active-bg: rgb(var(--v-theme-primary));
@@ -387,6 +398,17 @@ html.glass-theme-classic .v-theme--light {
   --am-scrollbar-color: rgba(168, 85, 247, 0.25);
   --am-scrollbar-hover: rgba(168, 85, 247, 0.4);
 
+  /* Login — 实底白卡（对齐 AM classic 值） */
+  --am-login-bg: #ffffff;
+  --am-login-blur: none;
+  --am-login-border: none;
+  --am-login-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+  --am-login-radius: 16px;
+
+  /* Button primary — 实底主色 */
+  --am-btn-primary-bg: rgb(var(--v-theme-primary));
+  --am-btn-primary-color: #fff;
+
   /* Switch */
   --am-switch-track-bg: rgba(0, 0, 0, 0.26);
   --am-switch-track-active-bg: #a855f7;
@@ -548,6 +570,17 @@ html.glass-theme-classic .v-theme--dark {
   /* Scrollbar — 蓝色 */
   --am-scrollbar-color: rgba(59, 130, 246, 0.25);
   --am-scrollbar-hover: rgba(59, 130, 246, 0.4);
+
+  /* Login — 实底白卡（对齐 AM classic 值） */
+  --am-login-bg: #ffffff;
+  --am-login-blur: none;
+  --am-login-border: none;
+  --am-login-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+  --am-login-radius: 16px;
+
+  /* Button primary — 实底主色 */
+  --am-btn-primary-bg: rgb(var(--v-theme-primary));
+  --am-btn-primary-color: #fff;
 
   /* Switch */
   --am-switch-track-bg: rgba(255, 255, 255, 0.22);
