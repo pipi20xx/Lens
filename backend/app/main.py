@@ -9,7 +9,7 @@ except ImportError:
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from app.api import router as api_router
 from app.api.system import CURRENT_VERSION
 from app.utils.logger import logger, audit_log
@@ -350,56 +350,52 @@ async def websocket_endpoint(websocket: WebSocket, token: str = Query(...)):
     finally:
         log_broadcaster.unsubscribe(queue)
 
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
-# ... (其他导入)
+from starlette.types import Scope
 
-# 挂载图标目录
+# ── 静态文件伺服（完全对齐 Anime-Manager）──────────────────────
+class NoCacheStaticFiles(StaticFiles):
+    """对入口文件和 PWA 相关文件禁用浏览器缓存，避免更新后不生效。"""
+
+    async def __call__(self, scope: Scope, receive, send):
+        # 跳过非 HTTP 请求 (如 WebSocket)，避免 AssertionError
+        if scope.get("type") != "http":
+            return
+        await super().__call__(scope, receive, send)
+
+    async def get_response(self, path: str, scope: Scope):
+        response = await super().get_response(path, scope)
+        request_path = scope.get("path", "")
+        if (
+            path in ("", "/", "index.html")
+            or request_path in ("/", "/index.html", "/sw.js")
+            or request_path.startswith("/workbox-")
+        ):
+            response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+            response.headers["Pragma"] = "no-cache"
+            response.headers["Expires"] = "0"
+        return response
+
+# 挂载图标目录（必须在 "/" 挂载之前注册）
 os.makedirs("/app/data/nav_icons", exist_ok=True)
 os.makedirs("/app/data/nav_backgrounds", exist_ok=True)
 app.mount("/nav_icons", StaticFiles(directory="/app/data/nav_icons"), name="nav_icons")
 app.mount("/nav_backgrounds", StaticFiles(directory="/app/data/nav_backgrounds"), name="nav_backgrounds")
 
-# 包含 API 路由
+# 包含 API 路由（必须在 "/" 挂载之前注册）
 app.include_router(api_router, prefix="/api")
 
-# --- 快捷图标路由 (解决第三方工具抓取失败问题) ---
-@app.get("/favicon.ico", include_in_schema=False)
-@app.get("/favicon.svg", include_in_schema=False)
-async def favicon():
-    icon_path = os.path.join("./static", "favicon.svg")
-    if os.path.exists(icon_path):
-        return FileResponse(icon_path, media_type="image/svg+xml")
-    return None
+# 前端静态文件：单一 StaticFiles 挂载（对齐 Anime-Manager，无自定义图标/assets 路由），
+# favicon.ico / pwa 图标 / manifest 全部由 StaticFiles 直接伺服，
+# content-type、ETag、304、HEAD 均为原生正确行为。
+DIST_DIR = "./static"
+if os.path.exists(DIST_DIR):
+    app.mount("/", NoCacheStaticFiles(directory=DIST_DIR, html=True), name="static")
 
-# 托管静态文件 (前端)
-if os.path.exists("./static"):
-    # 静态资源目录 (JS, CSS, Images)
-    @app.get("/assets/{file_path:path}")
-    async def serve_assets(file_path: str):
-        file_full_path = os.path.join("./static/assets", file_path)
-        if os.path.exists(file_full_path):
-            return FileResponse(file_full_path)
-        return None
-
-    @app.get("/{full_path:path}")
-    async def serve_frontend(full_path: str):
-        # 排除 API、图标和背景缓存路径
-        if full_path.startswith("api") or full_path.startswith("nav_icons") or full_path.startswith("nav_backgrounds"):
-            raise HTTPException(status_code=404)
-        
-        # 检查是否是具体的文件请求（比如 /vite.svg）
-        file_path = os.path.join("./static", full_path)
-        if os.path.isfile(file_path):
-            return FileResponse(file_path)
-        
-        # SPA 路由兜底：返回 index.html
-        index_path = os.path.join("./static", "index.html")
-        return FileResponse(index_path)
-else:
-    @app.get("/")
-    async def root():
-        return {"message": "Lens API is running. Frontend static files not found."}
+    @app.exception_handler(404)
+    async def spa_fallback(request, exc):
+        if not request.url.path.startswith("/api"):
+            return FileResponse(os.path.join(DIST_DIR, "index.html"))
+        return JSONResponse(status_code=404, content={"detail": "Not Found"})
 
 if __name__ == "__main__":
     import uvicorn

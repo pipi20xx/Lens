@@ -48,18 +48,35 @@ export default defineConfig(({ mode }) => {
         },
         workbox: {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+          // 对齐 Anime-Manager：导航兜底到预缓存的 index.html，
+          // 已安装 PWA 每次启动都使用最新构建，避免浏览器启发式缓存返回旧入口
+          navigateFallback: 'index.html',
+          navigateFallbackDenylist: [/^\/api\//],
           runtimeCaching: [
             {
-              urlPattern: /\/api\//i,
+              urlPattern: /\/api\//,
               handler: 'NetworkFirst',
               options: {
                 cacheName: 'api-cache',
+                networkTimeoutSeconds: 10,
                 expiration: {
                   maxEntries: 100,
-                  maxAgeSeconds: 60 * 60 * 24 * 7,
+                  maxAgeSeconds: 60 * 60 * 24,
                 },
                 cacheableResponse: {
                   statuses: [0, 200],
+                },
+              },
+            },
+            {
+              // 图片缓存（对齐 Anime-Manager）：CacheFirst，30 天
+              urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'image-cache',
+                expiration: {
+                  maxEntries: 200,
+                  maxAgeSeconds: 60 * 60 * 24 * 30,
                 },
               },
             },
