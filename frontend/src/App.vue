@@ -14,6 +14,7 @@ import {
   loadGlassWallpaperTone,
   type GlassWallpaperToneProfile,
 } from '@/glass'
+import { useThemeCustomizer } from '@/glass/host/useThemeCustomizer'
 
 const route = useRoute()
 const theme = useTheme()
@@ -58,6 +59,18 @@ applyTheme(themeStore.appTheme)
 watch(() => themeStore.appTheme, (val) => {
   applyTheme(val)
 })
+
+// ── 主题色同步 ──
+// CSS 变量由 useThemeCustomizer.applyThemeCustomizerRootSettings 写入 :root，
+// 这里同步 Vuetify JS 侧的 theme 对象，确保 JS 逻辑（如 useTheme().current.value.colors.primary）也能读到最新值。
+const { settings: themeCustomizerSettings } = useThemeCustomizer()
+watch(() => themeCustomizerSettings.value.primaryColor, (primaryColor) => {
+  theme.themes.value.light.colors.primary = primaryColor
+  theme.themes.value.dark.colors.primary = primaryColor
+  if (theme.themes.value.acg) {
+    theme.themes.value.acg.colors.primary = primaryColor
+  }
+}, { immediate: true })
 
 // ── 玻璃壁纸与光学层管理 ──────────────────────────────────────
 
@@ -208,6 +221,13 @@ watch(shouldUseGlassBackgroundTreatment, (shouldUse) => {
       )
       void preloadWallpaperCandidate(currentUrl)
     }
+  }
+})
+
+// 当 WallpaperDialog 保存配置后触发的全局刷新信号
+watch(() => glass.wallpaperRefreshSignal.value, (signal) => {
+  if (signal > 0) {
+    void glass.refreshWallpaper()
   }
 })
 

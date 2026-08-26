@@ -29,6 +29,31 @@ const GlassSettingsDialog = defineAsyncComponent(() =>
   import('@/glass/components/GlassSettingsDialog.vue')
 )
 
+// 异步加载 WallpaperDialog 组件（壁纸管理弹窗）
+const WallpaperDialog = defineAsyncComponent(() =>
+  import('@/glass/components/WallpaperDialog.vue')
+)
+
+// 异步加载 BorderDialog 组件（边框设置弹窗）
+const BorderDialog = defineAsyncComponent(() =>
+  import('@/glass/components/BorderDialog.vue')
+)
+
+// 异步加载 ShadowDialog 组件（阴影设置弹窗）
+const ShadowDialog = defineAsyncComponent(() =>
+  import('@/glass/components/ShadowDialog.vue')
+)
+
+// 异步加载主题色设置弹窗
+const PrimaryColorDialog = defineAsyncComponent(() =>
+  import('@/glass/components/PrimaryColorDialog.vue')
+)
+
+// 异步加载圆角设置弹窗
+const BorderRadiusDialog = defineAsyncComponent(() =>
+  import('@/glass/components/BorderRadiusDialog.vue')
+)
+
 // 异步加载 Fixed Shell Backplate 组件
 const GlassFixedShellBackplate = defineAsyncComponent(() =>
   import('@/glass/components/GlassFixedShellBackplate.vue')
@@ -54,6 +79,11 @@ const drawer = ref(true)
 const rail = ref(false)
 const isMobile = ref(false)
 const showGlassSettings = ref(false)
+const showWallpaperDialog = ref(false)
+const showBorderDialog = ref(false)
+const showShadowDialog = ref(false)
+const showPrimaryColorDialog = ref(false)
+const showBorderRadiusDialog = ref(false)
 
 // 玻璃 Fixed Shell Backplate —— 从 App 层注入的壁纸槽位
 const fixedShellBackplate = useGlassFixedShellBackplate()
@@ -356,7 +386,7 @@ onUnmounted(() => {
             {{ systemStore.isConnected ? '已连接' : '断开' }}
           </v-chip>
 
-          <!-- 主题切换：白天 / 夜晚 / ACG -->
+          <!-- 主题选择菜单 -->
           <v-menu>
             <template #activator="{ props: themeProps }">
               <v-btn
@@ -368,10 +398,11 @@ onUnmounted(() => {
                 :color="themeColor"
               />
             </template>
-            <v-list density="compact" min-width="140" nav>
+            <v-list density="compact" min-width="200" nav>
               <v-list-item
                 prepend-icon="mdi-white-balance-sunny"
                 title="白天"
+                subtitle="纯白明亮风格"
                 :active="themeStore.appTheme === 'light'"
                 @click="themeStore.setAppTheme('light')"
                 rounded="xl"
@@ -379,30 +410,59 @@ onUnmounted(() => {
               <v-list-item
                 prepend-icon="mdi-weather-night"
                 title="夜晚"
+                subtitle="纯黑暗色风格"
                 :active="themeStore.appTheme === 'dark'"
                 @click="themeStore.setAppTheme('dark')"
                 rounded="xl"
               />
               <v-list-item
                 prepend-icon="mdi-glass-mug-variant"
-                title="ACG"
+                title="ACG 毛玻璃"
+                subtitle="二次元壁纸 + 暗色毛玻璃"
                 :active="themeStore.appTheme === 'acg'"
                 @click="themeStore.setAppTheme('acg')"
                 rounded="xl"
               />
+              <v-divider class="my-2 mx-2" />
+              <v-list-item
+                prepend-icon="mdi-palette"
+                title="主题色"
+                subtitle="选择应用主色调"
+                @click="showPrimaryColorDialog = true"
+              />
+              <v-list-item
+                prepend-icon="mdi-border-radius"
+                title="圆角"
+                subtitle="无 / 小 / 默认 / 大 / 更大"
+                @click="showBorderRadiusDialog = true"
+              />
+              <v-list-item
+                prepend-icon="mdi-border-all-variant"
+                title="边框"
+                subtitle="无 / 轻微 / 默认 / 明显 / 强边框"
+                @click="showBorderDialog = true"
+              />
+              <v-list-item
+                prepend-icon="mdi-box-shadow"
+                title="阴影"
+                subtitle="无 / 轻微 / 默认 / 明显 / 夸张"
+                @click="showShadowDialog = true"
+              />
+              <v-list-item
+                prepend-icon="mdi-wallpaper"
+                title="壁纸管理"
+                subtitle="API / 上传 / 自定义 URL"
+                @click="showWallpaperDialog = true"
+              />
+              <v-list-item
+                prepend-icon="mdi-tune-variant"
+                title="玻璃材质设置"
+                subtitle="材质 / 质量 / 动态效果 / 参数"
+                :disabled="themeStore.appTheme !== 'acg'"
+                @click="showGlassSettings = true"
+              />
             </v-list>
           </v-menu>
-
-          <!-- ACG 玻璃设置（仅 ACG 主题时显示） -->
-          <v-btn
-            v-if="glassAcgEnabled"
-            variant="text"
-            density="comfortable"
-            size="small"
-            color="primary"
-            icon="mdi-tune-variant"
-            @click="showGlassSettings = true"
-          />
 
           <!-- 任务日志 -->
           <v-btn
@@ -477,10 +537,40 @@ onUnmounted(() => {
       </template>
     </v-snackbar>
 
-    <!-- ACG 玻璃设置弹窗 -->
+    <!-- 玻璃材质设置弹窗 -->
     <GlassSettingsDialog
-      v-if="glassAcgEnabled"
       v-model="showGlassSettings"
+      @close="showGlassSettings = false"
+    />
+
+    <!-- 壁纸管理弹窗 -->
+    <WallpaperDialog
+      v-model="showWallpaperDialog"
+      @close="showWallpaperDialog = false"
+    />
+
+    <!-- 边框设置弹窗 -->
+    <BorderDialog
+      v-model="showBorderDialog"
+      @close="showBorderDialog = false"
+    />
+
+    <!-- 阴影设置弹窗 -->
+    <ShadowDialog
+      v-model="showShadowDialog"
+      @close="showShadowDialog = false"
+    />
+
+    <!-- 主题色设置弹窗 -->
+    <PrimaryColorDialog
+      v-model="showPrimaryColorDialog"
+      @close="showPrimaryColorDialog = false"
+    />
+
+    <!-- 圆角设置弹窗 -->
+    <BorderRadiusDialog
+      v-model="showBorderRadiusDialog"
+      @close="showBorderRadiusDialog = false"
     />
     </div><!-- /layout-wrapper -->
   </v-app>

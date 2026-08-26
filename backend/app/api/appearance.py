@@ -1,25 +1,73 @@
 """
-外观壁纸代理 API
-- 代理外部壁纸图片，解决 WebGL CORS 限制
+外观壁纸管理 API
+- 壁纸代理（解决 WebGL CORS 限制）
+- 壁纸配置读写（存入 config.json 的 wallpaper 字段）
+- 壁纸图片上传/读取/删除
+- 预设 API 源列表
 """
 import os
 import time
+import uuid
 import hashlib
 import asyncio
 import logging
+import mimetypes
 
 import httpx
-from fastapi import APIRouter, HTTPException, Query
-from fastapi.responses import Response
+from fastapi import APIRouter, UploadFile, File, HTTPException, Query
+from fastapi.responses import Response, FileResponse
+
+from app.core.config_manager import get_config, save_config
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
+# ── 目录常量 ───────────────────────────────────────────────
+
 WALLPAPER_CACHE_DIR = os.path.join("/app/data", "tmp", "wallpaper")
+WALLPAPER_UPLOAD_DIR = os.path.join("/app/data", "wallpaper")
+
+ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp"}
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
+
+# ── 预设壁纸 API 源列表 ───────────────────────────────────────
+
+WALLPAPER_API_SOURCES = [
+    {
+        "id": "loliapi_acg_pc",
+        "name": "LoliAPI ACG (横屏)",
+        "url": "https://www.loliapi.com/acg/pc/",
+        "category": "acg",
+        "orientation": "landscape",
+        "is_random": True,
+    },
+    {
+        "id": "loliapi_acg_pe",
+        "name": "LoliAPI ACG (竖屏)",
+        "url": "https://www.loliapi.com/acg/pe/",
+        "category": "acg",
+        "orientation": "portrait",
+        "is_random": True,
+    },
+    {
+        "id": "loliapi_acg_auto",
+        "name": "LoliAPI ACG (双端自适应)",
+        "url": "https://www.loliapi.com/acg/",
+        "category": "acg",
+        "orientation": "any",
+        "is_random": True,
+    },
+    {
+        "id": "loliapi_bg",
+        "name": "LoliAPI 随机二次元",
+        "url": "https://www.loliapi.com/bg/",
+        "category": "acg",
+        "orientation": "any",
+        "is_random": True,
+    },
+]
 
 # 已知的随机壁纸 API 域名 —— URL 不变但每次请求返回不同图片
-# 对这类源使用短时间缓存（30 秒），保证同一次页面加载中多个请求
-# （CSS 背景、<img>、WebGL 纹理、tone 分析）拿到同一张图片
 RANDOM_WALLPAPER_DOMAINS = {
     "loliapi.com",
     "www.loliapi.com",
@@ -30,11 +78,17 @@ RANDOM_WALLPAPER_DOMAINS = {
     "random.52ecy.cn",
 }
 
-# 随机壁纸的短缓存时间（秒）
-RANDOM_WALLPAPER_CACHE_TTL = 30
-# 固定壁纸的长缓存时间（秒）
-FIXED_WALLPAPER_CACHE_TTL = 3600
+# 默认壁纸配置
+DEFAULT_WALLPAPER_CONFIG = {
+    "source_type": "api",
+    "api_source_id": "loliapi_acg_pc",
+    "custom_url": "",
+    "upload_filename": "",
+    "cache_ttl": 30,
+}
 
+
+# ── 工具函数 ───────────────────────────────────────────────
 
 def _is_random_wallpaper_url(url: str) -> bool:
     """判断 URL 是否指向随机壁纸 API"""
@@ -48,6 +102,10 @@ def _is_random_wallpaper_url(url: str) -> bool:
 
 def _ensure_wallpaper_dir():
     os.makedirs(WALLPAPER_CACHE_DIR, exist_ok=True)
+
+
+def _ensure_upload_dir():
+    os.makedirs(WALLPAPER_UPLOAD_DIR, exist_ok=True)
 
 
 def _is_valid_image(data: bytes) -> bool:
@@ -65,27 +123,231 @@ def _is_valid_image(data: bytes) -> bool:
     return False
 
 
+def _get_wallpaper_config() -> dict:
+    """从 config.json 读取壁纸配置，合并默认值"""
+    config = get_config()
+    wallpaper = config.get("wallpaper", {})
+    merged = {**DEFAULT_WALLPAPER_CONFIG, **wallpaper}
+    return merged
+
+
+def _save_wallpaper_config(wallpaper: dict):
+    """保存壁纸配置到 config.json"""
+    config = get_config()
+    config["wallpaper"] = wallpaper
+    save_config(config)
+
+
+def _resolve_wallpaper_target_url() -> str:
+    """根据壁纸配置解析出最终要请求的目标 URL"""
+    wp_config = _get_wallpaper_config()
+    source_type = wp_config.get("source_type", "api")
+
+    if source_type == "upload":
+        filename = wp_config.get("upload_filename", "")
+        if filename:
+            return f"local:{filename}"
+        source_type = "api"
+
+    if source_type == "url":
+        custom_url = wp_config.get("custom_url", "").strip()
+        if custom_url:
+            return custom_url
+        source_type = "api"
+
+    if source_type == "api":
+        api_id = wp_config.get("api_source_id", "loliapi_acg_pc")
+        for source in WALLPAPER_API_SOURCES:
+            if source["id"] == api_id:
+                return source["url"]
+        return "https://www.loliapi.com/acg/pc/"
+
+    return "https://www.loliapi.com/acg/pc/"
+
+
+# ── 壁纸源列表 / 配置读写 ───────────────────────────────────
+
+@router.get("/wallpaper/sources")
+async def get_wallpaper_sources():
+    """获取可用的壁纸 API 源列表"""
+    return {"sources": WALLPAPER_API_SOURCES}
+
+
+@router.get("/wallpaper/config")
+async def get_wallpaper_config():
+    """获取当前壁纸配置"""
+    return _get_wallpaper_config()
+
+
+@router.put("/wallpaper/config")
+async def update_wallpaper_config(payload: dict):
+    """更新壁纸配置"""
+    current = _get_wallpaper_config()
+    for key in DEFAULT_WALLPAPER_CONFIG:
+        if key in payload:
+            current[key] = payload[key]
+    _save_wallpaper_config(current)
+    logger.info(f"壁纸配置已更新: {current}")
+    return {"success": True, "config": current}
+
+
+# ── 壁纸上传管理 ───────────────────────────────────────────
+
+@router.get("/wallpaper/uploads")
+async def list_wallpaper_uploads():
+    """列出所有已上传的壁纸图片"""
+    await asyncio.to_thread(_ensure_upload_dir)
+
+    def _list():
+        images = []
+        if not os.path.isdir(WALLPAPER_UPLOAD_DIR):
+            return images
+        for f in sorted(os.listdir(WALLPAPER_UPLOAD_DIR)):
+            ext = os.path.splitext(f)[1].lower()
+            if ext in ALLOWED_EXTENSIONS:
+                filepath = os.path.join(WALLPAPER_UPLOAD_DIR, f)
+                images.append({
+                    "filename": f,
+                    "size": os.path.getsize(filepath),
+                })
+        return images
+    return await asyncio.to_thread(_list)
+
+
+@router.get("/wallpaper/uploads/{filename}")
+async def get_wallpaper_upload(filename: str):
+    """读取已上传的壁纸图片"""
+    filepath = os.path.join(WALLPAPER_UPLOAD_DIR, filename)
+    if not await asyncio.to_thread(os.path.exists, filepath):
+        raise HTTPException(status_code=404, detail="图片不存在")
+
+    def _read_file():
+        with open(filepath, "rb") as f:
+            return f.read()
+    content = await asyncio.to_thread(_read_file)
+    ext = os.path.splitext(filename)[1].lower()
+    ct = {
+        ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
+        ".png": "image/png", ".webp": "image/webp",
+        ".gif": "image/gif", ".bmp": "image/bmp",
+    }.get(ext, mimetypes.guess_type(filepath)[0] or "image/jpeg")
+    return Response(
+        content=content,
+        media_type=ct,
+        headers={
+            "Cache-Control": "public, max-age=3600",
+            "Access-Control-Allow-Origin": "*",
+        },
+    )
+
+
+@router.post("/wallpaper/upload")
+async def upload_wallpaper(file: UploadFile = File(...)):
+    """上传壁纸图片到 data/wallpaper 目录"""
+    await asyncio.to_thread(_ensure_upload_dir)
+
+    ext = os.path.splitext(file.filename or "")[1].lower()
+    if ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(status_code=400, detail=f"不支持的文件格式: {ext}")
+
+    content = await file.read()
+    if len(content) > MAX_FILE_SIZE:
+        raise HTTPException(status_code=400, detail="文件大小超过 10MB 限制")
+
+    filename = f"{uuid.uuid4().hex}{ext}"
+    filepath = os.path.join(WALLPAPER_UPLOAD_DIR, filename)
+
+    def _write_file():
+        with open(filepath, "wb") as f:
+            f.write(content)
+    await asyncio.to_thread(_write_file)
+
+    logger.info(f"壁纸图片已上传: {filename}")
+    return {"success": True, "filename": filename}
+
+
+@router.delete("/wallpaper/uploads/{filename}")
+async def delete_wallpaper_upload(filename: str):
+    """删除已上传的壁纸图片"""
+    filepath = os.path.join(WALLPAPER_UPLOAD_DIR, filename)
+    if not await asyncio.to_thread(os.path.exists, filepath):
+        raise HTTPException(status_code=404, detail="图片不存在")
+
+    await asyncio.to_thread(os.remove, filepath)
+
+    # 如果当前配置正在使用这张图片，清除引用
+    wp_config = _get_wallpaper_config()
+    if wp_config.get("upload_filename") == filename:
+        wp_config["upload_filename"] = ""
+        _save_wallpaper_config(wp_config)
+
+    logger.info(f"壁纸图片已删除: {filename}")
+    return {"success": True}
+
+
+# ── 壁纸代理 ───────────────────────────────────────────────
+
 @router.get("/wallpaper_proxy")
 async def proxy_wallpaper(
-    url: str = Query("", description="要代理的壁纸 URL，为空时使用默认 loliapi 地址"),
-    refresh: bool = Query(False, description="强制刷新（跳过缓存）"),
+    url: str = Query("", description="要代理的壁纸 URL，为空时使用配置中的壁纸源"),
+    refresh: bool = Query(False, description="强制刷新（跳过缓存），用于随机壁纸 API"),
 ):
     """
-    代理外部壁纸图片，解决 WebGL CORS 限制。
-    不传 url 时默认使用 https://www.loliapi.com/acg/pc/
+    代理壁纸图片，解决 WebGL CORS 限制。
+
+    工作模式：
+    1. 如果传了 url 参数，直接代理该 URL（兼容前端旧逻辑）。
+    2. 如果不传 url，从 config.json 的 wallpaper 配置中读取壁纸源：
+       - source_type="api": 从预设 API 源列表中获取 URL，代理请求
+       - source_type="url": 代理自定义 URL
+       - source_type="upload": 直接返回本地 data/wallpaper 目录中的图片
 
     缓存策略：
-    - 随机壁纸 API（如 loliapi.com）：短缓存 30 秒
-    - 固定 URL 壁纸：长缓存 1 小时
+    - 缓存时间由 wallpaper.cache_ttl 配置控制（默认 30 秒）
+    - 随机壁纸 API 建议设 30 秒，固定图片建议设 3600 秒
     - refresh=True 可强制跳过缓存
     """
-    target_url = url.strip() if url.strip() else "https://www.loliapi.com/acg/pc/"
+    wp_config = _get_wallpaper_config()
+
+    # 如果传了 url，直接使用；否则从配置解析
+    if url.strip():
+        target_url = url.strip()
+    else:
+        target_url = _resolve_wallpaper_target_url()
+
+    # 本地图片模式 —— 读取文件并返回，确保 CORS 头和 Content-Type 正确
+    if target_url.startswith("local:"):
+        filename = target_url[6:]
+        filepath = os.path.join(WALLPAPER_UPLOAD_DIR, filename)
+        if not await asyncio.to_thread(os.path.exists, filepath):
+            raise HTTPException(status_code=404, detail="壁纸图片不存在")
+        def _read_file():
+            with open(filepath, "rb") as f:
+                return f.read()
+        content = await asyncio.to_thread(_read_file)
+        ext = os.path.splitext(filename)[1].lower()
+        ct = {
+            ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
+            ".png": "image/png", ".webp": "image/webp",
+            ".gif": "image/gif", ".bmp": "image/bmp",
+        }.get(ext, mimetypes.guess_type(filepath)[0] or "image/jpeg")
+        return Response(
+            content=content,
+            media_type=ct,
+            headers={
+                "Cache-Control": f"public, max-age={wp_config.get('cache_ttl', 30)}",
+                "Access-Control-Allow-Origin": "*",
+            },
+        )
+
     if not target_url.startswith(("http://", "https://")):
         raise HTTPException(status_code=400, detail="无效的 URL")
 
-    is_random = _is_random_wallpaper_url(target_url)
-    cache_ttl = RANDOM_WALLPAPER_CACHE_TTL if is_random else FIXED_WALLPAPER_CACHE_TTL
-    skip_cache = refresh
+    # 缓存时间由配置控制
+    cache_ttl = wp_config.get("cache_ttl", 30)
+    if cache_ttl < 0:
+        cache_ttl = 0
+    skip_cache = refresh or cache_ttl == 0
 
     # 使用 URL hash 作为缓存 key
     url_hash = hashlib.md5(target_url.encode()).hexdigest()
@@ -100,7 +362,6 @@ async def proxy_wallpaper(
         except FileNotFoundError:
             pass
 
-        # 如果有缓存且未过期，直接返回
         if cached_files:
             cached_file = os.path.join(WALLPAPER_CACHE_DIR, cached_files[0])
             try:
@@ -112,7 +373,6 @@ async def proxy_wallpaper(
                             return f.read()
                     cached = await asyncio.to_thread(_read_cache)
                     if cached and _is_valid_image(cached):
-                        # 推断 content-type
                         ext = os.path.splitext(cached_files[0])[1].lower()
                         ct = {
                             ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
@@ -143,11 +403,9 @@ async def proxy_wallpaper(
                 }
                 ext = ext_map.get(content_type, ".jpg")
 
-                # 写入缓存
                 cache_filename = f"{url_hash}{ext}"
                 cache_filepath = os.path.join(WALLPAPER_CACHE_DIR, cache_filename)
 
-                # 清理同 hash 的旧缓存
                 for old in cached_files:
                     try:
                         os.remove(os.path.join(WALLPAPER_CACHE_DIR, old))

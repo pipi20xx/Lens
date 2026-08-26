@@ -18,6 +18,25 @@
 
 html.glass-theme-acg {
   // ═══════════════════════════════════════════════════════════════
+  // 圆角令牌映射 — 将全局 tokens.css 的 --am-*-radius 映射到
+  // glass-acg.scss 内部使用的 --app-*-radius，使 data-theme-radius
+  // 全局圆角控制能作用于 ACG 主题。
+  // ═══════════════════════════════════════════════════════════════
+  --app-surface-radius: var(--am-surface-radius, 16px);
+  --app-overlay-radius: var(--am-overlay-radius, 22px);
+  --app-dialog-radius: var(--am-dialog-radius, 24px);
+  --app-menu-radius: var(--am-menu-radius, 20px);
+  --app-field-radius: var(--am-field-radius, 16px);
+  --app-btn-radius: var(--am-btn-radius, 12px);
+  --app-tab-radius: var(--am-tab-radius, 999px);
+  --app-list-item-radius: var(--am-list-item-radius, 12px);
+  --app-snackbar-radius: var(--am-snackbar-radius, 14px);
+  --app-btn-toggle-radius: var(--am-btn-toggle-radius, 16px);
+  --app-login-radius: var(--am-login-radius, 24px);
+  --app-chip-radius: var(--am-chip-radius, 8px);
+  --app-code-radius: var(--am-code-radius, 6px);
+
+  // ═══════════════════════════════════════════════════════════════
   // 玻璃材质令牌（1:1 照搬 glass.scss 第 8-120 行）
   // ═══════════════════════════════════════════════════════════════
   --glass-surface: rgba(11, 19, 34, calc(0.12 + var(--glass-surface-density, 0.62) * 0.2));

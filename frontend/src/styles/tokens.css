@@ -10,3 +10,370 @@ html.glass-theme-acg {
      然后经后端 /api/appearance/wallpaper_proxy 代理加载，避免 CORS 问题。 */
   --am-wallpaper-source: https://www.loliapi.com/acg/pc/;
 }
+/* ════════════════════════════════════════════════════════════════
+ * 全局圆角控制 — 由 useThemeCustomizer 的 radius 设置驱动
+ * data-theme-radius 属性由 applyThemeCustomizerRootSettings 写入。
+ *
+ * 档位说明：
+ *   none     — 无圆角（0px）
+ *   small    — 小圆角（4-8px）
+ *   default  — 默认（不覆盖，保持各主题自身的圆角值）
+ *   large    — 大圆角（20-28px）
+ *   extra    — 更大圆角（28-36px）
+ *
+ * 注意：pill 形（999px）的 tab/btn 在 none/small 档位会被强制转为直角/小圆角。
+ * ════════════════════════════════════════════════════════════════ */
+
+/* ── 无圆角 ── */
+html[data-theme-radius='none'],
+html[data-theme-radius='none'] .v-theme--light,
+html[data-theme-radius='none'] .v-theme--dark {
+  --am-surface-radius: 0px;
+  --am-overlay-radius: 0px;
+  --am-dialog-radius: 0px;
+  --am-menu-radius: 0px;
+  --am-field-radius: 0px;
+  --am-btn-radius: 0px;
+  --am-tab-radius: 0px;
+  --am-list-item-radius: 0px;
+  --am-snackbar-radius: 0px;
+  --am-btn-toggle-radius: 0px;
+  --am-login-radius: 0px;
+  --am-chip-radius: 0px;
+  --am-code-radius: 0px;
+}
+
+/* ── 小圆角 ── */
+html[data-theme-radius='small'],
+html[data-theme-radius='small'] .v-theme--light,
+html[data-theme-radius='small'] .v-theme--dark {
+  --am-surface-radius: 6px;
+  --am-overlay-radius: 6px;
+  --am-dialog-radius: 8px;
+  --am-menu-radius: 6px;
+  --am-field-radius: 6px;
+  --am-btn-radius: 4px;
+  --am-tab-radius: 4px;
+  --am-list-item-radius: 4px;
+  --am-snackbar-radius: 4px;
+  --am-btn-toggle-radius: 4px;
+  --am-login-radius: 8px;
+  --am-chip-radius: 4px;
+  --am-code-radius: 3px;
+}
+
+/* ── 默认：不覆盖，保持各主题自身的圆角值 ── */
+
+/* ── 大圆角 ── */
+html[data-theme-radius='large'],
+html[data-theme-radius='large'] .v-theme--light,
+html[data-theme-radius='large'] .v-theme--dark {
+  --am-surface-radius: 20px;
+  --am-overlay-radius: 24px;
+  --am-dialog-radius: 28px;
+  --am-menu-radius: 24px;
+  --am-field-radius: 20px;
+  --am-btn-radius: 16px;
+  --am-tab-radius: 999px;
+  --am-list-item-radius: 16px;
+  --am-snackbar-radius: 16px;
+  --am-btn-toggle-radius: 20px;
+  --am-login-radius: 28px;
+  --am-chip-radius: 12px;
+  --am-code-radius: 8px;
+}
+
+/* ── 更大圆角 ── */
+html[data-theme-radius='extra'],
+html[data-theme-radius='extra'] .v-theme--light,
+html[data-theme-radius='extra'] .v-theme--dark {
+  --am-surface-radius: 28px;
+  --am-overlay-radius: 32px;
+  --am-dialog-radius: 36px;
+  --am-menu-radius: 32px;
+  --am-field-radius: 28px;
+  --am-btn-radius: 24px;
+  --am-tab-radius: 999px;
+  --am-list-item-radius: 24px;
+  --am-snackbar-radius: 20px;
+  --am-btn-toggle-radius: 28px;
+  --am-login-radius: 36px;
+  --am-chip-radius: 16px;
+  --am-code-radius: 12px;
+}
+
+/* ════════════════════════════════════════════════════════════════
+ * 全局阴影控制 — 由 useThemeCustomizer 的 shadow 设置驱动
+ * data-theme-shadow 属性由 applyThemeCustomizerRootSettings 写入。
+ *
+ * 档位说明：
+ *   none     — 无阴影（全部 none）
+ *   subtle   — 轻微阴影（极淡投影）
+ *   default  — 默认（不覆盖，保持各主题自身的阴影值）
+ *   prominent — 明显阴影
+ *   dramatic  — 夸张阴影
+ *
+ * 覆盖范围：卡片(surface)、弹窗(overlay)、按钮(btn)、Tab、
+ * 输入框(field)、折叠面板(panel)、snackbar、login、hover-lift、
+ * 筛选芯片(filter-chip)、开关/滑块拇指。
+ * ════════════════════════════════════════════════════════════════ */
+
+/* ── 无阴影 ── */
+html[data-theme-shadow='none'],
+html[data-theme-shadow='none'] .v-theme--light,
+html[data-theme-shadow='none'] .v-theme--dark {
+  --am-surface-shadow: none;
+  --am-surface-hover-shadow: none;
+  --am-overlay-shadow: none;
+  --am-panel-shadow: none;
+  --am-hover-lift-shadow: none;
+  --am-btn-shadow: none;
+  --am-btn-hover-shadow: none;
+  --am-tab-shadow: none;
+  --am-field-shadow: none;
+  --am-snackbar-shadow: none;
+  --am-login-shadow: none;
+  --am-filter-chip-shadow: none;
+  --am-switch-thumb-shadow: none;
+  --am-slider-thumb-shadow: none;
+
+  /* ACG 主题玻璃阴影 */
+  --glass-shadow: none;
+  --glass-shadow-raised: none;
+  --glass-shadow-hover: none;
+  --glass-navbar-shadow: none;
+
+  /* Liquid 主题液态阴影 */
+  --lg-shadow: none;
+  --lg-shadow-lift: none;
+}
+
+/* ── 轻微阴影 ── */
+html[data-theme-shadow='subtle'],
+html[data-theme-shadow='subtle'] .v-theme--light,
+html[data-theme-shadow='subtle'] .v-theme--dark {
+  --am-surface-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  --am-surface-hover-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --am-overlay-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  --am-panel-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  --am-hover-lift-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --am-btn-shadow: none;
+  --am-btn-hover-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  --am-tab-shadow: none;
+  --am-field-shadow: none;
+  --am-snackbar-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  --am-login-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  --am-filter-chip-shadow: none;
+  --am-switch-thumb-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+  --am-slider-thumb-shadow: none;
+
+  /* ACG */
+  --glass-shadow: 0 2px 8px rgba(3, 7, 18, 10%);
+  --glass-shadow-raised: 0 4px 12px rgba(3, 7, 18, 14%);
+  --glass-shadow-hover: 0 6px 16px rgba(3, 7, 18, 18%);
+  --glass-navbar-shadow: 0 1px 4px rgba(3, 7, 18, 8%);
+
+  /* Liquid */
+  --lg-shadow: 0 2px 8px -4px rgba(31, 38, 135, 0.12);
+  --lg-shadow-lift: 0 4px 12px -6px rgba(31, 38, 135, 0.16);
+}
+
+/* ── 默认：不覆盖，保持各主题自身的阴影值 ── */
+
+/* ── 明显阴影 ── */
+html[data-theme-shadow='prominent'],
+html[data-theme-shadow='prominent'] .v-theme--light,
+html[data-theme-shadow='prominent'] .v-theme--dark {
+  --am-surface-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+  --am-surface-hover-shadow: 0 12px 32px rgba(0, 0, 0, 0.22);
+  --am-overlay-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  --am-panel-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+  --am-hover-lift-shadow: 0 12px 32px rgba(0, 0, 0, 0.22), 0 0 20px rgba(var(--am-primary-rgb, var(--v-theme-primary)), 0.15);
+  --am-btn-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --am-btn-hover-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  --am-tab-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --am-field-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --am-snackbar-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+  --am-login-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
+  --am-filter-chip-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --am-switch-thumb-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  --am-slider-thumb-shadow: 0 0 14px rgba(var(--v-theme-primary), 0.5);
+
+  /* ACG */
+  --glass-shadow: 0 14px 36px rgba(3, 7, 18, 32%), inset 0 1px 0 var(--glass-highlight, rgba(255, 255, 255, 6%)), inset 0 -1px 0 rgba(2, 6, 16, 14%);
+  --glass-shadow-raised: 0 20px 50px rgba(3, 7, 18, 40%), inset 0 1px 0 rgba(255, 255, 255, 24%), inset 0 -1px 0 rgba(2, 6, 16, 18%);
+  --glass-shadow-hover: 0 24px 56px rgba(3, 7, 18, 44%), inset 0 1px 0 rgba(255, 255, 255, 28%), inset 0 -1px 0 rgba(2, 6, 16, 18%);
+  --glass-navbar-shadow: 0 6px 20px rgba(3, 7, 18, 24%), inset 0 1px 0 rgba(255, 255, 255, 10%), inset 0 -1px 0 rgba(2, 6, 16, 12%);
+
+  /* Liquid */
+  --lg-shadow: 0 14px 42px -12px rgba(31, 38, 135, 0.38), 0 4px 12px -4px rgba(31, 38, 135, 0.22);
+  --lg-shadow-lift: 0 28px 60px -14px rgba(31, 38, 135, 0.46), 0 6px 16px -6px rgba(31, 38, 135, 0.28);
+}
+
+/* ── 夸张阴影 ── */
+html[data-theme-shadow='dramatic'],
+html[data-theme-shadow='dramatic'] .v-theme--light,
+html[data-theme-shadow='dramatic'] .v-theme--dark {
+  --am-surface-shadow: 0 10px 32px rgba(0, 0, 0, 0.28);
+  --am-surface-hover-shadow: 0 20px 48px rgba(0, 0, 0, 0.35);
+  --am-overlay-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  --am-panel-shadow: 0 10px 32px rgba(0, 0, 0, 0.28);
+  --am-hover-lift-shadow: 0 20px 48px rgba(0, 0, 0, 0.35), 0 0 28px rgba(var(--am-primary-rgb, var(--v-theme-primary)), 0.2);
+  --am-btn-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --am-btn-hover-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+  --am-tab-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --am-field-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  --am-snackbar-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  --am-login-shadow: 0 24px 64px rgba(0, 0, 0, 0.3);
+  --am-filter-chip-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --am-switch-thumb-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  --am-slider-thumb-shadow: 0 0 20px rgba(var(--v-theme-primary), 0.6);
+
+  /* ACG */
+  --glass-shadow: 0 20px 48px rgba(3, 7, 18, 42%), inset 0 1px 0 var(--glass-highlight, rgba(255, 255, 255, 6%)), inset 0 -1px 0 rgba(2, 6, 16, 14%);
+  --glass-shadow-raised: 0 28px 64px rgba(3, 7, 18, 52%), inset 0 1px 0 rgba(255, 255, 255, 24%), inset 0 -1px 0 rgba(2, 6, 16, 18%);
+  --glass-shadow-hover: 0 32px 72px rgba(3, 7, 18, 56%), inset 0 1px 0 rgba(255, 255, 255, 28%), inset 0 -1px 0 rgba(2, 6, 16, 18%);
+  --glass-navbar-shadow: 0 10px 32px rgba(3, 7, 18, 32%), inset 0 1px 0 rgba(255, 255, 255, 10%), inset 0 -1px 0 rgba(2, 6, 16, 12%);
+
+  /* Liquid */
+  --lg-shadow: 0 20px 56px -12px rgba(31, 38, 135, 0.46), 0 6px 16px -4px rgba(31, 38, 135, 0.28);
+  --lg-shadow-lift: 0 36px 72px -14px rgba(31, 38, 135, 0.54), 0 8px 20px -6px rgba(31, 38, 135, 0.34);
+}
+
+/* ════════════════════════════════════════════════════════════════
+ * 全局边框控制 — 由 useThemeCustomizer 的 border 设置驱动
+ * data-theme-border 属性由 applyThemeCustomizerRootSettings 写入。
+ *
+ * 档位说明：
+ *   none      — 无边框（全部 none）
+ *   subtle    — 轻微边框（极淡描边）
+ *   default   — 默认（不覆盖，保持各主题自身的边框值）
+ *   prominent — 明显边框
+ *   dramatic  — 强边框（粗线 + 高对比度）
+ *
+ * 覆盖范围：卡片(surface)、弹窗(overlay)、导航(nav)、按钮(btn)、
+ * Tab、输入框(field)、芯片(chip)、snackbar、alert、login、
+ * btn-toggle、avatar、filter-chip、content-border。
+ * ════════════════════════════════════════════════════════════════ */
+
+/* ── 无边框 ── */
+html[data-theme-border='none'],
+html[data-theme-border='none'] .v-theme--light,
+html[data-theme-border='none'] .v-theme--dark {
+  --am-surface-border: none;
+  --am-overlay-border: none;
+  --am-nav-border: none;
+  --am-field-border: none;
+  --am-btn-border: none;
+  --am-tab-border: none;
+  --am-chip-border: none;
+  --am-snackbar-border: none;
+  --am-alert-border: none;
+  --am-login-border: none;
+  --am-btn-toggle-border: none;
+  --am-avatar-border: none;
+  --am-code-block-border: none;
+  --am-filter-chip-border: none;
+  --am-content-border: none;
+
+  /* ACG */
+  --glass-border: transparent;
+  --glass-border-raised: transparent;
+  --glass-border-hover: transparent;
+
+  /* Liquid */
+  --lg-border: transparent;
+  --lg-border-strong: transparent;
+}
+
+/* ── 轻微边框 ── */
+html[data-theme-border='subtle'],
+html[data-theme-border='subtle'] .v-theme--light,
+html[data-theme-border='subtle'] .v-theme--dark {
+  --am-surface-border: 1px solid rgba(var(--v-theme-on-surface), 0.04);
+  --am-overlay-border: 1px solid rgba(var(--v-theme-on-surface), 0.05);
+  --am-nav-border: 1px solid rgba(var(--v-theme-on-surface), 0.04);
+  --am-field-border: 1px solid rgba(var(--v-theme-on-surface), 0.04);
+  --am-btn-border: 1px solid rgba(var(--v-theme-on-surface), 0.05);
+  --am-tab-border: 1px solid rgba(var(--v-theme-on-surface), 0.05);
+  --am-chip-border: 1px solid rgba(var(--v-theme-on-surface), 0.05);
+  --am-snackbar-border: 1px solid rgba(var(--v-theme-on-surface), 0.04);
+  --am-alert-border: 1px solid rgba(var(--v-theme-on-surface), 0.05);
+  --am-login-border: 1px solid rgba(var(--v-theme-on-surface), 0.04);
+  --am-btn-toggle-border: 1px solid rgba(var(--v-theme-on-surface), 0.05);
+  --am-avatar-border: 1px solid rgba(var(--v-theme-on-surface), 0.05);
+  --am-code-block-border: 1px solid rgba(var(--v-theme-on-surface), 0.08);
+  --am-filter-chip-border: 1px solid rgba(var(--v-theme-on-surface), 0.04);
+  --am-content-border: 1px solid rgba(var(--v-theme-on-surface), 0.05);
+
+  /* ACG */
+  --glass-border: rgba(255, 255, 255, 0.03);
+  --glass-border-raised: rgba(255, 255, 255, 0.04);
+  --glass-border-hover: rgba(255, 255, 255, 0.06);
+
+  /* Liquid */
+  --lg-border: rgba(var(--v-theme-on-surface), 0.04);
+  --lg-border-strong: rgba(var(--v-theme-on-surface), 0.06);
+}
+
+/* ── 默认：不覆盖，保持各主题自身的边框值 ── */
+
+/* ── 明显边框 ── */
+html[data-theme-border='prominent'],
+html[data-theme-border='prominent'] .v-theme--light,
+html[data-theme-border='prominent'] .v-theme--dark {
+  --am-surface-border: 1px solid rgba(var(--v-theme-on-surface), 0.16);
+  --am-overlay-border: 1px solid rgba(var(--v-theme-on-surface), 0.18);
+  --am-nav-border: 1px solid rgba(var(--v-theme-on-surface), 0.16);
+  --am-field-border: 1px solid rgba(var(--v-theme-on-surface), 0.16);
+  --am-btn-border: 1px solid rgba(var(--v-theme-on-surface), 0.18);
+  --am-tab-border: 1px solid rgba(var(--v-theme-on-surface), 0.18);
+  --am-chip-border: 1px solid rgba(var(--v-theme-on-surface), 0.18);
+  --am-snackbar-border: 1px solid rgba(var(--v-theme-on-surface), 0.16);
+  --am-alert-border: 1px solid rgba(var(--v-theme-on-surface), 0.18);
+  --am-login-border: 1px solid rgba(var(--v-theme-on-surface), 0.16);
+  --am-btn-toggle-border: 1px solid rgba(var(--v-theme-on-surface), 0.18);
+  --am-avatar-border: 1px solid rgba(var(--v-theme-on-surface), 0.18);
+  --am-code-block-border: 1px solid rgba(var(--v-theme-on-surface), 0.3);
+  --am-filter-chip-border: 1px solid rgba(var(--v-theme-on-surface), 0.16);
+  --am-content-border: 1px solid rgba(var(--v-theme-on-surface), 0.18);
+
+  /* ACG */
+  --glass-border: rgba(255, 255, 255, 0.14);
+  --glass-border-raised: rgba(255, 255, 255, 0.18);
+  --glass-border-hover: rgba(255, 255, 255, 0.24);
+
+  /* Liquid */
+  --lg-border: rgba(var(--v-theme-on-surface), 0.14);
+  --lg-border-strong: rgba(var(--v-theme-on-surface), 0.2);
+}
+
+/* ── 强边框 ── */
+html[data-theme-border='dramatic'],
+html[data-theme-border='dramatic'] .v-theme--light,
+html[data-theme-border='dramatic'] .v-theme--dark {
+  --am-surface-border: 2px solid rgba(var(--v-theme-on-surface), 0.25);
+  --am-overlay-border: 2px solid rgba(var(--v-theme-on-surface), 0.28);
+  --am-nav-border: 2px solid rgba(var(--v-theme-on-surface), 0.25);
+  --am-field-border: 2px solid rgba(var(--v-theme-on-surface), 0.25);
+  --am-btn-border: 2px solid rgba(var(--v-theme-on-surface), 0.28);
+  --am-tab-border: 2px solid rgba(var(--v-theme-on-surface), 0.28);
+  --am-chip-border: 2px solid rgba(var(--v-theme-on-surface), 0.28);
+  --am-snackbar-border: 2px solid rgba(var(--v-theme-on-surface), 0.25);
+  --am-alert-border: 2px solid rgba(var(--v-theme-on-surface), 0.28);
+  --am-login-border: 2px solid rgba(var(--v-theme-on-surface), 0.25);
+  --am-btn-toggle-border: 2px solid rgba(var(--v-theme-on-surface), 0.28);
+  --am-avatar-border: 2px solid rgba(var(--v-theme-on-surface), 0.28);
+  --am-code-block-border: 2px solid rgba(var(--v-theme-on-surface), 0.4);
+  --am-filter-chip-border: 2px solid rgba(var(--v-theme-on-surface), 0.25);
+  --am-content-border: 2px solid rgba(var(--v-theme-on-surface), 0.28);
+
+  /* ACG */
+  --glass-border: rgba(255, 255, 255, 0.22);
+  --glass-border-raised: rgba(255, 255, 255, 0.3);
+  --glass-border-hover: rgba(255, 255, 255, 0.38);
+
+  /* Liquid */
+  --lg-border: rgba(var(--v-theme-on-surface), 0.22);
+  --lg-border-strong: rgba(var(--v-theme-on-surface), 0.3);
+}

@@ -82,7 +82,14 @@ DEFAULT_CONFIG = {
     "build_projects": [],
     "build_registries": [],
     "build_credentials": [],
-    "build_proxies": []
+    "build_proxies": [],
+    "wallpaper": {
+        "source_type": "api",
+        "api_source_id": "loliapi_acg_pc",
+        "custom_url": "",
+        "upload_filename": "",
+        "cache_ttl": 30,
+    },
 }
 
 def normalize_config(raw_data: Dict[str, Any]) -> Dict[str, Any]:

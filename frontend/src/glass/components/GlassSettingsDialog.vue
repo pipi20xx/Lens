@@ -340,23 +340,21 @@ onScopeDispose(cancelGlassPreview)
     scrollable
     :fullscreen="display.smAndDown.value"
   >
-    <VCard>
-      <VCardItem>
-        <VCardTitle>
-          <VIcon icon="mdi-blur-radial" class="me-2" />
-          {{ t('theme.glassSettings') }}
-        </VCardTitle>
-        <VBtn
-          icon
-          variant="text"
-          size="small"
-          class="absolute right-3 top-3 z-10"
-          aria-label="关闭"
-          @click.stop="visible = false"
-        >
-          <VIcon icon="mdi-close" />
-        </VBtn>
-      </VCardItem>
+<VCard>
+<VCardTitle class="d-flex align-center pa-4">
+<VIcon icon="mdi-blur-radial" class="me-2" />
+{{ t('theme.glassSettings') }}
+<VSpacer />
+<VBtn
+icon
+variant="text"
+size="small"
+aria-label="关闭"
+@click.stop="visible = false"
+>
+<VIcon icon="mdi-close" />
+</VBtn>
+</VCardTitle>
       <VDivider />
 
       <VCardText class="glass-settings-dialog__body">
@@ -380,28 +378,6 @@ onScopeDispose(cancelGlassPreview)
             </VBtn>
           </VBtnToggle>
           <p class="glass-settings-dialog__hint">{{ t('theme.glassAppearanceHint') }}</p>
-        </section>
-
-        <section v-if="showsSurfaceMode" class="glass-settings-dialog__surface-mode-section">
-          <h3 class="glass-settings-dialog__label">{{ t('theme.glassSurfaceMode') }}</h3>
-          <VBtnToggle
-            :model-value="draftSurfaceMode"
-            mandatory
-            color="primary"
-            variant="text"
-            class="glass-settings-dialog__surface-mode"
-            @update:model-value="updateSurfaceMode"
-          >
-            <VBtn
-              v-for="option in surfaceModeOptions"
-              :key="option.value"
-              :value="option.value"
-              class="glass-settings-dialog__surface-mode-option"
-            >
-              {{ t(option.label) }}
-            </VBtn>
-          </VBtnToggle>
-          <p class="glass-settings-dialog__hint">{{ t(surfaceModeHint) }}</p>
         </section>
 
         <section>
@@ -472,6 +448,28 @@ onScopeDispose(cancelGlassPreview)
           <p class="glass-settings-dialog__hint">{{ t(dynamicsModeHint) }}</p>
         </section>
 
+        <section v-if="showsSurfaceMode" class="glass-settings-dialog__surface-mode-section">
+          <h3 class="glass-settings-dialog__label">{{ t('theme.glassSurfaceMode') }}</h3>
+          <VBtnToggle
+            :model-value="draftSurfaceMode"
+            mandatory
+            color="primary"
+            variant="text"
+            class="glass-settings-dialog__surface-mode"
+            @update:model-value="updateSurfaceMode"
+          >
+            <VBtn
+              v-for="option in surfaceModeOptions"
+              :key="option.value"
+              :value="option.value"
+              class="glass-settings-dialog__surface-mode-option"
+            >
+              {{ t(option.label) }}
+            </VBtn>
+          </VBtnToggle>
+          <p class="glass-settings-dialog__hint">{{ t(surfaceModeHint) }}</p>
+        </section>
+
         <section class="glass-settings-dialog__tuning">
           <h3 class="glass-settings-dialog__group-label">{{ t('theme.glassMaterialTuning') }}</h3>
           <div class="glass-settings-dialog__slider-header">
@@ -527,6 +525,7 @@ onScopeDispose(cancelGlassPreview)
           <p class="glass-settings-dialog__hint">
             {{ t('theme.glassMaterialStrengthHint') }}
           </p>
+
 
           <div v-if="showsDynamicTuning" class="glass-settings-dialog__live-controls">
             <h3 class="glass-settings-dialog__group-label">{{ t('theme.glassDynamicTuning') }}</h3>
@@ -589,13 +588,13 @@ onScopeDispose(cancelGlassPreview)
 
       <VDivider />
       <VCardActions class="glass-settings-dialog__actions justify-center">
-        <VBtn :slim="false" variant="outlined" prepend-icon="mdi-refresh" class="me-2" @click="resetSettings">
+        <VBtn :slim="false" variant="tonal" prepend-icon="mdi-refresh" class="me-2" @click="resetSettings">
           {{ t('common.reset') }}
         </VBtn>
         <VBtn
           :slim="false"
           color="primary"
-          variant="elevated"
+          variant="tonal"
           prepend-icon="mdi-content-save"
           :loading="isSaving"
           @click="saveSettings"
@@ -727,9 +726,19 @@ onScopeDispose(cancelGlassPreview)
   block-size: 32px !important;
   inline-size: 100%;
   letter-spacing: 0;
-  min-inline-size: 0;
-  padding-inline: 4px;
-  font-size: 0.75rem;
+}
+
+.glass-settings-dialog__surface-mode-option {
+  block-size: 32px !important;
+}
+
+.glass-settings-dialog__surface-mode {
+  block-size: 42px !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.glass-settings-dialog__surface-mode-section {
+  margin-block-start: 4px;
 }
 
 .glass-settings-dialog__appearance-option,
@@ -755,16 +764,6 @@ onScopeDispose(cancelGlassPreview)
 }
 
 .glass-settings-dialog__preset-option {
-  block-size: 32px !important;
-}
-
-.glass-settings-dialog__surface-mode {
-  block-size: 42px !important;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin-block-start: 10px;
-}
-
-.glass-settings-dialog__surface-mode-option {
   block-size: 32px !important;
 }
 
