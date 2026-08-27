@@ -467,7 +467,10 @@ code {
  * 17. SnackBar — 提示条
  * ============================================================ */
 
-.v-snackbar {
+/* 注意：Vuetify 的 .v-snackbar 是全屏 fixed 定位层，只有内部的
+   .v-snackbar__wrapper 才是实际的提示条。背景/模糊/阴影/圆角必须
+   应用到 wrapper 上，否则会把整个视口变成毛玻璃遮罩。 */
+.v-snackbar__wrapper {
   background: var(--am-snackbar-bg) !important;
   backdrop-filter: var(--am-snackbar-blur) !important;
   -webkit-backdrop-filter: var(--am-snackbar-blur) !important;
