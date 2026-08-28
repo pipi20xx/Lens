@@ -92,6 +92,12 @@ async function openEditor(item: FileItem) {
   try {
     const res: any = await filesApi.read(props.hostId!, item.path)
     editorContent.value = res.content ?? ''
+    // auto-grow 在程序化赋值后不会自动重算高度，需要手动触发
+    nextTick(() => {
+      const content = editorContent.value
+      editorContent.value = content + ' '
+      nextTick(() => { editorContent.value = content })
+    })
   } catch (e: any) {
     showError('读取文件失败: ' + (e.message || ''))
   } finally {
@@ -456,6 +462,7 @@ function formatTime(ts?: number) {
         :loading="editorLoading"
         :disabled="editorLoading"
         rows="14"
+        auto-grow
         class="yaml-editor"
         variant="outlined"
         hide-details

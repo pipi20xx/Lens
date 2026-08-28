@@ -855,7 +855,7 @@ onMounted(fetchHosts)
   <v-select v-model="editDbForm.owner" :items="dbUserOptions" item-title="label" item-value="value"
             label="所有者" variant="outlined" density="compact" class="mb-3" />
           <v-textarea v-model="editDbForm.description" label="备注/描述" variant="outlined" density="compact"
-            rows="3" hint="为数据库添加描述信息..." persistent-hint />
+            rows="3" auto-grow hint="为数据库添加描述信息..." persistent-hint />
   <template #actions>
     <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" :loading="updatingDb" @click="updateDatabase">保存修改</v-btn>
   </template>

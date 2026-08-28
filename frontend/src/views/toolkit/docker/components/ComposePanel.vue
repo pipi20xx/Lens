@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { dockerApi } from '@/api/docker'
 import { useNotification } from '@/composables'
 import { useConfirm } from '@/composables'
@@ -97,12 +97,25 @@ const finalSavePath = computed(() => {
   return `${base}/${name}/docker-compose.yml`
 })
 
+// Vuetify v-textarea 的 auto-grow 在程序化赋值后不会自动重算高度，
+// 需要在弹窗打开后手动触发一次内容变更来让 auto-grow 生效
+function triggerAutoGrow() {
+  nextTick(() => {
+    const content = currentProject.value.content
+    currentProject.value = { ...currentProject.value, content: content + ' ' }
+    nextTick(() => {
+      currentProject.value = { ...currentProject.value, content }
+    })
+  })
+}
+
 function handleCreateProject() {
   currentProject.value = { name: '', content: 'version: "3.8"\nservices:\n  app:\n    image: ', path: '' }
   isEditingProject.value = false; yamlError.value = null
   const saved = localStorage.getItem(storageKey.value)
   if (saved) baseSavePath.value = saved
   showComposeModal.value = true
+  triggerAutoGrow()
 }
 
 async function editProject(project: any) {
@@ -111,6 +124,7 @@ async function editProject(project: any) {
     const res = await dockerApi.getComposeProject(props.hostId, project.name, project.config_file || project.path)
     currentProject.value = { ...res, path: project.config_file || project.path }
     isEditingProject.value = true; yamlError.value = null; showComposeModal.value = true
+    triggerAutoGrow()
   } catch { showError('加载项目失败') }
 }
 
@@ -214,7 +228,7 @@ defineExpose({ loadComposeProjects })
         <v-text-field v-model="baseSavePath" label="基础保存路径" variant="outlined" density="compact" placeholder="选择存放项目的根目录" class="mb-3" />
         <div class="mb-3"><span class="text-body-2 text-medium-emphasis">完整保存路径：</span><code class="text-body-2">{{ finalSavePath }}</code></div>
       </template>
-      <v-textarea v-model="currentProject.content" label="YAML 内容" variant="outlined" placeholder="在此输入 docker-compose.yml 内容" rows="12" class="yaml-editor" :error-messages="yamlError ? [yamlError] : []" @update:model-value="handleYamlInput" />
+      <v-textarea v-model="currentProject.content" label="YAML 内容" variant="outlined" placeholder="在此输入 docker-compose.yml 内容" auto-grow rows="12" class="yaml-editor" :error-messages="yamlError ? [yamlError] : []" hide-details="auto" @update:model-value="handleYamlInput" />
 
       <template #actions>
         <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveProject" :disabled="!!yamlError">保存项目</v-btn>

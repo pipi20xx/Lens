@@ -631,7 +631,7 @@ onMounted(loadLibraries)
           <v-alert variant="tonal" type="info" density="compact" class="mb-3" rounded="lg">
             高级操作：您可以直接编辑下方的原始 JSON 数据进行高级配置。
           </v-alert>
-          <v-textarea v-model="jsonRaw" variant="outlined" :rows="jsonRows" class="yaml-editor" @update:model-value="handleJsonInput" />
+          <v-textarea v-model="jsonRaw" variant="outlined" :rows="jsonRows" auto-grow class="yaml-editor" @update:model-value="handleJsonInput" />
         </v-window-item>
       </v-window>
 

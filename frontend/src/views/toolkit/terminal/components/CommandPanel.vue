@@ -140,7 +140,7 @@ onMounted(fetchCommands)
       icon="mdi-flash" :title="editingId ? '编辑命令' : '新建命令'"
     >
       <v-text-field v-model="cmdForm.title" label="标题" variant="outlined" density="compact" placeholder="例如：查看日志" class="mb-3" />
-      <v-textarea v-model="cmdForm.command" label="命令" variant="outlined" density="compact" rows="3" placeholder="tail -f /app/logs/app.log" />
+      <v-textarea v-model="cmdForm.command" label="命令" variant="outlined" density="compact" rows="3" auto-grow placeholder="tail -f /app/logs/app.log" />
 
       <template #actions>
         <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveCommand">保存</v-btn>

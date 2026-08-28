@@ -156,7 +156,7 @@ defineExpose({ fetchHosts })
         <SecretField v-model="hostForm.password" label="登录密码" :show-copy="false" class="mb-3" />
       </template>
       <template v-else>
-        <v-textarea v-model="hostForm.private_key" label="私钥内容" variant="outlined" density="compact" rows="3" placeholder="-----BEGIN RSA PRIVATE KEY-----" class="mb-3" />
+        <v-textarea v-model="hostForm.private_key" label="私钥内容" variant="outlined" density="compact" rows="3" auto-grow placeholder="-----BEGIN RSA PRIVATE KEY-----" class="mb-3" />
         <SecretField v-model="hostForm.private_key_password" label="私钥密码" :show-copy="false" placeholder="可选，若私钥已加密请填写" class="mb-3" />
       </template>
 

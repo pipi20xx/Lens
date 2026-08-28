@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { dockerApi } from '@/api/docker'
 import { useNotification } from '@/composables'
 import { useConfirm } from '@/composables'
@@ -95,6 +95,12 @@ async function openRawEdit() {
   try {
     const res = await dockerApi.getDaemonConfigRaw(props.hostId)
     rawJsonContent.value = res?.content || ''; rawJsonError.value = null; showRawModal.value = true
+    // auto-grow 在程序化赋值后不会自动重算高度，需要手动触发
+    nextTick(() => {
+      const content = rawJsonContent.value
+      rawJsonContent.value = content + ' '
+      nextTick(() => { rawJsonContent.value = content })
+    })
   } catch { showError('无法读取原始配置') }
   finally { daemonLoading.value = false }
 }
@@ -163,8 +169,8 @@ defineExpose({ loadDaemonConfig })
       <v-card-text class="pa-4" v-if="!daemonLoading">
         <v-row>
           <v-col cols="12" sm="6">
-            <v-textarea v-model="daemonForm.mirrors" label="镜像加速器 (Registry Mirrors)" variant="outlined" density="compact" rows="3" hint="每行一个 URL" persistent-hint class="mb-3" />
-            <v-textarea v-model="daemonForm.insecure" label="私有仓库 (Insecure Registries)" variant="outlined" density="compact" rows="3" hint="每行一个地址" persistent-hint class="mb-3" />
+            <v-textarea v-model="daemonForm.mirrors" label="镜像加速器 (Registry Mirrors)" variant="outlined" density="compact" rows="3" auto-grow hint="每行一个 URL" persistent-hint class="mb-3" />
+            <v-textarea v-model="daemonForm.insecure" label="私有仓库 (Insecure Registries)" variant="outlined" density="compact" rows="3" auto-grow hint="每行一个地址" persistent-hint class="mb-3" />
 
             <v-card variant="outlined" class="pa-3">
               <div class="d-flex align-center justify-space-between mb-2">
@@ -250,7 +256,7 @@ defineExpose({ loadDaemonConfig })
       icon="mdi-code-block-braces" title="直接编辑 daemon.json"
     >
       <v-alert type="warning" variant="tonal" density="compact" class="mb-3" text="警告：直接编辑 JSON 可能会导致 Docker 无法启动。系统将会在保存前验证 JSON 格式并自动创建备份。" />
-      <v-textarea v-model="rawJsonContent" variant="outlined" rows="12" class="yaml-editor" :error-messages="rawJsonError ? [rawJsonError] : []" @update:model-value="validateRawJson" />
+      <v-textarea v-model="rawJsonContent" variant="outlined" rows="12" auto-grow class="yaml-editor" :error-messages="rawJsonError ? [rawJsonError] : []" hide-details="auto" @update:model-value="validateRawJson" />
       <v-checkbox v-model="daemonForm.shouldRestart" density="compact" hide-details label="保存后重启 Docker 服务" class="mt-3" />
 
       <template #actions>
