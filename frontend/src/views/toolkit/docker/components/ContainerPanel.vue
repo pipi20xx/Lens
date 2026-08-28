@@ -324,13 +324,10 @@ defineExpose({ loadContainers, loadContainerSettings })
 
     <!-- 日志对话框 -->
     <GlassDialog v-model="showLogsDialog" :max-width="900"
-      icon="mdi-text-box-outline" :title="'日志 — ' + logContainerName" :cancel-visible="false"
+      icon="mdi-text-box-outline" :title="'日志 — ' + logContainerName" cancel-text="关闭"
     >
       <v-progress-linear v-if="loadingLogs" indeterminate color="primary" />
       <pre class="code-block code-block--flat">{{ containerLogs }}</pre>
-      <template #actions>
-        <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showLogsDialog = false">关闭</v-btn>
-      </template>
     </GlassDialog>
 
     <!-- 容器设置对话框 -->

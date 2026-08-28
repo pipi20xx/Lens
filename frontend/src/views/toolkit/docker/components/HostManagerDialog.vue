@@ -59,7 +59,7 @@ function removeScanPath(path: string) {
 
 <template>
   <!-- 主机管理列表对话框 -->
-  <GlassDialog v-model="showHostManagerDialog" :max-width="700" icon="mdi-server" title="Docker 主机管理" :cancel-visible="false">
+  <GlassDialog v-model="showHostManagerDialog" :max-width="700" icon="mdi-server" title="Docker 主机管理" cancel-text="关闭">
     <v-btn prepend-icon="mdi-plus" color="primary" variant="tonal" block @click="openAddHost" class="mb-4">添加新主机</v-btn>
     <div v-if="hosts.length" class="d-flex flex-column ga-2">
       <v-card v-for="host in hosts" :key="host.id" rounded="lg" variant="tonal" class="list-card pa-3">
@@ -78,9 +78,6 @@ function removeScanPath(path: string) {
       </v-card>
     </div>
 
-    <template #actions>
-      <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="showHostManagerDialog = false">关闭</v-btn>
-    </template>
   </GlassDialog>
 
   <!-- 添加/编辑主机对话框 -->

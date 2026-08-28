@@ -443,7 +443,7 @@ onMounted(() => {
     </v-row>
 
     <!-- 移除特定标签弹窗 -->
-    <GlassDialog v-model="showClearSpecific" :max-width="480" :scrollable="false"
+    <GlassDialog v-model="showClearSpecific" :max-width="480"
       icon="mdi-tag-remove-outline" title="移除特定标签"
     >
       <p class="text-body-2 text-medium-emphasis mb-3">输入要从媒体库中移除的标签名称，多个标签用英文逗号分隔。</p>

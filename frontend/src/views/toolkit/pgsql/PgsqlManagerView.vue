@@ -830,7 +830,7 @@ onMounted(fetchHosts)
 </GlassDialog>
 
     <!-- ==================== 数据值查看器弹窗 ==================== -->
-<GlassDialog v-model="showViewerDialog" :max-width="1000" :cancel-visible="false">
+<GlassDialog v-model="showViewerDialog" :max-width="1000" cancel-text="关闭">
       <template #title>
         <v-icon start>mdi-eye-outline</v-icon>
         查看: {{ viewerTitle }}

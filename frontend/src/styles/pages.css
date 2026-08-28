@@ -718,6 +718,14 @@
   scrollbar-color: rgba(59, 130, 246, 0.3) transparent;
 }
 
+/* 在 GlassDialog scrollable 内容区内的 yaml-editor —
+   去掉自身 max-height 和 overflow，由 GlassDialog 内容区统一滚动，
+   避免双重滚动条（与 .code-block--flat 同理） */
+.glass-dialog-card--scrollable .yaml-editor textarea {
+  max-height: none !important;
+  overflow-y: visible !important;
+}
+
 .yaml-editor textarea::-webkit-scrollbar {
   width: 6px;
 }

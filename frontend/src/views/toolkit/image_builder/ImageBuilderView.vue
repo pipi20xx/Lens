@@ -834,7 +834,7 @@ onMounted(() => {
 </GlassDialog>
 
     <!-- ==================== 构建历史弹窗 ==================== -->
-    <GlassDialog v-model="showHistoryDialog" :max-width="800" icon="mdi-history" :title="'构建历史 —' + (historyProjectName)" :cancel-visible="false">
+    <GlassDialog v-model="showHistoryDialog" :max-width="800" icon="mdi-history" :title="'构建历史 —' + (historyProjectName)" cancel-text="关闭">
   <v-progress-linear v-if="historyLoading" indeterminate color="primary" class="mb-4" />
           <div v-if="historyTasks.length" class="d-flex flex-column ga-3">
             <v-card v-for="row in historyTasks" :key="row.id" variant="outlined" rounded="lg" class="pa-3">

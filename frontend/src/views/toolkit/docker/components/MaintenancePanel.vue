@@ -247,10 +247,10 @@ defineExpose({ loadDaemonConfig })
 
     <!-- 原始 JSON 编辑弹窗 -->
     <GlassDialog v-model="showRawModal" :max-width="800"
-      icon="mdi-code-block-braces" title="直接编辑 daemon.json" :scrollable="false"
+      icon="mdi-code-block-braces" title="直接编辑 daemon.json"
     >
       <v-alert type="warning" variant="tonal" density="compact" class="mb-3" text="警告：直接编辑 JSON 可能会导致 Docker 无法启动。系统将会在保存前验证 JSON 格式并自动创建备份。" />
-      <v-textarea v-model="rawJsonContent" variant="outlined" rows="20" class="yaml-editor" :error-messages="rawJsonError ? [rawJsonError] : []" @update:model-value="validateRawJson" />
+      <v-textarea v-model="rawJsonContent" variant="outlined" rows="12" class="yaml-editor" :error-messages="rawJsonError ? [rawJsonError] : []" @update:model-value="validateRawJson" />
       <v-checkbox v-model="daemonForm.shouldRestart" density="compact" hide-details label="保存后重启 Docker 服务" class="mt-3" />
 
       <template #actions>

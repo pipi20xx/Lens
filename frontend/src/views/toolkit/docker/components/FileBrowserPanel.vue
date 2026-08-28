@@ -449,19 +449,19 @@ function formatTime(ts?: number) {
     </v-menu>
 
     <!-- 文件编辑器弹窗 -->
-    <GlassDialog v-model="showEditor" :max-width="1000" icon="mdi-file-edit-outline" :title="'编辑: ' + (editorItem?.name || '')" :scrollable="false" cancel-text="关闭">
+    <GlassDialog v-model="showEditor" :max-width="1000" icon="mdi-file-edit-outline" :title="'编辑: ' + (editorItem?.name || '')" cancel-text="关闭">
       <v-progress-linear v-if="editorLoading" indeterminate color="primary" class="mb-2" />
       <v-textarea
         v-model="editorContent"
         :loading="editorLoading"
         :disabled="editorLoading"
-        rows="24"
+        rows="14"
         class="yaml-editor"
         variant="outlined"
         hide-details
       />
       <template #actions>
-        <v-btn variant="tonal" color="primary" prepend-icon="mdi-content-save-outline" :loading="editorSaving" @click="saveEditor">保存</v-btn>
+        <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" :loading="editorSaving" @click="saveEditor">保存</v-btn>
       </template>
     </GlassDialog>
 
@@ -499,7 +499,7 @@ function formatTime(ts?: number) {
       <v-checkbox v-if="permItem?.is_dir" v-model="permForm.recursive" label="递归应用到子项" density="compact" hide-details class="mt-2" />
 
       <template #actions>
-        <v-btn variant="tonal" color="primary" prepend-icon="mdi-check" :loading="permSubmitting" @click="submitPermission">应用</v-btn>
+        <v-btn color="primary" variant="flat" prepend-icon="mdi-check" :loading="permSubmitting" @click="submitPermission">应用</v-btn>
       </template>
     </GlassDialog>
 
@@ -507,7 +507,7 @@ function formatTime(ts?: number) {
     <GlassDialog v-model="showMkdir" :max-width="400" icon="mdi-folder-plus-outline" title="新建文件夹">
       <v-text-field v-model="newName" label="文件夹名称" variant="outlined" density="compact" autofocus @keypress.enter="doMkdir" />
       <template #actions>
-        <v-btn variant="tonal" color="primary" prepend-icon="mdi-plus" @click="doMkdir">创建</v-btn>
+        <v-btn color="primary" variant="flat" prepend-icon="mdi-plus" @click="doMkdir">创建</v-btn>
       </template>
     </GlassDialog>
 
@@ -515,7 +515,7 @@ function formatTime(ts?: number) {
     <GlassDialog v-model="showMkfile" :max-width="400" icon="mdi-file-plus-outline" title="新建文件">
       <v-text-field v-model="newName" label="文件名称" variant="outlined" density="compact" autofocus @keypress.enter="doMkfile" />
       <template #actions>
-        <v-btn variant="tonal" color="primary" prepend-icon="mdi-plus" @click="doMkfile">创建</v-btn>
+        <v-btn color="primary" variant="flat" prepend-icon="mdi-plus" @click="doMkfile">创建</v-btn>
       </template>
     </GlassDialog>
 
@@ -523,7 +523,7 @@ function formatTime(ts?: number) {
     <GlassDialog v-model="showRename" :max-width="400" icon="mdi-rename-outline" title="重命名">
       <v-text-field v-model="renameNewName" label="新名称" variant="outlined" density="compact" autofocus @keypress.enter="doRename" />
       <template #actions>
-        <v-btn variant="tonal" color="primary" prepend-icon="mdi-check" @click="doRename">确定</v-btn>
+        <v-btn color="primary" variant="flat" prepend-icon="mdi-check" @click="doRename">确定</v-btn>
       </template>
     </GlassDialog>
   </div>

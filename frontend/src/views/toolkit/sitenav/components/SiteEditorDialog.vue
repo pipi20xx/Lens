@@ -171,7 +171,7 @@ const fileInput = ref<HTMLInputElement | null>(null)
       label="排序" type="number" variant="outlined" density="compact"
     />
     <template #actions>
-      <v-btn color="primary" variant="flat" @click="emit('save')">保存</v-btn>
+      <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="emit('save')">保存</v-btn>
     </template>
   </GlassDialog>
 

@@ -46,7 +46,6 @@ const typeStats = computed(() => {
     :model-value="modelValue"
     @update:model-value="emit('update:modelValue', $event)"
     :max-width="860"
-    :cancel-visible="false"
   >
     <template #title>
       <v-icon start color="error" size="26">mdi-alert-rhombus-outline</v-icon>
@@ -138,7 +137,6 @@ const typeStats = computed(() => {
     </div>
 
     <template #actions>
-      <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="emit('update:modelValue', false)">取消</v-btn>
       <v-btn
         color="error"
         variant="flat"
