@@ -313,6 +313,7 @@ defineExpose({ loadContainers, loadContainerSettings })
         <v-divider class="mt-2" />
         <div class="d-flex flex-wrap ga-2 pa-3">
           <v-btn size="small" :color="row.status === 'running' ? 'error' : 'primary'" variant="tonal" :prepend-icon="row.status === 'running' ? 'mdi-stop' : 'mdi-play'" :loading="loadingActions[row.id]" @click="containerAction(row.id, row.status === 'running' ? 'stop' : 'start')">{{ row.status === 'running' ? '停止' : '启动' }}</v-btn>
+          <v-btn size="small" color="warning" variant="tonal" prepend-icon="mdi-restart" :loading="loadingActions[row.id]" @click="containerAction(row.id, 'restart')">重启</v-btn>
           <v-btn size="small" :color="updateInfo[row.image]?.has_update ? 'error' : 'warning'" variant="tonal" prepend-icon="mdi-update" :loading="loadingActions[row.id]" @click="containerAction(row.id, 'recreate')">{{ updateInfo[row.image]?.has_update ? '发现新镜像' : '更新' }}</v-btn>
           <v-btn size="small" color="error" variant="tonal" prepend-icon="mdi-delete-outline" :loading="loadingActions[row.id]" @click="handleDeleteContainer(row)">删除</v-btn>
           <v-btn size="small" color="info" variant="tonal" @click="showLogs(row.id, row.name)"><v-icon start>mdi-text-box-outline</v-icon> 日志</v-btn>

@@ -99,7 +99,7 @@ const fileInput = ref<HTMLInputElement | null>(null)
       placeholder="https://..."
     >
       <template #append>
-        <v-btn size="x-small" variant="tonal" color="info" :loading="fetchingIcon" @click="emit('fetchIcon')">
+        <v-btn size="small" variant="tonal" color="info" :loading="fetchingIcon" height="40" @click="emit('fetchIcon')">
           获取图标
         </v-btn>
       </template>

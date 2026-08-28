@@ -283,7 +283,7 @@ const overlayBg = computed(() => {
               :text-color="navSettings.clock_text_color"
             />
 
-            <div class="page-title">{{ navSettings.page_title || '站点导航' }}</div>
+            <div v-if="navSettings.page_title" class="page-title">{{ navSettings.page_title }}</div>
             <div class="page-subtitle">{{ navSettings.page_subtitle || '' }}</div>
 
             <!-- 每日一言 -->

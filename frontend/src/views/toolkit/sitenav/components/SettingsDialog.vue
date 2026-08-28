@@ -38,12 +38,51 @@ const bgInput = ref<HTMLInputElement | null>(null)
 const importInput = ref<HTMLInputElement | null>(null)
 
 // 本地设置副本，实时同步
+// 注意：去掉 deep: true，避免 API 异步请求期间 watch 将 local 覆盖回旧值
+// （如主标题清空后又被恢复的问题）
 const local = ref<Record<string, any>>({})
-watch(() => props.settings, (val) => { local.value = { ...val } }, { immediate: true, deep: true })
+watch(() => props.settings, (val) => { local.value = { ...val } }, { immediate: true })
 
 function update(key: string, val: any) {
   local.value[key] = val
   emit('update:settings', { [key]: val })
+}
+
+// ========== 颜色辅助函数 ==========
+// rgba()/rgb() 转 hex（丢弃 alpha），供 type="color" 的 input 显示用
+function toHex(val: any): string {
+  if (!val || typeof val !== 'string') return '#000000'
+  const s = val.trim()
+  // 已经是 hex
+  if (/^#[0-9a-fA-F]{6}$/.test(s)) return s
+  if (/^#[0-9a-fA-F]{3}$/.test(s)) {
+    return '#' + s[1] + s[1] + s[2] + s[2] + s[3] + s[3]
+  }
+  // rgba() / rgb()
+  const m = s.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/)
+  if (m) {
+    const r = parseInt(m[1]), g = parseInt(m[2]), b = parseInt(m[3])
+    return '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('')
+  }
+  return '#000000'
+}
+
+// 从原值提取 alpha，选色后拼回 rgba()，保留透明度
+function fromHex(key: string, hex: string) {
+  const old = local.value[key]
+  let alpha = 1
+  if (typeof old === 'string') {
+    const m = old.match(/rgba?\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*([\d.]+)\s*\)/)
+    if (m) alpha = parseFloat(m[1])
+  }
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  return alpha < 1 ? `rgba(${r}, ${g}, ${b}, ${alpha})` : `rgb(${r}, ${g}, ${b})`
+}
+
+function colorUpdate(key: string, hex: string) {
+  update(key, fromHex(key, hex))
 }
 
 function onBgUpload(e: Event) {
@@ -256,8 +295,8 @@ const sizeOptions = [
           />
           <template v-if="local.enable_background_color">
             <v-text-field
-              :model-value="local.background_color"
-              @update:model-value="update('background_color', $event)"
+              :model-value="toHex(local.background_color)"
+              @update:model-value="colorUpdate('background_color', $event)"
               label="背景底色" variant="outlined" density="compact" type="color" class="mb-3"
             />
           </template>
@@ -294,8 +333,8 @@ const sizeOptions = [
             label="显示数字时钟" color="primary" hide-details density="compact" class="mb-3"
           />
           <v-text-field v-if="local.show_clock"
-            :model-value="local.clock_text_color"
-            @update:model-value="update('clock_text_color', $event)"
+            :model-value="toHex(local.clock_text_color)"
+            @update:model-value="colorUpdate('clock_text_color', $event)"
             label="时钟文字颜色" variant="outlined" density="compact" type="color" class="mb-3"
           />
           <v-switch
@@ -305,29 +344,29 @@ const sizeOptions = [
           />
           <template v-if="local.show_hitokoto">
             <v-text-field
-              :model-value="local.hitokoto_background"
-              @update:model-value="update('hitokoto_background', $event)"
-              label="一言背景色" variant="outlined" density="compact" class="mb-3"
+              :model-value="toHex(local.hitokoto_background)"
+              @update:model-value="colorUpdate('hitokoto_background', $event)"
+              label="一言背景色" variant="outlined" density="compact" type="color" class="mb-3"
             />
             <v-text-field
-              :model-value="local.hitokoto_text_color"
-              @update:model-value="update('hitokoto_text_color', $event)"
+              :model-value="toHex(local.hitokoto_text_color)"
+              @update:model-value="colorUpdate('hitokoto_text_color', $event)"
               label="一言文字颜色" variant="outlined" density="compact" type="color" class="mb-3"
             />
             <v-text-field
-              :model-value="local.hitokoto_from_color"
-              @update:model-value="update('hitokoto_from_color', $event)"
-              label="一言来源颜色" variant="outlined" density="compact" class="mb-3"
+              :model-value="toHex(local.hitokoto_from_color)"
+              @update:model-value="colorUpdate('hitokoto_from_color', $event)"
+              label="一言来源颜色" variant="outlined" density="compact" type="color" class="mb-3"
             />
           </template>
           <v-text-field
             :model-value="local.page_title"
             @update:model-value="update('page_title', $event)"
-            label="主标题" variant="outlined" density="compact" placeholder="站点导航" class="mb-3"
+            label="主标题" variant="outlined" density="compact" placeholder="留空则不显示" class="mb-3"
           />
           <v-text-field
-            :model-value="local.header_text_color"
-            @update:model-value="update('header_text_color', $event)"
+            :model-value="toHex(local.header_text_color)"
+            @update:model-value="colorUpdate('header_text_color', $event)"
             label="主标题颜色" variant="outlined" density="compact" type="color" class="mb-3"
           />
           <v-textarea
@@ -337,9 +376,9 @@ const sizeOptions = [
             :rows="2" auto-grow class="mb-3"
           />
           <v-text-field
-            :model-value="local.header_subtitle_color"
-            @update:model-value="update('header_subtitle_color', $event)"
-            label="副标题颜色" variant="outlined" density="compact" class="mb-3"
+            :model-value="toHex(local.header_subtitle_color)"
+            @update:model-value="colorUpdate('header_subtitle_color', $event)"
+            label="副标题颜色" variant="outlined" density="compact" type="color" class="mb-3"
           />
 
           <v-divider class="mb-4" />
@@ -390,18 +429,18 @@ const sizeOptions = [
 
           <!-- 卡片高级样式 -->
           <div class="settings-section-title">卡片高级样式</div>
-          <v-text-field :model-value="local.card_background" @update:model-value="update('card_background', $event)"
-            label="卡片背景色" variant="outlined" density="compact" class="mb-3" />
-          <v-text-field :model-value="local.card_border_color" @update:model-value="update('card_border_color', $event)"
-            label="卡片边框色" variant="outlined" density="compact" class="mb-3" />
+          <v-text-field :model-value="toHex(local.card_background)" @update:model-value="colorUpdate('card_background', $event)"
+            label="卡片背景色" variant="outlined" density="compact" type="color" class="mb-3" />
+          <v-text-field :model-value="toHex(local.card_border_color)" @update:model-value="colorUpdate('card_border_color', $event)"
+            label="卡片边框色" variant="outlined" density="compact" type="color" class="mb-3" />
           <div class="mb-1 text-caption">卡片模糊度: {{ local.card_blur }}px</div>
           <v-slider :model-value="local.card_blur" @update:model-value="update('card_blur', $event)"
             :min="0" :max="30" :step="1" thumb-label class="mb-3" />
-          <v-text-field :model-value="local.text_color" @update:model-value="update('text_color', $event)"
+          <v-text-field :model-value="toHex(local.text_color)" @update:model-value="colorUpdate('text_color', $event)"
             label="标题文字色" variant="outlined" density="compact" type="color" class="mb-3" />
-          <v-text-field :model-value="local.text_description_color" @update:model-value="update('text_description_color', $event)"
-            label="描述文字色" variant="outlined" density="compact" class="mb-3" />
-          <v-text-field :model-value="local.category_title_color" @update:model-value="update('category_title_color', $event)"
+          <v-text-field :model-value="toHex(local.text_description_color)" @update:model-value="colorUpdate('text_description_color', $event)"
+            label="描述文字色" variant="outlined" density="compact" type="color" class="mb-3" />
+          <v-text-field :model-value="toHex(local.category_title_color)" @update:model-value="colorUpdate('category_title_color', $event)"
             label="分类标题色" variant="outlined" density="compact" type="color" class="mb-3" />
 
           <v-btn block variant="text" color="warning" class="mt-2" @click="emit('reset-settings')">
