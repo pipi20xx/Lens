@@ -131,12 +131,12 @@ html.glass-theme-acg {
   background-color: #0b1322;
   color-scheme: dark;
 
-  // 完全透明材质：卡片无暗色底，仅保留极微弱的动态可见度
+  // 完全透明材质：卡片无暗色底，壁纸穿透后与卡片外完全一致
   &[data-glass-appearance='transparent'] {
-    --glass-surface: rgba(11, 19, 34, calc(0.02 + var(--glass-surface-density, 0) * 0.04));
-    --glass-surface-soft: rgba(11, 19, 34, calc(0.02 + var(--glass-surface-density, 0) * 0.04));
+    --glass-surface: transparent;
+    --glass-surface-soft: transparent;
     // 顶栏/导航与页面表面保持同一亮度，避免 shell 比 content 更亮
-    --glass-surface-raised: rgba(11, 19, 34, calc(0.02 + var(--glass-surface-density, 0) * 0.04));
+    --glass-surface-raised: transparent;
     // 移除玻璃边缘分割线
     --glass-border: transparent;
     --glass-border-raised: transparent;
@@ -144,11 +144,27 @@ html.glass-theme-acg {
     --glass-highlight: transparent;
     --glass-sheen: none;
     // 移除 inset 边缘线（box-shadow 中的 inset 1px / -1px 构成分割线）
-    --glass-shadow: 0 10px 28px rgba(3, 7, 18, 24%);
-    --glass-shadow-raised: 0 16px 40px rgba(3, 7, 18, 32%);
-    --glass-shadow-hover: 0 18px 44px rgba(3, 7, 18, 36%);
+    --glass-shadow: none;
+    --glass-shadow-raised: none;
+    --glass-shadow-hover: none;
     // 完全透明材质下移除顶栏阴影，保持与页面一致
     --glass-navbar-shadow: none;
+    // 移除 backdrop-filter，避免穿透壁纸出现模糊/饱和度差异
+    --glass-surface-backdrop-filter: none;
+    --glass-raised-backdrop-filter: none;
+    --glass-fixed-shell-backdrop-filter: none;
+    --glass-fixed-shell-backplate-filter: none;
+    // 同步覆盖 visual.css 中 !important 的 backdrop-filter 变量
+    --am-surface-blur: none;
+    --am-surface-bg: transparent;
+    --am-surface-shadow: none;
+    --am-nav-blur: none;
+    --am-btn-blur: none;
+    --am-tab-blur: none;
+    --am-chip-blur: none;
+    --am-alert-blur: none;
+    --am-avatar-blur: none;
+    --am-tooltip-blur: none;
   }
 
   body {

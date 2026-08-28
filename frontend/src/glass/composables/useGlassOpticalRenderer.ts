@@ -1393,6 +1393,10 @@ export function useGlassOpticalRenderer(options: UseGlassOpticalRendererOptions)
   function beginNativeScrollPresentation() {
     if (presentationSpace !== 'scroll' || !resources) return
 
+    // page 模式下整页为单一 WebGL 表面，壁纸纹理是 GPU 纹理而非 DOM 采样，
+    // 滚动时无需降级到原生 backdrop，避免 canvas 可见性切换导致闪烁。
+    if (isPageSurfaceMode()) return
+
     clearScrollPresentationRestoreTimer()
     scrollPresentationRestoreTimer = window.setTimeout(() => finishNativeScrollPresentation(), 180)
     if (scrollWallpaperSamplingSuppressed) return
