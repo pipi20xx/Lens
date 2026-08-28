@@ -202,7 +202,7 @@ function canExpand(type: string) {
 <style scoped>
 /* 表头文字 */
 .dedupe-table :deep(thead th) {
-  color: rgba(var(--v-theme-on-surface), 0.7) !important;
+  color: rgba(var(--v-theme-on-surface), 0.857) !important;
   font-weight: 600 !important;
   font-size: 13px !important;
   border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.12) !important;
@@ -223,8 +223,8 @@ function canExpand(type: string) {
 }
 
 /* 子项行缩进 */
-.child-row { opacity: 0.9; }
-.grandchild-row { opacity: 0.8; }
+.child-row { opacity: 0.95; }
+.grandchild-row { opacity: 0.9; }
 
 /* 名称 */
 .row-name {
@@ -240,7 +240,7 @@ function canExpand(type: string) {
 .row-path {
   font-family: 'SF Mono', 'Fira Code', monospace;
   font-size: 10px;
-  color: rgba(var(--v-theme-on-surface), 0.4);
+  color: rgba(var(--v-theme-on-surface), 0.857);
   margin-top: 2px;
   white-space: nowrap;
   overflow: hidden;
@@ -252,7 +252,7 @@ function canExpand(type: string) {
 .row-id {
   font-family: 'SF Mono', 'Fira Code', monospace;
   font-size: 11px;
-  color: rgba(var(--v-theme-on-surface), 0.5);
+  color: rgba(var(--v-theme-on-surface), 0.857);
 }
 
 /* 行 hover */

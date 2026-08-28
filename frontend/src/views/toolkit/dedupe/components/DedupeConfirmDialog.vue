@@ -187,7 +187,7 @@ const typeStats = computed(() => {
 .item-num {
   font-size: 11px;
   font-weight: 600;
-  color: rgba(var(--v-theme-on-surface), 0.4);
+  color: rgba(var(--v-theme-on-surface), 0.857);
 }
 
 /* 主体 */
@@ -205,7 +205,7 @@ const typeStats = computed(() => {
   margin-top: 4px;
   font-family: 'SF Mono', 'Fira Code', monospace;
   font-size: 11px;
-  color: rgba(var(--v-theme-on-surface), 0.4);
+  color: rgba(var(--v-theme-on-surface), 0.857);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -224,12 +224,12 @@ const typeStats = computed(() => {
   font-size: 9px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: rgba(var(--v-theme-on-surface), 0.3);
+  color: rgba(var(--v-theme-on-surface), 0.857);
 }
 .id-value {
   font-family: 'SF Mono', 'Fira Code', monospace;
   font-size: 11px;
-  color: rgba(var(--v-theme-on-surface), 0.5);
+  color: rgba(var(--v-theme-on-surface), 0.857);
 }
 
 /* 自定义滚动条 */

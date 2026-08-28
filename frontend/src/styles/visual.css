@@ -476,6 +476,12 @@ code {
   -webkit-backdrop-filter: var(--am-snackbar-blur) !important;
   box-shadow: var(--am-snackbar-shadow) !important;
   border-radius: var(--am-snackbar-radius) !important;
+  /* 文字颜色 — 背景被覆盖为深色半透明后，
+     Vuetify 的 .bg-* 类生成的 color: rgb(var(--v-theme-on-*))
+     可能因 on-* 变量缺失而 fallback 为黑色。
+     此处用 !important 兜底，确保文字始终为浅色。
+     若 on-* 变量已正确定义，此规则优先级相同但不影响效果。 */
+  color: var(--am-snackbar-text) !important;
 }
 
 /* ============================================================

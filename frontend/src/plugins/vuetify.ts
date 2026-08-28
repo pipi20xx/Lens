@@ -26,9 +26,13 @@ const lightTheme = {
     'secondary-darken-1': '#4b5563',
     accent: '#4ecdc4',
     error: '#ef4444',
+    'on-error': '#FFFFFF',
     info: '#0891b2',    // 深青色 — 白天模式白底可读
+    'on-info': '#FFFFFF',
     success: '#059669', // 深绿色 — 白天模式白底可读
+    'on-success': '#FFFFFF',
     warning: '#d97706', // 琥珀色 — 白天模式白底可读
+    'on-warning': '#FFFFFF',
   },
 }
 
@@ -46,9 +50,13 @@ const darkTheme = {
     'secondary-darken-1': '#6b7280',
     accent: '#38bdf8',    // 天蓝色 — 夜间模式辅助色
     error: '#ff6b6b',
+    'on-error': '#FFFFFF',
     info: '#38bdf8',      // 天蓝色 — 夜间模式 info 语义色
+    'on-info': '#FFFFFF',
     success: '#34d399', // 翠绿色 — 与 info 区分
+    'on-success': '#FFFFFF', // snackbar 背景被 visual.css 覆盖为深色半透明，文字用白色
     warning: '#fbbf24', // 琥珀金 — 深色底醒目（原 #ff2d92 偏品红容易和 error 混）
+    'on-warning': '#FFFFFF',
   },
 }
 
@@ -68,9 +76,13 @@ const acgTheme = {
     'secondary-darken-1': '#6b7280',
     accent: '#38bdf8',
     error: '#ff6b6b',
+    'on-error': '#FFFFFF',
     info: '#38bdf8',
+    'on-info': '#FFFFFF',
     success: '#34d399',
+    'on-success': '#FFFFFF',
     warning: '#fbbf24',
+    'on-warning': '#FFFFFF',
   },
 }
 
