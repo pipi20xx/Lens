@@ -186,6 +186,6 @@ watch(() => props.modelValue, (val) => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: rgba(var(--v-theme-on-surface), 0.7);
+  color: rgb(var(--v-theme-on-surface));
 }
 </style>

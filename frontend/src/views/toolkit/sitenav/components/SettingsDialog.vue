@@ -580,7 +580,7 @@ const sizeOptions = [
   font-size: 13px;
   font-weight: 700;
   margin-bottom: 12px;
-  color: rgba(var(--v-theme-on-surface), 0.9);
+  color: rgb(var(--v-theme-on-surface));
 }
 .category-list { display: flex; flex-direction: column; gap: 8px; }
 .category-item {

@@ -516,7 +516,7 @@ watch(
 
 .wallpaper-dialog__label {
   margin: 0 0 10px;
-  color: rgba(var(--v-theme-on-surface), var(--v-high-emphasis-opacity));
+  color: rgb(var(--v-theme-on-surface));
   font-size: 0.8125rem;
   font-weight: 600;
   line-height: 1.4;
@@ -524,7 +524,7 @@ watch(
 
 .wallpaper-dialog__hint {
   margin: 8px 0 0;
-  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
+  color: rgb(var(--v-theme-on-surface));
   font-size: 0.75rem;
   line-height: 1.45;
 }
@@ -592,13 +592,13 @@ watch(
 }
 
 .wallpaper-dialog__source-name {
-  color: rgba(var(--v-theme-on-surface), var(--v-high-emphasis-opacity));
+  color: rgb(var(--v-theme-on-surface));
   font-size: 0.875rem;
   font-weight: 500;
 }
 
 .wallpaper-dialog__source-meta {
-  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
+  color: rgb(var(--v-theme-on-surface));
   font-size: 0.6875rem;
 }
 
@@ -628,7 +628,7 @@ watch(
   flex-direction: column;
   align-items: center;
   padding: 32px 0;
-  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
+  color: rgb(var(--v-theme-on-surface));
   font-size: 0.8125rem;
 }
 
@@ -665,7 +665,7 @@ watch(
 }
 
 .wallpaper-dialog__upload-size {
-  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
+  color: rgb(var(--v-theme-on-surface));
   font-size: 0.625rem;
 }
 
@@ -705,13 +705,13 @@ watch(
 }
 
 .wallpaper-dialog__cache-label {
-  color: rgba(var(--v-theme-on-surface), var(--v-high-emphasis-opacity));
+  color: rgb(var(--v-theme-on-surface));
   font-size: 0.8125rem;
   font-weight: 500;
 }
 
 .wallpaper-dialog__cache-hint {
-  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
+  color: rgb(var(--v-theme-on-surface));
   font-size: 0.625rem;
   text-align: center;
 }

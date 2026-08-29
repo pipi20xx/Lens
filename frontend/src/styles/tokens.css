@@ -50,10 +50,20 @@
   --am-tab-active-weight: 600;
 
   /* 登录标题色（仅区分明暗，不区分主题） */
-  --am-login-title-color: rgba(0, 0, 0, 0.87);
+  --am-login-title-color: rgb(0, 0, 0);
 }
 .v-theme--dark {
-  --am-login-title-color: rgba(255, 255, 255, 0.92);
+  --am-login-title-color: rgb(255, 255, 255);
+}
+
+/* Vuetify emphasis 透明度 → 全量提亮
+   .text-medium-emphasis / .text-high-emphasis 等运行时工具类由这两个变量驱动，
+   声明层无法逐一覆盖，这里直接钉为不透明（禁用态 --v-disabled-opacity 不动） */
+:root,
+.v-theme--light,
+.v-theme--dark {
+  --v-high-emphasis-opacity: 1;
+  --v-medium-emphasis-opacity: 1;
 }
 
 /* ============================================================
@@ -122,11 +132,11 @@ html.glass-theme-acg {
   --am-field-outline-focus-color: rgb(var(--v-theme-primary));
 
   /* Text */
-  --am-label-color: rgba(255, 255, 255, 0.9);
+  --am-label-color: rgb(255, 255, 255);
   --am-label-focus-color: rgb(var(--v-theme-primary));
-  --am-input-text: rgba(255, 255, 255, 0.9);
+  --am-input-text: rgb(255, 255, 255);
   --am-dropdown-arrow: rgba(255, 255, 255, 0.5);
-  --am-list-title: rgba(255, 255, 255, 0.87);
+  --am-list-title: rgb(255, 255, 255);
   --am-list-active-color: rgb(var(--v-theme-primary));
   --am-list-hover-bg: rgba(255, 255, 255, 0.06);
   --am-list-active-bg: rgba(var(--v-theme-primary), 0.15);
@@ -146,7 +156,7 @@ html.glass-theme-acg {
   /* Button */
   --am-btn-bg: transparent;
   --am-btn-blur: blur(1px) saturate(110%);
-  --am-btn-text-color: rgba(255, 255, 255, 0.9);
+  --am-btn-text-color: rgb(255, 255, 255);
   --am-btn-font-weight: 600;
   --am-btn-radius: 12px;
   --am-btn-border: none;
@@ -162,7 +172,7 @@ html.glass-theme-acg {
   /* Checkbox / Radio */
   --am-check-active-color: rgb(var(--v-theme-primary));
   --am-check-active-shadow: none;
-  --am-check-inactive-color: rgba(150, 158, 172, 0.55);
+  --am-check-inactive-color: rgb(150, 158, 172);
 
   /* BtnToggle */
   --am-btn-toggle-bg: rgba(255, 255, 255, 0.05);
@@ -191,14 +201,14 @@ html.glass-theme-acg {
   --am-chip-blur: blur(1px) saturate(110%);
   --am-chip-radius: 8px;
   --am-chip-tonal-bg: rgba(255, 255, 255, 0.06);
-  --am-chip-tonal-color: rgba(255, 255, 255, 0.9);
+  --am-chip-tonal-color: rgb(255, 255, 255);
 
   /* Snackbar */
   --am-snackbar-bg: rgba(20, 20, 40, 0.15);
   --am-snackbar-blur: blur(3px) saturate(110%);
   --am-snackbar-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   --am-snackbar-radius: 14px;
-  --am-snackbar-text: rgba(255, 255, 255, 0.9);
+  --am-snackbar-text: rgb(255, 255, 255);
 
   /* Alert */
   --am-alert-tonal-bg: rgba(255, 255, 255, 0.05);
@@ -307,11 +317,11 @@ html.glass-theme-classic .v-theme--light {
   --am-field-outline-focus-color: #a855f7;
 
   /* Text */
-  --am-label-color: rgba(0, 0, 0, 0.55);
+  --am-label-color: rgb(0, 0, 0);
   --am-label-focus-color: #a855f7;
-  --am-input-text: rgba(0, 0, 0, 0.87);
+  --am-input-text: rgb(0, 0, 0);
   --am-dropdown-arrow: rgba(0, 0, 0, 0.4);
-  --am-list-title: rgba(0, 0, 0, 0.87);
+  --am-list-title: rgb(0, 0, 0);
   --am-list-active-color: #a855f7;
   --am-list-hover-bg: rgba(168, 85, 247, 0.08);
   --am-list-active-bg: rgba(168, 85, 247, 0.12);
@@ -347,7 +357,7 @@ html.glass-theme-classic .v-theme--light {
   /* Checkbox / Radio */
   --am-check-active-color: #a855f7;
   --am-check-active-shadow: none;
-  --am-check-inactive-color: rgba(0, 0, 0, 0.42);
+  --am-check-inactive-color: rgb(0, 0, 0);
 
   /* BtnToggle */
   --am-btn-toggle-bg: rgba(0, 0, 0, 0.03);
@@ -480,11 +490,11 @@ html.glass-theme-classic .v-theme--dark {
   --am-field-outline-focus-color: #38bdf8;
 
   /* Text */
-  --am-label-color: rgba(255, 255, 255, 0.7);
+  --am-label-color: rgb(255, 255, 255);
   --am-label-focus-color: #38bdf8;
-  --am-input-text: rgba(255, 255, 255, 0.9);
+  --am-input-text: rgb(255, 255, 255);
   --am-dropdown-arrow: rgba(255, 255, 255, 0.5);
-  --am-list-title: rgba(255, 255, 255, 0.87);
+  --am-list-title: rgb(255, 255, 255);
   --am-list-active-color: #38bdf8;
   --am-list-hover-bg: rgba(255, 255, 255, 0.08);
   --am-list-active-bg: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(56, 189, 248, 0.1));
@@ -520,7 +530,7 @@ html.glass-theme-classic .v-theme--dark {
   /* Checkbox / Radio */
   --am-check-active-color: #38bdf8;
   --am-check-active-shadow: 0 0 6px rgba(56, 189, 248, 0.4);
-  --am-check-inactive-color: rgba(255, 255, 255, 0.4);
+  --am-check-inactive-color: rgb(255, 255, 255);
 
   /* BtnToggle */
   --am-btn-toggle-bg: rgba(255, 255, 255, 0.05);

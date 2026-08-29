@@ -202,7 +202,7 @@ function canExpand(type: string) {
 <style scoped>
 /* 表头文字 */
 .dedupe-table :deep(thead th) {
-  color: rgba(var(--v-theme-on-surface), 0.857) !important;
+  color: rgb(var(--v-theme-on-surface)) !important;
   font-weight: 600 !important;
   font-size: 13px !important;
   border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.12) !important;
@@ -210,7 +210,7 @@ function canExpand(type: string) {
 
 /* 单元格基础颜色 */
 .dedupe-table :deep(td) {
-  color: rgba(var(--v-theme-on-surface), 0.9) !important;
+  color: rgb(var(--v-theme-on-surface)) !important;
   border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.06) !important;
 }
 
@@ -230,7 +230,7 @@ function canExpand(type: string) {
 .row-name {
   font-weight: 500;
   font-size: 14px;
-  color: rgba(var(--v-theme-on-surface), 0.95);
+  color: rgb(var(--v-theme-on-surface));
 }
 .sub-name {
   font-size: 13px;
@@ -240,7 +240,7 @@ function canExpand(type: string) {
 .row-path {
   font-family: 'SF Mono', 'Fira Code', monospace;
   font-size: 10px;
-  color: rgba(var(--v-theme-on-surface), 0.857);
+  color: rgb(var(--v-theme-on-surface));
   margin-top: 2px;
   white-space: nowrap;
   overflow: hidden;
@@ -252,7 +252,7 @@ function canExpand(type: string) {
 .row-id {
   font-family: 'SF Mono', 'Fira Code', monospace;
   font-size: 11px;
-  color: rgba(var(--v-theme-on-surface), 0.857);
+  color: rgb(var(--v-theme-on-surface));
 }
 
 /* 行 hover */

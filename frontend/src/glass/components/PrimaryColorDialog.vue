@@ -211,7 +211,7 @@ function isLightColor(hex: string): boolean {
 
 .primary-color-dialog__label {
   margin: 0 0 10px;
-  color: rgba(var(--v-theme-on-surface), var(--v-high-emphasis-opacity));
+  color: rgb(var(--v-theme-on-surface));
   font-size: 0.8125rem;
   font-weight: 600;
   line-height: 1.4;
@@ -219,7 +219,7 @@ function isLightColor(hex: string): boolean {
 
 .primary-color-dialog__hint {
   margin: 8px 0 0;
-  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
+  color: rgb(var(--v-theme-on-surface));
   font-size: 0.75rem;
   line-height: 1.45;
 }
@@ -326,12 +326,12 @@ function isLightColor(hex: string): boolean {
 }
 
 .primary-color-dialog__current-label {
-  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
+  color: rgb(var(--v-theme-on-surface));
   font-size: 0.75rem;
 }
 
 .primary-color-dialog__current-value {
-  color: rgba(var(--v-theme-on-surface), var(--v-high-emphasis-opacity));
+  color: rgb(var(--v-theme-on-surface));
   font-size: 0.9rem;
   font-weight: 600;
   font-variant-numeric: tabular-nums;

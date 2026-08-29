@@ -460,8 +460,8 @@ const overlayBg = computed(() => {
   text-shadow: 0 2px 8px rgba(0,0,0,0.6);
   pointer-events: none;
 }
-.wp-title { font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.9); }
-.wp-copyright { font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 2px; }
+.wp-title { font-size: 14px; font-weight: 600; color: rgb(255,255,255); }
+.wp-copyright { font-size: 11px; color: rgb(255,255,255); margin-top: 2px; }
 
 /* === 内容层 === */
 .nav-content {
@@ -523,7 +523,7 @@ const overlayBg = computed(() => {
   align-self: flex-start;
 }
 .header-right :deep(.v-btn) {
-  color: rgba(255,255,255,0.85) !important;
+  color: rgb(255,255,255) !important;
 }
 
 /* === 加载 / 空状态 === */
@@ -531,7 +531,7 @@ const overlayBg = computed(() => {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   padding: 120px 0; text-align: center;
 }
-.empty-text { font-size: 16px; color: rgba(255,255,255,0.6); }
+.empty-text { font-size: 16px; color: rgb(255,255,255); }
 
 /* === 分类区域 === */
 .category-section { margin-bottom: 48px; }
@@ -555,7 +555,7 @@ const overlayBg = computed(() => {
 }
 .category-add-btn {
   opacity: 0; transition: all 0.3s ease;
-  color: rgba(255,255,255,0.7) !important;
+  color: rgb(255,255,255) !important;
 }
 .category-header:hover .category-add-btn { opacity: 1; }
 
@@ -580,7 +580,7 @@ const overlayBg = computed(() => {
 .context-menu-item {
   display: flex; align-items: center; padding: 8px 12px;
   border-radius: 6px; cursor: pointer; font-size: 13px;
-  color: rgba(255,255,255,0.9); transition: background 0.2s;
+  color: rgb(255,255,255); transition: background 0.2s;
 }
 .context-menu-item:hover { background: rgba(255,255,255,0.1); }
 .context-menu-item.danger:hover { background: rgba(244,67,54,0.2); color: #ef5350; }

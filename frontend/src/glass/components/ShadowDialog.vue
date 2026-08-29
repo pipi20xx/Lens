@@ -240,7 +240,7 @@ const currentOption = computed(() => shadowOptions.find(o => o.value === current
 
 .shadow-dialog__label {
   margin: 0 0 10px;
-  color: rgba(var(--v-theme-on-surface), var(--v-high-emphasis-opacity));
+  color: rgb(var(--v-theme-on-surface));
   font-size: 0.8125rem;
   font-weight: 600;
   line-height: 1.4;
@@ -248,7 +248,7 @@ const currentOption = computed(() => shadowOptions.find(o => o.value === current
 
 .shadow-dialog__hint {
   margin: 8px 0 0;
-  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
+  color: rgb(var(--v-theme-on-surface));
   font-size: 0.75rem;
   line-height: 1.45;
 }
@@ -296,7 +296,7 @@ const currentOption = computed(() => shadowOptions.find(o => o.value === current
 }
 
 .shadow-dialog__option-label {
-  color: rgba(var(--v-theme-on-surface), var(--v-high-emphasis-opacity));
+  color: rgb(var(--v-theme-on-surface));
   font-size: 0.75rem;
   font-weight: 500;
   text-align: center;
@@ -332,7 +332,7 @@ const currentOption = computed(() => shadowOptions.find(o => o.value === current
 }
 
 .shadow-dialog__tick-label {
-  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
+  color: rgb(var(--v-theme-on-surface));
   font-size: 0.625rem;
   text-align: center;
   flex: 1;
@@ -373,18 +373,18 @@ const currentOption = computed(() => shadowOptions.find(o => o.value === current
 }
 
 .shadow-dialog__current-label {
-  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
+  color: rgb(var(--v-theme-on-surface));
   font-size: 0.75rem;
 }
 
 .shadow-dialog__current-text {
-  color: rgba(var(--v-theme-on-surface), var(--v-high-emphasis-opacity));
+  color: rgb(var(--v-theme-on-surface));
   font-size: 0.9rem;
   font-weight: 600;
 }
 
 .shadow-dialog__current-hint {
-  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
+  color: rgb(var(--v-theme-on-surface));
   font-size: 0.6875rem;
 }
 </style>

@@ -41,7 +41,7 @@
 .merge-table th {
   font-weight: 600;
   white-space: nowrap;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgb(255, 255, 255);
   text-shadow: 0 0 8px rgba(56, 189, 248, 0.2);
 }
 
@@ -108,7 +108,7 @@
 .log-entry__level[data-level="warning"]  { color: #FFB74D; }
 .log-entry__level[data-level="error"]    { color: #EF5350; }
 .log-entry__level[data-level="critical"] { color: #F48FB1; }
-.log-entry__level[data-level="debug"]    { color: rgba(255, 255, 255, 0.4); }
+.log-entry__level[data-level="debug"]    { color: rgb(255, 255, 255); }
 .log-entry__level[data-level="success"]  { color: #81C784; }
 
 /* 亮色模式级别色 — 紫色系 */
@@ -117,7 +117,7 @@
 .v-theme--light .log-entry__level[data-level="warning"]  { color: #E65100; }
 .v-theme--light .log-entry__level[data-level="error"]    { color: #C62828; }
 .v-theme--light .log-entry__level[data-level="critical"] { color: #AD1457; }
-.v-theme--light .log-entry__level[data-level="debug"]    { color: rgba(0, 0, 0, 0.35); }
+.v-theme--light .log-entry__level[data-level="debug"]    { color: rgb(0, 0, 0); }
 .v-theme--light .log-entry__level[data-level="success"]  { color: #2E7D32; }
 
 /* 消息列 */
@@ -491,7 +491,7 @@
 
 .v-theme--light .code-block {
   background: rgba(0, 0, 0, 0.06);
-  color: rgba(0, 0, 0, 0.87);
+  color: rgb(0, 0, 0);
   border-color: rgba(0, 0, 0, 0.12);
 }
 
@@ -702,11 +702,11 @@
 }
 
 .terminal-input::placeholder {
-  color: rgba(255, 255, 255, 0.3);
+  color: rgb(255, 255, 255);
 }
 
 .v-theme--light .terminal-input::placeholder {
-  color: rgba(0, 0, 0, 0.3);
+  color: rgb(0, 0, 0);
 }
 
 /* ── YAML/代码编辑器 — textarea 等宽字体 + 滚动条 ── */
@@ -848,7 +848,7 @@
 }
 
 .v-theme--light .merge-table th {
-  color: rgba(0, 0, 0, 0.85) !important;
+  color: rgb(0, 0, 0) !important;
   text-shadow: none;
 }
 
@@ -877,7 +877,7 @@
 }
 
 .v-theme--light .liquid-glass-subtitle {
-  color: rgba(0, 0, 0, 0.8) !important;
+  color: rgb(0, 0, 0) !important;
   text-shadow: none;
 }
 

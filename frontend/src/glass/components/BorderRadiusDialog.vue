@@ -210,7 +210,7 @@ const currentOption = computed(() => radiusOptions.find(o => o.value === current
 
 .radius-dialog__label {
   margin: 0 0 10px;
-  color: rgba(var(--v-theme-on-surface), var(--v-high-emphasis-opacity));
+  color: rgb(var(--v-theme-on-surface));
   font-size: 0.8125rem;
   font-weight: 600;
   line-height: 1.4;
@@ -218,7 +218,7 @@ const currentOption = computed(() => radiusOptions.find(o => o.value === current
 
 .radius-dialog__hint {
   margin: 8px 0 0;
-  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
+  color: rgb(var(--v-theme-on-surface));
   font-size: 0.75rem;
   line-height: 1.45;
 }
@@ -265,7 +265,7 @@ const currentOption = computed(() => radiusOptions.find(o => o.value === current
 }
 
 .radius-dialog__option-label {
-  color: rgba(var(--v-theme-on-surface), var(--v-high-emphasis-opacity));
+  color: rgb(var(--v-theme-on-surface));
   font-size: 0.75rem;
   font-weight: 500;
   text-align: center;
@@ -301,7 +301,7 @@ const currentOption = computed(() => radiusOptions.find(o => o.value === current
 }
 
 .radius-dialog__tick-label {
-  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
+  color: rgb(var(--v-theme-on-surface));
   font-size: 0.625rem;
   text-align: center;
   flex: 1;
@@ -341,18 +341,18 @@ const currentOption = computed(() => radiusOptions.find(o => o.value === current
 }
 
 .radius-dialog__current-label {
-  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
+  color: rgb(var(--v-theme-on-surface));
   font-size: 0.75rem;
 }
 
 .radius-dialog__current-text {
-  color: rgba(var(--v-theme-on-surface), var(--v-high-emphasis-opacity));
+  color: rgb(var(--v-theme-on-surface));
   font-size: 0.9rem;
   font-weight: 600;
 }
 
 .radius-dialog__current-hint {
-  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
+  color: rgb(var(--v-theme-on-surface));
   font-size: 0.6875rem;
 }
 </style>

@@ -244,13 +244,13 @@ onMounted(() => {
   font-size: 13px;
   white-space: nowrap;
   transition: background 0.2s;
-  color: rgba(var(--v-theme-on-surface), 0.5);
+  color: rgb(var(--v-theme-on-surface));
   background: rgba(var(--v-theme-on-surface), 0.03);
   user-select: none;
 }
 .session-tab:hover {
   background: rgba(var(--v-theme-on-surface), 0.06);
-  color: rgba(var(--v-theme-on-surface), 0.7);
+  color: rgb(var(--v-theme-on-surface));
 }
 .session-tab.active {
   background: rgba(var(--v-theme-primary), 0.12);

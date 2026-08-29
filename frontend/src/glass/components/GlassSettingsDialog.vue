@@ -622,7 +622,7 @@ aria-label="关闭"
 
 .glass-settings-dialog__label {
   margin: 0 0 10px;
-  color: rgba(var(--v-theme-on-surface), var(--v-high-emphasis-opacity));
+  color: rgb(var(--v-theme-on-surface));
   font-size: 0.8125rem;
   font-weight: 600;
   line-height: 1.4;
@@ -630,14 +630,14 @@ aria-label="关闭"
 
 .glass-settings-dialog__hint {
   margin: 8px 0 0;
-  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
+  color: rgb(var(--v-theme-on-surface));
   font-size: 0.75rem;
   line-height: 1.45;
 }
 
 .glass-settings-dialog__group-label {
   margin: 0 0 14px;
-  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
+  color: rgb(var(--v-theme-on-surface));
   font-size: 0.75rem;
   font-weight: 600;
   line-height: 1.4;
@@ -654,7 +654,7 @@ aria-label="关闭"
   }
 
   output {
-    color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
+    color: rgb(var(--v-theme-on-surface));
     font-size: 0.75rem;
     font-variant-numeric: tabular-nums;
   }
