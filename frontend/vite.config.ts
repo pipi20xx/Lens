@@ -86,7 +86,7 @@ export default defineConfig(({ mode }) => {
       isAnalyze && visualizer({ open: true, gzipSize: true, filename: 'dist/stats.html' }),
     ],
     define: {
-      __APP_VERSION__: JSON.stringify('3.1.4'),
+      __APP_VERSION__: JSON.stringify('3.1.5'),
     },
     resolve: {
       alias: {
