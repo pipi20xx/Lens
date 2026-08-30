@@ -1110,6 +1110,18 @@ html.glass-theme-acg .v-btn.v-btn--variant-tonal.v-btn--bg-accent .v-btn__conten
   color: #fff !important;
 }
 
+/* btn-toggle 选中态 — 文字用主题色（需与上方白字强制同级 specificity，靠后者生效） */
+html.glass-theme-acg .v-btn-toggle .v-btn.v-btn--variant-tonal.v-btn--selected,
+html.glass-theme-acg .v-btn-toggle .v-btn.v-btn--variant-tonal.v-btn--active,
+html.glass-theme-acg .v-btn-toggle .v-btn.v-btn--selected.v-btn--active {
+  color: rgb(var(--v-theme-primary)) !important;
+}
+html.glass-theme-acg .v-btn-toggle .v-btn.v-btn--variant-tonal.v-btn--selected .v-btn__content,
+html.glass-theme-acg .v-btn-toggle .v-btn.v-btn--variant-tonal.v-btn--active .v-btn__content,
+html.glass-theme-acg .v-btn-toggle .v-btn.v-btn--selected.v-btn--active .v-btn__content {
+  color: rgb(var(--v-theme-primary)) !important;
+}
+
 /* tonal chip — 白字 */
 html.glass-theme-acg .v-chip.v-chip--variant-tonal.text-primary,
 html.glass-theme-acg .v-chip.v-chip--variant-tonal.v-chip--color-primary {

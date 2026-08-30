@@ -69,7 +69,6 @@ function handleCancel() {
           <v-btn
             v-if="cancelVisible"
             variant="tonal"
-            color="grey"
             prepend-icon="mdi-close"
             @click="handleCancel"
           >

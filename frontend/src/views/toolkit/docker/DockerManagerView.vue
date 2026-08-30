@@ -9,6 +9,7 @@ import MaintenancePanel from './components/MaintenancePanel.vue'
 import FileBrowserPanel from './components/FileBrowserPanel.vue'
 import HostManagerDialog from './components/HostManagerDialog.vue'
 import AutoUpdateDialog from './components/AutoUpdateDialog.vue'
+import ScanScopeDialog from './components/ScanScopeDialog.vue'
 
 const { success } = useNotification()
 const { selectedHostId, currentHost, hostOptions, fetchHosts } = useDockerHost()
@@ -16,6 +17,11 @@ const { selectedHostId, currentHost, hostOptions, fetchHosts } = useDockerHost()
 const activeTab = ref('containers')
 const showHostManager = ref(false)
 const showAutoUpdate = ref(false)
+const showScanScope = ref(false)
+
+const scanPathCount = computed(() =>
+  (currentHost.value?.compose_scan_paths || '').split(',').map((p: string) => p.trim()).filter(Boolean).length
+)
 
 // 各 Tab 是否激活（传递给子组件，由子组件自行监听加载）
 const containersActive = computed(() => activeTab.value === 'containers')
@@ -30,13 +36,6 @@ const composePanel = ref<InstanceType<typeof ComposePanel> | null>(null)
 const systemPanel = ref<InstanceType<typeof SystemPanel> | null>(null)
 const maintenancePanel = ref<InstanceType<typeof MaintenancePanel> | null>(null)
 const fileBrowserPanel = ref<InstanceType<typeof FileBrowserPanel> | null>(null)
-
-function removeScanPath(path: string) {
-  if (!currentHost.value) return
-  const paths = (currentHost.value.compose_scan_paths || '').split(',').map((i: string) => i.trim()).filter((i: string) => i && i !== path)
-  currentHost.value.compose_scan_paths = paths.join(',')
-  fetchHosts()
-}
 
 async function refreshAll() {
   await fetchHosts()
@@ -61,11 +60,12 @@ onMounted(() => { fetchHosts() })
         <v-select v-model="selectedHostId" :items="hostOptions" item-title="title" item-value="value" label="选择 Docker 主机" variant="outlined" density="compact" hide-details style="max-width:260px" prepend-inner-icon="mdi-server" />
         <v-btn prepend-icon="mdi-cog-outline" variant="tonal" color="primary" size="small" @click="showHostManager = true">管理主机</v-btn>
 
-        <template v-if="selectedHostId && currentHost?.compose_scan_paths">
-          <span class="text-caption text-medium-emphasis">扫描范围:</span>
-          <v-chip v-for="path in currentHost.compose_scan_paths.split(',').filter((p: string) => p.trim())" :key="path" size="x-small" variant="tonal" color="info" closable @click:close="removeScanPath(path)">{{ path }}</v-chip>
+        <template v-if="selectedHostId">
+          <v-btn prepend-icon="mdi-folder-multiple-outline" variant="tonal" color="info" size="small" @click="showScanScope = true">
+            扫描范围 ({{ scanPathCount }})
+          </v-btn>
+          <span v-if="!scanPathCount" class="text-caption text-medium-emphasis">未配置，仅探测运行中项目</span>
         </template>
-        <span v-else-if="selectedHostId" class="text-caption text-medium-emphasis">仅探测运行中项目</span>
 
         <v-spacer />
         <v-btn prepend-icon="mdi-timer-outline" variant="tonal" size="small" color="warning" @click="showAutoUpdate = true">计划设置</v-btn>
@@ -102,5 +102,6 @@ onMounted(() => { fetchHosts() })
     <!-- 全局弹窗 -->
     <HostManagerDialog v-model="showHostManager" />
     <AutoUpdateDialog v-model="showAutoUpdate" />
+    <ScanScopeDialog v-model="showScanScope" />
   </v-container>
 </template>

@@ -9,7 +9,7 @@ import SecretField from '@/components/common/SecretField.vue'
 
 const { success, error: showError, info } = useNotification()
 const { confirm } = useConfirm()
-const { hosts, fetchHosts, currentHost } = useDockerHost()
+const { hosts, fetchHosts } = useDockerHost()
 
 const showHostManagerDialog = defineModel<boolean>({ default: false })
 const showHostEditDialog = ref(false)
@@ -48,13 +48,6 @@ async function testConnection(hostId: string) {
   catch { showError('连接失败') }
 }
 
-function removeScanPath(path: string) {
-  if (!currentHost.value) return
-  const paths = (currentHost.value.compose_scan_paths || '').split(',').map((i: string) => i.trim()).filter((i: string) => i && i !== path)
-  currentHost.value.compose_scan_paths = paths.join(',')
-  dockerApi.updateHost(currentHost.value.id, currentHost.value)
-  fetchHosts()
-}
 </script>
 
 <template>
