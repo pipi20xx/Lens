@@ -1353,8 +1353,12 @@ export function useGlassOpticalRenderer(options: UseGlassOpticalRendererOptions)
   let resumeVersion = 0
   let dynamicsGeneration = 0
   const presentationSpace = options.surfaceSpace ?? 'fixed'
+  // transparent 材质下 fixed 空间（导航/顶栏）与 scroll 空间（卡片）同样只叠加动态能量，
+  // 避免 fixed 路径的壁纸折射/焦散保底让导航观感偏离卡片。
   const usesDynamicsOnly = () =>
-    presentationSpace === 'scroll' || (presentationSpace === 'fixed' && toValue(options.appearance) === 'frosted')
+    presentationSpace === 'scroll' ||
+    (presentationSpace === 'fixed' &&
+      (toValue(options.appearance) === 'frosted' || toValue(options.appearance) === 'transparent'))
   const wallpaperSourceCache = options.wallpaperSourceCache ?? createGlassWallpaperSourceCache()
   const getSurfaceMode = (): ThemeCustomizerGlassSurfaceMode => toValue(options.surfaceMode) ?? 'card'
   const isPageSurfaceMode = () => getSurfaceMode() === 'page'
@@ -2117,6 +2121,20 @@ export function useGlassOpticalRenderer(options: UseGlassOpticalRendererOptions)
 
   function updateSurfaceUniforms(timestamp = performance.now(), scheduleRender = true) {
     if (!resources) return
+
+    // 页面内容高度会随 tab 切换/懒挂载变化（如详情页标签页），而画布重分配的常规触发链
+    // （窗口 resize、路由变化）不会经过这里。检测 presentation 尺寸漂移后交给去抖重采样，
+    // 避免滚动/指针高频路径反复重排画布。
+    if (presentationSpace === 'scroll' && presentationResizeTimer === null) {
+      const measured = measurePresentationSize()
+      const committed = resources.uniforms.uPresentationSize.value
+      if (
+        Math.abs(measured.height - committed.y) > 1 ||
+        Math.abs(measured.width - committed.x) > 1
+      ) {
+        schedulePresentationResizeUpdate()
+      }
+    }
 
     if (isPageSurfaceMode()) {
       // page 模式：跳过 DOM 表面收集，使用全屏单一表面

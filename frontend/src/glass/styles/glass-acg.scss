@@ -186,6 +186,13 @@ html.glass-theme-acg {
     --app-overlay-border: none;
     --app-surface-border-width: 0px;
 
+    // 全透明下 fixed 画布只叠加动态水纹（无壁纸折射底）：降到内容层之下，
+    // 与 scroll 画布（卡片）同一层，水纹从透明区域透出而不蒙在文字/海报上，
+    // 避免导航/顶栏侧水纹出现磨砂蒙版感。
+    .glass-optical-layer--fixed {
+      z-index: 0;
+    }
+
     // 手机端（<960px）导航抽屉为覆盖式弹出，全透明会与页面混在一起无法辨认：
     // 恢复磨砂材质，底色加深到 60% 保证亮色壁纸上文字仍可读
     @media (max-width: 959.98px) {
