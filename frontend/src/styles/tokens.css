@@ -388,12 +388,12 @@ html.glass-theme-classic .v-theme--light {
   --am-chip-tonal-bg: rgba(var(--v-theme-primary), 0.1);
   --am-chip-tonal-color: rgb(var(--v-theme-primary));
 
-  /* Snackbar */
-  --am-snackbar-bg: rgba(30, 30, 40, 0.9);
-  --am-snackbar-blur: blur(40px) saturate(180%);
+  /* Snackbar — 白天浅色 toast（夜晚保持深色） */
+  --am-snackbar-bg: rgba(255, 255, 255, 0.92);
+  --am-snackbar-blur: blur(20px) saturate(150%);
   --am-snackbar-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   --am-snackbar-radius: 4px;
-  --am-snackbar-text: #ffffff;
+  --am-snackbar-text: rgb(0, 0, 0);
 
   /* Alert */
   --am-alert-tonal-bg: rgba(var(--v-theme-primary), 0.06);

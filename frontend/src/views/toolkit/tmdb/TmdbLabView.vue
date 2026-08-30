@@ -210,7 +210,7 @@ function copyJsonData() {
 
     <v-row>
       <!-- 左侧：输入面板 -->
-      <v-col cols="12" md="4">
+      <v-col cols="12" md="5">
         <v-card class="liquid-glass-card" rounded="xl">
           <v-card-title class="pa-4 pb-2">
             <v-icon start size="20">mdi-magnify</v-icon>
@@ -298,7 +298,7 @@ function copyJsonData() {
       </v-col>
 
       <!-- 右侧：结果展示区 -->
-      <v-col cols="12" md="8">
+      <v-col cols="12" md="7">
         <template v-if="detailResult">
           <v-card class="liquid-glass-card" rounded="xl">
             <!-- 头部 -->

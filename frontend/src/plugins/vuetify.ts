@@ -125,30 +125,36 @@ export default createVuetify({
       density: 'compact',
       rounded: 'xl',
       hideDetails: 'auto',
+      // 强制 label 常驻浮动在边框上（无内容时不落入输入框内部）
+      persistentPlaceholder: true,
     },
     VSelect: {
       variant: 'outlined',
       density: 'compact',
       rounded: 'xl',
       hideDetails: 'auto',
+      persistentPlaceholder: true,
     },
     VTextarea: {
       variant: 'outlined',
       density: 'compact',
       rounded: 'xl',
       hideDetails: 'auto',
+      persistentPlaceholder: true,
     },
     VAutocomplete: {
       variant: 'outlined',
       density: 'compact',
       rounded: 'xl',
       hideDetails: 'auto',
+      persistentPlaceholder: true,
     },
     VCombobox: {
       variant: 'outlined',
       density: 'compact',
       rounded: 'xl',
       hideDetails: 'auto',
+      persistentPlaceholder: true,
     },
   },
 })

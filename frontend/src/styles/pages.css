@@ -544,44 +544,12 @@
   overflow-x: auto;
 }
 
-/* ── 状态指示卡片 — 统一替代 task-card / container-card / project-card / history-card ── */
+/* ── 状态指示卡片 — 统一替代 task-card / container-card / project-card / history-card
+ *    状态以卡片右上角的文字 chip 展示，不再渲染左侧竖条 */
 .status-card {
   position: relative;
   overflow: hidden;
   transition: box-shadow 0.2s, border-color 0.2s;
-}
-
-.status-card::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  background: transparent;
-  transition: background 0.2s;
-}
-
-.status-card.is-success::before,
-.status-card.is-running::before {
-  background: rgb(var(--v-theme-success));
-}
-
-.status-card.is-warning::before {
-  background: rgb(var(--v-theme-warning));
-}
-
-.status-card.is-error::before,
-.status-card.is-failed::before {
-  background: rgb(var(--v-theme-error));
-}
-
-.status-card.is-info::before {
-  background: rgb(var(--v-theme-info));
-}
-
-.status-card.is-auto::before {
-  background: rgb(var(--v-theme-success));
 }
 
 .status-card:hover {
