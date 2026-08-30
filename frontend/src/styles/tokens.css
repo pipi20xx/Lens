@@ -263,18 +263,18 @@ html.glass-theme-acg {
 /* ── 2a. Classic 白天令牌 ── */
 html.glass-theme-classic .v-theme--light {
   /* App / Nav — 白底 + 紫色系强调 */
-  --am-app-bg: #F5F7FA;
+  --am-app-bg: #FFFFFF;
   --am-nav-bg: #FFFFFF;
   --am-nav-blur: none;
   --am-nav-border: 1px solid rgba(0, 0, 0, 0.08);
   --am-nav-shadow: none;
   --am-nav-hover-bg: rgba(0, 0, 0, 0.04);
-  --am-nav-active-bg: rgba(168, 85, 247, 0.08);
-  --am-nav-active-color: #a855f7;
+  --am-nav-active-bg: rgba(var(--v-theme-primary), 0.08);
+  --am-nav-active-color: rgb(var(--v-theme-primary));
   --am-nav-active-title-shadow: none;
   --am-nav-active-icon-filter: none;
   --am-nav-list-item-radius: 12px;
-  --am-nav-indicator-bg: linear-gradient(to bottom, #a855f7, #4ecdc4, #a855f7);
+  --am-nav-indicator-bg: linear-gradient(to bottom, rgb(var(--v-theme-primary)), rgb(var(--v-theme-accent)), rgb(var(--v-theme-primary)));
   --am-nav-indicator-shadow: none;
 
   /* Surface */
@@ -292,7 +292,7 @@ html.glass-theme-classic .v-theme--light {
   --am-overlay-bg: #FFFFFF;
   --am-overlay-blur: none;
   --am-overlay-border: none;
-  --am-overlay-shadow: 0 12px 40px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(124, 58, 237, 0.18);
+  --am-overlay-shadow: 0 12px 40px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(var(--v-theme-primary), 0.18);
   --am-menu-radius: 20px;
 
   /* Dialog */
@@ -310,21 +310,21 @@ html.glass-theme-classic .v-theme--light {
   --am-field-bg: #FFFFFF;
   --am-field-radius: 12px;
   --am-field-shadow: none;
-  --am-field-focus-shadow: 0 0 0 2px rgba(168, 85, 247, 0.12);
+  --am-field-focus-shadow: 0 0 0 2px rgba(var(--v-theme-primary), 0.12);
   --am-field-focus-bg: #FFFFFF;
-  --am-field-outline-color: rgba(124, 58, 237, 0.42);
-  --am-field-outline-hover-color: rgba(124, 58, 237, 0.6);
-  --am-field-outline-focus-color: #a855f7;
+  --am-field-outline-color: rgba(var(--v-theme-primary), 0.42);
+  --am-field-outline-hover-color: rgba(var(--v-theme-primary), 0.6);
+  --am-field-outline-focus-color: rgb(var(--v-theme-primary));
 
   /* Text */
   --am-label-color: rgb(0, 0, 0);
-  --am-label-focus-color: #a855f7;
+  --am-label-focus-color: rgb(var(--v-theme-primary));
   --am-input-text: rgb(0, 0, 0);
   --am-dropdown-arrow: rgba(0, 0, 0, 0.4);
   --am-list-title: rgb(0, 0, 0);
-  --am-list-active-color: #a855f7;
-  --am-list-hover-bg: rgba(168, 85, 247, 0.08);
-  --am-list-active-bg: rgba(168, 85, 247, 0.12);
+  --am-list-active-color: rgb(var(--v-theme-primary));
+  --am-list-hover-bg: rgba(var(--v-theme-primary), 0.08);
+  --am-list-active-bg: rgba(var(--v-theme-primary), 0.12);
   --am-list-item-radius: 12px;
 
   /* Divider */
@@ -332,30 +332,30 @@ html.glass-theme-classic .v-theme--light {
 
   /* Table */
   --am-table-bg: #FFFFFF;
-  --am-table-hover-bg: rgba(168, 85, 247, 0.04);
+  --am-table-hover-bg: rgba(var(--v-theme-primary), 0.04);
 
   /* Tab */
-  --am-tab-active-color: #a855f7;
+  --am-tab-active-color: rgb(var(--v-theme-primary));
   --am-tab-active-shadow: none;
 
   /* Button */
-  --am-btn-bg: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(255, 45, 146, 0.1));
+  --am-btn-bg: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.15), rgba(var(--v-theme-primary), 0.08));
   --am-btn-blur: none;
-  --am-btn-text-color: #7c3aed;
+  --am-btn-text-color: rgb(var(--v-theme-primary));
   --am-btn-font-weight: 600;
   --am-btn-radius: 4px;
   --am-btn-border: none;
-  --am-btn-hover-bg: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(255, 45, 146, 0.1));
-  --am-btn-hover-shadow: 0 0 16px rgba(168, 85, 247, 0.25);
+  --am-btn-hover-bg: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.15), rgba(var(--v-theme-primary), 0.08));
+  --am-btn-hover-shadow: 0 0 16px rgba(var(--v-theme-primary), 0.25);
   --am-btn-overlay-bg: rgba(0, 0, 0, 0.04);
   --am-btn-overlay-hover-bg: rgba(0, 0, 0, 0.08);
-  --am-btn-tonal-hover-shadow: 0 0 12px rgba(168, 85, 247, 0.15);
+  --am-btn-tonal-hover-shadow: 0 0 12px rgba(var(--v-theme-primary), 0.15);
   --am-btn-outlined-border: 1px solid rgba(0, 0, 0, 0.12);
   --am-btn-outlined-hover-border: 1px solid rgba(0, 0, 0, 0.24);
   --am-btn-outlined-hover-shadow: none;
 
   /* Checkbox / Radio */
-  --am-check-active-color: #a855f7;
+  --am-check-active-color: rgb(var(--v-theme-primary));
   --am-check-active-shadow: none;
   --am-check-inactive-color: rgb(0, 0, 0);
 
@@ -363,17 +363,17 @@ html.glass-theme-classic .v-theme--light {
   --am-btn-toggle-bg: rgba(0, 0, 0, 0.03);
   --am-btn-toggle-border: none;
   --am-btn-toggle-radius: 16px;
-  --am-btn-toggle-active-bg: rgba(168, 85, 247, 0.1);
+  --am-btn-toggle-active-bg: rgba(var(--v-theme-primary), 0.1);
   --am-btn-toggle-active-shadow: none;
 
   /* Slider */
   --am-slider-track-bg: rgba(0, 0, 0, 0.12);
-  --am-slider-fill-bg: linear-gradient(90deg, #a855f7, #4ecdc4);
+  --am-slider-fill-bg: linear-gradient(90deg, rgb(var(--v-theme-primary)), rgb(var(--v-theme-accent)));
   --am-slider-fill-shadow: none;
   --am-slider-thumb-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 
   /* Progress */
-  --am-progress-fill-bg: linear-gradient(90deg, #a855f7, #4ecdc4);
+  --am-progress-fill-bg: linear-gradient(90deg, rgb(var(--v-theme-primary)), rgb(var(--v-theme-accent)));
   --am-progress-glow: none;
   --am-progress-circular-stroke: rgb(var(--v-theme-primary));
   --am-progress-circular-glow: none;
@@ -385,8 +385,8 @@ html.glass-theme-classic .v-theme--light {
   /* Chip */
   --am-chip-blur: none;
   --am-chip-radius: 8px;
-  --am-chip-tonal-bg: rgba(168, 85, 247, 0.1);
-  --am-chip-tonal-color: #7c3aed;
+  --am-chip-tonal-bg: rgba(var(--v-theme-primary), 0.1);
+  --am-chip-tonal-color: rgb(var(--v-theme-primary));
 
   /* Snackbar */
   --am-snackbar-bg: rgba(30, 30, 40, 0.9);
@@ -396,7 +396,7 @@ html.glass-theme-classic .v-theme--light {
   --am-snackbar-text: #ffffff;
 
   /* Alert */
-  --am-alert-tonal-bg: rgba(168, 85, 247, 0.06);
+  --am-alert-tonal-bg: rgba(var(--v-theme-primary), 0.06);
   --am-alert-blur: none;
   --am-alert-border: none;
 
@@ -405,8 +405,8 @@ html.glass-theme-classic .v-theme--light {
   --am-tooltip-blur: blur(20px) saturate(150%);
 
   /* Scrollbar — 紫色 */
-  --am-scrollbar-color: rgba(168, 85, 247, 0.25);
-  --am-scrollbar-hover: rgba(168, 85, 247, 0.4);
+  --am-scrollbar-color: rgba(var(--v-theme-primary), 0.25);
+  --am-scrollbar-hover: rgba(var(--v-theme-primary), 0.4);
 
   /* Login — 实底白卡（对齐 AM classic 值） */
   --am-login-bg: #ffffff;
@@ -421,15 +421,15 @@ html.glass-theme-classic .v-theme--light {
 
   /* Switch */
   --am-switch-track-bg: rgba(0, 0, 0, 0.26);
-  --am-switch-track-active-bg: #a855f7;
+  --am-switch-track-active-bg: rgb(var(--v-theme-primary));
   --am-switch-track-active-shadow: none;
   --am-switch-thumb-bg: #FFFFFF;
   --am-switch-thumb-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.05);
-  --am-switch-thumb-active-shadow: 0 2px 6px rgba(168, 85, 247, 0.5);
+  --am-switch-thumb-active-shadow: 0 2px 6px rgba(var(--v-theme-primary), 0.5);
 
   /* Code（行内） */
-  --am-code-bg: rgba(168, 85, 247, 0.06);
-  --am-code-color: #7c3aed;
+  --am-code-bg: rgba(var(--v-theme-primary), 0.06);
+  --am-code-color: rgb(var(--v-theme-primary));
   --am-code-radius: 6px;
 }
 
@@ -442,13 +442,13 @@ html.glass-theme-classic .v-theme--dark {
   --am-nav-border: 1px solid rgba(255, 255, 255, 0.06);
   --am-nav-shadow: none;
   --am-nav-hover-bg: rgba(255, 255, 255, 0.06);
-  --am-nav-active-bg: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(56, 189, 248, 0.1));
-  --am-nav-active-color: #38bdf8;
-  --am-nav-active-title-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
-  --am-nav-active-icon-filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.4));
+  --am-nav-active-bg: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.2), rgba(var(--v-theme-primary), 0.1));
+  --am-nav-active-color: rgb(var(--v-theme-primary));
+  --am-nav-active-title-shadow: 0 0 12px rgba(var(--v-theme-primary), 0.4);
+  --am-nav-active-icon-filter: drop-shadow(0 0 6px rgba(var(--v-theme-primary), 0.4));
   --am-nav-list-item-radius: 16px;
-  --am-nav-indicator-bg: linear-gradient(to bottom, #3b82f6, #38bdf8, #3b82f6);
-  --am-nav-indicator-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
+  --am-nav-indicator-bg: linear-gradient(to bottom, rgb(var(--v-theme-primary)), rgb(var(--v-theme-primary)), rgb(var(--v-theme-primary)));
+  --am-nav-indicator-shadow: 0 0 8px rgba(var(--v-theme-primary), 0.4);
 
   /* Surface — 玻璃面板 */
   --am-surface-bg: rgba(255, 255, 255, 0.07);
@@ -465,7 +465,7 @@ html.glass-theme-classic .v-theme--dark {
   --am-overlay-bg: #1a1a3e;
   --am-overlay-blur: none;
   --am-overlay-border: none;
-  --am-overlay-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(56, 189, 248, 0.18);
+  --am-overlay-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(var(--v-theme-primary), 0.18);
   --am-menu-radius: 20px;
 
   /* Dialog */
@@ -483,21 +483,21 @@ html.glass-theme-classic .v-theme--dark {
   --am-field-bg: rgba(255, 255, 255, 0.07);
   --am-field-radius: 12px;
   --am-field-shadow: none;
-  --am-field-focus-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2), 0 0 20px rgba(59, 130, 246, 0.1);
+  --am-field-focus-shadow: 0 0 0 3px rgba(var(--v-theme-primary), 0.2), 0 0 20px rgba(var(--v-theme-primary), 0.1);
   --am-field-focus-bg: rgba(255, 255, 255, 0.1);
   --am-field-outline-color: rgba(255, 255, 255, 0.12);
   --am-field-outline-hover-color: rgba(255, 255, 255, 0.25);
-  --am-field-outline-focus-color: #38bdf8;
+  --am-field-outline-focus-color: rgb(var(--v-theme-primary));
 
   /* Text */
   --am-label-color: rgb(255, 255, 255);
-  --am-label-focus-color: #38bdf8;
+  --am-label-focus-color: rgb(var(--v-theme-primary));
   --am-input-text: rgb(255, 255, 255);
   --am-dropdown-arrow: rgba(255, 255, 255, 0.5);
   --am-list-title: rgb(255, 255, 255);
-  --am-list-active-color: #38bdf8;
+  --am-list-active-color: rgb(var(--v-theme-primary));
   --am-list-hover-bg: rgba(255, 255, 255, 0.08);
-  --am-list-active-bg: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(56, 189, 248, 0.1));
+  --am-list-active-bg: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.18), rgba(var(--v-theme-primary), 0.1));
   --am-list-item-radius: 12px;
 
   /* Divider */
@@ -508,58 +508,58 @@ html.glass-theme-classic .v-theme--dark {
   --am-table-hover-bg: rgba(255, 255, 255, 0.04);
 
   /* Tab */
-  --am-tab-active-color: #38bdf8;
-  --am-tab-active-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
+  --am-tab-active-color: rgb(var(--v-theme-primary));
+  --am-tab-active-shadow: 0 0 12px rgba(var(--v-theme-primary), 0.3);
 
   /* Button */
-  --am-btn-bg: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(56, 189, 248, 0.12));
+  --am-btn-bg: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.2), rgba(var(--v-theme-primary), 0.12));
   --am-btn-blur: blur(20px) saturate(150%);
   --am-btn-text-color: #ffffff;
   --am-btn-font-weight: 600;
   --am-btn-radius: 4px;
   --am-btn-border: none;
-  --am-btn-hover-bg: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(56, 189, 248, 0.2));
-  --am-btn-hover-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+  --am-btn-hover-bg: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.3), rgba(var(--v-theme-primary), 0.2));
+  --am-btn-hover-shadow: 0 0 20px rgba(var(--v-theme-primary), 0.3);
   --am-btn-overlay-bg: rgba(255, 255, 255, 0.06);
   --am-btn-overlay-hover-bg: rgba(255, 255, 255, 0.1);
-  --am-btn-tonal-hover-shadow: 0 0 14px rgba(59, 130, 246, 0.2);
+  --am-btn-tonal-hover-shadow: 0 0 14px rgba(var(--v-theme-primary), 0.2);
   --am-btn-outlined-border: 1px solid rgba(255, 255, 255, 0.15);
-  --am-btn-outlined-hover-border: 1px solid rgba(56, 189, 248, 0.4);
-  --am-btn-outlined-hover-shadow: 0 0 14px rgba(56, 189, 248, 0.15);
+  --am-btn-outlined-hover-border: 1px solid rgba(var(--v-theme-primary), 0.4);
+  --am-btn-outlined-hover-shadow: 0 0 14px rgba(var(--v-theme-primary), 0.15);
 
   /* Checkbox / Radio */
-  --am-check-active-color: #38bdf8;
-  --am-check-active-shadow: 0 0 6px rgba(56, 189, 248, 0.4);
+  --am-check-active-color: rgb(var(--v-theme-primary));
+  --am-check-active-shadow: 0 0 6px rgba(var(--v-theme-primary), 0.4);
   --am-check-inactive-color: rgb(255, 255, 255);
 
   /* BtnToggle */
   --am-btn-toggle-bg: rgba(255, 255, 255, 0.05);
   --am-btn-toggle-border: none;
   --am-btn-toggle-radius: 16px;
-  --am-btn-toggle-active-bg: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(56, 189, 248, 0.1));
-  --am-btn-toggle-active-shadow: 0 0 10px rgba(56, 189, 248, 0.15);
+  --am-btn-toggle-active-bg: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.2), rgba(var(--v-theme-primary), 0.1));
+  --am-btn-toggle-active-shadow: 0 0 10px rgba(var(--v-theme-primary), 0.15);
 
   /* Slider */
   --am-slider-track-bg: rgba(255, 255, 255, 0.1);
-  --am-slider-fill-bg: linear-gradient(90deg, #3b82f6, #38bdf8);
-  --am-slider-fill-shadow: 0 0 8px rgba(56, 189, 248, 0.3);
-  --am-slider-thumb-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+  --am-slider-fill-bg: linear-gradient(90deg, rgb(var(--v-theme-primary)), rgb(var(--v-theme-primary)));
+  --am-slider-fill-shadow: 0 0 8px rgba(var(--v-theme-primary), 0.3);
+  --am-slider-thumb-shadow: 0 0 10px rgba(var(--v-theme-primary), 0.4);
 
   /* Progress */
-  --am-progress-fill-bg: linear-gradient(90deg, #3b82f6, #38bdf8);
-  --am-progress-glow: 0 0 12px rgba(56, 189, 248, 0.4);
-  --am-progress-circular-stroke: #38bdf8;
-  --am-progress-circular-glow: drop-shadow(0 0 4px rgba(56, 189, 248, 0.3));
+  --am-progress-fill-bg: linear-gradient(90deg, rgb(var(--v-theme-primary)), rgb(var(--v-theme-primary)));
+  --am-progress-glow: 0 0 12px rgba(var(--v-theme-primary), 0.4);
+  --am-progress-circular-stroke: rgb(var(--v-theme-primary));
+  --am-progress-circular-glow: drop-shadow(0 0 4px rgba(var(--v-theme-primary), 0.3));
 
   /* Avatar */
-  --am-avatar-tonal-bg: rgba(56, 189, 248, 0.12);
+  --am-avatar-tonal-bg: rgba(var(--v-theme-primary), 0.12);
   --am-avatar-blur: blur(20px) saturate(150%);
 
   /* Chip */
   --am-chip-blur: blur(10px) saturate(150%);
   --am-chip-radius: 8px;
-  --am-chip-tonal-bg: rgba(56, 189, 248, 0.12);
-  --am-chip-tonal-color: #38bdf8;
+  --am-chip-tonal-bg: rgba(var(--v-theme-primary), 0.12);
+  --am-chip-tonal-color: rgb(var(--v-theme-primary));
 
   /* Snackbar */
   --am-snackbar-bg: rgba(30, 30, 60, 0.9);
@@ -578,8 +578,8 @@ html.glass-theme-classic .v-theme--dark {
   --am-tooltip-blur: blur(20px) saturate(150%);
 
   /* Scrollbar — 蓝色 */
-  --am-scrollbar-color: rgba(59, 130, 246, 0.25);
-  --am-scrollbar-hover: rgba(59, 130, 246, 0.4);
+  --am-scrollbar-color: rgba(var(--v-theme-primary), 0.25);
+  --am-scrollbar-hover: rgba(var(--v-theme-primary), 0.4);
 
   /* Login — 实底白卡（对齐 AM classic 值） */
   --am-login-bg: #ffffff;
@@ -594,15 +594,15 @@ html.glass-theme-classic .v-theme--dark {
 
   /* Switch */
   --am-switch-track-bg: rgba(255, 255, 255, 0.22);
-  --am-switch-track-active-bg: #3b82f6;
-  --am-switch-track-active-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
+  --am-switch-track-active-bg: rgb(var(--v-theme-primary));
+  --am-switch-track-active-shadow: 0 0 8px rgba(var(--v-theme-primary), 0.4);
   --am-switch-thumb-bg: #FFFFFF;
   --am-switch-thumb-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
-  --am-switch-thumb-active-shadow: 0 2px 8px rgba(59, 130, 246, 0.5);
+  --am-switch-thumb-active-shadow: 0 2px 8px rgba(var(--v-theme-primary), 0.5);
 
   /* Code（行内） */
-  --am-code-bg: rgba(59, 130, 246, 0.1);
-  --am-code-color: #38bdf8;
+  --am-code-bg: rgba(var(--v-theme-primary), 0.1);
+  --am-code-color: rgb(var(--v-theme-primary));
   --am-code-radius: 6px;
 }
 
@@ -710,9 +710,9 @@ html[data-theme-radius='extra'] .v-theme--dark {
  *   prominent — 明显阴影
  *   dramatic  — 夸张阴影
  *
- * 覆盖范围：卡片(surface)、弹窗(overlay)、按钮(btn)、Tab、
- * 输入框(field)、折叠面板(panel)、snackbar、login、hover-lift、
- * 筛选芯片(filter-chip)、开关/滑块拇指。
+ * 覆盖范围：卡片(surface)、弹窗(dialog/overlay)、按钮(btn)、Tab、
+ * 输入框(field 及聚焦环)、折叠面板(panel)、snackbar、login、hover-lift、
+ * 筛选芯片(filter-chip)、开关/滑块拇指、导航(nav)、进度条辉光。
  * ════════════════════════════════════════════════════════════════ */
 
 /* ── 无阴影 ── */
@@ -743,6 +743,22 @@ html[data-theme-shadow='none'] .v-theme--dark {
   /* Liquid 主题液态阴影 */
   --lg-shadow: none;
   --lg-shadow-lift: none;
+
+  /* Classic 扩展覆盖（弹窗/导航/浮起卡/聚焦环等） */
+  --am-surface-elevated-shadow: none;
+  --am-nav-shadow: none;
+  --am-nav-indicator-shadow: none;
+  --am-dialog-shadow: none;
+  --am-field-focus-shadow: none;
+  --am-tab-active-shadow: none;
+  --am-btn-tonal-hover-shadow: none;
+  --am-btn-outlined-hover-shadow: none;
+  --am-check-active-shadow: none;
+  --am-btn-toggle-active-shadow: none;
+  --am-slider-fill-shadow: none;
+  --am-progress-glow: none;
+  --am-switch-track-active-shadow: none;
+  --am-switch-thumb-active-shadow: none;
 }
 
 /* ── 轻微阴影 ── */
@@ -773,6 +789,22 @@ html[data-theme-shadow='subtle'] .v-theme--dark {
   /* Liquid */
   --lg-shadow: 0 2px 8px -4px rgba(31, 38, 135, 0.12);
   --lg-shadow-lift: 0 4px 12px -6px rgba(31, 38, 135, 0.16);
+
+  /* Classic 扩展覆盖 */
+  --am-surface-elevated-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --am-nav-shadow: none;
+  --am-nav-indicator-shadow: none;
+  --am-dialog-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --am-field-focus-shadow: 0 0 0 1px rgba(var(--v-theme-primary), 0.08);
+  --am-tab-active-shadow: none;
+  --am-btn-tonal-hover-shadow: none;
+  --am-btn-outlined-hover-shadow: none;
+  --am-check-active-shadow: none;
+  --am-btn-toggle-active-shadow: none;
+  --am-slider-fill-shadow: none;
+  --am-progress-glow: none;
+  --am-switch-track-active-shadow: none;
+  --am-switch-thumb-active-shadow: none;
 }
 
 /* ── 默认：不覆盖，保持各主题自身的阴影值 ── */
@@ -805,6 +837,22 @@ html[data-theme-shadow='prominent'] .v-theme--dark {
   /* Liquid */
   --lg-shadow: 0 14px 42px -12px rgba(31, 38, 135, 0.38), 0 4px 12px -4px rgba(31, 38, 135, 0.22);
   --lg-shadow-lift: 0 28px 60px -14px rgba(31, 38, 135, 0.46), 0 6px 16px -6px rgba(31, 38, 135, 0.28);
+
+  /* Classic 扩展覆盖 */
+  --am-surface-elevated-shadow: 0 12px 32px rgba(0, 0, 0, 0.22);
+  --am-nav-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --am-nav-indicator-shadow: 0 0 8px rgba(var(--v-theme-primary), 0.25);
+  --am-dialog-shadow: 0 16px 56px rgba(0, 0, 0, 0.28);
+  --am-field-focus-shadow: 0 0 0 2px rgba(var(--v-theme-primary), 0.18), 0 0 16px rgba(var(--v-theme-primary), 0.1);
+  --am-tab-active-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  --am-btn-tonal-hover-shadow: 0 2px 8px rgba(var(--v-theme-primary), 0.15);
+  --am-btn-outlined-hover-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --am-check-active-shadow: 0 0 8px rgba(var(--v-theme-primary), 0.25);
+  --am-btn-toggle-active-shadow: 0 2px 8px rgba(var(--v-theme-primary), 0.12);
+  --am-slider-fill-shadow: 0 0 8px rgba(var(--v-theme-primary), 0.2);
+  --am-progress-glow: 0 0 12px rgba(var(--v-theme-primary), 0.3);
+  --am-switch-track-active-shadow: 0 0 8px rgba(var(--v-theme-primary), 0.25);
+  --am-switch-thumb-active-shadow: 0 0 8px rgba(var(--v-theme-primary), 0.3);
 }
 
 /* ── 夸张阴影 ── */
@@ -835,6 +883,22 @@ html[data-theme-shadow='dramatic'] .v-theme--dark {
   /* Liquid */
   --lg-shadow: 0 20px 56px -12px rgba(31, 38, 135, 0.46), 0 6px 16px -4px rgba(31, 38, 135, 0.28);
   --lg-shadow-lift: 0 36px 72px -14px rgba(31, 38, 135, 0.54), 0 8px 20px -6px rgba(31, 38, 135, 0.34);
+
+  /* Classic 扩展覆盖 */
+  --am-surface-elevated-shadow: 0 20px 48px rgba(0, 0, 0, 0.35);
+  --am-nav-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  --am-nav-indicator-shadow: 0 0 12px rgba(var(--v-theme-primary), 0.4);
+  --am-dialog-shadow: 0 24px 72px rgba(0, 0, 0, 0.4);
+  --am-field-focus-shadow: 0 0 0 3px rgba(var(--v-theme-primary), 0.25), 0 0 24px rgba(var(--v-theme-primary), 0.15);
+  --am-tab-active-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+  --am-btn-tonal-hover-shadow: 0 4px 14px rgba(var(--v-theme-primary), 0.25);
+  --am-btn-outlined-hover-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --am-check-active-shadow: 0 0 12px rgba(var(--v-theme-primary), 0.35);
+  --am-btn-toggle-active-shadow: 0 4px 12px rgba(var(--v-theme-primary), 0.18);
+  --am-slider-fill-shadow: 0 0 12px rgba(var(--v-theme-primary), 0.3);
+  --am-progress-glow: 0 0 16px rgba(var(--v-theme-primary), 0.4);
+  --am-switch-track-active-shadow: 0 0 12px rgba(var(--v-theme-primary), 0.35);
+  --am-switch-thumb-active-shadow: 0 0 12px rgba(var(--v-theme-primary), 0.4);
 }
 
 /* ════════════════════════════════════════════════════════════════

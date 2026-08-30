@@ -37,6 +37,13 @@
   transition: var(--am-transition) !important;
 }
 
+/* tonal 卡片未指定 color 时，Vuetify 会用 currentColor 叠一层 .v-card__underlay
+ * 形成默认灰色底。设计系统中卡片底色统一由 --am-surface-bg 控制，去掉该叠层；
+ * 带 text-*/bg-* 颜色 class 的 tonal 卡片不受影响 */
+.v-card--variant-tonal:not([class*="text-"]):not([class*="bg-"]) .v-card__underlay {
+  display: none;
+}
+
 .v-card--variant-elevated {
   box-shadow: var(--am-surface-elevated-shadow) !important;
 }

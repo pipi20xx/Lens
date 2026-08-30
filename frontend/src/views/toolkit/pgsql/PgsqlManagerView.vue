@@ -791,7 +791,7 @@ onMounted(fetchHosts)
         <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-refresh" @click="fetchHosts">刷新</v-btn>
       </div>
       <div v-if="hosts.length" class="d-flex flex-column ga-2">
-        <v-card v-for="h in hosts" :key="h.id" rounded="lg" variant="tonal" class="list-card pa-3">
+        <v-card v-for="h in hosts" :key="h.id" rounded="lg" variant="flat" class="list-card pa-3">
           <div class="d-flex align-center justify-space-between w-100">
             <div class="d-flex align-center ga-2">
               <span class="font-weight-bold">{{ h.name }}</span>

@@ -16,7 +16,7 @@ import 'vuetify/styles'
 const lightTheme = {
   dark: false,
   colors: {
-    background: '#F5F7FA',
+    background: '#FFFFFF',
     surface: '#FFFFFF',
     'surface-variant': '#F5F5FA',
     'on-surface-variant': '#64748B',

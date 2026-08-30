@@ -55,7 +55,7 @@ async function testConnection(hostId: string) {
   <GlassDialog v-model="showHostManagerDialog" :max-width="700" icon="mdi-server" title="Docker 主机管理" cancel-text="关闭">
     <v-btn prepend-icon="mdi-plus" color="primary" variant="tonal" block @click="openAddHost" class="mb-4">添加新主机</v-btn>
     <div v-if="hosts.length" class="d-flex flex-column ga-2">
-      <v-card v-for="host in hosts" :key="host.id" rounded="lg" variant="tonal" class="list-card pa-3">
+      <v-card v-for="host in hosts" :key="host.id" rounded="lg" variant="flat" class="list-card pa-3">
         <div class="d-flex align-center justify-space-between w-100">
           <div class="d-flex align-center ga-2">
             <span class="font-weight-bold">{{ host.name }}</span>
