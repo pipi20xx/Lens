@@ -937,7 +937,7 @@ html.glass-theme-acg {
 
 .glass-optical-layer--fixed {
   position: fixed;
-  z-index: 1000;
+  z-index: 0;
 }
 
 // 文档表面与该呈现层共享滚动坐标，canvas backing buffer 仍由 renderer 的质量预算约束。
