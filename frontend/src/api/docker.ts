@@ -1,4 +1,4 @@
-import { api } from './client'
+import { api, downloadFile } from './client'
 
 export const dockerApi = {
   // ========== 主机管理 ==========
@@ -47,6 +47,27 @@ export const dockerApi = {
   // ========== 镜像更新检测 ==========
   checkImageUpdate: (hostId: string, image: string) =>
     api.get(`/api/docker/${hostId}/check-image-update`, { params: { image } }),
+
+  // ========== 镜像管理 ==========
+  getImages: (hostId: string) =>
+    api.get(`/api/docker/${hostId}/images`),
+  pullImage: (hostId: string, image: string) =>
+    api.post(`/api/docker/${hostId}/images/pull`, { image }),
+  getPullProgress: (hostId: string, taskId: string) =>
+    api.get(`/api/docker/${hostId}/images/pull/${taskId}`),
+  removeImage: (hostId: string, imageId: string, force = false) =>
+    api.post(`/api/docker/${hostId}/images/${imageId}/remove`, { force }),
+  tagImage: (hostId: string, imageId: string, repo: string, tag: string) =>
+    api.post(`/api/docker/${hostId}/images/${imageId}/tag`, { repo, tag }),
+  getImageDetail: (hostId: string, imageId: string) =>
+    api.get(`/api/docker/${hostId}/images/${imageId}`),
+  exportImage: (hostId: string, imageId: string, filename?: string) =>
+    downloadFile(`/api/docker/${hostId}/images/${encodeURIComponent(imageId)}/export`, filename),
+  loadImage: (hostId: string, file: File) => {
+    const fd = new FormData()
+    fd.append('file', file)
+    return api.post(`/api/docker/${hostId}/images/load`, fd)
+  },
 
   // ========== 清理操作 ==========
   pruneImages: (hostId: string, dangling?: boolean, allUnused?: boolean) =>

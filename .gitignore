@@ -39,3 +39,4 @@ frontend-old
 
 # Shared UI kit (extracted from Lens & SYTMDB for new project bootstrapping)
 shared-ui/
+package-lock.json
