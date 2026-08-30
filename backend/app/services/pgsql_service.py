@@ -351,6 +351,25 @@ class PostgresService:
                 return columns, formatted_rows, total
 
     @classmethod
+    async def drop_table(cls, config: PostgresConfig, table_name: str, cascade: bool = False):
+        async with await cls.get_connection(config) as conn:
+            async with conn.cursor() as cur:
+                query = sql.SQL("DROP TABLE {}.{}{}").format(
+                    sql.Identifier("public"), sql.Identifier(table_name),
+                    sql.SQL(" CASCADE") if cascade else sql.SQL("")
+                )
+                await cur.execute(query)
+
+    @classmethod
+    async def truncate_table(cls, config: PostgresConfig, table_name: str):
+        async with await cls.get_connection(config) as conn:
+            async with conn.cursor() as cur:
+                query = sql.SQL("TRUNCATE TABLE {}.{}").format(
+                    sql.Identifier("public"), sql.Identifier(table_name)
+                )
+                await cur.execute(query)
+
+    @classmethod
     async def drop_user(cls, config: PostgresConfig, username: str):
         async with await cls.get_connection(config) as conn:
             async with conn.cursor() as cur:

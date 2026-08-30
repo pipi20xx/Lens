@@ -32,6 +32,10 @@ export const pgsqlApi = {
   getTables: (config: any) => api.post('/api/pgsql/tables', config),
   getTableData: (config: any, params: { table_name: string; page: number; page_size: number }) =>
     api.post('/api/pgsql/data', { config, params }),
+  dropTable: (tableName: string, config: any, cascade: boolean = false) =>
+    api.delete(`/api/pgsql/tables/${encodeURIComponent(tableName)}${cascade ? '?cascade=true' : ''}`, { data: config }),
+  truncateTable: (tableName: string, config: any) =>
+    api.post(`/api/pgsql/tables/${encodeURIComponent(tableName)}/truncate`, config),
 
   // ========== 备份管理 ==========
   getBackups: () => api.get('/api/pgsql/backups'),

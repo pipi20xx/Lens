@@ -195,6 +195,62 @@ function handleTableSelect(table: string) {
   fetchTableData()
 }
 
+// 表管理:删除表 / 清空数据
+async function dropTable(tableName: string | null, cascade = false) {
+  if (!tableName || !activeConfig.value) return
+  if (!cascade) {
+    const ok = await confirm({
+      title: '危险操作',
+      content: `确定要永久删除表 "${tableName}" 吗？表结构和所有数据都将被删除，此操作不可恢复。`,
+      confirmColor: 'error', confirmText: '确认删除'
+    })
+    if (!ok) return
+  }
+  try {
+    await pgsqlApi.dropTable(tableName, activeConfig.value, cascade)
+    success('表已删除')
+    if (selectedTable.value === tableName) {
+      selectedTable.value = null
+      tableData.value = []
+      tableColumns.value = []
+    }
+    fetchTables()
+  } catch (e: any) {
+    const msg: string = e?.message || ''
+    // PostgreSQL 依赖拦截:提供级联删除选项
+    if (!cascade && (msg.includes('other objects depend on it') || msg.includes('依赖'))) {
+      const force = await confirm({
+        title: '存在依赖对象',
+        content: `其他对象（如外键约束、视图）依赖表 "${tableName}"，无法直接删除。是否级联删除？将连同依赖对象一起删除，此操作不可恢复。`,
+        confirmColor: 'error', confirmText: '级联删除'
+      })
+      if (force) await dropTable(tableName, true)
+      return
+    }
+    showError(msg || '删除表失败')
+  }
+}
+
+async function truncateTable(tableName: string | null) {
+  if (!tableName || !activeConfig.value) return
+  const ok = await confirm({
+    title: '清空数据',
+    content: `确定要清空表 "${tableName}" 中的所有数据吗？表结构将保留，数据无法恢复。`,
+    confirmColor: 'warning', confirmText: '确认清空'
+  })
+  if (!ok) return
+  try {
+    await pgsqlApi.truncateTable(tableName, activeConfig.value)
+    success('表数据已清空')
+    if (selectedTable.value === tableName) {
+      pagination.value.page = 1
+      fetchTableData()
+    }
+  } catch (e: any) {
+    showError(e?.message || '清空数据失败')
+  }
+}
+
 // 数据值查看器
 const showViewerDialog = ref(false)
 const viewerTitle = ref('')
@@ -606,11 +662,14 @@ onMounted(fetchHosts)
               </div>
               <div class="pa-2" style="max-height:500px;overflow-y:auto">
                 <div v-for="t in tableList" :key="t" @click="handleTableSelect(t)"
-                  class="d-flex align-center ga-2 pa-2 rounded-lg cursor-pointer"
+                  class="d-flex align-center ga-2 pa-2 rounded-lg cursor-pointer table-row-item"
                   :class="selectedTable === t ? 'bg-primary bg-opacity-15' : ''"
                   style="cursor:pointer;transition:background .15s">
                   <v-icon size="16" color="primary">mdi-table</v-icon>
                   <span class="text-body-2" :class="selectedTable === t ? 'font-weight-bold' : ''">{{ t }}</span>
+                  <v-spacer />
+                  <v-btn icon="mdi-delete-outline" size="x-small" variant="text" color="error"
+                    title="删除表" class="row-delete-btn" @click.stop="dropTable(t)" />
                 </div>
                 <div v-if="!tableList.length && currentDb" class="text-center py-4 text-medium-emphasis text-caption">
                   该库下没有发现公有表
@@ -630,7 +689,11 @@ onMounted(fetchHosts)
                     <span class="text-subtitle-2 font-weight-bold">{{ selectedTable }}</span>
                     <v-chip size="small" color="info" variant="tonal">{{ pagination.total }} 条记录</v-chip>
                   </div>
-                  <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-refresh" :loading="tableLoading" @click="fetchTableData">刷新数据</v-btn>
+                  <div class="d-flex align-center ga-2">
+                    <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-refresh" :loading="tableLoading" @click="fetchTableData">刷新数据</v-btn>
+                    <v-btn size="small" variant="tonal" color="warning" prepend-icon="mdi-eraser" @click="truncateTable(selectedTable)">清空数据</v-btn>
+                    <v-btn size="small" variant="tonal" color="error" prepend-icon="mdi-delete-outline" @click="dropTable(selectedTable)">删除表</v-btn>
+                  </div>
                 </div>
                 <v-divider />
                 <div ref="tableScrollRef" style="overflow-x:auto">
@@ -932,4 +995,14 @@ onMounted(fetchHosts)
 </GlassDialog>
   </v-container>
 </template>
+
+<style scoped>
+.table-row-item .row-delete-btn {
+  opacity: 0.35;
+  transition: opacity 0.15s;
+}
+.table-row-item:hover .row-delete-btn {
+  opacity: 1;
+}
+</style>
 

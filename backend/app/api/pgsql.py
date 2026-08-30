@@ -186,3 +186,19 @@ async def get_table_data(config: PostgresConfig, params: QueryParams):
         )
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+@router.delete("/tables/{table_name}")
+async def drop_table(table_name: str, config: PostgresConfig, cascade: bool = False):
+    try:
+        await PostgresService.drop_table(config, table_name, cascade)
+        return {"message": f"Table {table_name} dropped successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/tables/{table_name}/truncate")
+async def truncate_table(table_name: str, config: PostgresConfig):
+    try:
+        await PostgresService.truncate_table(config, table_name)
+        return {"message": f"Table {table_name} truncated successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
