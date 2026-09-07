@@ -1,3 +1,6 @@
+// 显示插件版本号
+document.getElementById('version').textContent = 'v' + chrome.runtime.getManifest().version;
+
 // 统一使用 local 存储
 document.getElementById('save').addEventListener('click', () => {
     const baseUrl = document.getElementById('baseUrl').value.trim().replace(/\/$/, "");

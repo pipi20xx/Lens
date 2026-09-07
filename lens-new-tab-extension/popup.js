@@ -1,3 +1,6 @@
+// 显示插件版本号
+document.getElementById('version').textContent = 'v' + chrome.runtime.getManifest().version;
+
 let config = { baseUrl: '', apiToken: '' };
 let currentTab = null;
 let currentIcon = "";
