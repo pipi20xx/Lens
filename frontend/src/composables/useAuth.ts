@@ -5,6 +5,7 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { authApi } from '@/api/auth'
 import { useNotification } from '@/composables/useNotification'
+import { useSystemStore } from '@/stores'
 import type { LoginParams } from '@/types'
 
 export function useAuth() {
@@ -26,6 +27,13 @@ export function useAuth() {
       const res = await authApi.login(formValue)
       localStorage.setItem('lens_access_token', res.access_token)
       localStorage.setItem('lens_username', res.username || formValue.username)
+
+      // SPA 内登录不刷新页面，需同步登录状态并立即建立 WS 连接，
+      // 否则右上角连接状态会一直显示"断开"直到手动刷新
+      const systemStore = useSystemStore()
+      systemStore.isLoggedIn = true
+      systemStore.connect()
+
       router.push('/')
       if (res.is_default_password) {
         const { warning } = useNotification()

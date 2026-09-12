@@ -18,6 +18,7 @@ export const useSystemStore = defineStore('system', () => {
 
   let socket: WebSocket | null = null
   let reconnectInterval: ReturnType<typeof setInterval> | null = null
+  let manualClose = false
 
   function parseLogLine(raw: string): LogEntry {
     const match = raw.match(/^(\d{4}-\d{2}-\d{2}\s+)?(\d{2}:\d{2}:\d{2})\s*\|\s*(\w+)\s*\|\s*(.+)$/)
@@ -39,9 +40,12 @@ export const useSystemStore = defineStore('system', () => {
 
   function connect() {
     if (socket) return
+    const token = localStorage.getItem('lens_access_token') || ''
+    // 未登录时不建立连接（服务端会拒绝，白触发重连循环）
+    if (!token) return
+    manualClose = false
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
     const host = window.location.host
-    const token = localStorage.getItem('lens_access_token') || ''
     // 后端 WebSocket 路径: /ws/system/logs?token=xxx
     const wsUrl = `${protocol}//${host}/ws/system/logs?token=${encodeURIComponent(token)}`
     socket = new WebSocket(wsUrl)
@@ -66,6 +70,8 @@ export const useSystemStore = defineStore('system', () => {
     socket.onclose = () => {
       isConnected.value = false
       socket = null
+      // 主动断开（登出）后不自动重连
+      if (manualClose) return
       if (!reconnectInterval) reconnectInterval = setInterval(() => connect(), 5000)
     }
 
@@ -73,6 +79,7 @@ export const useSystemStore = defineStore('system', () => {
   }
 
   function disconnect() {
+    manualClose = true
     if (socket) {
       socket.close()
       socket = null

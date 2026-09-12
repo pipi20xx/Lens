@@ -213,6 +213,8 @@ watch(() => route.path, () => {
 function handleLogout() {
   localStorage.removeItem('lens_access_token')
   localStorage.removeItem('lens_username')
+  systemStore.isLoggedIn = false
+  systemStore.disconnect()
   router.push('/login')
 }
 

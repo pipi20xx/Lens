@@ -31,6 +31,18 @@ watch(() => systemStore.filteredLogs.length, async () => {
   }
 })
 
+// 弹框打开时直接定位到最底部（最新日志）
+watch(() => systemStore.showLogModal, async (open) => {
+  if (!open) return
+  await nextTick()
+  const scrollToBottom = () => {
+    logContainer.value?.scrollTo({ top: logContainer.value.scrollHeight })
+  }
+  // 弹窗有进入过渡，渲染后先跳一次，过渡结束后再校正一次
+  requestAnimationFrame(scrollToBottom)
+  setTimeout(scrollToBottom, 350)
+})
+
 function clearLogs() {
   systemStore.clearLogs()
 }
