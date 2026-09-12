@@ -43,7 +43,7 @@ class FileService:
     def close(self):
         if self.ssh_client:
             try: self.ssh_client.close()
-            except: pass
+            except Exception: pass
 
     async def list_dir(self, path="/"):
         if self.mode == 'local':

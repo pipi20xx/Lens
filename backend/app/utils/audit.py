@@ -3,9 +3,10 @@ import asyncio
 import os
 from typing import List, Dict, Any
 from app.utils.time import get_local_time
+from app.utils.logger import logger
 
 # 审计日志目录
-AUDIT_LOG_DIR = "/app/data/logs/audit"
+from app.core.paths import AUDIT_LOG_DIR
 os.makedirs(AUDIT_LOG_DIR, exist_ok=True)
 
 # 内存缓冲区
@@ -59,4 +60,4 @@ async def add_audit_log(
         with open(audit_file, "a", encoding="utf-8") as f:
             f.write(json.dumps(log_entry, ensure_ascii=False) + "\n")
     except Exception as e:
-        print(f"Error writing audit log: {e}")
+        logger.error(f"Error writing audit log: {e}")

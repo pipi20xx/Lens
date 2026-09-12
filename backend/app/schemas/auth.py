@@ -16,3 +16,4 @@ class TokenResponse(BaseModel):
     username: str
     status: str = "success"
     session_id: Optional[str] = None
+    is_default_password: bool = False

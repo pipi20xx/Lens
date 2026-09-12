@@ -90,7 +90,7 @@ async def login(req: LoginRequest, request: Request, db: AsyncSession = Depends(
         message=f"用户: {user.username}\nIP: {client_ip}\n时间: {get_local_time()}"
     ))
     
-    return {"access_token": access_token, "token_type": "bearer", "username": user.username, "status": "success", "session_id": session.session_id}
+    return {"access_token": access_token, "token_type": "bearer", "username": user.username, "status": "success", "session_id": session.session_id, "is_default_password": verify_password("admin123", user.hashed_password)}
 
 @router.post("/password", summary="修改管理员密码")
 async def change_password(req: PasswordChangeRequest, db: AsyncSession = Depends(get_db), token: str = Depends(oauth2_scheme)):

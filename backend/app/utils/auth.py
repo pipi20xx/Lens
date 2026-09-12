@@ -3,15 +3,49 @@ from typing import Optional, Any
 from jose import jwt
 import bcrypt
 import os
+import secrets
 from fastapi import Depends, HTTPException, status, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.db.session import get_db
 from app.models.user import User
 from app.services.config_service import ConfigService
+from app.utils.logger import logger
 
-# 加密配置
-SECRET_KEY = os.getenv("JWT_SECRET_KEY", "lens_secret_key_change_me_in_production")
+def _load_secret_key() -> str:
+    """密钥来源优先级：环境变量 > data/secret_key 持久化文件 > 自动生成并持久化。
+
+    不再回退到硬编码密钥，避免可预测密钥被用于伪造 token。
+    """
+    env_key = os.getenv("JWT_SECRET_KEY")
+    if env_key:
+        return env_key
+
+    from app.core.paths import SECRET_KEY_FILE
+    key_file = SECRET_KEY_FILE
+    try:
+        with open(key_file, "r", encoding="utf-8") as f:
+            stored = f.read().strip()
+            if stored:
+                return stored
+    except FileNotFoundError:
+        pass
+    except OSError as e:
+        logger.warning(f"⚠️ [Auth] 读取密钥文件失败: {e}")
+
+    generated = secrets.token_hex(32)
+    try:
+        os.makedirs(os.path.dirname(key_file) or ".", exist_ok=True)
+        with open(key_file, "w", encoding="utf-8") as f:
+            f.write(generated)
+        os.chmod(key_file, 0o600)
+        logger.info(f"🔐 [Auth] 已生成新的 JWT 密钥并保存到 {key_file}")
+    except OSError as e:
+        # 只读文件系统等场景：退回每次重启随机的密钥（所有用户需重新登录）
+        logger.warning(f"⚠️ [Auth] 无法持久化 JWT 密钥（{e}），本次运行使用临时密钥，重启后所有登录将失效")
+    return generated
+
+SECRET_KEY = _load_secret_key()
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 # 默认登录有效期 24 小时
 
@@ -44,7 +78,7 @@ def decode_access_token(token: str) -> Optional[dict]:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
-    except:
+    except Exception:
         return None
 
 async def get_current_user(request: Request, db: AsyncSession = Depends(get_db)):

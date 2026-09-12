@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import AsyncSessionLocal
 from app.models.config import SystemConfig
 from typing import Optional, Any
+from app.utils.logger import logger
 import asyncio
 
 class ConfigService:
@@ -27,7 +28,7 @@ class ConfigService:
                     json_cfg = get_config()
                     if key in json_cfg:
                         val = json_cfg[key]
-                except:
+                except Exception:
                     pass
             
             # 如果都没有，使用默认值
@@ -43,7 +44,7 @@ class ConfigService:
                     try:
                         import json
                         final_val = json.loads(val)
-                    except:
+                    except Exception:
                         pass
             
             async with cls._lock:
@@ -81,7 +82,7 @@ class ConfigService:
             full_config[key] = value
             save_config(full_config)
         except Exception as e:
-            print(f"Failed to sync {key} to config.json: {e}")
+            logger.warning(f"Failed to sync {key} to config.json: {e}")
             
         async with cls._lock:
             cls._cache[key] = value
@@ -101,6 +102,6 @@ class ConfigService:
                         try:
                             import json
                             val = json.loads(val)
-                        except:
+                        except Exception:
                             pass
                     cls._cache[c.key] = val

@@ -7,7 +7,7 @@ from typing import List, Dict, Any
 import asyncio
 
 # 日志根目录
-LOG_DIR = "/app/data/logs"
+from app.core.paths import LOGS_DIR as LOG_DIR
 os.makedirs(LOG_DIR, exist_ok=True)
 
 class LogFormatter(logging.Formatter):
@@ -46,7 +46,7 @@ class LogBroadcaster:
         for queue in list(self.subscribers):
             try:
                 await queue.put(message)
-            except:
+            except Exception:
                 pass
 
 log_broadcaster = LogBroadcaster()
@@ -58,7 +58,7 @@ class QueueHandler(logging.Handler):
             loop = asyncio.get_event_loop()
             if loop.is_running():
                 loop.create_task(log_broadcaster.broadcast(msg))
-        except:
+        except Exception:
             pass
 
 class DailyFileHandler(logging.FileHandler):
@@ -163,5 +163,5 @@ def get_last_n_logs(n: int = 100) -> List[str]:
             # 简单实现：读取最后 n 行
             lines = f.readlines()
             return [line.strip() for line in lines[-n:]]
-    except:
+    except Exception:
         return []

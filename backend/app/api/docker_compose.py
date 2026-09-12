@@ -92,7 +92,7 @@ async def list_projects(host_id: str):
                             })
                             managed_paths.add(config_files)
                     break
-                except: continue
+                except Exception: continue
 
         # 3. 根据用户配置的扫描路径进行深度搜索
         scan_paths_str = service.host_config.get("compose_scan_paths", "")
@@ -202,7 +202,7 @@ async def project_action(host_id: str, name: str, action: str = Body(..., embed=
                         if is_running:
                             logger.info(f"✨ [Compose] 回检发现容器已在运行，判定操作成功")
                             success = True
-                except: pass
+                except Exception: pass
         
         elif action == "down":
             # 检查项目中的容器是否已全部移除

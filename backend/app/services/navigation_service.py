@@ -2,7 +2,9 @@ import json
 import os
 import time
 import copy
+from app.core.paths import NAV_ICONS_DIR, NAV_BACKGROUNDS_DIR
 from typing import List, Dict, Any, Optional
+from app.utils.logger import logger
 
 NAV_FILE = "data/navigation.json"
 
@@ -253,7 +255,7 @@ def cleanup_orphaned_icons():
             used_icons.add(os.path.basename(cat_icon))
     
     # 2. 扫描物理目录
-    icon_dir = "/app/data/nav_icons"
+    icon_dir = NAV_ICONS_DIR
     if not os.path.exists(icon_dir):
         return
     
@@ -268,7 +270,7 @@ def cleanup_orphaned_icons():
                 pass
     
     if cleaned_count > 0:
-        print(f"[Cleanup] Removed {cleaned_count} orphaned icons.")
+        logger.info(f"[Cleanup] Removed {cleaned_count} orphaned icons.")
     return cleaned_count
 
 def cleanup_orphaned_backgrounds():
@@ -281,7 +283,7 @@ def cleanup_orphaned_backgrounds():
         used_bgs.add(os.path.basename(bg_url))
         
     # 2. 扫描物理目录
-    bg_dir = "/app/data/nav_backgrounds"
+    bg_dir = NAV_BACKGROUNDS_DIR
     if not os.path.exists(bg_dir):
         return 0
         
@@ -295,5 +297,5 @@ def cleanup_orphaned_backgrounds():
                 pass
     
     if cleaned_count > 0:
-        print(f"[Cleanup] Removed {cleaned_count} orphaned backgrounds.")
+        logger.info(f"[Cleanup] Removed {cleaned_count} orphaned backgrounds.")
     return cleaned_count

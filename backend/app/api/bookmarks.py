@@ -98,7 +98,7 @@ async def import_bookmarks_html(file: UploadFile = File(...)):
         try:
             html_text = content.decode(enc)
             break
-        except:
+        except Exception:
             continue
             
     if not html_text:

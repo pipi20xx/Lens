@@ -227,7 +227,7 @@ async def terminal_websocket(websocket: WebSocket, host_id: str, token: str = Qu
                     if msg.get("type") == "resize":
                         term_service.resize(msg.get("rows", 24), msg.get("cols", 80))
                         continue
-                except: pass
+                except Exception: pass
             
             term_service.write_input(message)
             

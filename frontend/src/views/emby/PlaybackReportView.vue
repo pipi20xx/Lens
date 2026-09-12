@@ -188,7 +188,7 @@ onUnmounted(() => {
         <p class="text-body-2 text-medium-emphasis">实时洞察媒体库播放趋势、活跃用户与内容热度。</p>
       </div>
       <div class="d-flex ga-2 align-center">
-        <v-select v-model="days" :items="dayOptions" item-title="title" item-value="value" variant="outlined" density="compact" hide-details style="width:150px" @update:model-value="fetchAllData" />
+        <v-select v-model="days" :items="dayOptions" item-title="title" item-value="value" variant="outlined" density="compact" hide-details class="filter-select" @update:model-value="fetchAllData" />
         <v-btn icon variant="tonal" size="small" @click="fetchAllData" :loading="loading">
           <v-icon>mdi-refresh</v-icon>
         </v-btn>
@@ -232,13 +232,13 @@ onUnmounted(() => {
                   :style="{ order: user.rank === 1 ? 2 : user.rank === 2 ? 1 : 3 }"
                 >
                   <div class="position-relative mb-3">
-                    <div v-if="user.rank === 1" class="text-h4" style="position:absolute;top:-24px;left:50%;transform:translateX(-50%)">👑</div>
+                    <div v-if="user.rank === 1" class="text-h4 podium-item--crown">👑</div>
                     <v-avatar :size="user.rank === 1 ? 72 : 56" rounded="xl">
                       <v-img :src="getUserAvatar(user)" />
                     </v-avatar>
-                    <v-chip size="x-small" :color="user.rank === 1 ? 'warning' : 'grey'" variant="flat" style="position:absolute;bottom:-4px;right:-4px">{{ user.rank }}</v-chip>
+                    <v-chip size="x-small" :color="user.rank === 1 ? 'warning' : 'grey'" variant="flat" class="podium-rank">{{ user.rank }}</v-chip>
                   </div>
-                  <div class="text-subtitle-2 font-weight-bold text-center" style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ user.label }}</div>
+                  <div class="text-subtitle-2 font-weight-bold text-center pr-2 text-truncate">{{ user.label }}</div>
                   <div class="text-caption text-medium-emphasis">{{ user.count }}次 / {{ formatDuration(user.time) }}</div>
                   <div class="d-flex ga-1 mt-1">
                     <v-chip v-for="badge in user.badges" :key="badge.text" size="x-small" variant="tonal" :style="{ color: badge.color }">{{ badge.text }}</v-chip>
@@ -249,16 +249,15 @@ onUnmounted(() => {
               <!-- 列表区 (4-10) -->
               <div class="d-flex flex-column ga-2">
                 <div v-for="user in usersWithBadges.slice(3, 10)" :key="user.id"
-                  class="d-flex align-center ga-3 pa-2 rounded-lg"
-                  style="border: 1px solid rgba(var(--v-theme-on-surface), 0.08); transition: all 0.2s"
+                  class="d-flex align-center ga-3 pa-2 rounded-lg rank-row"
                 >
-                  <span class="text-caption font-weight-bold text-medium-emphasis" style="width:28px">#{{ user.rank }}</span>
+                  <span class="text-caption font-weight-bold text-medium-emphasis rank-num">#{{ user.rank }}</span>
                   <v-avatar size="32" rounded="xl">
                     <v-img :src="getUserAvatar(user)" />
                   </v-avatar>
                   <div class="flex-grow-1">
                     <div class="text-body-2 font-weight-bold">{{ user.label }}</div>
-                    <div style="height:4px;border-radius:2px;background:rgba(var(--v-theme-on-surface),0.06);overflow:hidden">
+                    <div class="rank-track">
                       <div :style="{ width: user.percent + '%', height: '100%', borderRadius: '2px', backgroundColor: getRankColor(user.rank) }" />
                     </div>
                   </div>
@@ -274,26 +273,25 @@ onUnmounted(() => {
       </v-col>
 
       <v-col cols="12" md="5">
-        <v-card class="liquid-glass-card" rounded="xl" style="height:100%">
+        <v-card class="liquid-glass-card h-100" rounded="xl">
           <v-card-title class="pa-4">
             <v-icon start>mdi-history</v-icon>
             最近播放活动
           </v-card-title>
           <v-divider />
-          <v-card-text class="pa-4" style="max-height:600px;overflow-y:auto">
+          <v-card-text class="pa-4 activity-scroll">
             <div v-if="!summary.user_activity.length" class="text-center py-8 text-medium-emphasis">暂无播放活动</div>
             <div v-else class="d-flex flex-column ga-2">
               <div v-for="(activity, index) in summary.user_activity.slice(0, 20)" :key="index"
-                class="d-flex align-center ga-3 pa-2 rounded-lg"
-                style="border: 1px solid rgba(var(--v-theme-on-surface), 0.06); transition: all 0.2s"
+                class="d-flex align-center ga-3 pa-2 rounded-lg rank-row"
               >
                 <!-- 海报缩略图 -->
-                <div style="width:36px;height:54px;flex-shrink:0;border-radius:4px;overflow:hidden;background:#222">
-                  <img :src="getImageUrl(activity)" style="width:100%;height:100%;object-fit:cover" @error="($event.target as HTMLImageElement).src='/favicon.svg'" />
+                <div class="poster-thumb">
+                  <img :src="getImageUrl(activity)" class="poster-img" @error="($event.target as HTMLImageElement).src='/favicon.svg'" />
                 </div>
                 <!-- 信息 -->
-                <div class="flex-grow-1" style="min-width:0">
-                  <div class="text-body-2 font-weight-bold" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ activity.label }}</div>
+                <div class="flex-grow-1 min-w-0">
+                  <div class="text-body-2 font-weight-bold text-truncate">{{ activity.label }}</div>
                   <div class="text-caption text-medium-emphasis">
                     <v-icon size="12">mdi-account-outline</v-icon> {{ activity.user_name || activity.UserName }}
                   </div>
@@ -325,18 +323,18 @@ onUnmounted(() => {
           热门电影排行
         </div>
         <div v-if="!reports.movies.length" class="text-center py-4 text-medium-emphasis">暂无电影数据</div>
-        <div v-else class="d-flex ga-4 overflow-x-auto pb-4" style="scrollbar-width:none">
+        <div v-else class="d-flex ga-4 overflow-x-auto pb-4 hide-scrollbar">
           <div v-for="(item, index) in reports.movies.slice(0, 10)" :key="item.id || index"
-            class="flex-shrink-0" style="width:130px;transition:all 0.3s"
+            class="flex-shrink-0 hot-card"
             @mouseenter="($event.currentTarget as HTMLElement).style.transform='translateY(-8px)'"
             @mouseleave="($event.currentTarget as HTMLElement).style.transform='none'"
           >
-            <div class="position-relative" style="width:130px;height:195px;border-radius:12px;overflow:hidden;background:#222">
-              <img :src="getImageUrl(item)" style="width:100%;height:100%;object-fit:cover" @error="($event.target as HTMLImageElement).src='/favicon.svg'" />
-              <div style="position:absolute;bottom:0;left:0;right:0;padding:12px 4px 6px;background:linear-gradient(transparent,rgba(59,130,246,0.9));text-align:center">
+            <div class="position-relative hot-poster">
+              <img :src="getImageUrl(item)" class="poster-img" @error="($event.target as HTMLImageElement).src='/favicon.svg'" />
+              <div class="hot-badge">
                 <span class="text-caption font-weight-bold text-white">{{ item.count }} 次播放</span>
               </div>
-              <div v-if="index < 3" style="position:absolute;top:4px;right:4px;font-size:20px">
+              <div v-if="index < 3" class="hot-medal">
                 {{ index === 0 ? '👑' : index === 1 ? '🥈' : '🥉' }}
               </div>
             </div>
@@ -354,18 +352,18 @@ onUnmounted(() => {
           热门剧集排行
         </div>
         <div v-if="!reports.tvShows.length" class="text-center py-4 text-medium-emphasis">暂无剧集数据</div>
-        <div v-else class="d-flex ga-4 overflow-x-auto pb-4" style="scrollbar-width:none">
+        <div v-else class="d-flex ga-4 overflow-x-auto pb-4 hide-scrollbar">
           <div v-for="(item, index) in reports.tvShows.slice(0, 10)" :key="item.id || index"
-            class="flex-shrink-0" style="width:130px;transition:all 0.3s"
+            class="flex-shrink-0 hot-card"
             @mouseenter="($event.currentTarget as HTMLElement).style.transform='translateY(-8px)'"
             @mouseleave="($event.currentTarget as HTMLElement).style.transform='none'"
           >
-            <div class="position-relative" style="width:130px;height:195px;border-radius:12px;overflow:hidden;background:#222">
-              <img :src="getImageUrl(item)" style="width:100%;height:100%;object-fit:cover" @error="($event.target as HTMLImageElement).src='/favicon.svg'" />
-              <div style="position:absolute;bottom:0;left:0;right:0;padding:12px 4px 6px;background:linear-gradient(transparent,rgba(59,130,246,0.9));text-align:center">
+            <div class="position-relative hot-poster">
+              <img :src="getImageUrl(item)" class="poster-img" @error="($event.target as HTMLImageElement).src='/favicon.svg'" />
+              <div class="hot-badge">
                 <span class="text-caption font-weight-bold text-white">{{ item.count }} 次播放</span>
               </div>
-              <div v-if="index < 3" style="position:absolute;top:4px;right:4px;font-size:20px">
+              <div v-if="index < 3" class="hot-medal">
                 {{ index === 0 ? '👑' : index === 1 ? '🥈' : '🥉' }}
               </div>
             </div>
@@ -388,9 +386,9 @@ onUnmounted(() => {
       <v-divider />
       <v-card-text class="pa-4">
         <div v-if="!Object.keys(reports.hourly).length" class="text-center py-8 text-medium-emphasis">暂无热度数据</div>
-        <div v-else class="d-flex align-end ga-1" style="height:200px">
-          <div v-for="i in 24" :key="i" class="flex-grow-1 d-flex flex-column align-center" style="min-width:0">
-            <div class="flex-grow-1 d-flex align-end" style="width:100%">
+        <div v-else class="d-flex align-end ga-1 hourly-chart">
+          <div v-for="i in 24" :key="i" class="flex-grow-1 d-flex flex-column align-center min-w-0">
+            <div class="flex-grow-1 d-flex align-end w-100">
               <div
                 :style="{
                   width: '100%',
@@ -402,7 +400,7 @@ onUnmounted(() => {
                 }"
               />
             </div>
-            <span class="text-caption text-medium-emphasis" style="font-size:9px">{{ i - 1 }}h</span>
+            <span class="text-caption text-medium-emphasis hour-label">{{ i - 1 }}h</span>
           </div>
         </div>
       </v-card-text>
@@ -410,3 +408,51 @@ onUnmounted(() => {
   </v-container>
 </template>
 
+<style scoped>
+.filter-select { width: 150px; }
+.podium-item--crown { position: absolute; top: -24px; left: 50%; transform: translateX(-50%); }
+.podium-rank { position: absolute; bottom: -4px; right: -4px; }
+.rank-row {
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.08);
+  transition: all 0.2s;
+}
+.rank-num { width: 28px; }
+.rank-track {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(var(--v-theme-on-surface), 0.06);
+  overflow: hidden;
+}
+.activity-scroll { max-height: 600px; overflow-y: auto; }
+.poster-thumb {
+  width: 36px;
+  height: 54px;
+  flex-shrink: 0;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #222;
+}
+.poster-img { width: 100%; height: 100%; object-fit: cover; }
+.min-w-0 { min-width: 0; }
+.hide-scrollbar { scrollbar-width: none; }
+.hot-card { width: 130px; transition: all 0.3s; }
+.hot-poster {
+  width: 130px;
+  height: 195px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #222;
+}
+.hot-badge {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 12px 4px 6px;
+  background: linear-gradient(transparent, rgba(59, 130, 246, 0.9));
+  text-align: center;
+}
+.hot-medal { position: absolute; top: 4px; right: 4px; font-size: 20px; }
+.hourly-chart { height: 200px; }
+.hour-label { font-size: 9px; }
+</style>

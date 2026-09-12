@@ -53,7 +53,7 @@ async def check_version():
                                 local_parts = [int(p) for p in local_ver.split('.')]
                                 if remote_parts > local_parts:
                                     has_update = True
-                            except:
+                            except Exception:
                                 # 如果解析失败，回退到简单的非等比较
                                 if remote_ver != local_ver:
                                     has_update = True
@@ -137,7 +137,7 @@ async def upgrade_system(host_id: str = Query(None)):
                                     project_path = os.path.dirname(src)
                                 break
                         if project_path: break
-                    except: pass
+                    except Exception: pass
 
         # 3. 最后的保底策略：尝试传统的 docker compose ls
         if not project_path:
@@ -154,11 +154,13 @@ async def upgrade_system(host_id: str = Query(None)):
                             if config_path:
                                 project_path = os.path.dirname(config_path)
                                 break
-                except: pass
+                except Exception: pass
 
         if not project_path:
-            project_path = target_host.get("project_path") or "/vol1/1000/NVME/Lens"
-            logger.warning(f"⚠️ [系统升级] 路径探测失败，使用回退路径: {project_path}")
+            raise HTTPException(
+                status_code=400,
+                detail="无法自动探测项目路径，请在 Docker 主机配置中手动指定 project_path 后重试"
+            )
         else:
             logger.info(f"📍 [系统升级] 探测到项目路径: {project_path}")
 
@@ -473,7 +475,7 @@ async def get_all_configs(db: AsyncSession = Depends(get_db)):
                 try:
                     import json
                     val = json.loads(val)
-                except:
+                except Exception:
                     pass
             elif val.lower() == "true": val = True
             elif val.lower() == "false": val = False

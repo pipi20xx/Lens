@@ -79,7 +79,7 @@ async def save_server_config(config: Dict[str, Any]):
                     server_data["emby_id"] = info.get("Id")
                     if not server_data.get("name"):
                         server_data["name"] = info.get("ServerName")
-            except:
+            except Exception:
                 pass
         
         # 如果有 ID，则是更新；否则是新增

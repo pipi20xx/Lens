@@ -26,8 +26,8 @@ import time
 import json
 
 # 确保数据目录存在
-os.makedirs("/app/data/nav_icons", exist_ok=True)
-os.makedirs("/app/data/logs/audit", exist_ok=True)
+from app.core.paths import ensure_runtime_dirs, NAV_ICONS_DIR, NAV_BACKGROUNDS_DIR
+ensure_runtime_dirs()
 
 app = FastAPI(
     title="Lens API",
@@ -35,6 +35,13 @@ app = FastAPI(
     docs_url=None,
     redoc_url=None,
 )
+
+# 全局兜底异常处理：未捕获异常统一返回 500 JSON 并记录完整堆栈
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    logger.error(f"💥 未处理异常 {request.method} {request.url.path}: {exc}", exc_info=exc)
+    return JSONResponse(status_code=500, content={"detail": str(exc)})
+
 # 全局审计与性能监控中间件
 @app.middleware("http")
 async def audit_middleware(request: Request, call_next):
@@ -53,70 +60,15 @@ async def audit_middleware(request: Request, call_next):
     is_public = path in public_paths or path == "/" or path.startswith("/api/appearance/wallpaper_proxy") or path.startswith("/api/appearance/wallpaper/uploads/") or path.startswith("/api/webhook/receive")
     
     if is_api and not is_public:
-        # 动态导入以避免循环依赖
-        from app.utils.auth import decode_access_token
-        
         api_auth_enabled_val = await ConfigService.get("auth_enabled", True)
         api_auth_enabled = api_auth_enabled_val is True or str(api_auth_enabled_val).lower() == "true"
-        
+
         if api_auth_enabled:
+            from app.core.security import verify_request_token
             auth_header = request.headers.get("Authorization")
             token = auth_header.replace("Bearer ", "") if auth_header and auth_header.startswith("Bearer ") else None
-            
-            valid = False
-            if token:
-                # 检查静态 Token
-                static_token = await ConfigService.get("api_token")
-                if static_token and token == static_token:
-                    valid = True
-                else:
-                    # 检查 JWT Token
-                    from app.utils.auth import decode_access_token
-                    from app.db.session import AsyncSessionLocal
-                    from sqlalchemy import select
-                    from app.models.user import User
-                    
-                    payload = decode_access_token(token)
-                    if payload and payload.get("type") != "2fa_pending":
-                        # 必须有 session_id 和密码指纹
-                        session_id = payload.get("sid")
-                        token_ps = payload.get("ps")
-                        
-                        if not session_id or not token_ps:
-                            valid = False
-                        else:
-                            # 验证会话是否存在且活跃
-                            from app.services.session_service import get_session_by_id
-                            from app.utils.time import get_local_time
-                            async with AsyncSessionLocal() as db:
-                                session = await get_session_by_id(db, session_id)
-                                if not session:
-                                    valid = False
-                                else:
-                                    # 检查会话是否已过期
-                                    now = get_local_time()
-                                    if now.tzinfo is not None:
-                                        now = now.replace(tzinfo=None)
-                                    
-                                    if session.expires_at < now:
-                                        valid = False
-                                    else:
-                                        # 验证密码指纹
-                                        result = await db.execute(select(User).where(User.id == session.user_id))
-                                        user = result.scalars().first()
-                                        if not user:
-                                            valid = False
-                                        else:
-                                            current_ps = user.hashed_password[:16]
-                                            if token_ps != current_ps:
-                                                valid = False
-                                            else:
-                                                # 更新会话最后活动时间
-                                                from app.services.session_service import update_session_activity
-                                                await update_session_activity(db, session_id)
-                                                valid = True
-            
-            if not valid:
+
+            if not await verify_request_token(token):
                 from fastapi.responses import JSONResponse
                 return JSONResponse(status_code=401, content={"detail": "API Authentication Required"})
 
@@ -164,7 +116,7 @@ async def audit_middleware(request: Request, call_next):
                 payload_json = json.loads(payload_str)
                 masked_json = await mask_sensitive_data(payload_json)
                 masked_payload = json.dumps(masked_json, ensure_ascii=False)
-            except:
+            except Exception:
                 pass
 
         # 记录到 JSON 审计日志
@@ -278,49 +230,9 @@ async def shutdown_event():
 # WebSocket 实时日志
 @app.websocket("/ws/system/logs")
 async def websocket_endpoint(websocket: WebSocket, token: str = Query(...)):
-    # 验证 Token - 使用与 HTTP API 相同的验证逻辑
-    from app.utils.auth import decode_access_token
-    from app.services.config_service import ConfigService
-    from app.db.session import AsyncSessionLocal
-    from sqlalchemy import select
-    from app.models.user import User
-    from app.services.session_service import get_session_by_id, update_session_activity
-    from app.utils.time import get_local_time
-    
-    valid = False
-    if token:
-        # 检查静态 Token
-        static_token = await ConfigService.get("api_token")
-        if static_token and token == static_token:
-            valid = True
-        else:
-            # 检查 JWT Token - 完整验证
-            payload = decode_access_token(token)
-            if payload and payload.get("type") != "2fa_pending":
-                session_id = payload.get("sid")
-                token_ps = payload.get("ps")
-                
-                if session_id and token_ps:
-                    async with AsyncSessionLocal() as db:
-                        session = await get_session_by_id(db, session_id)
-                        if session:
-                            # 检查会话是否已过期
-                            now = get_local_time()
-                            if now.tzinfo is not None:
-                                now = now.replace(tzinfo=None)
-                            
-                            if session.expires_at >= now:
-                                # 验证密码指纹
-                                result = await db.execute(select(User).where(User.id == session.user_id))
-                                user = result.scalars().first()
-                                if user:
-                                    current_ps = user.hashed_password[:16]
-                                    if token_ps == current_ps:
-                                        # 更新会话最后活动时间
-                                        await update_session_activity(db, session_id)
-                                        valid = True
-    
-    if not valid:
+    from app.core.security import verify_request_token
+
+    if not await verify_request_token(token):
         await websocket.close(code=1008, reason="Unauthorized")
         return
     
@@ -332,7 +244,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str = Query(...)):
     for line in history:
         try:
             await websocket.send_text(line)
-        except:
+        except Exception:
             return
 
     queue = log_broadcaster.subscribe()
@@ -376,10 +288,8 @@ class NoCacheStaticFiles(StaticFiles):
         return response
 
 # 挂载图标目录（必须在 "/" 挂载之前注册）
-os.makedirs("/app/data/nav_icons", exist_ok=True)
-os.makedirs("/app/data/nav_backgrounds", exist_ok=True)
-app.mount("/nav_icons", StaticFiles(directory="/app/data/nav_icons"), name="nav_icons")
-app.mount("/nav_backgrounds", StaticFiles(directory="/app/data/nav_backgrounds"), name="nav_backgrounds")
+app.mount("/nav_icons", StaticFiles(directory=NAV_ICONS_DIR), name="nav_icons")
+app.mount("/nav_backgrounds", StaticFiles(directory=NAV_BACKGROUNDS_DIR), name="nav_backgrounds")
 
 # 包含 API 路由（必须在 "/" 挂载之前注册）
 app.include_router(api_router, prefix="/api")

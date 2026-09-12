@@ -4,6 +4,7 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { authApi } from '@/api/auth'
+import { useNotification } from '@/composables/useNotification'
 import type { LoginParams } from '@/types'
 
 export function useAuth() {
@@ -26,6 +27,10 @@ export function useAuth() {
       localStorage.setItem('lens_access_token', res.access_token)
       localStorage.setItem('lens_username', res.username || formValue.username)
       router.push('/')
+      if (res.is_default_password) {
+        const { warning } = useNotification()
+        warning('当前仍在使用默认密码 admin123，请前往「设置」尽快修改', undefined)
+      }
       return { status: 'success' }
     } catch (err: any) {
       throw err

@@ -9,6 +9,7 @@ import re
 import zipfile
 import shutil
 import tempfile
+from app.utils.logger import logger
 from datetime import datetime
 from urllib.parse import urljoin, urlparse
 
@@ -22,8 +23,7 @@ from app.schemas.navigation import (
 
 router = APIRouter()
 
-ICON_DIR = "/app/data/nav_icons"
-BG_DIR = "/app/data/nav_backgrounds"
+from app.core.paths import NAV_ICONS_DIR as ICON_DIR, NAV_BACKGROUNDS_DIR as BG_DIR
 os.makedirs(ICON_DIR, exist_ok=True)
 os.makedirs(BG_DIR, exist_ok=True)
 
@@ -68,7 +68,7 @@ async def upload_background(file: UploadFile = File(...)):
     if os.path.exists(BG_DIR):
         for old_file in os.listdir(BG_DIR):
             try: os.remove(os.path.join(BG_DIR, old_file))
-            except: pass
+            except Exception: pass
 
     filename = f"bg_{uuid.uuid4().hex[:8]}{ext}"
     filepath = os.path.join(BG_DIR, filename)
@@ -87,7 +87,7 @@ async def save_remote_background(payload: dict):
     if not url:
         raise HTTPException(status_code=400, detail="URL 不能为空")
     
-    print(f"[Navigation] Saving remote background: {url}")
+    logger.info(f"[Navigation] Saving remote background: {url}")
     
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -110,7 +110,7 @@ async def save_remote_background(payload: dict):
                 error_msg = f"代理请求失败: {resp.status_code}"
     except Exception as e:
         error_msg = f"代理连接异常: {str(e)}"
-        print(f"[Navigation] Save remote bg with proxy failed: {e}")
+        logger.warning(f"[Navigation] Save remote bg with proxy failed: {e}")
 
     if not content:
         try:
@@ -124,7 +124,7 @@ async def save_remote_background(payload: dict):
                     error_msg += f" | 直接请求失败: {resp.status_code}"
         except Exception as e:
             error_msg += f" | 直接连接异常: {str(e)}"
-            print(f"[Navigation] Save remote bg direct failed: {e}")
+            logger.warning(f"[Navigation] Save remote bg direct failed: {e}")
 
     if not content:
         # 这里返回 400 提示具体错误原因
@@ -143,7 +143,7 @@ async def save_remote_background(payload: dict):
         # 清理旧背景
         for old_file in os.listdir(BG_DIR):
             try: os.remove(os.path.join(BG_DIR, old_file))
-            except: pass
+            except Exception: pass
 
         filename = f"bg_fixed_{uuid.uuid4().hex[:8]}{ext}"
         filepath = os.path.join(BG_DIR, filename)
@@ -157,10 +157,10 @@ async def save_remote_background(payload: dict):
             "background_url": local_url,
             "wallpaper_mode": "custom"
         })
-        print(f"[Navigation] Successfully saved remote background to: {local_url}")
+        logger.info(f"[Navigation] Successfully saved remote background to: {local_url}")
         return {"url": local_url}
     except Exception as e:
-        print(f"[Navigation] Final save error: {e}")
+        logger.error(f"[Navigation] Final save error: {e}")
         raise HTTPException(status_code=500, detail=f"保存失败: {str(e)}")
 
 @router.post("/upload-icon")
@@ -192,7 +192,7 @@ async def upload_icon(file: UploadFile = File(...)):
     # 允许更多常见的图片格式
     allowed_extensions = ['.jpg', '.jpeg', '.png', '.webp', '.svg', '.ico', '.gif', '.bmp']
     
-    print(f"[Navigation] Uploading icon: {filename}, ext: {ext}, content_type: {file.content_type}")
+    logger.info(f"[Navigation] Uploading icon: {filename}, ext: {ext}, content_type: {file.content_type}")
 
     if ext not in allowed_extensions:
         # 最后一次机会：如果 content-type 是图片，即使扩展名不认识也允许
@@ -200,7 +200,7 @@ async def upload_icon(file: UploadFile = File(...)):
             # 如果是未知的图片类型，默认用 .png 或者是从 mime_map 获取
             ext = mime_map.get(file.content_type, ".png")
         else:
-            print(f"[Navigation] Unsupported format: {ext} / {file.content_type}")
+            logger.warning(f"[Navigation] Unsupported format: {ext} / {file.content_type}")
             raise HTTPException(status_code=400, detail=f"不支持的图片格式: {ext or '无扩展名'} ({file.content_type})")
     
     filename = f"custom_{uuid.uuid4().hex[:8]}{ext}"
@@ -208,12 +208,12 @@ async def upload_icon(file: UploadFile = File(...)):
     
     try:
         content = await file.read()
-        print(f"[Navigation] File read, size: {len(content)} bytes")
+        logger.info(f"[Navigation] File read, size: {len(content)} bytes")
         with open(filepath, "wb") as f:
             f.write(content)
-        print(f"[Navigation] Icon saved to: {filepath}")
+        logger.info(f"[Navigation] Icon saved to: {filepath}")
     except Exception as e:
-        print(f"[Navigation] Save error: {str(e)}")
+        logger.error(f"[Navigation] Save error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"保存文件失败: {str(e)}")
     
     return {"icon": f"/nav_icons/{filename}"}
@@ -246,7 +246,7 @@ async def download_and_cache_icon(url: str) -> Optional[str]:
                     f.write(resp.content)
                 return f"/nav_icons/{filename}"
     except Exception as e:
-        print(f"[Navigation] Icon download failed: {e}")
+        logger.warning(f"[Navigation] Icon download failed: {e}")
     return None
 
 # ==========================================
@@ -539,7 +539,7 @@ async def get_bing_wallpaper(
                     return result_data
 
     except Exception as e:
-        print(f"Fetch bing error: {e}")
+        logger.warning(f"Fetch bing error: {e}")
     
     return {"error": "Failed to fetch"}
 
@@ -597,7 +597,7 @@ async def get_and_cache_favicon(url: str) -> Optional[str]:
             parsed = urlparse(url)
             remote_icon_url = f"{parsed.scheme}://{parsed.netloc}/favicon.ico"
             return await download_and_cache_icon(remote_icon_url)
-        except:
+        except Exception:
             return None
 
 @router.get("/fetch-icon")

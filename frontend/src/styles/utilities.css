@@ -129,7 +129,7 @@
 }
 
 .text-accent-gold {
-  color: #38bdf8 !important;
+  color: rgb(var(--v-theme-accent)) !important;
 }
 
 /* ============================================================

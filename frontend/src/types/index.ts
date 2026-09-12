@@ -36,6 +36,9 @@ export interface LoginResponse {
   access_token: string
   token_type: string
   username: string
+  status?: string
+  session_id?: string
+  is_default_password?: boolean
 }
 
 // Emby 用户

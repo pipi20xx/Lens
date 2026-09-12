@@ -24,8 +24,10 @@ router = APIRouter()
 
 # ── 目录常量 ───────────────────────────────────────────────
 
-WALLPAPER_CACHE_DIR = os.path.join("/app/data", "tmp", "wallpaper")
-WALLPAPER_UPLOAD_DIR = os.path.join("/app/data", "wallpaper")
+from app.core.paths import WALLPAPER_DIR, DATA_DIR
+
+WALLPAPER_CACHE_DIR = os.path.join(DATA_DIR, "tmp", "wallpaper")
+WALLPAPER_UPLOAD_DIR = WALLPAPER_DIR
 
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp"}
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB

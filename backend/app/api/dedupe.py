@@ -171,7 +171,7 @@ async def get_all_items(query_text: Optional[str] = None, item_type: Optional[st
             for f, v in parse_advanced_search(query_text).items():
                 if f == "year":
                     try: query = query.where(MediaItem.year == int(v))
-                    except: pass
+                    except Exception: pass
                 else: query = query.where(getattr(MediaItem, f).ilike(f"%{v}%"))
         else: query = query.where((MediaItem.name.ilike(f"%{query_text}%")) | (MediaItem.path.ilike(f"%{query_text}%")) | (MediaItem.id == query_text))
     

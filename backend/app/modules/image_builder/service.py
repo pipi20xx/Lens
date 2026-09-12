@@ -20,7 +20,9 @@ from app.utils.logger import logger
 from app.core.config_manager import get_config, save_config
 from app.services.docker_service import DockerService
 
-BUILD_LOG_DIR = Path("/app/data/logs/builds")
+from app.core.paths import LOGS_DIR
+
+BUILD_LOG_DIR = Path(LOGS_DIR) / "builds"
 BUILD_LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 TASK_LOG_SENTINEL = "--- TASK_COMPLETED ---"
@@ -140,7 +142,7 @@ class ImageBuilderService:
                     h_resp = requests.get(http_test_url, timeout=3)
                     if h_resp.status_code in [200, 401]:
                         return {"success": False, "message": f"❌ 协议不匹配: 该仓库似乎只支持 HTTP，请切换设置"}
-                except: pass
+                except Exception: pass
             return {"success": False, "message": f"连接失败: 无法通过 {protocol.upper()} 访问该地址"}
 
         if credential:
@@ -380,7 +382,7 @@ class ImageBuilderService:
         log_path = BUILD_LOG_DIR / f"{task_id}.log"
         if log_path.exists():
             try: os.remove(log_path)
-            except: pass
+            except Exception: pass
         return True
 
     @staticmethod
@@ -393,7 +395,7 @@ class ImageBuilderService:
         import glob
         for log_file in glob.glob(str(BUILD_LOG_DIR / "*.log")):
             try: os.remove(log_file)
-            except: pass
+            except Exception: pass
         return True
 
     @staticmethod
@@ -503,7 +505,7 @@ class ImageBuilderService:
                 service.exec_command(f"docker buildx rm {temp_builder_name}", log_error=False)
             if os.path.exists(temp_config_path):
                 try: os.remove(temp_config_path)
-                except: pass
+                except Exception: pass
             service.exec_command(f"rm -f {temp_config_path}", log_error=False)
             log_to_file(TASK_LOG_SENTINEL)
             
@@ -567,6 +569,6 @@ class ImageBuilderService:
             try:
                 loop = asyncio.new_event_loop()
                 loop.run_until_complete(update_db())
-            except: pass
+            except Exception: pass
         asyncio.create_task(asyncio.to_thread(task_wrapper))
         return task_id

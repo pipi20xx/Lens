@@ -109,7 +109,7 @@ async def path_browser(path: str = "/"):
                         "path": entry.path,
                         "size": 0 if is_dir else entry.stat().st_size
                     })
-                except:
+                except Exception:
                     continue
             
             # 排序：文件夹在前，文件名在后

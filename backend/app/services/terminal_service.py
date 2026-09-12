@@ -117,26 +117,26 @@ class TerminalService:
             try:
                 s = struct.pack('HHHH', rows, cols, 0, 0)
                 fcntl.ioctl(self.fd, termios.TIOCSWINSZ, s)
-            except: pass
+            except Exception: pass
         elif self.mode == 'ssh' and self.channel:
             try:
                 self.channel.resize_pty(width=cols, height=rows)
-            except: pass
+            except Exception: pass
 
     def close(self):
         """统一清理资源"""
         if self.mode == 'local':
             if self.child_pid:
                 try: os.kill(self.child_pid, signal.SIGHUP)
-                except: pass
+                except Exception: pass
             if self.fd:
                 try: os.close(self.fd)
-                except: pass
+                except Exception: pass
                 self.fd = None
         elif self.mode == 'ssh':
             if self.channel:
                 try: self.channel.close()
-                except: pass
+                except Exception: pass
             if self.ssh_client:
                 try: self.ssh_client.close()
-                except: pass
+                except Exception: pass

@@ -4,7 +4,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import List, Optional
 import os
+import re
+import shlex
 import shutil
+import subprocess
 from app.db.session import get_db
 from app.models.terminal import TerminalHost
 from app.services.file_service import FileService
@@ -166,6 +169,17 @@ async def file_action(
     finally:
         file_service.close()
 
+_MODE_RE = re.compile(r"^[0-7]{3,4}$")
+_OWNER_RE = re.compile(r"^[a-zA-Z0-9_][a-zA-Z0-9_.-]*$")
+
+def _run_priv_cmd(file_service: FileService, argv: list):
+    """执行 chmod/chown：本地走参数列表（不经 shell），远程对每个参数做 shlex.quote"""
+    if file_service.mode == 'local':
+        subprocess.run(argv, check=False)
+    else:
+        cmd = " ".join(shlex.quote(a) for a in argv)
+        file_service.ssh_client.exec_command(cmd)
+
 @router.post("/{host_id}/chmod")
 async def file_chmod(
     host_id: str,
@@ -176,26 +190,23 @@ async def file_chmod(
     recursive: bool = Body(False, embed=True),
     db: AsyncSession = Depends(get_db)
 ):
+    if mode and not _MODE_RE.match(mode):
+        raise HTTPException(status_code=400, detail="无效的权限格式（应为 3-4 位八进制，如 755）")
+    for name in (owner, group):
+        if name and not _OWNER_RE.match(name):
+            raise HTTPException(status_code=400, detail=f"无效的用户/组名: {name}")
+
     file_service = await get_file_service_for_host(host_id, db)
     try:
-        rec_flag = "-R " if recursive else ""
         if mode:
-            cmd = f"chmod {rec_flag}{mode} '{path}'"
-            if file_service.mode == 'local':
-                import subprocess
-                subprocess.run(cmd, shell=True)
-            else:
-                file_service.ssh_client.exec_command(cmd)
-        
+            argv = ["chmod"] + (["-R"] if recursive else []) + [mode, path]
+            _run_priv_cmd(file_service, argv)
+
         if owner or group:
             target = f"{owner or ''}:{group or ''}".strip(":")
-            cmd = f"chown {rec_flag}{target} '{path}'"
-            if file_service.mode == 'local':
-                import subprocess
-                subprocess.run(cmd, shell=True)
-            else:
-                file_service.ssh_client.exec_command(cmd)
-        
+            argv = ["chown"] + (["-R"] if recursive else []) + [target, path]
+            _run_priv_cmd(file_service, argv)
+
         return {"status": "success"}
     finally:
         file_service.close()

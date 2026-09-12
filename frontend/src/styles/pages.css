@@ -14,8 +14,8 @@
 }
 
 .v-theme--dark .border-primary {
-  border-color: #38bdf8 !important;
-  box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
+  border-color: rgb(var(--v-theme-accent)) !important;
+  box-shadow: 0 0 12px rgba(var(--v-theme-accent), 0.3);
 }
 
 .v-theme--light .border-primary {
@@ -28,8 +28,8 @@
 }
 
 .v-theme--dark .border-success {
-  border-color: #38bdf8 !important;
-  box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
+  border-color: rgb(var(--v-theme-accent)) !important;
+  box-shadow: 0 0 12px rgba(var(--v-theme-accent), 0.3);
 }
 
 .v-theme--light .border-success {
@@ -103,7 +103,7 @@
 }
 
 /* 暗色模式级别色 — 蓝色系 */
-.log-entry__level[data-level="info"]    { color: #38bdf8; }
+.log-entry__level[data-level="info"]    { color: rgb(var(--v-theme-info)); }
 .log-entry__level[data-level="warn"],
 .log-entry__level[data-level="warning"]  { color: #FFB74D; }
 .log-entry__level[data-level="error"]    { color: #EF5350; }
@@ -170,9 +170,9 @@
 }
 
 .v-theme--dark .liquid-avatar {
-  background: rgba(56, 189, 248, 0.15) !important;
-  border: 1px solid rgba(56, 189, 248, 0.3) !important;
-  color: #38bdf8 !important;
+  background: rgba(var(--v-theme-accent), 0.15) !important;
+  border: 1px solid rgba(var(--v-theme-accent), 0.3) !important;
+  color: rgb(var(--v-theme-accent)) !important;
 }
 
 .v-theme--dark .liquid-avatar:hover {

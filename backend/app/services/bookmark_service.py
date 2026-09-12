@@ -18,7 +18,7 @@ def get_data() -> Dict[str, Any]:
         with open(BOOKMARK_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
             return data if isinstance(data, dict) else copy.deepcopy(DEFAULT_DATA)
-    except:
+    except Exception:
         return copy.deepcopy(DEFAULT_DATA)
 
 def save_data(data: Dict[str, Any]):
@@ -141,7 +141,7 @@ def export_bookmarks_to_html() -> str:
                                 elif ext == '.ico': mime = "image/x-icon"
                                 elif ext in ['.jpg', '.jpeg']: mime = "image/jpeg"
                                 icon_val = f"data:{mime};base64,{b64_data}"
-                        except:
+                        except Exception:
                             pass
                 
                 icon_attr = f' ICON="{icon_val}"' if icon_val else ''
@@ -315,12 +315,12 @@ async def check_batch_health(urls: List[str]) -> Dict[str, int]:
         try:
             async with session.head(url, timeout=10, allow_redirects=True, ssl=False) as response:
                 return url, response.status
-        except:
+        except Exception:
             # Try GET if HEAD fails (some servers deny HEAD)
             try:
                 async with session.get(url, timeout=10, allow_redirects=True, ssl=False) as response:
                     return url, response.status
-            except:
+            except Exception:
                 return url, 0
 
     async with aiohttp.ClientSession() as session:

@@ -157,7 +157,7 @@ class TelegramBotWorker:
                 containers = service.list_containers()
                 running = len([c for c in containers if c["status"] == "running"])
                 msg += f"🖥 `{h['name']}`\n容器: {running} 运行中 / {len(containers)} 总计\n\n"
-            except:
+            except Exception:
                 msg += f"🖥 `{h['name']}`: ❌ 连接失败\n\n"
         await cls._send_message(bot_cfg, chat_id, msg)
 
@@ -254,7 +254,7 @@ class TelegramBotWorker:
             c_old = next((item for item in containers if item["id"] == container_id or item.get("full_id") == container_id), None)
             if c_old:
                 container_name = c_old["name"]
-        except: pass
+        except Exception: pass
 
         await cls._send_message(bot_cfg, chat_id, f"⏳ 正在执行 `{op}` 操作...")
         
@@ -274,7 +274,7 @@ class TelegramBotWorker:
                     if c_new:
                         target_id = c_new["id"]
                         logger.info(f"🔄 [TG Bot] 容器 {container_name} ID 已更新: {container_id} -> {target_id}")
-                except: pass
+                except Exception: pass
             
             # 使用新 ID 刷新详情页
             await cls._show_container_detail(bot_cfg, chat_id, host_id, target_id)
@@ -313,4 +313,4 @@ class TelegramBotWorker:
             proxy_url = config.get("proxy", {}).get("url") if config.get("proxy", {}).get("enabled") else None
             async with httpx.AsyncClient(proxies=proxy_url) as client:
                 await client.post(url, json={"callback_query_id": query_id})
-        except: pass
+        except Exception: pass

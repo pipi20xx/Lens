@@ -7,7 +7,7 @@ const systemStore = useSystemStore()
 const logContainer = ref<HTMLElement>()
 
 const levelColors: Record<string, string> = {
-  INFO: '#38bdf8',
+  INFO: 'rgb(var(--v-theme-info))',
   WARNING: '#FFB74D',
   ERROR: '#EF5350',
   CRITICAL: '#F48FB1',
@@ -58,7 +58,7 @@ function clearLogs() {
         :class="{ 'log-entry--error': entry.level === 'ERROR', 'log-entry--warn': entry.level === 'WARNING' }"
       >
         <span class="log-entry__time">{{ entry.time }}</span>
-        <span class="log-entry__level" :data-level="entry.level.toLowerCase()" :style="{ color: levelColors[entry.level] || '#38bdf8' }">
+        <span class="log-entry__level" :data-level="entry.level.toLowerCase()" :style="{ color: levelColors[entry.level] || 'rgb(var(--v-theme-info))' }">
           {{ entry.level }}
         </span>
         <span class="log-entry__msg">{{ entry.message }}</span>

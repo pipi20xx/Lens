@@ -53,7 +53,7 @@ class Scorer:
         # 处理 ID 排序逻辑
         try:
             id_val = int(emby_id)
-        except:
+        except Exception:
             id_val = 0
             
         if self.tie_breaker == "large_id":
