@@ -66,6 +66,7 @@ async def search_actor_in_emby(query: str = Query(...), db: AsyncSession = Depen
             if full_detail:
                 results.append(full_detail)
     
+    logger.info(f"┗ ✅ Emby 演员检索完成 (耗时 {(time.time()-start_time):.2f}s, 命中数: {len(results)})")
     audit_log("Emby 检索结束", (time.time()-start_time)*1000, [f"命中数: {len(results)}"])
     return {"results": results}
 
@@ -74,12 +75,14 @@ async def search_actor_on_tmdb(query: str = Query(...), db: AsyncSession = Depen
     start_time = time.time()
     _, config = await get_emby_context()
     tmdb_key = config.get("tmdb_api_key")
+    logger.info(f"🚀 启动 [TMDB 演员搜索]: {query}")
     if query.isdigit():
         data = await fetch_tmdb_data(tmdb_key, f"/person/{query}")
         results = [data] if data else []
     else:
         data = await fetch_tmdb_data(tmdb_key, "/search/person", {"query": query})
         results = data.get("results", []) if data else []
+    logger.info(f"┗ ✅ TMDB 演员搜索完成 (耗时 {time.time() - start_time:.2f}s, 命中数: {len(results)})")
     return {"results": results}
 
 @router.post("/update-actor-name")
@@ -94,9 +97,11 @@ async def update_actor_name(
     if not actor_data:
         raise HTTPException(status_code=404, detail="库内未找到该演员")
     old_name = actor_data.get('Name')
+    logger.info(f"🚀 开始 [演员改名]: {old_name} → {new_name}")
     actor_data['Name'] = new_name
     success = await service.update_item(emby_id, actor_data)
     if success:
+        logger.info(f"✅ 演员改名成功 (耗时 {time.time() - start_time:.2f}s, 旧名: {old_name}, 新名: {new_name})")
         audit_log("演员改名成功", (time.time()-start_time)*1000, [f"旧名: {old_name}", f"新名: {new_name}"])
         return {"message": "姓名更新成功"}
     raise HTTPException(status_code=500, detail="Emby API 提交失败")
@@ -107,6 +112,11 @@ async def update_emby_actor(emby_id: str = Body(...), data: Dict = Body(...), db
     actor_data = await service.get_item(emby_id)
     if not actor_data:
         raise HTTPException(status_code=404, detail="演员不存在")
+    logger.info(f"🚀 开始 [演员信息更新]: {actor_data.get('Name')} (Emby ID: {emby_id})")
     actor_data.update(data)
     success = await service.update_item(emby_id, actor_data)
+    if success:
+        logger.info(f"✅ 演员信息更新完成: {actor_data.get('Name')}")
+    else:
+        logger.error(f"❌ 演员信息更新失败: Emby API 提交失败 (Emby ID: {emby_id})")
     return {"success": success}

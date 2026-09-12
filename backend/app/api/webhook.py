@@ -66,6 +66,7 @@ async def receive_webhook(request: Request, full_path: str = "", db: AsyncSessio
 
     # 4. 全链路审计汇报
     process_time = (time.time() - start_time) * 1000
+    logger.info(f"┗ ✅ Webhook 处理完成 (耗时 {process_time / 1000:.2f}s, Event: {event_type}, 项目: {item_name}, 用户: {user_name})")
     audit_log(f"Webhook 捕获: {event_type}", process_time, [
         f"来源: {source_ip} (/{full_path if full_path else ''})",
         f"项目: {item_name}",
@@ -83,7 +84,8 @@ async def get_webhook_logs(limit: int = 50, db: AsyncSession = Depends(get_db)):
         select(WebhookLog).order_by(desc(WebhookLog.created_at)).limit(limit)
     )
     logs = result.scalars().all()
-    
+
+    logger.info(f"✅ Webhook 日志查询完成 (耗时 {time.time() - start_time:.2f}s, 检索记录数: {len(logs)})")
     audit_log("加载 Webhook 日志库", (time.time() - start_time) * 1000, [
         f"请求限额: {limit}",
         f"检索记录数: {len(logs)}"
@@ -103,6 +105,7 @@ async def clear_webhook_logs(db: AsyncSession = Depends(get_db)):
     await db.execute(delete(WebhookLog))
     await db.commit()
     
+    logger.info(f"🗑️ Webhook 历史记录清空完成 (耗时 {time.time() - start_time:.2f}s, 清理记录数: {before_count})")
     audit_log("Webhook 数据库重置", (time.time() - start_time) * 1000, [
         f"操作类型: 全库清空",
         f"清理记录数: {before_count}"

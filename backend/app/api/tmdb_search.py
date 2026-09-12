@@ -80,7 +80,9 @@ async def search_by_tmdb_id(request: TmdbSearchRequest, db: AsyncSession = Depen
                 it = await _fetch_series_structure(service, it)
             final_results.append(it)
 
-    audit_log("深度搜索任务完成", (time.time()-start_time)*1000, [
+    elapsed = (time.time()-start_time)
+    logger.info(f"┗ ✅ 深度搜索完成 (耗时 {elapsed:.2f}s, 匹配项目数: {len(final_results)})")
+    audit_log("深度搜索任务完成", elapsed*1000, [
         f"TMDB ID: {request.tmdb_id}",
         f"匹配项目数: {len(final_results)}"
     ])

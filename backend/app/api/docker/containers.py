@@ -191,7 +191,10 @@ async def container_action(host_id: str, container_id: str, action: str = Body(.
 @router.get("/{host_id}/containers/{container_id}/logs")
 async def get_container_logs(host_id: str, container_id: str, tail: int = 100):
     logger.info(f"📜 [Docker] 正在获取容器日志: {container_id} (tail={tail})")
+    start_time = time.time()
     service = get_docker_service(host_id)
     logs = service.get_container_logs(container_id, tail)
+    log_lines = len(logs.splitlines()) if isinstance(logs, str) else (len(logs) if logs else 0)
+    logger.info(f"✅ [Docker] 容器日志获取完成 (耗时 {time.time() - start_time:.2f}s, 行数: {log_lines})")
     return {"logs": logs}
 

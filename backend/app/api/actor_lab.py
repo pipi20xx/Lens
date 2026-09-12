@@ -92,6 +92,7 @@ async def analyze_actor(
     if language:
         params["language"] = language
 
+    logger.info(f"🚀 [演员实验室] 开始深度探测 ID: {person_id} (语言: {language}, 翻译池: {include_translations})")
     try:
         async with get_async_client(use_proxy=True) as client:
             resp = await client.get(url, params=params)
@@ -149,6 +150,7 @@ async def analyze_actor(
                 "raw": data
             }
             
+            logger.info(f"✅ [演员实验室] 深度探测完成 (耗时 {time.time() - start_time:.2f}s, ID: {person_id}, 原名: {origin_name})")
             audit_log("演员深度分析完成", (time.time() - start_time) * 1000, [f"ID: {person_id}", f"原名: {origin_name}"])
             return result
             

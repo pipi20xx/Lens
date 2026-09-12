@@ -34,11 +34,13 @@ async def pull_image(host_id: str, req: ImagePullRequest):
     task_id = DockerService.register_pull_task(host_id, image_ref)
 
     async def run_pull_task():
+        pull_start = time.time()
         try:
             audit_log("Docker Image Pull", 0, [f"Host: {host_id}", f"Image: {image_ref}"])
             service = get_docker_service(host_id)
             await asyncio.to_thread(service.pull_image, task_id, image_ref)
             task = DockerService.get_pull_task(task_id) or {}
+            logger.info(f"{'✅' if task.get('success') else '❌'} [Docker] 镜像拉取{'完成' if task.get('success') else '失败'}: {image_ref} (耗时 {time.time() - pull_start:.2f}s)")
             config = get_config()
             hosts = config.get("docker_hosts", [])
             host_name = next((h.get("name") for h in hosts if h.get("id") == host_id), host_id)
@@ -86,6 +88,7 @@ async def export_image(host_id: str, image_id: str):
         try: os.remove(output_path)
         except OSError: pass
         raise HTTPException(status_code=500, detail=str(e))
+    logger.info(f"✅ [Docker] 镜像导出完成 (耗时 {time.time() - start_time:.2f}s, 文件: {base}.tar)")
     audit_log("Docker Image Export", (time.time() - start_time) * 1000,
               [f"Host: {host_id}", f"Image: {image_id}"])
     # 响应发送完毕后自动清理临时文件
@@ -106,7 +109,7 @@ async def load_image(host_id: str, file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=str(e))
     audit_log("Docker Image Load", (time.time() - start_time) * 1000,
               [f"Host: {host_id}", f"File: {filename}"])
-    logger.info(f"📥 [Docker] 镜像导入完成: {filename} (Host: {host_id})")
+    logger.info(f"✅ [Docker] 镜像导入完成 (耗时 {time.time() - start_time:.2f}s, 文件: {filename})")
     return {"message": f"镜像导入完成（{filename}）", "result": result}
 
 @router.get("/{host_id}/images/{image_id}")
@@ -128,6 +131,7 @@ async def remove_image(host_id: str, image_id: str, force: bool = Body(False, em
         await asyncio.to_thread(service.remove_image, image_id, force)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    logger.info(f"✅ [Docker] 镜像删除完成 (耗时 {time.time() - start_time:.2f}s, Image: {image_id})")
     audit_log("Docker Image Remove", (time.time() - start_time) * 1000,
               [f"Host: {host_id}", f"Image: {image_id}", f"Force: {force}"])
     return {"message": "镜像已删除"}
@@ -135,12 +139,15 @@ async def remove_image(host_id: str, image_id: str, force: bool = Body(False, em
 @router.post("/{host_id}/images/{image_id}/tag")
 async def tag_image(host_id: str, image_id: str, req: ImageTagRequest):
     """为镜像打标签"""
+    start_time = time.time()
     service = get_docker_service(host_id)
     repo, tag = req.repo.strip(), req.tag.strip() or "latest"
+    logger.info(f"🚀 [Docker] 为镜像打标签: {image_id} → {repo}:{tag} (Host: {host_id})")
     try:
         await asyncio.to_thread(service.tag_image, image_id, repo, tag)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    logger.info(f"✅ [Docker] 镜像打标签完成 (耗时 {time.time() - start_time:.2f}s, 目标: {repo}:{tag})")
     audit_log("Docker Image Tag", 0, [f"Host: {host_id}", f"Image: {image_id}", f"Target: {repo}:{tag}"])
     return {"message": f"已为镜像打标签 {repo}:{tag}"}
 

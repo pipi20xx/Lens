@@ -36,15 +36,18 @@ async def search_bangumi(
     if token:
         headers["Authorization"] = f"Bearer {token}"
 
+    logger.info(f"🔍 [Bangumi 实验室] 正在搜索: {keywords} (类型: {type}, 限制: {limit})")
     try:
         async with get_async_client(use_proxy=True) as client:
             response = await client.get(url, params=params, headers=headers)
             if response.status_code != 200:
+                logger.error(f"❌ [Bangumi 实验室] 搜索失败: status={response.status_code}, body={response.text[:200]}")
                 return {"results": [], "total": 0}
-            
+
             data = response.json()
             # 统一结构返回
             results = data.get("list", [])
+            logger.info(f"✅ [Bangumi 实验室] 搜索完成 (耗时 {time.time() - start_time:.2f}s, 结果数: {len(results)})")
             return {"results": results, "total": data.get("results", 0)}
     except Exception as e:
         logger.error(f"❌ Bangumi 搜索异常: {str(e)}")
@@ -60,6 +63,7 @@ async def get_subject(subject_id: int):
     if token:
         headers["Authorization"] = f"Bearer {token}"
 
+    logger.info(f"🚀 [Bangumi 实验室] 获取条目详情 ID: {subject_id}")
     try:
         async with get_async_client(use_proxy=True) as client:
             response = await client.get(url, headers=headers)
@@ -75,8 +79,9 @@ async def get_subject(subject_id: int):
                 if response.status_code == 401:
                     return {"error": "Bangumi API Token 已过期或无效，请在系统设置中更新 bangumi_api_token", "details": error_detail}
                 return {"error": "Bangumi API 返回错误", "details": error_detail}
-            
+
             data = response.json()
+            logger.info(f"✅ [Bangumi 实验室] 条目详情获取完成 (耗时 {time.time() - start_time:.2f}s, ID: {subject_id}, 名称: {data.get('name', '未知')})")
             return data
     except Exception as e:
         logger.error(f"❌ Bangumi 获取条目异常: {str(e)}")
@@ -92,6 +97,7 @@ async def get_characters(subject_id: int):
     if token:
         headers["Authorization"] = f"Bearer {token}"
 
+    logger.info(f"🚀 [Bangumi 实验室] 获取角色列表 subject_id={subject_id}")
     try:
         async with get_async_client(use_proxy=True) as client:
             response = await client.get(url, headers=headers)
@@ -106,8 +112,9 @@ async def get_characters(subject_id: int):
                 if response.status_code == 401:
                     return {"error": "Bangumi API Token 已过期或无效，请在系统设置中更新 bangumi_api_token", "details": error_detail}
                 return {"error": "Bangumi API 返回错误", "details": error_detail}
-            
+
             data = response.json()
+            logger.info(f"✅ [Bangumi 实验室] 角色列表获取完成 (耗时 {time.time() - start_time:.2f}s, 角色数: {len(data) if isinstance(data, list) else 0})")
             return data
     except Exception as e:
         logger.error(f"❌ Bangumi 获取角色异常: {str(e)}")
@@ -136,6 +143,7 @@ async def get_episodes(
     if token:
         headers["Authorization"] = f"Bearer {token}"
 
+    logger.info(f"🚀 [Bangumi 实验室] 获取章节列表 subject_id={subject_id} (类型: {type if type is not None else '全部'})")
     try:
         async with get_async_client(use_proxy=True) as client:
             response = await client.get(url, params=params, headers=headers)
@@ -150,8 +158,9 @@ async def get_episodes(
                 if response.status_code == 401:
                     return {"error": "Bangumi API Token 已过期或无效，请在系统设置中更新 bangumi_api_token", "details": error_detail}
                 return {"error": "Bangumi API 返回错误", "details": error_detail}
-            
+
             data = response.json()
+            logger.info(f"✅ [Bangumi 实验室] 章节列表获取完成 (耗时 {time.time() - start_time:.2f}s, 章节数: {len(data.get('data', []))})")
             return data
     except Exception as e:
         logger.error(f"❌ Bangumi 获取章节异常: {str(e)}")

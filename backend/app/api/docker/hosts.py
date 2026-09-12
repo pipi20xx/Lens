@@ -5,7 +5,7 @@ import uuid
 from fastapi import APIRouter, HTTPException
 
 from app.core.config_manager import get_config, save_config
-from app.utils.logger import audit_log
+from app.utils.logger import logger, audit_log
 
 from .common import DockerHostConfig
 
@@ -38,7 +38,9 @@ async def add_host(host: DockerHostConfig):
     config["docker_hosts"] = hosts
     save_config(config)
     
+    logger.info(f"🚀 [Docker] 添加主机: {new_host['name']} (类型: {new_host.get('type')})")
     audit_log("Docker Host Added", (time.time() - start_time) * 1000, [f"Name: {new_host['name']}"])
+    logger.info(f"✅ [Docker] 主机添加完成 (耗时 {time.time() - start_time:.2f}s, 名称: {new_host['name']})")
     return new_host
 
 @router.put("/hosts/{host_id}")
@@ -53,6 +55,7 @@ async def update_host(host_id: str, host: DockerHostConfig):
             hosts[i] = updated_host
             config["docker_hosts"] = hosts
             save_config(config)
+            logger.info(f"✅ [Docker] 主机更新完成: {updated_host.get('name')} (ID: {host_id})")
             return updated_host
             
     raise HTTPException(status_code=404, detail="Host not found")
@@ -72,6 +75,8 @@ async def delete_host(host_id: str):
     config["docker_hosts"] = new_hosts
     save_config(config)
     
+    logger.info(f"🚀 [Docker] 删除主机: ID={host_id}")
     audit_log("Docker Host Deleted", (time.time() - start_time) * 1000, [f"ID: {host_id}"])
+    logger.info(f"✅ [Docker] 主机删除完成 (耗时 {time.time() - start_time:.2f}s, ID: {host_id})")
     return {"message": "Host deleted"}
 

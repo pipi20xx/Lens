@@ -35,7 +35,7 @@ async def search_tmdb(
         "include_adult": "true"
     }
 
-    logger.info(f"🔍 [TMDB Lab] 正在搜索 {media_type}: {query} (语言: {language})")
+    logger.info(f"🔍 [TMDB 实验室] 正在搜索 {media_type}: {query} (语言: {language})")
     
     try:
         async with get_async_client(use_proxy=True) as client:
@@ -45,7 +45,9 @@ async def search_tmdb(
                 raise HTTPException(status_code=502, detail=f"TMDB API 返回错误 (HTTP {response.status_code}): {response.text[:200]}")
             
             data = response.json()
-            audit_log("TMDB 搜索完成", (time.time() - start_time) * 1000, [
+            elapsed = time.time() - start_time
+            logger.info(f"✅ [TMDB 实验室] 搜索完成 (耗时 {elapsed:.2f}s, 结果数: {len(data.get('results', []))})")
+            audit_log("TMDB 搜索完成", elapsed * 1000, [
                 f"查询: {query}",
                 f"类型: {media_type}",
                 f"语言: {language}",
@@ -90,7 +92,7 @@ async def fetch_tmdb_details(
     if language:
         params["language"] = language
 
-    logger.info(f"🚀 [TMDB Lab] 抓取任务 ID: {tmdb_id} (全语言翻译: {include_translations}, 递归: {recursive})")
+    logger.info(f"🚀 [TMDB 实验室] 抓取任务 ID: {tmdb_id} (全语言翻译: {include_translations}, 递归: {recursive})")
     
     try:
         async with get_async_client(use_proxy=True) as client:
@@ -123,10 +125,11 @@ async def fetch_tmdb_details(
                         full_seasons.append(s_summary)
                 
                 data["full_seasons_data"] = full_seasons
+                logger.info(f"┗ 📂 递归抓取完成，共 {len(full_seasons)} 季")
 
-            return data
-
-            audit_log("TMDB 详情抓取完成", (time.time() - start_time) * 1000, [
+            elapsed = time.time() - start_time
+            logger.info(f"✅ [TMDB 实验室] 抓取完成 (耗时 {elapsed:.2f}s, ID: {tmdb_id}, 类型: {media_type}, 递归: {recursive})")
+            audit_log("TMDB 详情抓取完成", elapsed * 1000, [
                 f"ID: {tmdb_id}",
                 f"类型: {media_type}",
                 f"递归: {recursive}"
@@ -151,16 +154,26 @@ async def fetch_season_details(
     language: Optional[str] = Query(None, description="语言"),
     include_translations: bool = Query(True, description="是否包含翻译")
 ):
+    start_time = time.time()
     tmdb_key = await get_tmdb_config()
     append_items = ["credits", "images", "translations"] if include_translations else ["credits", "images"]
     url = f"https://api.themoviedb.org/3/tv/{tmdb_id}/season/{season_number}"
     params = {"api_key": tmdb_key, "append_to_response": ",".join(append_items)}
     if language: params["language"] = language
+    logger.info(f"🚀 [TMDB 实验室] 抓取季详情 ID: {tmdb_id} 第 {season_number} 季 (语言: {language or '默认'})")
     try:
         async with get_async_client(use_proxy=True) as client:
             response = await client.get(url, params=params)
-            return response.json()
+            if response.status_code != 200:
+                logger.error(f"❌ [TMDB 实验室] 季详情抓取失败: status={response.status_code}, body={response.text[:200]}")
+                raise HTTPException(status_code=502, detail=f"TMDB API 返回错误 (HTTP {response.status_code})")
+            data = response.json()
+            logger.info(f"✅ [TMDB 实验室] 季详情抓取完成 (耗时 {time.time() - start_time:.2f}s, 集数: {len(data.get('episodes', []))})")
+            return data
+    except HTTPException:
+        raise
     except Exception as e:
+        logger.error(f"❌ [TMDB 实验室] 季详情抓取异常: {type(e).__name__}: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/fetch-episode", summary="TMDB 单集详情深度抓取")
@@ -171,12 +184,13 @@ async def fetch_episode_details(
     language: Optional[str] = Query(None, description="语言"),
     include_translations: bool = Query(True, description="是否包含翻译")
 ):
+    start_time = time.time()
     tmdb_key = await get_tmdb_config()
-    
+
     append_items = ["credits", "images"]
     if include_translations:
         append_items.append("translations")
-        
+
     url = f"https://api.themoviedb.org/3/tv/{tmdb_id}/season/{season_number}/episode/{episode_number}"
     params = {
         "api_key": tmdb_key,
@@ -185,9 +199,18 @@ async def fetch_episode_details(
     if language:
         params["language"] = language
 
+    logger.info(f"🚀 [TMDB 实验室] 抓取单集详情 ID: {tmdb_id} S{season_number:02d}E{episode_number:02d} (语言: {language or '默认'})")
     try:
         async with get_async_client(use_proxy=True) as client:
             response = await client.get(url, params=params)
-            return response.json()
+            if response.status_code != 200:
+                logger.error(f"❌ [TMDB 实验室] 单集详情抓取失败: status={response.status_code}, body={response.text[:200]}")
+                raise HTTPException(status_code=502, detail=f"TMDB API 返回错误 (HTTP {response.status_code})")
+            data = response.json()
+            logger.info(f"✅ [TMDB 实验室] 单集详情抓取完成 (耗时 {time.time() - start_time:.2f}s, S{season_number:02d}E{episode_number:02d})")
+            return data
+    except HTTPException:
+        raise
     except Exception as e:
+        logger.error(f"❌ [TMDB 实验室] 单集详情抓取异常: {type(e).__name__}: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

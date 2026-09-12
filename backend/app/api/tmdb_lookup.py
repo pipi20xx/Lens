@@ -56,7 +56,9 @@ async def reverse_lookup_tmdb(
         logger.warning(f"┗ ⚠️ 溯源失败: 剧集 '{series_name}' 未绑定 TMDB ID")
         raise HTTPException(status_code=404, detail=f"未找到 TMDB 绑定")
 
-    audit_log("TMDB 反向溯源成功", (time.time() - start_time) * 1000, [
+    elapsed = time.time() - start_time
+    logger.info(f"┗ ✅ 反向溯源完成 (耗时 {elapsed:.2f}s, 剧集: {series_name}, TMDB ID: {tmdb_id})")
+    audit_log("TMDB 反向溯源成功", elapsed * 1000, [
         f"单集 ID: {episode_id}",
         f"归属剧集: {series_name}",
         f"定位 TMDB: {tmdb_id}"

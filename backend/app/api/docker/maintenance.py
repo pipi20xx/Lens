@@ -1,6 +1,7 @@
 """维护接口：连接测试、资源清理、环境安装、服务控制、daemon.json 管理。"""
 import json
 import os
+import time
 import asyncio
 
 from typing import Dict, Any, Optional
@@ -202,8 +203,14 @@ async def docker_service_action(host_id: str, action: str = Body(..., embed=True
         
     cmd = f"systemctl {action} docker"
     logger.info(f"⚙️ [Docker] 正在对主机 {host_id} 执行服务操作: {action}")
+    start_time = time.time()
     res = service.exec_command(cmd)
-    
+
+    if res["success"]:
+        logger.info(f"✅ [Docker] 服务操作成功: {action} (耗时 {time.time() - start_time:.2f}s, Host: {host_id})")
+    else:
+        logger.error(f"❌ [Docker] 服务操作失败: {action} (Host: {host_id}): {res['stderr']}")
+
     # 发送通知
     config = get_config()
     hosts = config.get("docker_hosts", [])
@@ -241,7 +248,10 @@ async def save_daemon_config(host_id: str, data: DaemonUpdate):
     service = get_docker_service(host_id)
     config = data.config
     restart = data.restart
-    
+    start_time = time.time()
+
+    logger.info(f"🚀 [Docker] 保存 daemon.json 配置 (Host: {host_id}, 重启: {restart})")
+
     # 1. 读取旧配置用于备份
     old_content = service.read_file("/etc/docker/daemon.json")
     
@@ -266,6 +276,7 @@ async def save_daemon_config(host_id: str, data: DaemonUpdate):
     if restart:
         restart_res = service.exec_command("systemctl daemon-reload && systemctl restart docker")
 
+    logger.info(f"✅ [Docker] daemon.json 配置保存完成 (耗时 {time.time() - start_time:.2f}s, Host: {host_id}, 已重启: {bool(restart)})")
     return {
         "message": "配置已保存并备份", 
         "restart_result": restart_res

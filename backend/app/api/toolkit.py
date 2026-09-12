@@ -162,6 +162,7 @@ async def genre_mapper(request: GenreMapperRequest, db: AsyncSession = Depends(g
                 logger.info(f"┃  ┣ 🎯 映射项目: {full_item.get('Name')}")
 
     duration = time.time() - start_time
+    logger.info(f"┗ ✅ 类型映射完成 (耗时 {duration:.2f}s, 处理项目: {processed}, 模式: {'预览' if request.dry_run else '执行'})")
     await NotificationService.emit(
         "toolkit.genre_mapper",
         "类型映射任务完成",
@@ -199,6 +200,7 @@ async def genre_adder(request: GenreAdderRequest, db: AsyncSession = Depends(get
                     full_item["GenreItems"] = gi_list
                     await service.update_item(full_item["Id"], full_item)
                 logger.info(f"┃  ┣ 🎯 新增到项目: {full_item.get('Name')}")
+    logger.info(f"┗ ✅ 类型新增完成 (耗时 {time.time() - start_time:.2f}s, 处理项目: {processed}, 模式: {'预览' if request.dry_run else '执行'})")
     return MetadataManagerResponse(message="添加完成", processed_count=processed, dry_run_active=request.dry_run)
 
 # ... 其余 Remover, Locker 等逻辑 ...
@@ -207,6 +209,7 @@ async def genre_remover(request: GenreRemoverRequest, db: AsyncSession = Depends
     service, user_id = await get_emby_context(db)
     processed = 0
     start_time = time.time()
+    logger.info(f"🚀 开始 [类型移除] 任务: {request.genres_to_remove or '清空全部类型'}")
     to_remove = request.genres_to_remove
     for lib_name in request.lib_names:
         parent_id = await _get_library_id(service, lib_name)
@@ -224,12 +227,15 @@ async def genre_remover(request: GenreRemoverRequest, db: AsyncSession = Depends
                     full_item["GenreItems"] = [gi for gi in full_item.get("GenreItems", []) if gi.get("Name") not in to_remove] if to_remove else []
                     await service.update_item(full_item["Id"], full_item)
                 logger.info(f"┃  ┣ 🎯 修改项目: {full_item.get('Name')}")
+    logger.info(f"┗ ✅ 类型移除完成 (耗时 {time.time() - start_time:.2f}s, 处理项目: {processed}, 模式: {'预览' if request.dry_run else '执行'})")
     return MetadataManagerResponse(message="移除成功", processed_count=processed, dry_run_active=request.dry_run)
 
 @router.post("/people_remover", response_model=MetadataManagerResponse)
 async def people_remover(request: PeopleRemoverRequest, db: AsyncSession = Depends(get_db)):
     service, user_id = await get_emby_context(db)
     processed = 0
+    start_time = time.time()
+    logger.info(f"🚀 开始 [演员移除] 任务 (库: {request.lib_names}, 类型: {request.item_types})")
     for lib_name in request.lib_names:
         parent_id = await _get_library_id(service, lib_name)
         if not parent_id: continue
@@ -241,6 +247,7 @@ async def people_remover(request: PeopleRemoverRequest, db: AsyncSession = Depen
                 if not request.dry_run:
                     full_item["People"] = []
                     await service.update_item(it_list["Id"], full_item)
+    logger.info(f"┗ ✅ 演员移除完成 (耗时 {time.time() - start_time:.2f}s, 处理项目: {processed}, 模式: {'预览' if request.dry_run else '执行'})")
     return MetadataManagerResponse(message="操作完成", processed_count=processed, dry_run_active=request.dry_run)
 
 @router.post("/metadata_field_unlocker", response_model=MetadataManagerResponse)
@@ -248,6 +255,8 @@ async def metadata_field_unlocker(request: MetadataUnlockerRequest, db: AsyncSes
     """元数据字段解锁：仅清空 LockedFields (小锁)，不动 LockData (主锁)"""
     service, user_id = await get_emby_context(db)
     processed = 0
+    start_time = time.time()
+    logger.info(f"🚀 开始 [字段解锁] 任务 (库: {request.lib_names}, 类型: {request.item_types})")
     for lib_name in request.lib_names:
         parent_id = await _get_library_id(service, lib_name)
         if not parent_id: continue
@@ -260,6 +269,7 @@ async def metadata_field_unlocker(request: MetadataUnlockerRequest, db: AsyncSes
                 if not request.dry_run:
                     full_item["LockedFields"] = []
                     await service.update_item(full_item["Id"], full_item)
+    logger.info(f"┗ ✅ 字段解锁完成 (耗时 {time.time() - start_time:.2f}s, 处理项目: {processed}, 模式: {'预览' if request.dry_run else '执行'})")
     return MetadataManagerResponse(message="字段解锁完成", processed_count=processed, dry_run_active=request.dry_run)
 
 @router.post("/item_locker", response_model=MetadataManagerResponse)
@@ -267,6 +277,8 @@ async def item_locker(request: MetadataUnlockerRequest, db: AsyncSession = Depen
     """项目整体锁定：设置 LockData = true (主锁)"""
     service, user_id = await get_emby_context(db)
     processed = 0
+    start_time = time.time()
+    logger.info(f"🚀 开始 [项目锁定] 任务 (库: {request.lib_names}, 类型: {request.item_types})")
     for lib_name in request.lib_names:
         parent_id = await _get_library_id(service, lib_name)
         if not parent_id: continue
@@ -279,6 +291,7 @@ async def item_locker(request: MetadataUnlockerRequest, db: AsyncSession = Depen
                 if not request.dry_run:
                     full_item["LockData"] = True
                     await service.update_item(full_item["Id"], full_item)
+    logger.info(f"┗ ✅ 项目锁定完成 (耗时 {time.time() - start_time:.2f}s, 处理项目: {processed}, 模式: {'预览' if request.dry_run else '执行'})")
     return MetadataManagerResponse(message="锁定完成", processed_count=processed, dry_run_active=request.dry_run)
 
 @router.post("/item_unlocker", response_model=MetadataManagerResponse)
@@ -286,6 +299,8 @@ async def item_unlocker(request: MetadataUnlockerRequest, db: AsyncSession = Dep
     """项目深度全解锁：主锁 + 小锁一起解除 (LockData=false + LockedFields清空)"""
     service, user_id = await get_emby_context(db)
     processed = 0
+    start_time = time.time()
+    logger.info(f"🚀 开始 [项目解锁] 任务 (库: {request.lib_names}, 类型: {request.item_types})")
     for lib_name in request.lib_names:
         parent_id = await _get_library_id(service, lib_name)
         if not parent_id: continue
@@ -298,12 +313,15 @@ async def item_unlocker(request: MetadataUnlockerRequest, db: AsyncSession = Dep
                 if not request.dry_run:
                     full_item["LockedFields"] = []; full_item["LockData"] = False
                     await service.update_item(full_item["Id"], full_item)
+    logger.info(f"┗ ✅ 项目解锁完成 (耗时 {time.time() - start_time:.2f}s, 处理项目: {processed}, 模式: {'预览' if request.dry_run else '执行'})")
     return MetadataManagerResponse(message="深度解锁完成", processed_count=processed, dry_run_active=request.dry_run)
 
 @router.post("/episode_deleter", response_model=MetadataManagerResponse)
 async def episode_deleter(request: BaseMetadataRequest, db: AsyncSession = Depends(get_db)):
     service, user_id = await get_emby_context(db)
     processed = 0
+    start_time = time.time()
+    logger.info(f"🚀 开始 [单集类型清理] 任务 (库: {request.lib_names})")
     for lib_name in request.lib_names:
         parent_id = await _get_library_id(service, lib_name)
         if not parent_id: continue
@@ -315,4 +333,5 @@ async def episode_deleter(request: BaseMetadataRequest, db: AsyncSession = Depen
                 if not request.dry_run:
                     full_item["Genres"] = []; full_item["GenreItems"] = []
                     await service.update_item(full_item["Id"], full_item)
+    logger.info(f"┗ ✅ 单集类型清理完成 (耗时 {time.time() - start_time:.2f}s, 处理项目: {processed}, 模式: {'预览' if request.dry_run else '执行'})")
     return MetadataManagerResponse(message="操作完成", processed_count=processed, dry_run_active=request.dry_run)
