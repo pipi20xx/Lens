@@ -105,8 +105,13 @@ async def audit_middleware(request: Request, call_next):
     
     response = await call_next(request)
     process_time = (time.time() - start_time) * 1000
-    
+
     should_audit = is_api and not is_excluded
+
+    # 「启用审计日志」开关（audit_enabled）：关闭时跳过审计记录与性能审计输出
+    if should_audit:
+        audit_enabled_val = await ConfigService.get("audit_enabled", True)
+        should_audit = audit_enabled_val is True or str(audit_enabled_val).lower() == "true"
 
     if should_audit:
         # 执行脱敏处理
@@ -218,6 +223,11 @@ async def startup_event():
             current_val = await ConfigService.get(cfg["key"])
             if current_val is None:
                 await ConfigService.set(cfg["key"], cfg["value"], cfg["description"])
+
+    # 同步性能审计输出开关（⏱️ [性能审计]，跟随「启用审计日志」）
+    from app.utils.logger import set_perf_audit_enabled
+    audit_val = await ConfigService.get("audit_enabled", True)
+    set_perf_audit_enabled(audit_val is True or str(audit_val).lower() == "true")
 
     # 强制禁用 SSH 主机密钥检查
 

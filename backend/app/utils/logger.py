@@ -128,12 +128,22 @@ def setup_logger():
 logger = setup_logger()
 
 # 辅助函数：模拟审计风格日志
+# 是否输出性能审计行（⏱️ [性能审计]），跟随「启用审计日志」开关（audit_enabled）。
+# audit_log 会被服务代码同步调用，这里用模块级开关变量，由 main.py 启动和配置更新接口写入。
+perf_audit_enabled = True
+
+def set_perf_audit_enabled(enabled: bool):
+    global perf_audit_enabled
+    perf_audit_enabled = bool(enabled)
+
 def audit_log(title: str, duration_ms: float, details: List[str]):
+    if not perf_audit_enabled:
+        return
     # 性能审计深度降噪：过滤掉耗时低于 300ms 的所有常规请求
     # 300ms 以内的响应在内网环境下属于正常波动，不具备审计价值
     if duration_ms < 300:
         return
-        
+
     detail_str = " | ".join(details)
     logger.info(f"⏱️ [性能审计]: {title} 耗时 {duration_ms:.0f}ms | {detail_str}")
 

@@ -29,11 +29,10 @@ const globalConfig = ref<any>({
 })
 
 // ========== 数据库系统配置 (来自 /api/system/config) ==========
-// api_token, auth_enabled, audit_enabled 等存数据库
+// api_token, auth_enabled 存数据库；audit_enabled 统一在「外部对接控制 → 安全设置」开关
 const systemConfig = ref<any>({
   api_token: '',
   auth_enabled: true,
-  audit_enabled: false,
 })
 
 // ========== 服务器编辑 ==========
@@ -83,7 +82,6 @@ async function loadAll() {
     systemConfig.value = {
       api_token: sc.api_token || '',
       auth_enabled: sc.auth_enabled !== false,
-      audit_enabled: !!sc.audit_enabled,
     }
   } catch (e: any) {
     console.error('加载配置失败:', e)
@@ -165,7 +163,6 @@ async function handleSaveSystem() {
     const configs = [
       { key: 'api_token', value: systemConfig.value.api_token, description: 'API Token' },
       { key: 'auth_enabled', value: systemConfig.value.auth_enabled, description: '启用登录认证' },
-      { key: 'audit_enabled', value: systemConfig.value.audit_enabled, description: '启用审计日志' },
     ]
     await configApi.saveSystemConfig(configs)
     success('系统配置已保存')
@@ -353,15 +350,8 @@ onMounted(loadAll)
                   关闭后，会话将在 24 小时后自动过期。
                 </p>
                 <v-divider class="my-4" />
-                <v-row>
-                  <v-col cols="6">
-                    <v-switch v-model="systemConfig.auth_enabled" label="启用登录认证" density="compact" color="primary"
-                      hint="关闭后任何人都可以访问系统" persistent-hint />
-                  </v-col>
-                  <v-col cols="6">
-                    <v-switch v-model="systemConfig.audit_enabled" label="启用审计日志" density="compact" color="primary" />
-                  </v-col>
-                </v-row>
+                <v-switch v-model="systemConfig.auth_enabled" label="启用登录认证" density="compact" color="primary"
+                  hint="关闭后任何人都可以访问系统" persistent-hint />
               </v-card-text>
               <v-divider />
               <div class="d-flex justify-end pa-4">

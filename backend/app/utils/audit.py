@@ -37,6 +37,12 @@ async def add_audit_log(
     payload: str = None
 ):
     """添加审计日志：内存缓存 + 物理文件持久化 (使用本地时间)"""
+    # 统一受「启用审计日志」开关控制（设置页 audit_enabled），关闭时所有写入点均不记录
+    from app.services.config_service import ConfigService
+    audit_enabled_val = await ConfigService.get("audit_enabled", True)
+    if not (audit_enabled_val is True or str(audit_enabled_val).lower() == "true"):
+        return
+
     now = get_local_time()
     log_entry = {
         "id": int(now.timestamp() * 1000),

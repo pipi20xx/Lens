@@ -498,6 +498,11 @@ async def get_all_configs(db: AsyncSession = Depends(get_db)):
 async def update_configs(update: BatchConfigUpdate):
     for cfg in update.configs:
         await ConfigService.set(cfg.key, cfg.value, cfg.description)
+        # 审计开关变化时实时同步性能审计输出标志（⏱️ [性能审计] 行）
+        if cfg.key == "audit_enabled":
+            from app.utils.logger import set_perf_audit_enabled
+            val = cfg.value
+            set_perf_audit_enabled(val is True or str(val).lower() == "true")
     return {"message": "配置已更新"}
 
 @router.post("/token/generate", summary="生成随机 API Token")
