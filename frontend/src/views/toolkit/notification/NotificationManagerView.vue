@@ -12,6 +12,43 @@ const activeTab = ref('bots')
 const settings = ref<any>({ enabled: false, bots: [] })
 const loading = ref(false)
 
+// ========== Bot 运行时状态（在线徽章） ==========
+const botStatus = ref<Record<string, any>>({})
+const statusLoading = ref(false)
+
+async function loadBotStatus() {
+  const bots = settings.value.bots || []
+  const interactiveIds = bots.filter((b: any) => b.enabled && b.is_interactive).map((b: any) => b.id)
+  if (!interactiveIds.length) {
+    botStatus.value = {}
+    return
+  }
+  statusLoading.value = true
+  try {
+    const results = await Promise.all(
+      interactiveIds.map(async (id: string) => {
+        try {
+          return [id, await notificationApi.getBotStatus(id)] as const
+        } catch {
+          return [id, null] as const
+        }
+      })
+    )
+    botStatus.value = Object.fromEntries(results)
+  } finally {
+    statusLoading.value = false
+  }
+}
+
+function getStatusMeta(bot: any): { color: string; icon: string; label: string } | null {
+  if (!bot.enabled || !bot.is_interactive) return null
+  const status = botStatus.value[bot.id]
+  if (!status) return { color: 'grey', icon: 'mdi-help-circle-outline', label: '状态未知' }
+  if (status.running) return { color: 'success', icon: 'mdi-check-circle', label: `运行中${status.username ? ` @${status.username}` : ''}` }
+  if (status.error) return { color: 'error', icon: 'mdi-alert-circle', label: '异常' }
+  return { color: 'grey', icon: 'mdi-pause-circle-outline', label: '已停止' }
+}
+
 // ========== 可订阅事件定义 ==========
 const EVENT_GROUPS = [
   {
@@ -130,7 +167,7 @@ const typeOptions = [
 function openAddBot() {
   editingBotId.value = null
   botForm.value = {
-    id: '', name: '', type: 'telegram', token: '', chat_id: '',
+    id: '', name: '', type: 'telegram', token: '', tokenMasked: '', chat_id: '',
     enabled: true, is_interactive: false, subscribed_events: ['*'],
     allowed_user_ids: []
   }
@@ -139,7 +176,8 @@ function openAddBot() {
 
 function openEditBot(bot: any) {
   editingBotId.value = bot.id
-  botForm.value = { ...bot }
+  // token 已脱敏回显，编辑时清空输入框（留空即保持原有 Token）
+  botForm.value = { ...bot, token: '', tokenMasked: bot.token || '' }
   // 确保 subscribed_events 始终是数组
   if (!Array.isArray(botForm.value.subscribed_events)) botForm.value.subscribed_events = []
   if (!Array.isArray(botForm.value.allowed_user_ids)) botForm.value.allowed_user_ids = []
@@ -149,23 +187,27 @@ function openEditBot(bot: any) {
 async function saveBot() {
   try {
     if (!botForm.value.name?.trim()) { showError('请输入 Bot 名称'); return }
-    if (!botForm.value.token?.trim()) { showError('请输入 Bot Token'); return }
+    if (!editingBotId.value && !botForm.value.token?.trim()) { showError('请输入 Bot Token'); return }
     if (!botForm.value.chat_id?.trim()) { showError('请输入 Chat ID'); return }
     if (!botForm.value.subscribed_events?.length) {
       showError('请至少选择一个订阅事件');
       return
     }
 
+    const payload = { ...botForm.value }
+    delete payload.tokenMasked
+
     if (editingBotId.value) {
-      await notificationApi.updateBot(editingBotId.value, botForm.value)
+      await notificationApi.updateBot(editingBotId.value, payload)
     } else {
-      await notificationApi.addBot(botForm.value)
+      await notificationApi.addBot(payload)
     }
     success('Bot 已保存')
     showBotDialog.value = false
     loadSettings()
-  } catch {
-    showError('保存失败')
+    loadBotStatus()
+  } catch (e: any) {
+    showError(e?.message || '保存失败')
   }
 }
 
@@ -176,6 +218,7 @@ async function deleteBot(id: string) {
     await notificationApi.deleteBot(id)
     success('Bot 已删除')
     loadSettings()
+    loadBotStatus()
   } catch {
     showError('删除失败')
   }
@@ -195,8 +238,26 @@ async function toggleBotEnabled(bot: any) {
     await notificationApi.updateBot(bot.id, { ...bot, enabled: bot.enabled })
     success(bot.enabled ? 'Bot 已启用' : 'Bot 已停用')
     loadSettings()
+    loadBotStatus()
   } catch {
     showError('操作失败')
+  }
+}
+
+// ========== Token 校验 ==========
+const validating = ref(false)
+
+async function validateToken() {
+  if (!botForm.value.token?.trim()) { showError('请先输入 Token'); return }
+  validating.value = true
+  try {
+    const res = await notificationApi.validateBot(botForm.value.token.trim())
+    if (res.valid) success(`Token 有效${res.username ? `，Bot: @${res.username}` : ''}`)
+    else showError(res.error || 'Token 无效')
+  } catch (e: any) {
+    showError(e?.message || '验证请求失败')
+  } finally {
+    validating.value = false
   }
 }
 
@@ -229,7 +290,9 @@ function getBotEventSummary(bot: any): string {
   return `${events.length} 个事件`
 }
 
-onMounted(loadSettings)
+onMounted(() => {
+  loadSettings().then(loadBotStatus)
+})
 </script>
 
 <template>
@@ -248,7 +311,8 @@ onMounted(loadSettings)
     <v-window v-model="activeTab">
       <!-- Bot 管理 -->
       <v-window-item value="bots">
-        <div class="d-flex justify-end mb-4">
+        <div class="d-flex justify-end mb-4 ga-2">
+          <v-btn prepend-icon="mdi-refresh" variant="tonal" size="small" :loading="statusLoading" @click="loadBotStatus">刷新状态</v-btn>
           <v-btn prepend-icon="mdi-plus" variant="tonal" color="primary" size="small" @click="openAddBot">添加 Bot</v-btn>
         </div>
 
@@ -272,8 +336,15 @@ onMounted(loadSettings)
                     {{ getBotEventSummary(bot) }}
                   </v-chip>
                 </div>
-                <div v-if="bot.is_interactive" class="mt-1">
+                <div v-if="bot.is_interactive" class="mt-1 d-flex align-center ga-2 flex-wrap">
                   <v-chip size="x-small" variant="tonal" color="info">交互模式</v-chip>
+                  <v-chip v-if="getStatusMeta(bot)" size="x-small" variant="tonal" :color="getStatusMeta(bot)!.color">
+                    <v-icon start size="12">{{ getStatusMeta(bot)!.icon }}</v-icon>
+                    {{ getStatusMeta(bot)!.label }}
+                  </v-chip>
+                </div>
+                <div v-if="bot.enabled && bot.is_interactive && botStatus[bot.id]?.error" class="text-caption text-error mt-1">
+                  {{ botStatus[bot.id].error }}
                 </div>
               </v-card-text>
               <v-divider />
@@ -318,7 +389,15 @@ onMounted(loadSettings)
       <!-- 基本信息 -->
       <v-text-field v-model="botForm.name" label="名称" variant="outlined" density="compact" placeholder="例如: 我的 Telegram Bot" class="mb-3" />
       <v-select v-model="botForm.type" :items="typeOptions" label="类型" variant="outlined" density="compact" class="mb-3" />
-      <v-text-field v-model="botForm.token" label="Bot Token" variant="outlined" density="compact" placeholder="例如: 123456:ABC-DEF..." class="mb-3" />
+      <v-text-field
+        v-model="botForm.token"
+        label="Bot Token"
+        variant="outlined" density="compact"
+        :placeholder="editingBotId ? (botForm.tokenMasked || '留空保持原有 Token') : '例如: 123456:ABC-DEF...'"
+        :append-inner-icon="validating ? 'mdi-loading mdi-spin' : 'mdi-check-decagram'"
+        @click:append-inner="validateToken"
+        class="mb-3"
+      />
       <v-text-field v-model="botForm.chat_id" label="Chat ID" variant="outlined" density="compact" placeholder="接收通知的聊天 ID" class="mb-3" />
 
       <v-divider class="my-4" />

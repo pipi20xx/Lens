@@ -89,6 +89,17 @@ class AutoUpdateMixin(DockerServiceBase):
 
         logger.info(f"🏁 [Docker] 自动更新完毕。更新: {updated_count}, 失败: {error_count}")
 
+        if error_count > 0:
+            await NotificationService.emit(
+                event="docker.auto_update",
+                title="Docker 自动更新存在失败",
+                message=(
+                    "本次自动更新已结束，但部分容器未能完成更新。\n"
+                    f"成功: {updated_count} 个\n失败: {error_count} 个\n"
+                    "请前往 Lens 的 Docker 管理页查看日志定位原因。"
+                ),
+            )
+
     @classmethod
     def get_scheduler(cls):
         if cls._scheduler is None:

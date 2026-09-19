@@ -20,3 +20,6 @@ class NotificationSettings(BaseModel):
 class TestMessageRequest(BaseModel):
     bot_id: str
     message: str = "这是一条来自 Lens 的测试消息"
+
+class TokenValidateRequest(BaseModel):
+    token: str

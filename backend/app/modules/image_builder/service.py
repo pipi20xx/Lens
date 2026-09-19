@@ -514,7 +514,7 @@ class ImageBuilderService:
                 status_text = "成功" if final_status == "SUCCESS" else "失败"
                 summary = f"镜像构建{status_text}: {p['name']} ({repo_base}:{tags[0]})"
                 logger.info(f"🚀 [镜像构建] {summary} | 主机: {host_config.get('name')}")
-                asyncio.run(NotificationService.emit(event="image_builder.task_completed", title="Lens 镜像构建任务报告", message=(f"项目名称: {p['name']}\n目标镜像: {repo_base}\n标签版本: {', '.join(tags)}\n构建主机: {host_config.get('name')}\n最终状态: {status_text}\n结束时间: {datetime.now().strftime('%H:%M:%S')}")))
+                NotificationService.emit_sync(event="image_builder.task_completed", title="Lens 镜像构建任务报告", message=(f"项目名称: {p['name']}\n目标镜像: {repo_base}\n标签版本: {', '.join(tags)}\n构建主机: {host_config.get('name')}\n最终状态: {status_text}\n结束时间: {datetime.now().strftime('%H:%M:%S')}"))
             except Exception: pass
         return final_status
 

@@ -235,6 +235,12 @@ async def startup_event():
 @app.on_event("shutdown")
 async def shutdown_event():
     logger.info("正在关闭服务...")
+    # 优雅关闭 Telegram 交互监听（取消轮询任务并释放连接）
+    try:
+        from app.services.telegram_bot_worker import TelegramBotWorker
+        await TelegramBotWorker.stop_all()
+    except Exception as e:
+        logger.warning(f"[系统] TG Bot 关闭异常: {e}")
     logger.info("[系统] 服务已安全关闭。")
 
 # WebSocket 实时日志
