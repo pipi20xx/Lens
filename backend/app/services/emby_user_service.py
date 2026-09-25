@@ -85,7 +85,7 @@ def get_emby_user_service(server_id: str = None) -> Optional[EmbyUserService]:
     if not target_server:
         return None
         
-    token = target_server.get("session_token") or target_server.get("api_key")
+    token = target_server.get("api_key") or target_server.get("session_token")
     return EmbyUserService(
         url=target_server.get("url", ""),
         api_key=token

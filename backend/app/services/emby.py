@@ -119,8 +119,8 @@ def get_emby_service(server_id: str = None, emby_id: str = None) -> Optional[Emb
     if not target_server:
         return None
         
-    # 优先使用 session_token，没有再用 api_key
-    token = target_server.get("session_token") or target_server.get("api_key")
+    # 优先使用 api_key（永久密钥），避免 session_token 过期导致后台任务失败
+    token = target_server.get("api_key") or target_server.get("session_token")
     return EmbyService(
         url=target_server.get("url", ""),
         api_key=token,

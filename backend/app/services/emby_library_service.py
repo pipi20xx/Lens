@@ -99,5 +99,5 @@ def get_emby_library_service(server_id: str = None) -> Optional[EmbyLibraryServi
     target_server = next((s for s in servers if s.get("id") == (server_id or config.get("active_server_id"))), None)
     if not target_server and servers: target_server = servers[0]
     if not target_server: return None
-    token = target_server.get("session_token") or target_server.get("api_key")
+    token = target_server.get("api_key") or target_server.get("session_token")
     return EmbyLibraryService(url=target_server.get("url", ""), api_key=token)
