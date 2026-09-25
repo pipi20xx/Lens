@@ -1,5 +1,5 @@
 # Stage 1: Build Frontend
-FROM node:22-slim as frontend-builder
+FROM node:22-slim AS frontend-builder
 WORKDIR /frontend
 
 # 设置 NPM 国内镜像源
@@ -30,8 +30,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
-# 设置 PIP 国内镜像源
-RUN pip install --no-cache-dir -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+# 设置 PIP 国内镜像源，增加超时和重试以提高构建稳定性
+RUN pip install --no-cache-dir \
+    --default-timeout=120 \
+    --retries 5 \
+    -r requirements.txt \
+    -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 # 复制后端代码
 COPY backend/ /app/
