@@ -189,7 +189,7 @@ defineExpose({ loadComposeProjects })
           <div class="card-title">
             <v-icon start color="primary" size="20">mdi-file-document-outline</v-icon>
             <span class="text-subtitle-2 font-weight-bold">{{ project.name }}</span>
-            <v-chip v-if="project.type === 'scanned'" size="x-small" variant="tonal" color="info">已记忆</v-chip>
+            <v-chip v-if="project.type === 'scanned' || project.type === 'remembered'" size="x-small" variant="tonal" color="info">已记忆</v-chip>
             <v-chip v-else size="x-small" variant="outlined" color="warning">探测到</v-chip>
           </div>
           <v-chip :color="project.status?.includes('running') ? 'success' : 'grey'" size="small" variant="tonal" label>

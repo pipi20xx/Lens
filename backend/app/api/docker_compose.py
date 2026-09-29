@@ -23,20 +23,23 @@ def get_docker_service(host_id: str):
     config = get_config()
     hosts = config.get("docker_hosts", [])
     host_config = next((h for h in hosts if h.get("id") == host_id), None)
-    
+
     if not host_config:
         raise HTTPException(status_code=404, detail="Docker host not configured")
-    
+
     return DockerService(host_config)
+
+def _shell_quote(s: str) -> str:
+    return "'" + s.replace("'", "'\\''") + "'"
 
 @router.get("/{host_id}/ls")
 async def list_directory(host_id: str, path: str = "/"):
     """浏览远程或本地主机的目录内容"""
     service = get_docker_service(host_id)
     # 使用 ls -p 参数，文件夹后会跟 /
-    cmd = f"ls -p '{path}'"
+    cmd = f"ls -p {_shell_quote(path)}"
     res = service.exec_command(cmd, log_error=False)
-    
+
     if not res["success"]:
         if path != "/":
             return await list_directory(host_id, "/")
@@ -53,9 +56,125 @@ async def list_directory(host_id: str, path: str = "/"):
             "path": os.path.join(path, name),
             "is_dir": is_dir
         })
-    
+
     items.sort(key=lambda x: (not x["is_dir"], x["name"].lower()))
     return {"current_path": path, "items": items}
+
+def _registry_entries(config: Dict[str, Any], host_id: str) -> List[Dict[str, Any]]:
+    return config.get("compose_registry", {}).get(host_id, []) or []
+
+def _scan_projects(service: DockerService, host_id: str) -> List[Dict[str, Any]]:
+    projects = []
+    managed_files = set()
+
+    # 1. 尝试通过 docker compose ls 探测项目。
+    #    注意：该命令依据容器上的 label 识别项目，一旦容器被删除（或更新失败导致容器被清掉），
+    #    项目会从此输出中消失，因此必须配合下面的扫描路径搜索与持久记忆兜底。
+    detect_commands = ["docker compose ls --all --format json", "docker-compose ls --all --format json"]
+    for cmd in detect_commands:
+        res = service.exec_command(cmd, log_error=False)
+        if res["success"] and res["stdout"].strip():
+            try:
+                detected_projects = json.loads(res["stdout"])
+                if isinstance(detected_projects, dict):
+                    detected_projects = detected_projects.get("projects") or []
+                for p in detected_projects:
+                    name = p.get("Name") or p.get("Project")
+                    # ConfigFiles 可能是以逗号/换行分隔的多个文件，取第一个作为主配置
+                    raw_files = p.get("ConfigFiles") or p.get("ConfigPath") or ""
+                    files = [f.strip() for f in raw_files.replace(",", "\n").splitlines() if f.strip()]
+                    primary = files[0] if files else ""
+                    if name and primary:
+                        projects.append({
+                            "name": name,
+                            "path": os.path.dirname(primary),
+                            "config_file": primary,
+                            "type": "detected",
+                            "status": p.get("Status")
+                        })
+                        managed_files.update(files)
+                break
+            except Exception: continue
+
+    # 2. 根据用户配置的扫描路径进行深度搜索
+    scan_paths_str = service.host_config.get("compose_scan_paths", "")
+    if scan_paths_str:
+        paths = [p.strip() for p in scan_paths_str.split(",") if p.strip()]
+        for base_path in paths:
+            # 静默检查路径是否存在
+            check_cmd = f"[ -d {_shell_quote(base_path)} ] && echo 'ok'"
+            if service.exec_command(check_cmd, log_error=False)["stdout"].strip() != "ok":
+                continue
+
+            find_cmd = (f"find {_shell_quote(base_path)} -maxdepth 4 "
+                        f"\\( -name 'docker-compose.yml' -o -name 'docker-compose.yaml' "
+                        f"-o -name 'compose.yml' -o -name 'compose.yaml' \\)")
+            res = service.exec_command(find_cmd, log_error=False)
+            if res["success"] and res["stdout"].strip():
+                found_files = res["stdout"].strip().split("\n")
+                for file_path in found_files:
+                    file_path = file_path.strip()
+                    if not file_path or file_path in managed_files: continue
+                    project_dir = os.path.dirname(file_path)
+                    projects.append({
+                        "name": os.path.basename(project_dir),
+                        "path": project_dir,
+                        "config_file": file_path,
+                        "type": "scanned",
+                        "status": "exited"
+                    })
+                    managed_files.add(file_path)
+
+    # 3. 合并持久记忆：曾经出现过、但当前 docker compose ls 已探测不到的项目
+    #    （容器被删除/更新失败后仍保留在面板中，可通过“启动/更新”一键拉起）
+    config = get_config()
+    listed_files = {p["config_file"] for p in projects}
+    remembered = []
+    for entry in _registry_entries(config, host_id):
+        cf = (entry or {}).get("config_file")
+        if not cf or cf in listed_files: continue
+        remembered.append({
+            "name": entry.get("name") or os.path.basename(os.path.dirname(cf)),
+            "path": os.path.dirname(cf),
+            "config_file": cf,
+            "type": "remembered",
+            "status": "exited"
+        })
+        listed_files.add(cf)
+
+    if remembered:
+        # 一次性校验记忆中的 yaml 文件是否仍存在，已被删除的条目从记忆中剔除
+        # （结尾 true：循环中最后一次 [ -f ] 失败会把退出码置 1，需保底为 0）
+        files_cmd = " ".join(_shell_quote(r["config_file"]) for r in remembered)
+        check_res = service.exec_command(f"for f in {files_cmd}; do [ -f \"$f\" ] && echo \"$f\"; done; true", log_error=False)
+        if check_res["success"]:
+            alive = {line.strip() for line in check_res["stdout"].splitlines() if line.strip()}
+            remembered = [r for r in remembered if r["config_file"] in alive]
+
+    projects.extend(remembered)
+
+    # 4. 本地内置项目
+    if service.host_config.get("type") == "local" and os.path.exists(COMPOSE_DIR):
+        for d in os.listdir(COMPOSE_DIR):
+            path = os.path.join(COMPOSE_DIR, d)
+            cfg = os.path.join(path, "docker-compose.yml")
+            if os.path.isdir(path) and cfg not in listed_files:
+                projects.append({"name": d, "path": path, "config_file": cfg, "type": "internal", "status": "unknown"})
+
+    # 5. 持久化记忆（仅内容变化时写盘，避免频繁 IO）
+    new_registry = [
+        {"name": p["name"], "config_file": p["config_file"]}
+        for p in projects if p.get("type") != "internal" and p.get("config_file")
+    ]
+    old_registry = _registry_entries(config, host_id)
+    key = lambda e: (e.get("name", ""), e.get("config_file", ""))
+    if sorted(map(key, new_registry)) != sorted(map(key, old_registry)):
+        registry_all = config.get("compose_registry", {})
+        registry_all[host_id] = new_registry
+        config["compose_registry"] = registry_all
+        save_config(config)
+
+    return projects
 
 @router.get("/{host_id}/projects")
 async def list_projects(host_id: str):
@@ -66,72 +185,10 @@ async def list_projects(host_id: str):
             return data
 
     service = get_docker_service(host_id)
-    
-    # 封装内部逻辑用于线程执行
-    def scan_logic():
-        projects = []
-        managed_paths = set()
-        
-        # 2. 尝试通过 docker compose ls 探测已运行的项目
-        detect_commands = ["docker compose ls --all --format json", "docker-compose ls --all --format json"]
-        for cmd in detect_commands:
-            res = service.exec_command(cmd, log_error=False)
-            if res["success"] and res["stdout"].strip():
-                try:
-                    detected_projects = json.loads(res["stdout"])
-                    for p in detected_projects:
-                        name = p.get("Name") or p.get("Project")
-                        config_files = p.get("ConfigFiles") or p.get("ConfigPath")
-                        if name and config_files:
-                            projects.append({
-                                "name": name,
-                                "path": os.path.dirname(config_files),
-                                "config_file": config_files,
-                                "type": "detected",
-                                "status": p.get("Status")
-                            })
-                            managed_paths.add(config_files)
-                    break
-                except Exception: continue
-
-        # 3. 根据用户配置的扫描路径进行深度搜索
-        scan_paths_str = service.host_config.get("compose_scan_paths", "")
-        if scan_paths_str:
-            paths = [p.strip() for p in scan_paths_str.split(",") if p.strip()]
-            for base_path in paths:
-                # 静默检查路径是否存在
-                check_cmd = f"[ -d '{base_path}' ] && echo 'ok'"
-                if service.exec_command(check_cmd, log_error=False)["stdout"].strip() != "ok":
-                    continue
-
-                find_cmd = f"find {base_path} -maxdepth 4 \( -name 'docker-compose.yml' -o -name 'docker-compose.yaml' \)"
-                res = service.exec_command(find_cmd, log_error=False)
-                if res["success"] and res["stdout"].strip():
-                    found_files = res["stdout"].strip().split("\n")
-                    for file_path in found_files:
-                        if not file_path or file_path in managed_paths: continue
-                        project_dir = os.path.dirname(file_path)
-                        projects.append({
-                            "name": os.path.basename(project_dir),
-                            "path": project_dir,
-                            "config_file": file_path,
-                            "type": "scanned",
-                            "status": "exited"
-                        })
-                        managed_paths.add(file_path)
-
-        # 4. 本地内置项目
-        if service.host_config.get("type") == "local" and os.path.exists(COMPOSE_DIR):
-            for d in os.listdir(COMPOSE_DIR):
-                path = os.path.join(COMPOSE_DIR, d)
-                cfg = os.path.join(path, "docker-compose.yml")
-                if os.path.isdir(path) and cfg not in managed_paths:
-                    projects.append({"name": d, "path": path, "config_file": cfg, "type": "internal", "status": "unknown"})
-        return projects
 
     # 在线程池中执行重型扫描任务
-    projects = await asyncio.to_thread(scan_logic)
-    
+    projects = await asyncio.to_thread(_scan_projects, service, host_id)
+
     # 更新缓存
     DockerService._projects_cache[host_id] = (projects, time.time())
     return projects
@@ -302,6 +359,15 @@ async def delete_project(host_id: str, name: str, path: Optional[str] = None, de
                 paths = [p for p in paths if p != project_dir]
                 host_match["compose_scan_paths"] = ",".join(paths)
                 save_config(config)
+
+    # 从持久记忆中剔除，避免“从视图移除”后又作为记忆项目重新出现
+    registry_all = config.get("compose_registry", {})
+    host_registry = registry_all.get(host_id, [])
+    pruned = [e for e in host_registry if e.get("config_file") != path]
+    if len(pruned) != len(host_registry):
+        registry_all[host_id] = pruned
+        config["compose_registry"] = registry_all
+        save_config(config)
 
     # 清理缓存
     if host_id in DockerService._projects_cache:

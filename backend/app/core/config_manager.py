@@ -42,6 +42,9 @@ DEFAULT_CONFIG = {
     },
     "docker_hosts": [],
     "docker_container_settings": {},
+    # Compose 项目持久记忆 { host_id: [{"name", "config_file"}] }，
+    # 记录每个主机曾经出现过的项目，容器被删除后仍保留在 Compose 面板中
+    "compose_registry": {},
     "docker_auto_update_settings": {
         "enabled": True,
         "type": "cron",
