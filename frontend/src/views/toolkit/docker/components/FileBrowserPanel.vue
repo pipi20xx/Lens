@@ -4,11 +4,13 @@ import { filesApi } from '@/api/files'
 import { downloadFile } from '@/api/client'
 import { useNotification } from '@/composables'
 import { useConfirm } from '@/composables'
+import { useClipboard } from '@/composables'
 import { useDockerHost } from '../composables/useDockerHost'
 import GlassDialog from '@/components/common/GlassDialog.vue'
 
 const { success, error: showError, info, warning } = useNotification()
 const { confirm } = useConfirm()
+const { copy: copyToClipboard } = useClipboard()
 const { currentHost } = useDockerHost()
 
 const props = defineProps<{
@@ -288,11 +290,10 @@ async function doRename() {
 }
 
 // ========== 复制路径 ==========
-function copyPath(item: FileItem) {
-  navigator.clipboard.writeText(item.path).then(
-    () => success(`已复制: ${item.path}`),
-    () => showError('复制失败')
-  )
+// 不能直接用 navigator.clipboard：非安全上下文（HTTP 非 localhost）下为 undefined，
+// 必须走 useClipboard 的 execCommand 降级方案
+async function copyPath(item: FileItem) {
+  await copyToClipboard(item.path, `已复制: ${item.path}`)
 }
 
 // ========== 右键菜单 ==========
