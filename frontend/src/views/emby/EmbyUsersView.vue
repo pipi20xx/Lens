@@ -182,44 +182,38 @@ onMounted(loadUsers)
           <div>暂无用户数据</div>
         </div>
         <div v-else>
-          <v-row>
-            <v-col v-for="user in users" :key="user.Id" cols="12">
-              <v-card variant="outlined" rounded="lg" class="pa-4">
-                <div class="d-flex align-center flex-wrap">
-                  <!-- 用户名与状态标签 -->
-                  <div class="d-flex align-center flex-grow-1 mb-2 mb-sm-0" style="min-width:200px">
-                    <v-avatar color="primary" variant="tonal" size="40" rounded="xl" class="mr-3">
-                      <v-icon icon="mdi-account" size="20" />
-                    </v-avatar>
-                    <div>
-                      <div class="text-subtitle-2 font-weight-bold">{{ user.Name }}</div>
-                      <div class="text-caption text-medium-emphasis font-mono">ID: {{ user.Id }}</div>
-                    </div>
-                  </div>
-
-                  <!-- 状态标签 -->
-                  <div class="d-flex flex-wrap ga-1 mb-2 mb-sm-0">
-                    <v-chip v-if="user.Policy?.IsDisabled" size="x-small" color="error" variant="tonal">禁用</v-chip>
-                    <v-chip v-if="user.Policy?.IsAdministrator" size="x-small" color="warning" variant="tonal">管理员</v-chip>
-                    <v-chip v-if="user.Policy?.IsHidden" size="x-small" variant="tonal">隐藏</v-chip>
-                    <v-chip v-if="!user.Policy?.IsDisabled && !user.Policy?.IsAdministrator && !user.Policy?.IsHidden" size="x-small" color="success" variant="tonal">正常</v-chip>
-                  </div>
-
-                  <!-- 最近活动 -->
-                  <div class="text-caption text-medium-emphasis mx-4" style="min-width:120px">
-                    {{ user.LastActivityDate ? new Date(user.LastActivityDate).toLocaleString() : '从未登录' }}
-                  </div>
-
-                  <!-- 操作按钮 -->
-                  <div class="d-flex flex-wrap ga-1">
-                    <v-btn size="x-small" variant="tonal" color="info" prepend-icon="mdi-cog-outline" @click="openEdit(user)">设置</v-btn>
-                    <v-btn size="x-small" variant="tonal" color="warning" prepend-icon="mdi-backup-restore" @click="handleDirectBackup(user)">备份</v-btn>
-                    <v-btn size="x-small" color="error" variant="tonal" prepend-icon="mdi-delete-outline" @click="deleteUser(user.Id, user.Name)">删除</v-btn>
-                  </div>
+          <div class="card-grid">
+            <v-card v-for="user in users" :key="user.Id" variant="outlined" rounded="lg" class="pa-4 d-flex flex-column">
+              <div class="d-flex align-center flex-wrap ga-2">
+                <v-avatar color="primary" variant="tonal" size="40" rounded="xl">
+                  <v-icon icon="mdi-account" size="20" />
+                </v-avatar>
+                <div class="flex-grow-1" style="min-width:0">
+                  <div class="text-subtitle-2 font-weight-bold text-truncate">{{ user.Name }}</div>
+                  <div class="text-caption text-medium-emphasis font-mono text-truncate">ID: {{ user.Id }}</div>
                 </div>
-              </v-card>
-            </v-col>
-          </v-row>
+                <div class="d-flex flex-wrap ga-1">
+                  <v-chip v-if="user.Policy?.IsDisabled" size="x-small" color="error" variant="tonal">禁用</v-chip>
+                  <v-chip v-if="user.Policy?.IsAdministrator" size="x-small" color="warning" variant="tonal">管理员</v-chip>
+                  <v-chip v-if="user.Policy?.IsHidden" size="x-small" variant="tonal">隐藏</v-chip>
+                  <v-chip v-if="!user.Policy?.IsDisabled && !user.Policy?.IsAdministrator && !user.Policy?.IsHidden" size="x-small" color="success" variant="tonal">正常</v-chip>
+                </div>
+              </div>
+
+              <!-- 最近活动 -->
+              <div class="text-caption text-medium-emphasis mt-2">
+                最近活动: {{ user.LastActivityDate ? new Date(user.LastActivityDate).toLocaleString() : '从未登录' }}
+              </div>
+
+              <!-- 操作按钮 -->
+              <v-divider class="mb-2 mt-2" />
+              <div class="d-flex flex-wrap ga-1">
+                <v-btn size="x-small" variant="tonal" color="info" prepend-icon="mdi-cog-outline" @click="openEdit(user)">设置</v-btn>
+                <v-btn size="x-small" variant="tonal" color="warning" prepend-icon="mdi-backup-restore" @click="handleDirectBackup(user)">备份</v-btn>
+                <v-btn size="x-small" color="error" variant="tonal" prepend-icon="mdi-delete-outline" @click="deleteUser(user.Id, user.Name)">删除</v-btn>
+              </div>
+            </v-card>
+          </div>
         </div>
       </v-card-text>
     </v-card>

@@ -396,41 +396,39 @@ onMounted(loadLibraries)
           <div>暂无媒体库数据</div>
         </div>
         <div v-else>
-          <v-row>
-            <v-col v-for="lib in libraries" :key="lib.ItemId || lib.Id" cols="12">
-              <v-card variant="outlined" rounded="lg" class="pa-4">
-                <div class="d-flex align-center flex-wrap">
-                  <v-avatar :color="lib.CollectionType === 'movies' ? 'primary' : lib.CollectionType === 'tvshows' ? 'info' : 'accent'" variant="tonal" size="40" rounded="xl" class="mr-3">
-                    <v-icon :icon="getLibraryIcon(lib.CollectionType || lib.Type)" size="20" />
-                  </v-avatar>
-                  <div class="flex-grow-1" style="min-width:200px">
-                    <div class="text-subtitle-2 font-weight-bold">{{ lib.Name }}</div>
-                    <div class="text-caption text-medium-emphasis font-mono">ID: {{ lib.Id }}</div>
-                  </div>
-                  <!-- 类型标签 -->
-                  <v-chip size="x-small" variant="tonal" color="info" class="mr-3">{{ lib.CollectionType || lib.Type || '未知类型' }}</v-chip>
-                  <!-- 路径信息 -->
-                  <div class="flex-grow-1 mx-4" style="min-width:200px">
-                    <div v-if="lib.LibraryOptions?.PathInfos?.length">
-                      <div v-for="pi in lib.LibraryOptions.PathInfos.slice(0, 2)" :key="pi.Path" class="text-caption font-mono text-medium-emphasis text-truncate">{{ pi.Path }}</div>
-                      <div v-if="lib.LibraryOptions.PathInfos.length > 2" class="text-caption text-medium-emphasis">+{{ lib.LibraryOptions.PathInfos.length - 2 }} 更多路径</div>
-                    </div>
-                    <div v-else-if="lib.PathInfo?.length">
-                      <div v-for="pi in lib.PathInfo.slice(0, 2)" :key="pi.Path" class="text-caption font-mono text-medium-emphasis text-truncate">{{ pi.Path }}</div>
-                      <div v-if="lib.PathInfo.length > 2" class="text-caption text-medium-emphasis">+{{ lib.PathInfo.length - 2 }} 更多路径</div>
-                    </div>
-                    <div v-else class="text-caption text-medium-emphasis">{{ lib.Path || '无路径' }}</div>
-                  </div>
-                  <!-- 操作 -->
-                  <div class="d-flex flex-wrap ga-1">
-                    <v-btn size="x-small" variant="tonal" color="info" prepend-icon="mdi-cog-outline" @click="openEdit(lib)">设置</v-btn>
-                    <v-btn size="x-small" variant="tonal" color="warning" prepend-icon="mdi-backup-restore" @click="handleDirectBackup(lib)">备份</v-btn>
-                    <v-btn size="x-small" color="error" variant="tonal" prepend-icon="mdi-delete-outline" @click="removeLibrary(lib.Id, lib.Name)">移除</v-btn>
-                  </div>
+          <div class="card-grid">
+            <v-card v-for="lib in libraries" :key="lib.ItemId || lib.Id" variant="outlined" rounded="lg" class="pa-4 d-flex flex-column">
+              <div class="d-flex align-center flex-wrap ga-2">
+                <v-avatar :color="lib.CollectionType === 'movies' ? 'primary' : lib.CollectionType === 'tvshows' ? 'info' : 'accent'" variant="tonal" size="40" rounded="xl">
+                  <v-icon :icon="getLibraryIcon(lib.CollectionType || lib.Type)" size="20" />
+                </v-avatar>
+                <div class="flex-grow-1" style="min-width:0">
+                  <div class="text-subtitle-2 font-weight-bold text-truncate">{{ lib.Name }}</div>
+                  <div class="text-caption text-medium-emphasis font-mono text-truncate">ID: {{ lib.Id }}</div>
                 </div>
-              </v-card>
-            </v-col>
-          </v-row>
+                <v-chip size="x-small" variant="tonal" color="info">{{ lib.CollectionType || lib.Type || '未知类型' }}</v-chip>
+              </div>
+              <!-- 路径信息 -->
+              <div class="mt-2" style="min-width:0">
+                <div v-if="lib.LibraryOptions?.PathInfos?.length">
+                  <div v-for="pi in lib.LibraryOptions.PathInfos.slice(0, 2)" :key="pi.Path" class="text-caption font-mono text-medium-emphasis text-truncate">{{ pi.Path }}</div>
+                  <div v-if="lib.LibraryOptions.PathInfos.length > 2" class="text-caption text-medium-emphasis">+{{ lib.LibraryOptions.PathInfos.length - 2 }} 更多路径</div>
+                </div>
+                <div v-else-if="lib.PathInfo?.length">
+                  <div v-for="pi in lib.PathInfo.slice(0, 2)" :key="pi.Path" class="text-caption font-mono text-medium-emphasis text-truncate">{{ pi.Path }}</div>
+                  <div v-if="lib.PathInfo.length > 2" class="text-caption text-medium-emphasis">+{{ lib.PathInfo.length - 2 }} 更多路径</div>
+                </div>
+                <div v-else class="text-caption text-medium-emphasis text-truncate">{{ lib.Path || '无路径' }}</div>
+              </div>
+              <!-- 操作 -->
+              <v-divider class="mb-2 mt-2" />
+              <div class="d-flex flex-wrap ga-1">
+                <v-btn size="x-small" variant="tonal" color="info" prepend-icon="mdi-cog-outline" @click="openEdit(lib)">设置</v-btn>
+                <v-btn size="x-small" variant="tonal" color="warning" prepend-icon="mdi-backup-restore" @click="handleDirectBackup(lib)">备份</v-btn>
+                <v-btn size="x-small" color="error" variant="tonal" prepend-icon="mdi-delete-outline" @click="removeLibrary(lib.Id, lib.Name)">移除</v-btn>
+              </div>
+            </v-card>
+          </div>
         </div>
       </v-card-text>
     </v-card>
