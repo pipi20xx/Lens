@@ -276,7 +276,7 @@ defineExpose({ loadImages })
       </v-col>
     </v-row>
 
-    <div v-if="filteredImages.length" class="task-list">
+    <div v-if="filteredImages.length" class="card-grid">
       <v-card
         v-for="img in filteredImages"
         :key="imgKey(img)"

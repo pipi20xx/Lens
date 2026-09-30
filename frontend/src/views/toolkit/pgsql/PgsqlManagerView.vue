@@ -749,7 +749,7 @@ onMounted(fetchHosts)
 
           <v-progress-linear v-if="dbInfoLoading" indeterminate color="primary" class="mb-4" />
 
-          <div v-if="dbInfoList.length" class="d-flex flex-column ga-3">
+          <div v-if="dbInfoList.length" class="card-grid">
             <v-card v-for="db in dbInfoList" :key="db.name" variant="outlined" rounded="lg" class="pa-3">
               <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-1">
                 <span class="font-weight-bold">{{ db.name }}</span>
@@ -780,7 +780,7 @@ onMounted(fetchHosts)
 
           <v-progress-linear v-if="userLoading" indeterminate color="primary" class="mb-4" />
 
-          <div v-if="userList.length" class="d-flex flex-column ga-3">
+          <div v-if="userList.length" class="card-grid">
             <v-card v-for="row in userList" :key="row.username" variant="outlined" rounded="lg" class="pa-3"
               style="border-left:3px solid" :style="{ borderLeftColor: row.is_superuser ? '#EF4444' : row.can_login ? '#10B981' : 'transparent' }">
               <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-1">

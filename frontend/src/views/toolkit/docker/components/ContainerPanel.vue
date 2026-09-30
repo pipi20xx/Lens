@@ -250,7 +250,7 @@ defineExpose({ loadContainers, loadContainerSettings })
       </v-col>
     </v-row>
 
-    <div v-if="filteredContainers.length" class="task-list">
+    <div v-if="filteredContainers.length" class="card-grid">
       <v-card
         v-for="row in filteredContainers"
         :key="row.id"

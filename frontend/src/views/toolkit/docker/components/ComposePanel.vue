@@ -176,7 +176,7 @@ defineExpose({ loadComposeProjects })
       </v-col>
     </v-row>
 
-    <div v-if="filteredComposeProjects.length" class="task-list">
+    <div v-if="filteredComposeProjects.length" class="card-grid">
       <v-card
         v-for="project in filteredComposeProjects"
         :key="project.name"

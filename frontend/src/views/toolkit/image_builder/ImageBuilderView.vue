@@ -570,9 +570,9 @@ onMounted(() => {
 
         <v-progress-linear v-if="projectsLoading" indeterminate color="primary" class="mb-4" />
 
-        <div v-if="projects.length" class="d-flex flex-column ga-3">
+        <div v-if="projects.length" class="card-grid">
           <v-card v-for="row in projects" :key="row.id" class="liquid-glass-card" rounded="xl">
-            <div class="pa-4">
+            <div class="pa-4 d-flex flex-column h-100">
               <!-- 头部：项目名 + 仓库标签 -->
               <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-2">
                 <span class="text-subtitle-1 font-weight-bold">{{ row.name }}</span>
@@ -598,7 +598,7 @@ onMounted(() => {
                 <v-btn color="primary" variant="tonal" size="small" prepend-icon="mdi-play" @click="directBuild(row)">立即构建</v-btn>
               </div>
 
-              <v-divider class="mb-2" />
+              <v-divider class="mb-2 mt-auto" />
               <!-- 操作按钮 -->
               <div class="d-flex flex-wrap ga-2 pt-1">
                 <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-history" @click="openHistory(row)">查看历史</v-btn>
@@ -627,7 +627,7 @@ onMounted(() => {
           </v-card-title>
           <v-divider />
           <div class="pa-4">
-            <div v-if="regList.length" class="d-flex flex-column ga-3">
+            <div v-if="regList.length" class="card-grid">
               <v-card v-for="row in regList" :key="row.id" variant="outlined" rounded="lg" class="pa-3">
                 <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-1">
                   <span class="font-weight-bold">{{ row.name }}</span>
@@ -656,7 +656,7 @@ onMounted(() => {
           </v-card-title>
           <v-divider />
           <div class="pa-4">
-            <div v-if="credList.length" class="d-flex flex-column ga-3">
+            <div v-if="credList.length" class="card-grid">
               <v-card v-for="row in credList" :key="row.id" variant="outlined" rounded="lg" class="pa-3">
                 <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-1">
                   <span class="font-weight-bold">{{ row.name }}</span>
@@ -687,7 +687,7 @@ onMounted(() => {
 
             <v-progress-linear v-if="proxyLoading" indeterminate color="primary" class="mb-4" />
 
-            <div v-if="proxyList.length" class="d-flex flex-column ga-3">
+            <div v-if="proxyList.length" class="card-grid">
               <v-card v-for="row in proxyList" :key="row.id" variant="outlined" rounded="lg" class="pa-3">
                 <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-1">
                   <span class="font-weight-bold">{{ row.name }}</span>

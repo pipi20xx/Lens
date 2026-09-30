@@ -497,7 +497,7 @@ onUnmounted(() => {
         </v-row>
 
         <!-- 任务卡片列表 -->
-        <div v-if="tasks.length" class="task-list">
+        <div v-if="tasks.length" class="card-grid">
           <v-card
             v-for="row in tasks"
             :key="row.id"
@@ -565,7 +565,7 @@ onUnmounted(() => {
         </v-row>
 
         <!-- 历史卡片列表 -->
-        <div v-if="history.length" class="history-list">
+        <div v-if="history.length" class="card-grid">
           <v-card
             v-for="row in history"
             :key="row.id"

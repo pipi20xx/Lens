@@ -764,6 +764,41 @@
   gap: 0.5rem;
 }
 
+/* ── 卡片网格 — 一行约三张的自适应卡片列表（容器/镜像/Compose 管理）── */
+.card-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+@media (min-width: 960px) {
+  .card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1440px) {
+  .card-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* 网格内卡片等高：操作栏（分割线起）贴底对齐 */
+.card-grid > .v-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.card-grid > .v-card > .v-divider {
+  margin-top: auto;
+}
+
+/* 窄卡片下长文本（镜像名等）正确省略 */
+.card-grid .info-item > * {
+  min-width: 0;
+}
+
 /* ── 布局样式 — DefaultLayout ── */
 .logo-header {
   display: flex;
