@@ -5,8 +5,9 @@ WORKDIR /frontend
 # 设置 NPM 国内镜像源
 RUN npm config set registry https://registry.npmmirror.com
 
-COPY frontend/package.json ./
-RUN npm install
+# 锁文件一起复制，npm install 走 lockfile，更快且版本可复现
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm config set fetch-retries 5 --location=global && npm install
 COPY frontend/ .
 RUN npm run build
 
@@ -14,11 +15,15 @@ RUN npm run build
 FROM python:3.10-slim
 WORKDIR /app
 
-# 设置 APT 国内镜像源 (针对 Debian)
-RUN sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list.d/debian.sources || \
-    sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list
+# 设置 APT 国内镜像源 (针对 Debian) — 清华源（阿里云源部分地区不稳定）
+RUN sed -i 's/deb.debian.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/sources.list.d/debian.sources || \
+    sed -i 's/deb.debian.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/sources.list
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# 单包超时 30s + 重试 5 次，弱网环境下不会卡死
+RUN apt-get update \
+    -o Acquire::Retries=5 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 \
+    && apt-get install -y --no-install-recommends \
+    -o Acquire::Retries=5 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 \
     gcc \
     python3-dev \
     tzdata \

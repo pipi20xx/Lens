@@ -13,8 +13,8 @@
 #   └─────────────────┘     └──────────────────────┘
 #
 # 访问地址：
-#   前端：http://localhost:3000（Vite Dev Server，修改代码即时生效）
-#   后端：http://localhost:6565（直接访问 API）
+#   前端：http://localhost:3050（Vite Dev Server，修改代码即时生效）
+#   后端：http://localhost:6566（直接访问 API，容器内仍是 6565）
 
 services:
   # ============================================================
@@ -26,7 +26,9 @@ services:
       dockerfile: Dockerfile
     container_name: lens123
     ports:
-      - "6565:6565"
+      # 宿主机用 6566，避免与生产 lens 容器的 6565 冲突
+      # （vite 代理走容器网络 backend:6565，不受此映射影响）
+      - "6566:6565"
     volumes:
       - ./data:/app/data
       - /var/run/docker.sock:/var/run/docker.sock
