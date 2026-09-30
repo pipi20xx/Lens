@@ -141,7 +141,7 @@ function getEmbyAvatar(person: any) {
               <p class="text-caption text-medium-emphasis mb-2">显示姓名 (修改后即时同步至 Emby)</p>
               <div class="d-flex align-center ga-3">
                 <v-text-field v-model="editName" placeholder="新姓名" variant="outlined" density="compact" hide-details />
-                <v-btn color="primary" variant="flat" prepend-icon="mdi-pencil-outline" @click="handleUpdateName" :loading="nameLoading">执行修改</v-btn>
+                <v-btn color="primary" variant="tonal" prepend-icon="mdi-pencil-outline" @click="handleUpdateName" :loading="nameLoading">执行修改</v-btn>
               </div>
               <p class="text-caption text-medium-emphasis mt-3">选中左侧列表项后即可在此进行编辑。</p>
             </div>
@@ -173,7 +173,7 @@ function getEmbyAvatar(person: any) {
 >
   <pre class="code-block code-block--flat">{{ JSON.stringify(jsonModal.data, null, 2) }}</pre>
   <template #actions>
-    <v-btn color="primary" variant="flat" prepend-icon="mdi-content-copy" @click="copyRawJson">复制数据</v-btn>
+    <v-btn color="primary" variant="tonal" prepend-icon="mdi-content-copy" @click="copyRawJson">复制数据</v-btn>
   </template>
 </GlassDialog>
   </v-container>

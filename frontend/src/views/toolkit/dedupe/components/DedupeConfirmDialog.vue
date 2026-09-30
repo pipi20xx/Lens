@@ -139,7 +139,7 @@ const typeStats = computed(() => {
     <template #actions>
       <v-btn
         color="error"
-        variant="flat"
+        variant="tonal"
         prepend-icon="mdi-delete-forever-outline"
         :loading="loading"
         @click="emit('confirm')"

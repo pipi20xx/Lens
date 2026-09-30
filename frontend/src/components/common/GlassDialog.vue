@@ -13,7 +13,7 @@
  *
  * 按钮样式统一：
  * - 取消按钮：variant="tonal" color="grey"
- * - 确认/保存按钮（由 actions 插槽提供）：推荐 variant="flat" color="primary"
+ * - 确认/保存按钮（由 actions 插槽提供）：推荐 variant="tonal" color="primary"
  */
 const props = withDefaults(defineProps<{
   modelValue: boolean

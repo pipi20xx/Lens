@@ -231,7 +231,7 @@ defineExpose({ loadComposeProjects })
       <v-textarea v-model="currentProject.content" label="YAML 内容" variant="outlined" placeholder="在此输入 docker-compose.yml 内容" auto-grow rows="12" class="yaml-editor" :error-messages="yamlError ? [yamlError] : []" hide-details="auto" @update:model-value="handleYamlInput" />
 
       <template #actions>
-        <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveProject" :disabled="!!yamlError">保存项目</v-btn>
+        <v-btn color="primary" variant="tonal" prepend-icon="mdi-content-save-outline" @click="saveProject" :disabled="!!yamlError">保存项目</v-btn>
       </template>
     </GlassDialog>
   </div>

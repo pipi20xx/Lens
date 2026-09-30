@@ -200,7 +200,7 @@ onMounted(() => { loadProfile(); loadSessions() })
             <SecretField v-model="passwordForm.old_password" label="当前密码" :show-copy="false" class="mb-3" />
             <SecretField v-model="passwordForm.new_password" label="新密码" :show-copy="false" hint="至少 6 位字符" persistent-hint class="mb-3" />
             <SecretField v-model="passwordForm.confirm_password" label="确认新密码" :show-copy="false" class="mb-4" />
-            <v-btn color="primary" variant="flat" block prepend-icon="mdi-lock-outline" @click="changePassword">修改密码</v-btn>
+            <v-btn color="primary" variant="tonal" block prepend-icon="mdi-lock-outline" @click="changePassword">修改密码</v-btn>
           </v-card-text>
         </v-card>
       </v-window-item>
@@ -211,7 +211,7 @@ onMounted(() => { loadProfile(); loadSessions() })
           <v-card-text class="pa-6">
             <template v-if="!twoFactorSetup">
               <p class="text-body-1 mb-4">双因素认证 (2FA) 为您的账户增加额外的安全保护，登录时除密码外还需输入动态验证码。</p>
-              <v-btn v-if="!profile.is_otp_enabled" color="primary" variant="flat" prepend-icon="mdi-shield-key-outline" @click="setup2fa">设置 2FA</v-btn>
+              <v-btn v-if="!profile.is_otp_enabled" color="primary" variant="tonal" prepend-icon="mdi-shield-key-outline" @click="setup2fa">设置 2FA</v-btn>
               <template v-else>
                 <v-alert type="success" variant="tonal" class="mb-4" rounded="lg">2FA 已启用，您的账户受到额外保护。</v-alert>
                 <v-btn color="error" variant="tonal" prepend-icon="mdi-shield-off-outline" @click="disable2fa">禁用 2FA</v-btn>
@@ -231,7 +231,7 @@ onMounted(() => { loadProfile(); loadSessions() })
               <v-text-field v-model="twoFactorCode" label="输入 6 位验证码" variant="outlined" maxlength="6" placeholder="000000" class="mb-3" />
               <div class="d-flex ga-2">
                 <v-btn variant="tonal" color="grey" prepend-icon="mdi-close" @click="twoFactorSetup = null; twoFactorCode = ''">取消</v-btn>
-                <v-btn color="primary" variant="flat" prepend-icon="mdi-check-circle-outline" @click="enable2fa" :disabled="!twoFactorCode">启用</v-btn>
+                <v-btn color="primary" variant="tonal" prepend-icon="mdi-check-circle-outline" @click="enable2fa" :disabled="!twoFactorCode">启用</v-btn>
               </div>
             </template>
           </v-card-text>

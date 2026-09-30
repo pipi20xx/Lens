@@ -168,7 +168,7 @@ const quickLinks = [
           </v-card-text>
           <v-divider />
           <div class="pa-4 d-flex flex-column ga-2">
-            <v-btn v-if="versionInfo.has_update" block color="warning" variant="flat" prepend-icon="mdi-arrow-up-bold-circle-outline" :loading="upgrading" @click="handleUpgrade">
+            <v-btn v-if="versionInfo.has_update" block color="warning" variant="tonal" prepend-icon="mdi-arrow-up-bold-circle-outline" :loading="upgrading" @click="handleUpgrade">
               {{ upgrading ? '正在执行更新任务...' : '立即执行系统升级' }}
             </v-btn>
             <v-btn block color="primary" variant="tonal" prepend-icon="mdi-cog-outline" @click="navigateTo('/settings')">配置中心</v-btn>

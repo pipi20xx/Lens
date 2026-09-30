@@ -743,7 +743,7 @@ onMounted(fetchHosts)
         <div v-if="!selectedHost" class="text-center py-12 text-medium-emphasis">请先选择一个数据库实例</div>
         <template v-else>
           <div class="d-flex justify-space-between mb-4">
-            <v-btn color="primary" variant="flat" size="small" prepend-icon="mdi-plus" @click="openCreateDb">创建数据库</v-btn>
+            <v-btn color="primary" variant="tonal" size="small" prepend-icon="mdi-plus" @click="openCreateDb">创建数据库</v-btn>
             <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-refresh" :loading="dbInfoLoading" @click="fetchDbInfoList">刷新</v-btn>
           </div>
 
@@ -774,7 +774,7 @@ onMounted(fetchHosts)
         <div v-if="!selectedHost" class="text-center py-12 text-medium-emphasis">请先选择一个数据库实例</div>
         <template v-else>
           <div class="d-flex justify-space-between mb-4">
-            <v-btn color="primary" variant="flat" size="small" prepend-icon="mdi-plus" @click="openCreateUser">创建用户</v-btn>
+            <v-btn color="primary" variant="tonal" size="small" prepend-icon="mdi-plus" @click="openCreateUser">创建用户</v-btn>
             <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-refresh" :loading="userLoading" @click="fetchUsers">刷新</v-btn>
           </div>
 
@@ -817,7 +817,7 @@ onMounted(fetchHosts)
       <v-window-item value="backup">
         <div class="d-flex flex-wrap justify-space-between align-center ga-3 mb-4">
           <div class="d-flex ga-2">
-            <v-btn color="primary" variant="flat" size="small" prepend-icon="mdi-plus" :disabled="!selectedHost" @click="openCreateBackup">创建新备份</v-btn>
+            <v-btn color="primary" variant="tonal" size="small" prepend-icon="mdi-plus" :disabled="!selectedHost" @click="openCreateBackup">创建新备份</v-btn>
             <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-refresh" :loading="backupLoading" @click="fetchBackups">刷新</v-btn>
           </div>
           <v-chip size="small" variant="tonal" color="info">备份文件存储在 data/backups/pg 目录下</v-chip>
@@ -850,7 +850,7 @@ onMounted(fetchHosts)
     <!-- ==================== 管理主机弹窗 ==================== -->
     <GlassDialog v-model="showHostManagerDialog" :max-width="650" icon="mdi-server-outline" title="管理 PostgreSQL 主机" :cancel-visible="false">
       <div class="d-flex justify-space-between mb-4">
-        <v-btn color="primary" variant="flat" size="small" prepend-icon="mdi-plus" @click="openAddHost">添加新主机</v-btn>
+        <v-btn color="primary" variant="tonal" size="small" prepend-icon="mdi-plus" @click="openAddHost">添加新主机</v-btn>
         <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-refresh" @click="fetchHosts">刷新</v-btn>
       </div>
       <div v-if="hosts.length" class="d-flex flex-column ga-2">
@@ -888,7 +888,7 @@ onMounted(fetchHosts)
           <v-text-field v-model="hostForm.database" label="默认数据库" variant="outlined" density="compact" />
   <template #actions>
     <v-btn color="warning" variant="tonal" prepend-icon="mdi-lan-connect" :loading="hostTesting" @click="testHostConnection">测试连接</v-btn>
-    <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveHost">{{ editingHostId ? '保存修改' : '保存主机' }}</v-btn>
+    <v-btn color="primary" variant="tonal" prepend-icon="mdi-content-save-outline" @click="saveHost">{{ editingHostId ? '保存修改' : '保存主机' }}</v-btn>
   </template>
 </GlassDialog>
 
@@ -909,7 +909,7 @@ onMounted(fetchHosts)
           <v-select v-model="newDbOwner" :items="dbUserOptions" item-title="label" item-value="value"
             label="所有者" variant="outlined" density="compact" clearable hint="选择所有者 (可选)" persistent-hint />
   <template #actions>
-    <v-btn color="primary" variant="flat" prepend-icon="mdi-plus" :loading="creatingDb" @click="createDatabase">立即创建</v-btn>
+    <v-btn color="primary" variant="tonal" prepend-icon="mdi-plus" :loading="creatingDb" @click="createDatabase">立即创建</v-btn>
   </template>
 </GlassDialog>
 
@@ -920,7 +920,7 @@ onMounted(fetchHosts)
           <v-textarea v-model="editDbForm.description" label="备注/描述" variant="outlined" density="compact"
             rows="3" auto-grow hint="为数据库添加描述信息..." persistent-hint />
   <template #actions>
-    <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" :loading="updatingDb" @click="updateDatabase">保存修改</v-btn>
+    <v-btn color="primary" variant="tonal" prepend-icon="mdi-content-save-outline" :loading="updatingDb" @click="updateDatabase">保存修改</v-btn>
   </template>
 </GlassDialog>
 
@@ -942,7 +942,7 @@ onMounted(fetchHosts)
             <v-col cols="12"><v-switch v-model="userForm.bypass_rls" label="绕过 RLS (BYPASSRLS)" density="compact" color="primary" hide-details /></v-col>
           </v-row>
   <template #actions>
-    <v-btn color="primary" variant="flat" prepend-icon="mdi-plus" :loading="creatingUser" @click="createUser">创建角色</v-btn>
+    <v-btn color="primary" variant="tonal" prepend-icon="mdi-plus" :loading="creatingUser" @click="createUser">创建角色</v-btn>
   </template>
 </GlassDialog>
 
@@ -964,7 +964,7 @@ onMounted(fetchHosts)
             <v-col cols="12"><v-switch v-model="editUserForm.bypass_rls" label="绕过 RLS (BYPASSRLS)" density="compact" color="primary" hide-details /></v-col>
           </v-row>
   <template #actions>
-    <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" :loading="updatingUser" @click="updateUser">保存修改</v-btn>
+    <v-btn color="primary" variant="tonal" prepend-icon="mdi-content-save-outline" :loading="updatingUser" @click="updateUser">保存修改</v-btn>
   </template>
 </GlassDialog>
 
@@ -974,7 +974,7 @@ onMounted(fetchHosts)
             label="选择数据库" variant="outlined" density="compact" hint="请选择要备份的数据库" persistent-hint class="mb-3" />
           <div class="text-caption text-medium-emphasis">提示：备份将使用 pg_dump 生成 .bak 文件（自定义格式），支持高效还原。</div>
   <template #actions>
-    <v-btn color="primary" variant="flat" prepend-icon="mdi-backup-restore" :loading="actionLoading" @click="createBackup">开始备份</v-btn>
+    <v-btn color="primary" variant="tonal" prepend-icon="mdi-backup-restore" :loading="actionLoading" @click="createBackup">开始备份</v-btn>
   </template>
 </GlassDialog>
 
@@ -990,7 +990,7 @@ onMounted(fetchHosts)
             所有当前数据将被覆盖！
           </v-alert>
   <template #actions>
-    <v-btn color="error" variant="flat" prepend-icon="mdi-restore" :loading="actionLoading" @click="restoreBackup">确认还原</v-btn>
+    <v-btn color="error" variant="tonal" prepend-icon="mdi-restore" :loading="actionLoading" @click="restoreBackup">确认还原</v-btn>
   </template>
 </GlassDialog>
   </v-container>

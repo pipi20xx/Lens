@@ -161,7 +161,7 @@ defineExpose({ fetchHosts })
       </template>
 
       <template #actions>
-        <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveHost">保存配置</v-btn>
+        <v-btn color="primary" variant="tonal" prepend-icon="mdi-content-save-outline" @click="saveHost">保存配置</v-btn>
       </template>
     </GlassDialog>
   </div>

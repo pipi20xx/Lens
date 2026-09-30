@@ -352,7 +352,7 @@ defineExpose({ loadImages })
         <pre v-if="pullLines.length" class="code-block code-block--flat">{{ pullLines.join('\n') }}</pre>
       </template>
       <template #actions>
-        <v-btn v-if="!pullTask" color="primary" variant="flat" prepend-icon="mdi-download" :loading="pullSubmitting" :disabled="!pullImageRef.trim()" @click="startPull">开始拉取</v-btn>
+        <v-btn v-if="!pullTask" color="primary" variant="tonal" prepend-icon="mdi-download" :loading="pullSubmitting" :disabled="!pullImageRef.trim()" @click="startPull">开始拉取</v-btn>
         <v-btn v-else-if="pullTask.done" color="primary" variant="tonal" prepend-icon="mdi-plus" @click="pullTask = null; pullImageRef = ''">继续拉取</v-btn>
       </template>
     </GlassDialog>
@@ -384,7 +384,7 @@ defineExpose({ loadImages })
         <pre class="code-block code-block--flat">{{ loadResult.join('\n') }}</pre>
       </template>
       <template #actions>
-        <v-btn color="primary" variant="flat" prepend-icon="mdi-upload" :loading="loadSubmitting" :disabled="!loadFile" @click="submitLoad">开始导入</v-btn>
+        <v-btn color="primary" variant="tonal" prepend-icon="mdi-upload" :loading="loadSubmitting" :disabled="!loadFile" @click="submitLoad">开始导入</v-btn>
       </template>
     </GlassDialog>
 
@@ -394,7 +394,7 @@ defineExpose({ loadImages })
       <v-text-field v-model="tagForm.tag" label="标签" placeholder="latest" variant="outlined" density="compact" hide-details />
       <div class="text-caption text-medium-emphasis mt-3">等效命令：docker tag {{ shortId(tagForm.key) }} {{ tagForm.repo || '?' }}:{{ tagForm.tag || 'latest' }}</div>
       <template #actions>
-        <v-btn color="primary" variant="flat" prepend-icon="mdi-tag-outline" @click="saveTag">确认打标签</v-btn>
+        <v-btn color="primary" variant="tonal" prepend-icon="mdi-tag-outline" @click="saveTag">确认打标签</v-btn>
       </template>
     </GlassDialog>
 

@@ -75,7 +75,7 @@ onMounted(() => {
             规则配置
           </v-btn>
           <v-spacer />
-          <v-btn v-if="selectedIds.length" prepend-icon="mdi-delete-outline" variant="flat" color="error" size="small"
+          <v-btn v-if="selectedIds.length" prepend-icon="mdi-delete-outline" variant="tonal" color="error" size="small"
             @click="showConfirmDialog = true">
             删除选中 ({{ selectedIds.length }})
           </v-btn>

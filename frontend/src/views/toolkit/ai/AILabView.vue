@@ -178,7 +178,7 @@ onMounted(loadConfig)
           <!-- 输入区 -->
           <div class="d-flex ga-2 pa-4 align-end">
             <v-textarea v-model="userInput" placeholder="输入你的问题... (Ctrl+Enter 发送)" variant="outlined" density="compact" :rows="2" auto-grow :disabled="chatLoading" @keydown="handleEnter" class="flex-grow-1" hide-details />
-            <v-btn color="primary" variant="flat" icon :loading="chatLoading" @click="sendMessage" :disabled="!userInput.trim()">
+            <v-btn color="primary" variant="tonal" icon :loading="chatLoading" @click="sendMessage" :disabled="!userInput.trim()">
               <v-icon>mdi-send</v-icon>
             </v-btn>
           </div>
@@ -202,7 +202,7 @@ onMounted(loadConfig)
               <v-switch v-model="config.use_proxy" density="compact" color="primary" hide-details class="mr-2" />
               <span class="text-body-2 text-medium-emphasis">使用系统内置 HTTP 代理转发请求</span>
             </div>
-            <v-btn block color="primary" variant="flat" prepend-icon="mdi-content-save-outline" :loading="saving" @click="saveConfig">执行保存</v-btn>
+            <v-btn block color="primary" variant="tonal" prepend-icon="mdi-content-save-outline" :loading="saving" @click="saveConfig">执行保存</v-btn>
           </v-card-text>
         </v-card>
 

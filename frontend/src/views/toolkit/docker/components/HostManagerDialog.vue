@@ -87,7 +87,7 @@ async function testConnection(hostId: string) {
     <v-textarea v-model="hostForm.compose_scan_paths" label="Compose 扫描路径" variant="outlined" density="compact" hint="逗号分隔多个路径" persistent-hint rows="2" auto-grow />
 
     <template #actions>
-      <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveHost">保存</v-btn>
+      <v-btn color="primary" variant="tonal" prepend-icon="mdi-content-save-outline" @click="saveHost">保存</v-btn>
     </template>
   </GlassDialog>
 </template>

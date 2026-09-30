@@ -110,7 +110,7 @@ function handleSave() {
     </v-window>
 
     <template #actions>
-      <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" :loading="loading" @click="handleSave">
+      <v-btn color="primary" variant="tonal" prepend-icon="mdi-content-save-outline" :loading="loading" @click="handleSave">
         保存并应用
       </v-btn>
     </template>

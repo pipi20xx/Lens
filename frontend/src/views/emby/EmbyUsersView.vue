@@ -169,7 +169,7 @@ onMounted(loadUsers)
         <div class="d-flex ga-2">
           <v-text-field v-model="newUserName" placeholder="新用户名" variant="outlined" density="compact" hide-details style="width:150px"
             @keydown.enter="handleCreateUser" />
-          <v-btn color="primary" variant="flat" size="small" prepend-icon="mdi-plus" @click="handleCreateUser" :loading="creating">新增用户</v-btn>
+          <v-btn color="primary" variant="tonal" size="small" prepend-icon="mdi-plus" @click="handleCreateUser" :loading="creating">新增用户</v-btn>
         </div>
       </v-card-title>
       <v-divider />
@@ -291,7 +291,7 @@ onMounted(loadUsers)
             <!-- 修改密码 -->
             <v-window-item value="password">
               <SecretField v-model="newPassword" label="新密码" hint="留空则不修改" persistent-hint class="mb-3" :show-copy="false" />
-              <v-btn color="warning" variant="flat" size="small" prepend-icon="mdi-lock-reset" @click="handleUpdatePassword" :disabled="!newPassword">单独更新密码</v-btn>
+              <v-btn color="warning" variant="tonal" size="small" prepend-icon="mdi-lock-reset" @click="handleUpdatePassword" :disabled="!newPassword">单独更新密码</v-btn>
             </v-window-item>
 
             <!-- 原始数据 (JSON) -->
@@ -305,7 +305,7 @@ onMounted(loadUsers)
 
       <template #actions>
         <v-btn variant="tonal" color="warning" prepend-icon="mdi-backup-restore" @click="handleBackup" :loading="backingUp">备份当前配置</v-btn>
-        <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="handleSavePolicy" :loading="savingPolicy">保存设置</v-btn>
+        <v-btn color="primary" variant="tonal" prepend-icon="mdi-content-save-outline" @click="handleSavePolicy" :loading="savingPolicy">保存设置</v-btn>
       </template>
     </GlassDialog>
   </v-container>

@@ -476,7 +476,7 @@ const sizeOptions = [
               style="max-width:120px" hide-details />
             <v-text-field v-model="newCatName" placeholder="新分类名称" variant="outlined" density="compact"
               hide-details @keyup.enter="handleAddCategory" />
-            <v-btn color="primary" variant="flat" @click="handleAddCategory">添加</v-btn>
+            <v-btn color="primary" variant="tonal" @click="handleAddCategory">添加</v-btn>
           </div>
 
           <v-divider class="mb-4" />
@@ -523,7 +523,7 @@ const sizeOptions = [
                       hide-details style="max-width:80px" />
                     <v-text-field v-model="editingCatName" placeholder="名称" variant="outlined" density="compact"
                       hide-details @keyup.enter="saveEditCat" />
-                    <v-btn size="small" color="primary" variant="flat" @click="saveEditCat">保存</v-btn>
+                    <v-btn size="small" color="primary" variant="tonal" @click="saveEditCat">保存</v-btn>
                   </div>
                 </template>
                 <template v-else>

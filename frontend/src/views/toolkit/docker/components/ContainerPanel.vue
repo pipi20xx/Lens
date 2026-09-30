@@ -338,7 +338,7 @@ defineExpose({ loadContainers, loadContainerSettings })
       <v-text-field v-model="settingsForm.custom_port" label="自定义访问端口" variant="outlined" density="compact" hint="Host 模式或未识别端口的跳转地址" persistent-hint class="mb-3" />
       <v-switch v-model="settingsForm.auto_update" label="自动更新镜像" density="compact" color="primary" hint="开启后每日凌晨 03:00 自动检查并升级该容器镜像" persistent-hint />
       <template #actions>
-        <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveContainerSettings">保存</v-btn>
+        <v-btn color="primary" variant="tonal" prepend-icon="mdi-content-save-outline" @click="saveContainerSettings">保存</v-btn>
       </template>
     </GlassDialog>
 
@@ -350,7 +350,7 @@ defineExpose({ loadContainers, loadContainerSettings })
         <v-radio v-for="opt in shellOptions" :key="opt.value" :value="opt.value" :label="opt.title" />
       </v-radio-group>
       <template #actions>
-        <v-btn color="primary" variant="flat" prepend-icon="mdi-console" @click="confirmOpenTerminal">进入终端</v-btn>
+        <v-btn color="primary" variant="tonal" prepend-icon="mdi-console" @click="confirmOpenTerminal">进入终端</v-btn>
       </template>
     </GlassDialog>
 

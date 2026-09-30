@@ -303,7 +303,7 @@ onMounted(loadAll)
               </v-card-text>
               <v-divider />
               <div class="d-flex justify-end pa-4">
-                <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" :loading="savingGlobal" @click="handleSaveGlobal">保存 API 配置</v-btn>
+                <v-btn color="primary" variant="tonal" prepend-icon="mdi-content-save-outline" :loading="savingGlobal" @click="handleSaveGlobal">保存 API 配置</v-btn>
               </div>
             </v-card>
           </v-window-item>
@@ -330,7 +330,7 @@ onMounted(loadAll)
               </v-card-text>
               <v-divider />
               <div class="d-flex justify-end pa-4">
-                <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" :loading="savingGlobal" @click="handleSaveGlobal">保存代理配置</v-btn>
+                <v-btn color="primary" variant="tonal" prepend-icon="mdi-content-save-outline" :loading="savingGlobal" @click="handleSaveGlobal">保存代理配置</v-btn>
               </div>
             </v-card>
           </v-window-item>
@@ -355,7 +355,7 @@ onMounted(loadAll)
               </v-card-text>
               <v-divider />
               <div class="d-flex justify-end pa-4">
-                <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" :loading="savingSystem" @click="handleSaveSystem">保存会话与安全配置</v-btn>
+                <v-btn color="primary" variant="tonal" prepend-icon="mdi-content-save-outline" :loading="savingSystem" @click="handleSaveSystem">保存会话与安全配置</v-btn>
               </div>
             </v-card>
           </v-window-item>
@@ -394,7 +394,7 @@ onMounted(loadAll)
               <div class="text-body-2 mb-1"><span class="text-medium-emphasis">当前版本：</span><span class="font-weight-bold">{{ versionInfo.current }}</span></div>
               <div class="text-body-2 mb-2"><span class="text-medium-emphasis">最新版本：</span><span class="font-weight-bold">{{ versionInfo.latest }}</span></div>
               <v-alert v-if="versionInfo.has_update" variant="tonal" type="info" density="compact" class="mb-3" rounded="lg">发现新版本！</v-alert>
-              <v-btn v-if="versionInfo.has_update" block color="primary" variant="flat" @click="upgradeSystem" prepend-icon="mdi-arrow-up-bold-circle-outline">一键升级</v-btn>
+              <v-btn v-if="versionInfo.has_update" block color="primary" variant="tonal" @click="upgradeSystem" prepend-icon="mdi-arrow-up-bold-circle-outline">一键升级</v-btn>
             </template>
             <div v-else class="text-caption text-medium-emphasis">点击"检查更新"获取版本信息</div>
           </v-card-text>
@@ -426,7 +426,7 @@ onMounted(loadAll)
           <SecretField v-model="serverForm.password" label="密码" class="mb-3" />
   <template #actions>
     <v-btn variant="tonal" color="warning" prepend-icon="mdi-lan-connect" @click="testConnection">测试连接</v-btn>
-    <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveServer">保存</v-btn>
+    <v-btn color="primary" variant="tonal" prepend-icon="mdi-content-save-outline" @click="saveServer">保存</v-btn>
   </template>
 </GlassDialog>
   </v-container>

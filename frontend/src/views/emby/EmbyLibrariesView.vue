@@ -385,7 +385,7 @@ onMounted(loadLibraries)
         <v-btn prepend-icon="mdi-backup-restore" variant="tonal" color="warning" size="small" @click="backupAll" :loading="backingUpAll" class="mr-2">一键备份所有媒体库</v-btn>
         <EmbyConfigBackupManager category="libraries" @restored="loadLibraries" />
         <v-spacer />
-        <v-btn prepend-icon="mdi-plus" color="primary" variant="flat" size="small" @click="showAddDialog = true">新增媒体库</v-btn>
+        <v-btn prepend-icon="mdi-plus" color="primary" variant="tonal" size="small" @click="showAddDialog = true">新增媒体库</v-btn>
       </v-card-title>
       <v-divider />
 
@@ -441,7 +441,7 @@ onMounted(loadLibraries)
       <v-select v-model="addForm.type" :items="libraryTypeOptions" label="内容类型" variant="outlined" density="compact" class="mb-3" />
       <v-text-field v-model="addForm.path" label="文件夹路径" variant="outlined" density="compact" hint="服务器绝对路径" persistent-hint />
       <template #actions>
-        <v-btn color="primary" variant="flat" prepend-icon="mdi-plus" @click="addLibrary" :loading="adding">创建媒体库</v-btn>
+        <v-btn color="primary" variant="tonal" prepend-icon="mdi-plus" @click="addLibrary" :loading="adding">创建媒体库</v-btn>
       </template>
     </GlassDialog>
 
@@ -637,7 +637,7 @@ onMounted(loadLibraries)
 
       <template #actions>
         <v-btn variant="tonal" color="warning" prepend-icon="mdi-backup-restore" @click="handleBackup" :loading="backingUp">备份当前配置</v-btn>
-        <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="handleSaveLib" :loading="savingLib">保存设置</v-btn>
+        <v-btn color="primary" variant="tonal" prepend-icon="mdi-content-save-outline" @click="handleSaveLib" :loading="savingLib">保存设置</v-btn>
       </template>
     </GlassDialog>
   </v-container>

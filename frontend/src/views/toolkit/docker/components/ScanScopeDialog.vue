@@ -66,7 +66,7 @@ async function removePath(path: string) {
         class="flex-grow-1"
         @keyup.enter="addPath"
       />
-      <v-btn color="primary" variant="flat" prepend-icon="mdi-plus" :disabled="!newPath.trim()" @click="addPath">添加</v-btn>
+      <v-btn color="primary" variant="tonal" prepend-icon="mdi-plus" :disabled="!newPath.trim()" @click="addPath">添加</v-btn>
     </div>
 
     <div v-if="scanPaths.length" class="d-flex flex-column ga-2">

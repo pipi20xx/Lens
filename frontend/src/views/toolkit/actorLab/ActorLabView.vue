@@ -94,7 +94,7 @@ function copyRawJson() {
             <v-window v-model="activeTab">
               <v-window-item value="search">
                 <v-text-field v-model="searchQuery" label="演员姓名" placeholder="中文或英文姓名..." variant="outlined" density="compact" class="mb-3" @keydown.enter="handleSearch" />
-                <v-btn block color="primary" variant="flat" prepend-icon="mdi-magnify" :loading="searchLoading" @click="handleSearch">执行搜索</v-btn>
+                <v-btn block color="primary" variant="tonal" prepend-icon="mdi-magnify" :loading="searchLoading" @click="handleSearch">执行搜索</v-btn>
                 <div v-if="searchResults.length > 0" class="mt-4">
                   <div class="text-subtitle-2 font-weight-bold mb-2">搜索结果</div>
                   <div class="d-flex flex-column ga-2" style="max-height:400px;overflow-y:auto">
@@ -114,7 +114,7 @@ function copyRawJson() {
               <v-window-item value="direct">
                 <v-text-field v-model="personId" label="TMDB Person ID" placeholder="例如: 60063" variant="outlined" density="compact" class="mb-3" />
                 <v-select v-model="detailLanguage" :items="languageOptions" label="抓取语言/模式" variant="outlined" density="compact" class="mb-3" />
-                <v-btn block color="primary" variant="flat" prepend-icon="mdi-chart-bell-curve-cumulative" :loading="analyzeLoading" @click="handleAnalyze">执行分析</v-btn>
+                <v-btn block color="primary" variant="tonal" prepend-icon="mdi-chart-bell-curve-cumulative" :loading="analyzeLoading" @click="handleAnalyze">执行分析</v-btn>
               </v-window-item>
             </v-window>
           </v-card-text>
@@ -192,7 +192,7 @@ function copyRawJson() {
 >
   <pre class="code-block code-block--flat">{{ JSON.stringify(jsonModal.data, null, 2) }}</pre>
   <template #actions>
-    <v-btn color="primary" variant="flat" prepend-icon="mdi-content-copy" @click="copyRawJson">复制数据</v-btn>
+    <v-btn color="primary" variant="tonal" prepend-icon="mdi-content-copy" @click="copyRawJson">复制数据</v-btn>
   </template>
 </GlassDialog>
   </v-container>

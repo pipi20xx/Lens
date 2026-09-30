@@ -239,7 +239,7 @@ function copyJsonData() {
                       variant="outlined" density="compact" />
                   </v-col>
                 </v-row>
-                <v-btn block color="primary" variant="flat" prepend-icon="mdi-magnify" :loading="searchLoading" @click="handleSearch">
+                <v-btn block color="primary" variant="tonal" prepend-icon="mdi-magnify" :loading="searchLoading" @click="handleSearch">
                   执行搜索
                 </v-btn>
 
@@ -276,7 +276,7 @@ function copyJsonData() {
                   <v-switch v-model="detailForm.recursive" density="compact" color="primary" hide-details class="mr-2" />
                   <span class="text-body-2 text-medium-emphasis">深度递归抓取所有季和集详情</span>
                 </div>
-                <v-btn block color="primary" variant="flat" prepend-icon="mdi-download" :loading="detailLoading" @click="handleFetchDetail">
+                <v-btn block color="primary" variant="tonal" prepend-icon="mdi-download" :loading="detailLoading" @click="handleFetchDetail">
                   执行抓取
                 </v-btn>
               </v-window-item>
@@ -461,7 +461,7 @@ function copyJsonData() {
       <pre class="code-block code-block--flat">{{ JSON.stringify(jsonModal.data, null, 2) }}</pre>
 
       <template #actions>
-        <v-btn color="primary" variant="flat" prepend-icon="mdi-content-copy" @click="copyJsonData">复制 JSON 数据</v-btn>
+        <v-btn color="primary" variant="tonal" prepend-icon="mdi-content-copy" @click="copyJsonData">复制 JSON 数据</v-btn>
       </template>
     </GlassDialog>
   </v-container>

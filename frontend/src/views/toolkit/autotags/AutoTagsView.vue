@@ -398,7 +398,7 @@ onMounted(() => {
             <v-text-field v-if="taskForm.use_custom" v-model="taskForm.custom_tags_text"
               placeholder="请输入标签名，多个用英文逗号分隔" variant="outlined" density="compact" hide-details class="mb-3" />
 
-            <v-btn color="primary" variant="flat" block prepend-icon="mdi-play" @click="startTask">执行打标签任务</v-btn>
+            <v-btn color="primary" variant="tonal" block prepend-icon="mdi-play" @click="startTask">执行打标签任务</v-btn>
           </v-card-text>
         </v-card>
 
@@ -457,7 +457,7 @@ onMounted(() => {
         @keyup.enter="confirmClearSpecific"
       />
       <template #actions>
-        <v-btn color="warning" variant="flat" prepend-icon="mdi-tag-remove-outline" @click="confirmClearSpecific">执行清除</v-btn>
+        <v-btn color="warning" variant="tonal" prepend-icon="mdi-tag-remove-outline" @click="confirmClearSpecific">执行清除</v-btn>
       </template>
     </GlassDialog>
 
@@ -493,7 +493,7 @@ onMounted(() => {
         <template #label><span class="text-body-2">负向匹配 (满足条件的项目将被排除，不满足才生效)</span></template>
       </v-checkbox>
       <template #actions>
-        <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="onRuleSave(editingRule)">保存规则</v-btn>
+        <v-btn color="primary" variant="tonal" prepend-icon="mdi-content-save-outline" @click="onRuleSave(editingRule)">保存规则</v-btn>
       </template>
     </GlassDialog>
   </v-container>

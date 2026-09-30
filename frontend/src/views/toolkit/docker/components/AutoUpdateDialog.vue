@@ -59,7 +59,7 @@ watch(showDialog, (val) => { if (val) loadSettings() })
     </template>
 
     <template #actions>
-      <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveAutoUpdateSettings" :loading="savingAutoUpdate">保存并生效</v-btn>
+      <v-btn color="primary" variant="tonal" prepend-icon="mdi-content-save-outline" @click="saveAutoUpdateSettings" :loading="savingAutoUpdate">保存并生效</v-btn>
     </template>
   </GlassDialog>
 </template>

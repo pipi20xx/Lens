@@ -56,7 +56,7 @@ function copyData() {
               <v-text-field v-model="itemId" prepend-inner-icon="mdi-identifier" placeholder="输入 Emby Item ID，例如: 12345"
                 variant="outlined" density="compact" hide-details clearable style="max-width:320px"
                 @keydown.enter="fetchInfo" />
-              <v-btn color="primary" variant="flat" prepend-icon="mdi-download" @click="fetchInfo" :loading="loading">执行抓取</v-btn>
+              <v-btn color="primary" variant="tonal" prepend-icon="mdi-download" @click="fetchInfo" :loading="loading">执行抓取</v-btn>
             </div>
           </v-card-text>
         </v-card>

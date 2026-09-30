@@ -561,7 +561,7 @@ onMounted(() => {
       <!-- ==================== 项目管理 ==================== -->
       <v-window-item value="projects">
         <div class="d-flex flex-wrap justify-space-between align-center mb-4">
-          <v-btn prepend-icon="mdi-plus" color="primary" variant="flat" size="small" @click="openAddProject">新建项目</v-btn>
+          <v-btn prepend-icon="mdi-plus" color="primary" variant="tonal" size="small" @click="openAddProject">新建项目</v-btn>
           <div class="d-flex ga-2">
             <v-btn variant="tonal" color="info" size="small" prepend-icon="mdi-refresh" @click="fetchProjects">刷新列表</v-btn>
             <v-btn color="error" variant="tonal" size="small" prepend-icon="mdi-delete-sweep-outline" @click="clearAllLogs">清空所有记录</v-btn>
@@ -595,7 +595,7 @@ onMounted(() => {
               <!-- Tag 输入 + 构建 -->
               <div class="d-flex ga-2 mb-3" style="max-width:360px">
                 <v-text-field v-model="projectTags[row.id]" density="compact" variant="outlined" label="Tag" hide-details style="flex:0 0 120px" />
-                <v-btn color="primary" variant="flat" size="small" prepend-icon="mdi-play" @click="directBuild(row)">立即构建</v-btn>
+                <v-btn color="primary" variant="tonal" size="small" prepend-icon="mdi-play" @click="directBuild(row)">立即构建</v-btn>
               </div>
 
               <v-divider class="mb-2" />
@@ -623,7 +623,7 @@ onMounted(() => {
         <v-card class="liquid-glass-card mb-6" rounded="xl">
           <v-card-title class="d-flex align-center justify-space-between pa-4 pb-2">
             <span class="text-subtitle-1 font-weight-bold">仓库配置</span>
-            <v-btn size="small" color="primary" variant="flat" prepend-icon="mdi-plus" @click="openAddRegistry">添加仓库</v-btn>
+            <v-btn size="small" color="primary" variant="tonal" prepend-icon="mdi-plus" @click="openAddRegistry">添加仓库</v-btn>
           </v-card-title>
           <v-divider />
           <div class="pa-4">
@@ -652,7 +652,7 @@ onMounted(() => {
         <v-card class="liquid-glass-card" rounded="xl">
           <v-card-title class="d-flex align-center justify-space-between pa-4 pb-2">
             <span class="text-subtitle-1 font-weight-bold">凭据管理</span>
-            <v-btn size="small" color="primary" variant="flat" prepend-icon="mdi-plus" @click="openAddCredential">添加凭据</v-btn>
+            <v-btn size="small" color="primary" variant="tonal" prepend-icon="mdi-plus" @click="openAddCredential">添加凭据</v-btn>
           </v-card-title>
           <v-divider />
           <div class="pa-4">
@@ -679,7 +679,7 @@ onMounted(() => {
         <v-card class="liquid-glass-card" rounded="xl">
           <v-card-title class="d-flex align-center justify-space-between pa-4 pb-2">
             <span class="text-subtitle-1 font-weight-bold">构建代理设置</span>
-            <v-btn size="small" color="primary" variant="flat" prepend-icon="mdi-plus" @click="openAddProxy">添加代理</v-btn>
+            <v-btn size="small" color="primary" variant="tonal" prepend-icon="mdi-plus" @click="openAddProxy">添加代理</v-btn>
           </v-card-title>
           <v-divider />
           <v-card-text class="pa-4">
@@ -829,7 +829,7 @@ onMounted(() => {
             <v-switch v-model="projectForm.auto_cleanup" label="自动清理本地镜像" density="compact" color="primary" hide-details />
           </div>
   <template #actions>
-    <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveProject">保存项目</v-btn>
+    <v-btn color="primary" variant="tonal" prepend-icon="mdi-content-save-outline" @click="saveProject">保存项目</v-btn>
   </template>
 </GlassDialog>
 
@@ -892,7 +892,7 @@ onMounted(() => {
           <v-select v-model="regForm.credential_id" :items="credOptions" item-title="label" item-value="value"
             label="关联凭据" variant="outlined" density="compact" clearable class="mb-3" />
   <template #actions>
-    <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveRegistry">保存</v-btn>
+    <v-btn color="primary" variant="tonal" prepend-icon="mdi-content-save-outline" @click="saveRegistry">保存</v-btn>
   </template>
 </GlassDialog>
 
@@ -904,7 +904,7 @@ onMounted(() => {
 <SecretField v-model="credForm.password" label="密码/Token"
   hint="请输入密码或仓库 Token" persistent-hint class="mb-3" :show-copy="false" />
   <template #actions>
-    <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveCredential">保存</v-btn>
+    <v-btn color="primary" variant="tonal" prepend-icon="mdi-content-save-outline" @click="saveCredential">保存</v-btn>
   </template>
 </GlassDialog>
 
@@ -919,7 +919,7 @@ onMounted(() => {
 <SecretField v-model="proxyForm.password" label="密码"
   hint="可选" persistent-hint class="mb-3" :show-copy="false" />
   <template #actions>
-    <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveProxy">保存</v-btn>
+    <v-btn color="primary" variant="tonal" prepend-icon="mdi-content-save-outline" @click="saveProxy">保存</v-btn>
   </template>
 </GlassDialog>
   </v-container>

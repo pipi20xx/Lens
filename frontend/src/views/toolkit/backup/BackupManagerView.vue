@@ -818,7 +818,7 @@ onUnmounted(() => {
             </div>
           </template>
   <template #actions>
-    <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="handleSaveTask">保存</v-btn>
+    <v-btn color="primary" variant="tonal" prepend-icon="mdi-content-save-outline" @click="handleSaveTask">保存</v-btn>
   </template>
 </GlassDialog>
 

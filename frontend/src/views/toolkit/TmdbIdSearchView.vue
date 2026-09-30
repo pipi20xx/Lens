@@ -70,7 +70,7 @@ function formatRuntime(ticks: number) {
               <v-text-field v-model="form.tmdb_id" prepend-inner-icon="mdi-identifier" placeholder="输入 TMDB ID (如: 94359)"
                 variant="outlined" density="compact" hide-details clearable style="max-width:200px"
                 @keydown.enter="handleSearch" />
-              <v-btn color="primary" variant="flat" prepend-icon="mdi-magnify" @click="handleSearch" :loading="loading">执行搜索</v-btn>
+              <v-btn color="primary" variant="tonal" prepend-icon="mdi-magnify" @click="handleSearch" :loading="loading">执行搜索</v-btn>
             </div>
             <div class="d-flex align-center ga-2">
               <span class="text-body-2 text-medium-emphasis">检索范围:</span>
@@ -233,7 +233,7 @@ function formatRuntime(ticks: number) {
       <pre class="code-block code-block--flat">{{ JSON.stringify(jsonModal.data, null, 2) }}</pre>
 
       <template #actions>
-        <v-btn color="primary" variant="flat" prepend-icon="mdi-content-copy" @click="copyRawJson">复制数据</v-btn>
+        <v-btn color="primary" variant="tonal" prepend-icon="mdi-content-copy" @click="copyRawJson">复制数据</v-btn>
       </template>
     </GlassDialog>
   </v-container>

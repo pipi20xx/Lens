@@ -376,7 +376,7 @@ onMounted(() => {
               <v-switch v-model="settings.enabled" density="compact" color="primary" hide-details />
             </div>
             <v-divider class="mb-4" />
-            <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveSettings">保存设置</v-btn>
+            <v-btn color="primary" variant="tonal" prepend-icon="mdi-content-save-outline" @click="saveSettings">保存设置</v-btn>
           </v-card-text>
         </v-card>
       </v-window-item>
@@ -465,7 +465,7 @@ onMounted(() => {
       <!-- 启用开关 -->
       <v-switch v-model="botForm.enabled" label="启用此 Bot" density="compact" color="primary" />
       <template #actions>
-        <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveBot">保存</v-btn>
+        <v-btn color="primary" variant="tonal" prepend-icon="mdi-content-save-outline" @click="saveBot">保存</v-btn>
       </template>
     </GlassDialog>
   </v-container>

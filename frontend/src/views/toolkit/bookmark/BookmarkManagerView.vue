@@ -585,7 +585,7 @@ onMounted(loadBookmarks)
         </template>
       </v-text-field>
       <template #actions>
-        <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="saveBookmark">保存</v-btn>
+        <v-btn color="primary" variant="tonal" prepend-icon="mdi-content-save-outline" @click="saveBookmark">保存</v-btn>
       </template>
     </GlassDialog>
 
@@ -596,7 +596,7 @@ onMounted(loadBookmarks)
       <v-text-field v-model="folderName" label="文件夹名称" variant="outlined" density="compact"
         placeholder="请输入文件夹名称" @keydown.enter="saveFolder" />
       <template #actions>
-        <v-btn color="primary" variant="flat" prepend-icon="mdi-folder-plus-outline" @click="saveFolder">创建</v-btn>
+        <v-btn color="primary" variant="tonal" prepend-icon="mdi-folder-plus-outline" @click="saveFolder">创建</v-btn>
       </template>
     </GlassDialog>
 
@@ -613,7 +613,7 @@ onMounted(loadBookmarks)
       <!-- 重复检测 -->
       <div v-if="healthTab === 'duplicate'" class="pt-4">
         <div class="d-flex ga-2 mb-4">
-          <v-btn color="primary" variant="flat" size="small" prepend-icon="mdi-magnify-scan" :loading="loadingDuplicates" @click="scanDuplicates">扫描重复</v-btn>
+          <v-btn color="primary" variant="tonal" size="small" prepend-icon="mdi-magnify-scan" :loading="loadingDuplicates" @click="scanDuplicates">扫描重复</v-btn>
           <v-btn v-if="duplicates.length > 0" variant="tonal" color="warning" size="small" prepend-icon="mdi-merge" @click="mergeAllDuplicates">自动合并</v-btn>
         </div>
 
@@ -646,8 +646,8 @@ onMounted(loadBookmarks)
       <!-- 无效链接诊断 -->
       <div v-if="healthTab === 'health'" class="pt-4">
         <div class="d-flex ga-2 mb-4">
-          <v-btn v-if="isScanningHealth" color="error" variant="flat" size="small" prepend-icon="mdi-stop" @click="stopScanHealth">停止诊断</v-btn>
-          <v-btn v-else color="primary" variant="flat" size="small" prepend-icon="mdi-magnify-scan" @click="scanHealth">开始扫描</v-btn>
+          <v-btn v-if="isScanningHealth" color="error" variant="tonal" size="small" prepend-icon="mdi-stop" @click="stopScanHealth">停止诊断</v-btn>
+          <v-btn v-else color="primary" variant="tonal" size="small" prepend-icon="mdi-magnify-scan" @click="scanHealth">开始扫描</v-btn>
           <v-btn v-if="healthResults.some(h => h.statusCode === 404)" variant="tonal" color="warning" size="small" prepend-icon="mdi-delete-sweep-outline" @click="deleteBatchDead([404])">清理 404</v-btn>
         </div>
 

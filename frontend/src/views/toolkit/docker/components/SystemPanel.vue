@@ -127,7 +127,7 @@ defineExpose({ loadSystemInfo })
       <v-text-field v-model="repairForm.proxy" label="安装代理" variant="outlined" density="compact" placeholder="例如: http://192.168.1.10:7890" hint="仅在安装过程中生效。留空则不使用代理。" persistent-hint class="mb-3" />
       <v-alert type="warning" variant="tonal" density="compact" text="此操作将修改远程主机的系统组件。" />
       <template #actions>
-        <v-btn color="primary" variant="flat" prepend-icon="mdi-wrench-outline" @click="handleRepair" :loading="installing">开始执行</v-btn>
+        <v-btn color="primary" variant="tonal" prepend-icon="mdi-wrench-outline" @click="handleRepair" :loading="installing">开始执行</v-btn>
       </template>
     </GlassDialog>
 

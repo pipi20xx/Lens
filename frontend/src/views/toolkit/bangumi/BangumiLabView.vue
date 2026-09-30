@@ -179,7 +179,7 @@ function copyJsonData() {
               <v-window-item value="search">
                 <v-text-field v-model="searchForm.keywords" label="关键词" placeholder="番剧名称..."
                   variant="outlined" density="compact" class="mb-3" @keydown.enter="handleSearch" />
-                <v-btn block color="primary" variant="flat" prepend-icon="mdi-magnify" :loading="searchLoading" @click="handleSearch">执行搜索</v-btn>
+                <v-btn block color="primary" variant="tonal" prepend-icon="mdi-magnify" :loading="searchLoading" @click="handleSearch">执行搜索</v-btn>
                 <div v-if="searchResults.length > 0" class="mt-4">
                   <div class="text-subtitle-2 font-weight-bold mb-2">搜索结果</div>
                   <div class="d-flex flex-column ga-2" style="max-height:350px;overflow-y:auto">
@@ -195,7 +195,7 @@ function copyJsonData() {
               <v-window-item value="direct">
                 <v-text-field v-model="form.subject_id" label="Subject ID (条目 ID)" placeholder="例如: 253, 302506..."
                   variant="outlined" density="compact" class="mb-3" @keydown.enter="handleFetchAll" />
-                <v-btn block color="primary" variant="flat" prepend-icon="mdi-download" :loading="loading" @click="handleFetchAll">执行抓取</v-btn>
+                <v-btn block color="primary" variant="tonal" prepend-icon="mdi-download" :loading="loading" @click="handleFetchAll">执行抓取</v-btn>
               </v-window-item>
             </v-window>
           </v-card-text>
@@ -357,7 +357,7 @@ function copyJsonData() {
 >
   <pre class="code-block code-block--flat">{{ JSON.stringify(jsonModal.data, null, 2) }}</pre>
   <template #actions>
-    <v-btn color="primary" variant="flat" prepend-icon="mdi-content-copy" @click="copyJsonData">复制 JSON 数据</v-btn>
+    <v-btn color="primary" variant="tonal" prepend-icon="mdi-content-copy" @click="copyJsonData">复制 JSON 数据</v-btn>
   </template>
 </GlassDialog>
   </v-container>

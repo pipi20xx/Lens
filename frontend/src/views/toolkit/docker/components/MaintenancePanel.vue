@@ -202,7 +202,7 @@ defineExpose({ loadDaemonConfig })
             <v-alert type="info" variant="tonal" density="compact" class="mb-3" text="保存时将自动备份旧配置至本地 data 目录及远程 .bak 文件。" />
             <v-checkbox v-model="daemonForm.shouldRestart" density="compact" hide-details label="保存后重启 Docker 服务 (会导致容器短暂中断)" class="mb-4" />
             <div class="d-flex justify-end">
-              <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" :loading="daemonLoading" @click="handleSaveDaemonConfig">保存并应用配置</v-btn>
+              <v-btn color="primary" variant="tonal" prepend-icon="mdi-content-save-outline" :loading="daemonLoading" @click="handleSaveDaemonConfig">保存并应用配置</v-btn>
             </div>
           </v-col>
         </v-row>
@@ -246,7 +246,7 @@ defineExpose({ loadDaemonConfig })
         </div>
         <div class="d-flex align-center justify-space-between">
           <span class="text-caption text-medium-emphasis">共勾选 {{ selectedPruneCount }} 项</span>
-          <v-btn color="error" variant="flat" :loading="pruneLoading" :disabled="!selectedPruneCount" @click="handlePrune" prepend-icon="mdi-delete-sweep-outline">开始清理</v-btn>
+          <v-btn color="error" variant="tonal" :loading="pruneLoading" :disabled="!selectedPruneCount" @click="handlePrune" prepend-icon="mdi-delete-sweep-outline">开始清理</v-btn>
         </div>
       </v-card-text>
     </v-card>
@@ -260,7 +260,7 @@ defineExpose({ loadDaemonConfig })
       <v-checkbox v-model="daemonForm.shouldRestart" density="compact" hide-details label="保存后重启 Docker 服务" class="mt-3" />
 
       <template #actions>
-        <v-btn color="primary" variant="flat" prepend-icon="mdi-content-save-outline" @click="handleSaveRawJson" :disabled="!!rawJsonError" :loading="daemonLoading">保存原始配置</v-btn>
+        <v-btn color="primary" variant="tonal" prepend-icon="mdi-content-save-outline" @click="handleSaveRawJson" :disabled="!!rawJsonError" :loading="daemonLoading">保存原始配置</v-btn>
       </template>
     </GlassDialog>
   </div>

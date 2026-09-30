@@ -56,7 +56,7 @@ function copyTmdb() {
               <v-text-field v-model="episodeId" prepend-inner-icon="mdi-identifier" placeholder="输入 Episode ID (例如: 108)"
                 variant="outlined" density="compact" hide-details clearable style="max-width:320px"
                 @keydown.enter="handleLookup" />
-              <v-btn color="primary" variant="flat" prepend-icon="mdi-magnify" @click="handleLookup" :loading="loading">执行反查</v-btn>
+              <v-btn color="primary" variant="tonal" prepend-icon="mdi-magnify" @click="handleLookup" :loading="loading">执行反查</v-btn>
             </div>
           </v-card-text>
         </v-card>
