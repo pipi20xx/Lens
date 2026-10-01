@@ -5,9 +5,10 @@ WORKDIR /frontend
 # 设置 NPM 国内镜像源
 RUN npm config set registry https://registry.npmmirror.com
 
-# 锁文件一起复制，npm install 走 lockfile，更快且版本可复现
+# 锁文件一起复制，npm ci 严格按 lockfile 安装（多架构构建下各平台原生绑定
+# 必须完整记录在 lockfile 中；依赖变更后需在宿主机重新生成 lockfile）
 COPY frontend/package.json frontend/package-lock.json ./
-RUN npm config set fetch-retries 5 --location=global && npm install
+RUN npm config set fetch-retries 5 --location=global && npm ci --no-audit --no-fund
 COPY frontend/ .
 RUN npm run build
 
