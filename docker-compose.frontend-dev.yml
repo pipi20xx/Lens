@@ -24,6 +24,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      # npm/pip/基础镜像的缓存地址已写死在 Dockerfile 的 ARG 默认值里（192.168.50.12）
     container_name: lens123
     ports:
       # 宿主机用 6566，避免与生产 lens 容器的 6565 冲突

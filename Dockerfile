@@ -2,8 +2,10 @@
 FROM node:22-slim AS frontend-builder
 WORKDIR /frontend
 
-# 设置 NPM 国内镜像源
-RUN npm config set registry https://registry.npmmirror.com
+# NPM 源 — 默认走内网缓存（192.168.50.12）；在其他网络构建时才需要传参覆盖：
+#   --build-arg NPM_REGISTRY=https://registry.npmmirror.com
+ARG NPM_REGISTRY=http://192.168.50.12:4873
+RUN npm config set registry ${NPM_REGISTRY} && npm config set fetch-retries 5 --location=global
 
 # 锁文件一起复制，npm ci 严格按 lockfile 安装（多架构构建下各平台原生绑定
 # 必须完整记录在 lockfile 中；依赖变更后需在宿主机重新生成 lockfile）
@@ -36,12 +38,18 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
-# 设置 PIP 国内镜像源，增加超时和重试以提高构建稳定性
+# PIP 源 — 默认走内网缓存（192.168.50.12）；在其他网络构建时才需要传参覆盖：
+#   --build-arg PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
+#   --build-arg PIP_TRUSTED_HOST=
+ARG PIP_INDEX_URL=http://192.168.50.12:3141/root/pypi/+simple
+ARG PIP_TRUSTED_HOST=192.168.50.12
+# 设置 PIP 源，增加超时和重试以提高构建稳定性
 RUN pip install --no-cache-dir \
     --default-timeout=120 \
     --retries 5 \
-    -r requirements.txt \
-    -i https://pypi.tuna.tsinghua.edu.cn/simple
+    -i ${PIP_INDEX_URL} \
+    --trusted-host ${PIP_TRUSTED_HOST} \
+    -r requirements.txt
 
 # 复制后端代码
 COPY backend/ /app/

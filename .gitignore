@@ -41,3 +41,5 @@ frontend-old
 shared-ui/
 package-lock.json
 docker-compose.registry-mirror.yml
+docker-compose.pip-cache.yml
+docker-compose.npm-cache.yml
