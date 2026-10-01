@@ -322,9 +322,13 @@ class ImageBuilderService:
                         proxy_env = f"--driver-opt env.http_proxy={url} --driver-opt env.https_proxy={url} --driver-opt env.no_proxy=localhost,127.0.0.1,{INTERNAL_REGISTRY_MIRROR}"
                         await notify(f"已绑定构建代理: {proxy['url']}")
 
-                # 1. 安装 QEMU (耗时较长，多架构支持)
+                # 1. 安装 QEMU (耗时较长，多架构支持；必须放宽超时，默认 60s 会中断安装)
                 await notify("正在安装 QEMU 多架构仿真支持 (耗时较长)...")
-                await asyncio.to_thread(service.exec_command, "docker run --privileged --rm tonistiigi/binfmt --install all")
+                res = await asyncio.to_thread(
+                    service.exec_command, "docker run --privileged --rm tonistiigi/binfmt --install all", timeout=600
+                )
+                if not res.get("success"):
+                    raise RuntimeError(f"QEMU 安装失败: {res.get('stderr') or res.get('stdout')}")
 
                 # 2. 清理旧构建器
                 await notify("正在清理旧构建器 (lens-builder)...")
@@ -348,6 +352,8 @@ class ImageBuilderService:
                 await notify("正在创建并配置专用构建器 (lens-builder, 含内网缓存配置)...")
                 create_cmd = f"docker buildx create --name lens-builder --driver docker-container --driver-opt network=host {proxy_env} --config {buildkitd_path} --use"
                 res = await asyncio.to_thread(service.exec_command, create_cmd)
+                if not res.get("success"):
+                    raise RuntimeError(f"构建器创建失败: {res.get('stderr') or res.get('stdout')}")
                 
                 # 4. 预热/引导
                 await notify("正在执行构建器预引导 (Bootstrap)...")
