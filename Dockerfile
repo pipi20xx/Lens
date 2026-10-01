@@ -1,5 +1,9 @@
+# 基础镜像缓存（内网 registry:2 pull-through 代理）；内网外构建时用 --build-arg 覆盖：
+#   --build-arg BASE_PREFIX=    （置空即走官方 Docker Hub）
+ARG BASE_PREFIX=192.168.50.12:5000/library/
+
 # Stage 1: Build Frontend
-FROM node:22-slim AS frontend-builder
+FROM ${BASE_PREFIX}node:22-slim AS frontend-builder
 WORKDIR /frontend
 
 # NPM 源 — 默认走内网缓存（192.168.50.12）；在其他网络构建时才需要传参覆盖：
@@ -15,7 +19,7 @@ COPY frontend/ .
 RUN npm run build
 
 # Stage 2: Build Backend and Final Image
-FROM python:3.10-slim
+FROM ${BASE_PREFIX}python:3.10-slim
 WORKDIR /app
 
 # 设置 APT 国内镜像源 (针对 Debian) — 清华源（阿里云源部分地区不稳定）

@@ -416,10 +416,11 @@ Lens 作为一个深度集成媒体服务器权限的管理工具，虽然内置
 ### 方式二：源码编译部署
 如果你需要进行二次开发或自定义：
 
-> ⚠️ **Fork / 二次开发用户必读**：本仓库的 `Dockerfile` 默认通过**作者内网的 npm/pip 私有缓存**（`192.168.50.12`）拉取依赖，该地址在你的网络环境不可达，**Dockerfile 无法直接构建**。请在构建前做以下任一调整：
+> ⚠️ **Fork / 二次开发用户必读**：本仓库的 `Dockerfile` 默认通过**作者内网的私有缓存**（`192.168.50.12`）拉取基础镜像和 npm/pip 依赖，该地址在你的网络环境不可达，**Dockerfile 无法直接构建**。请在构建前做以下任一调整：
 >
-> - **修改 Dockerfile**：全局搜索 `192.168.50.12`，将三个 `ARG` 默认值改为公网源：
+> - **修改 Dockerfile**：全局搜索 `192.168.50.12`，将四个 `ARG` 默认值改为公网源：
 >   ```dockerfile
+>   ARG BASE_PREFIX=
 >   ARG NPM_REGISTRY=https://registry.npmmirror.com
 >   ARG PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
 >   ARG PIP_TRUSTED_HOST=pypi.tuna.tsinghua.edu.cn
@@ -427,13 +428,14 @@ Lens 作为一个深度集成媒体服务器权限的管理工具，虽然内置
 > - **或构建时传参覆盖**（不改文件）：
 >   ```bash
 >   docker build \
+>     --build-arg BASE_PREFIX= \
 >     --build-arg NPM_REGISTRY=https://registry.npmmirror.com \
 >     --build-arg PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple \
 >     --build-arg PIP_TRUSTED_HOST=pypi.tuna.tsinghua.edu.cn \
 >     -t lens .
 >   ```
 >
-> 注意：`PIP_INDEX_URL` 与 `PIP_TRUSTED_HOST` 必须**成对修改**。若你自己的内网也部署了同款缓存服务，把地址换成你自己的即可。基础镜像（`FROM`）拉取不受影响，如需加速请配置构建机的 `daemon.json` 镜像加速器。
+> 注意：`PIP_INDEX_URL` 与 `PIP_TRUSTED_HOST` 必须**成对修改**；`BASE_PREFIX` 置空即走官方 Docker Hub。若你自己的内网也部署了同款缓存服务，把地址换成你自己的即可。
 
 1.  **克隆代码**：`git clone ...`
 2.  **启动服务**：`docker-compose up -d --build`

@@ -4,6 +4,7 @@ import uuid
 import asyncio
 import subprocess
 import hashlib
+import base64
 import tempfile
 import docker
 import paramiko
@@ -26,6 +27,12 @@ BUILD_LOG_DIR = Path(LOGS_DIR) / "builds"
 BUILD_LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 TASK_LOG_SENTINEL = "--- TASK_COMPLETED ---"
+
+# 内网镜像缓存（registry:2 pull-through 代理）。BuildKit 是独立于 dockerd 的进程，
+# 不读 daemon.json；缓存是 HTTP 明文源，必须显式声明 http = true，否则默认 https
+# 会报 "server gave HTTP response to HTTPS client"。docker.io 走 mirror，未命中
+# 自动回退官方源。Fork 用户请改成自己的缓存地址。
+INTERNAL_REGISTRY_MIRROR = "192.168.50.12:5000"
 
 class ImageBuilderService:
     # --- Project CRUD (JSON) ---
@@ -312,7 +319,7 @@ class ImageBuilderService:
                             parsed = urlparse(url)
                             netloc = f"{proxy['username']}:{proxy['password']}@{parsed.netloc}"
                             url = urlunparse(parsed._replace(netloc=netloc))
-                        proxy_env = f"--driver-opt env.http_proxy={url} --driver-opt env.https_proxy={url} --driver-opt env.no_proxy=localhost,127.0.0.1"
+                        proxy_env = f"--driver-opt env.http_proxy={url} --driver-opt env.https_proxy={url} --driver-opt env.no_proxy=localhost,127.0.0.1,{INTERNAL_REGISTRY_MIRROR}"
                         await notify(f"已绑定构建代理: {proxy['url']}")
 
                 # 1. 安装 QEMU (耗时较长，多架构支持)
@@ -323,9 +330,23 @@ class ImageBuilderService:
                 await notify("正在清理旧构建器 (lens-builder)...")
                 await asyncio.to_thread(service.exec_command, "docker buildx rm lens-builder", log_error=False)
 
-                # 3. 创建新构建器 (并配置代理)
-                await notify("正在创建并配置专用构建器 (lens-builder)...")
-                create_cmd = f"docker buildx create --name lens-builder --driver docker-container --driver-opt network=host {proxy_env} --use"
+                # 3. 写入 BuildKit 缓存配置并创建新构建器 (并配置代理)
+                #    registry 规则只能随 buildx create --config 注入（旧版参数名，新版
+                #    兼容）；toml 用 base64 落到目标主机，兼容本地/SSH 两种 exec 通道
+                buildkitd_toml = (
+                    '[registry."docker.io"]\n'
+                    f'  mirrors = ["{INTERNAL_REGISTRY_MIRROR}"]\n'
+                    '\n'
+                    f'[registry."{INTERNAL_REGISTRY_MIRROR}"]\n'
+                    '  http = true\n'
+                )
+                buildkitd_b64 = base64.b64encode(buildkitd_toml.encode()).decode()
+                buildkitd_path = "/tmp/lens-buildkitd.toml"
+                await asyncio.to_thread(
+                    service.exec_command, f"echo {buildkitd_b64} | base64 -d > {buildkitd_path}"
+                )
+                await notify("正在创建并配置专用构建器 (lens-builder, 含内网缓存配置)...")
+                create_cmd = f"docker buildx create --name lens-builder --driver docker-container --driver-opt network=host {proxy_env} --config {buildkitd_path} --use"
                 res = await asyncio.to_thread(service.exec_command, create_cmd)
                 
                 # 4. 预热/引导
