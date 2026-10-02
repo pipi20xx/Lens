@@ -22,6 +22,7 @@ export function useDedupe() {
   const dedupeConfig = ref<any>({
     rules: { priority_order: [], values_weight: {}, tie_breaker: 'small_id' },
     exclude_paths: [],
+    protected_priority: false,
   })
 
   // === 分页后的数据 ===

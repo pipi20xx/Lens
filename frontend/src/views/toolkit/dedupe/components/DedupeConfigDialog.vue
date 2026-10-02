@@ -22,6 +22,7 @@ const form = reactive({
 })
 const tieBreaker = ref('small_id')
 const excludeText = ref('')
+const protectedPriority = ref(false)
 
 // 根据内容动态计算行数，确保打开时默认显示全部内容
 // auto-grow 仅在用户手动输入时触发重算，程序化赋值时不会生效
@@ -46,6 +47,7 @@ watch(() => props.modelValue, (val) => {
     form.video_range = (vw.video_range || []).join(', ')
     tieBreaker.value = cfg.rules?.tie_breaker || 'small_id'
     excludeText.value = (cfg.exclude_paths || []).join('\n')
+    protectedPriority.value = !!cfg.protected_priority
   }
 })
 
@@ -59,6 +61,7 @@ function handleSave() {
   }
   configToSave.rules.tie_breaker = tieBreaker.value
   configToSave.exclude_paths = excludeText.value.split('\n').map(s => s.trim()).filter(s => s)
+  configToSave.protected_priority = protectedPriority.value
   emit('save', configToSave)
 }
 </script>
@@ -106,6 +109,13 @@ function handleSave() {
         <v-textarea v-model="excludeText" label="白名单关键词 (路径包含即保留)" variant="outlined" density="compact"
           placeholder="每行一个关键词或路径片段 (不区分大小写)&#10;只要完整路径中包含该词，文件就会被保护。&#10;&#10;例如：&#10;2023&#10;Feature&#10;/vol1/Anime/Protected"
           :rows="excludeRows" auto-grow />
+
+        <v-switch v-model="protectedPriority" color="primary" density="compact" hide-details
+          label="保护路径优先保留 (命中白名单视为最优)" />
+        <div class="text-caption text-medium-emphasis mt-1">
+          开启后：重复组中位于保护路径内的条目强制保留，同组其余副本将被删除（即使画质评分更高）。<br />
+          关闭时：命中白名单的条目仅跳过自身删除，同组其他副本保持不变。
+        </div>
       </v-window-item>
     </v-window>
 

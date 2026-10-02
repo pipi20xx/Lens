@@ -199,7 +199,14 @@ async def list_duplicates(db: AsyncSession = Depends(get_db)):
         res.append({"id": item.id, "name": item.name, "item_type": item.item_type, "path": item.path, "display_title": item.display_title, "video_codec": item.video_codec, "video_range": item.video_range, "tmdb_id": item.tmdb_id, "raw_data": item.raw_data, "is_duplicate": True})
     return res
 
-def _smart_analysis_core(all_items, rule_data, exclude_paths, active_server_id, start_time):
+def _path_protected(path: Optional[str], exclude_paths: List[str]) -> bool:
+    """判断路径是否命中白名单（不区分大小写的包含匹配）"""
+    if not path:
+        return False
+    p = path.lower()
+    return any(ex.lower() in p for ex in exclude_paths if ex.strip())
+
+def _smart_analysis_core(all_items, rule_data, exclude_paths, active_server_id, start_time, protected_priority=False):
     """智能分析核心计算（CPU 密集型）。
     
     通过 asyncio.to_thread 在线程池中执行，避免阻塞 FastAPI 事件循环。
@@ -244,7 +251,20 @@ def _smart_analysis_core(all_items, rule_data, exclude_paths, active_server_id, 
     for key, g_items in groups.items():
         if len(g_items) > 1:
             duplicate_group_count += 1
-            
+
+            # 保护优先模式：组内命中白名单的条目强制保留（视为最优），其余副本全部建议删除。
+            # 不再做评分对比；后续全局安全校验仍会兜底，防止唯一集/唯一副本丢失。
+            if protected_priority:
+                protected_ids = {i.id for i in g_items if _path_protected(i.path, exclude_paths)}
+                if protected_ids:
+                    for i in g_items:
+                        if i.id in protected_ids:
+                            logger.info(f"┃  🛡️ [保护优先] 强制保留: [{i.item_type}] {i.path}")
+                        else:
+                            logger.info(f"┃  🗑️ [保护优先] 建议删除: [{i.item_type}] {i.path}")
+                    to_delete_ids.extend(i.id for i in g_items if i.id not in protected_ids)
+                    continue
+
             # 剧集特殊逻辑：内容完整性对比
             if key.startswith("Series-"):
                 valid_candidates = []
@@ -283,7 +303,7 @@ def _smart_analysis_core(all_items, rule_data, exclude_paths, active_server_id, 
             
             for i in g_items:
                 status = "🗑️ 建议删除" if i.id in suggested else "✅ 建议保留"
-                if i.id in suggested and any(ex.lower() in i.path.lower() for ex in exclude_paths if ex.strip()):
+                if i.id in suggested and _path_protected(i.path, exclude_paths):
                     status = "🛡️ 白名单保护"
                     suggested.remove(i.id)
                 logger.info(f"┃  ┣ {status}: [{i.item_type}] {i.path}")
@@ -398,16 +418,17 @@ async def smart_select_v4(db: AsyncSession = Depends(get_db)):
     config = get_config()
     rule_data = config.get("dedupe_rules")
     exclude_paths = config.get("exclude_paths", [])
-    
-    logger.info(f"🧪 [智能分析] 评分引擎启动 (Server: {active_server_id})...")
-    
+    protected_priority = bool(config.get("protected_priority", False))
+
+    logger.info(f"🧪 [智能分析] 评分引擎启动 (Server: {active_server_id}, 保护优先: {'开' if protected_priority else '关'})...")
+
     # 加载全量媒体，包含 Season 用于层级分析
     all_items_res = await db.execute(select(MediaItem).where(MediaItem.server_id == active_server_id, MediaItem.item_type.in_(["Movie", "Series", "Season", "Episode"])))
     all_items = all_items_res.scalars().all()
-    
+
     # 将 CPU 密集型分析逻辑放入线程池执行，避免阻塞 FastAPI 事件循环（不阻塞其它请求）
     to_delete_ids, _stats = await asyncio.to_thread(
-        _smart_analysis_core, all_items, rule_data, exclude_paths, active_server_id, start_time
+        _smart_analysis_core, all_items, rule_data, exclude_paths, active_server_id, start_time, protected_priority
     )
     
     if not to_delete_ids: return []
@@ -421,6 +442,7 @@ async def delete_items_optimized(request: BulkDeleteRequest, db: AsyncSession = 
     active_server_id = get_config().get("active_server_id")
     config = get_config()
     exclude_paths = config.get("exclude_paths", []) # 加载白名单
+    protected_priority = bool(config.get("protected_priority", False))
     service = get_emby_service()
     if not service: raise HTTPException(status_code=400, detail="未配置服务器")
     
@@ -435,58 +457,69 @@ async def delete_items_optimized(request: BulkDeleteRequest, db: AsyncSession = 
     downgrade_count = 0
     protected_count = 0
     
-    # 提前获取全库单集索引，用于剧集保护
-    all_episodes_res = await db.execute(select(MediaItem.tmdb_id, MediaItem.season_num, MediaItem.episode_num, MediaItem.id).where(MediaItem.server_id == active_server_id, MediaItem.item_type == "Episode"))
+    # 提前获取全库单集索引，用于剧集保护（带上路径以便识别白名单副本）
+    all_episodes_res = await db.execute(select(MediaItem.tmdb_id, MediaItem.season_num, MediaItem.episode_num, MediaItem.id, MediaItem.path).where(MediaItem.server_id == active_server_id, MediaItem.item_type == "Episode"))
     ep_registry = defaultdict(list)
-    for tmdb_id, s_num, e_num, eid in all_episodes_res.all():
-        if tmdb_id: ep_registry[f"{tmdb_id}-S{s_num}E{e_num}"].append(eid)
+    for tmdb_id, s_num, e_num, eid, epath in all_episodes_res.all():
+        if tmdb_id: ep_registry[f"{tmdb_id}-S{s_num}E{e_num}"].append((eid, epath or ""))
+
+    def _is_protected(p: Optional[str]) -> bool:
+        return _path_protected(p, exclude_paths)
+
+    def _has_survivor(key: str, self_id: str) -> bool:
+        """该集在本次删除完成后是否仍会留有至少一个副本。
+        保护优先模式下，白名单内的副本即使被勾选也必然被绝对拦截而存活，视为保留。"""
+        for oid, opath in ep_registry.get(key, []):
+            if oid == self_id: continue
+            if oid not in request.item_ids: return True
+            if protected_priority and _is_protected(opath): return True
+        return False
 
     for eid in request.item_ids:
         item = delete_map.get(eid)
         if not item: continue
         
         # --- 路径白名单绝对保护 ---
-        if any(ex.lower() in item.path.lower() for ex in exclude_paths if ex.strip()):
+        if _is_protected(item.path):
             logger.error(f"🛡️ [绝对拦截] 尝试删除受白名单保护的路径: {item.path}。操作已拒绝。")
             protected_count += 1
             continue
-            
-        # 冗余折叠
-        if item.parent_id in request.item_ids:
-            # 检查父级是否也被保护了，如果父级被保护了，子级不能直接跳过，也得进入保护逻辑（这里由于是递归删除，通常父级保护了子级就安全）
+
+        # 冗余折叠：父级也在删除列表中时，子级随父级级联删除，无需单独调用 API。
+        # 但若父级命中白名单（父级必然被拦截存活、不会级联），子级不能折叠，必须走自身校验。
+        parent_item = delete_map.get(item.parent_id) if item.parent_id else None
+        if item.parent_id in request.item_ids and not (parent_item and _is_protected(parent_item.path)):
             skipped_count += 1
             actual_deleted_ids.append(eid)
             continue
-            
+
         # 剧集安全校验
         if item.item_type == "Series":
             children_res = await db.execute(select(MediaItem).where(MediaItem.parent_id == item.id, MediaItem.item_type == "Episode"))
             children = children_res.scalars().all()
-            
+
             unsafe_episodes = []
             for child in children:
                 key = f"{child.tmdb_id}-S{child.season_num}E{child.episode_num}"
-                others = [oid for oid in ep_registry.get(key, []) if oid != child.id and oid not in request.item_ids]
-                if not others: unsafe_episodes.append(child)
-            
+                if not _has_survivor(key, child.id): unsafe_episodes.append(child)
+
             if unsafe_episodes:
                 logger.warning(f"🛡️ [安全拦截] 剧集文件夹 {item.path} 包含唯一集数，拦截并降级。")
                 downgrade_count += 1
                 for child in children:
                     # 即使降级，也要检查子项是否在白名单中
-                    if any(ex.lower() in child.path.lower() for ex in exclude_paths if ex.strip()): continue
-                    
+                    if _is_protected(child.path): continue
+
                     key = f"{child.tmdb_id}-S{child.season_num}E{child.episode_num}"
-                    if any(oid for oid in ep_registry.get(key, []) if oid != child.id and oid not in request.item_ids):
+                    if _has_survivor(key, child.id):
                         final_ids_to_call.append(child.id)
                         actual_deleted_ids.append(child.id)
-                continue 
+                continue
 
         # 单集安全校验：确保同一集至少保留一个副本
         if item.item_type == "Episode" and item.tmdb_id:
             key = f"{item.tmdb_id}-S{item.season_num}E{item.episode_num}"
-            others = [oid for oid in ep_registry.get(key, []) if oid != item.id and oid not in request.item_ids]
-            if not others:
+            if not _has_survivor(key, eid):
                 logger.warning(f"🛡️ [单集保护] {item.path} 是该集唯一副本，跳过删除以保留至少一个版本。")
                 continue
 
@@ -512,19 +545,21 @@ async def delete_items_optimized(request: BulkDeleteRequest, db: AsyncSession = 
         f"API物理删除: {success}",
         f"路径白名单拦截: {protected_count}",
         f"安全拦截降级: {downgrade_count}",
-        f"逻辑折叠跳过: {skipped_count}"
+        f"逻辑折叠跳过: {skipped_count}",
+        f"保护优先模式: {'开' if protected_priority else '关'}"
     ])
     return {"success": success, "protected": protected_count, "downgraded": downgrade_count}
 
 @router.get("/config")
 async def get_dedupe_config():
     config = get_config()
-    return {"rules": config.get("dedupe_rules"), "exclude_paths": config.get("exclude_paths", [])}
+    return {"rules": config.get("dedupe_rules"), "exclude_paths": config.get("exclude_paths", []), "protected_priority": bool(config.get("protected_priority", False))}
 
 @router.post("/config")
 async def save_dedupe_config(data: Dict[str, Any]):
     config = get_config()
     if "rules" in data: config["dedupe_rules"] = data["rules"]
     if "exclude_paths" in data: config["exclude_paths"] = data["exclude_paths"]
+    if "protected_priority" in data: config["protected_priority"] = bool(data["protected_priority"])
     save_config(config)
     return {"message": "ok"}

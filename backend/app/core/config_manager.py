@@ -27,6 +27,8 @@ DEFAULT_CONFIG = {
         "tie_breaker": "small_id"
     },
     "exclude_paths": [],
+    # 保护路径优先模式：开启后重复组中命中白名单的条目强制保留，同组其余副本全部删除
+    "protected_priority": False,
     "autotag_rules": [],
     "webhook": {
         "enabled": True,
