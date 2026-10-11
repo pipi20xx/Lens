@@ -141,7 +141,7 @@ def _contents_headers(token: str, username: str, provider: str = "gitea") -> dic
 
 def gitea_list_dir(base: str, repo: str, branch: str, dir_path: str,
                    token: str, username: str = "", include_dirs: bool = False,
-                   provider: str = "gitea") -> list:
+                   provider: str = "gitea", proxies: Optional[dict] = None) -> list:
     """列出仓库目录内容；目录不存在返回空表。dir_path 为空表示仓库根目录。
 
     include_dirs=False（默认，与原版一致）仅返回文件路径列表；
@@ -149,7 +149,8 @@ def gitea_list_dir(base: str, repo: str, branch: str, dir_path: str,
     provider='gitea'（默认）与原版行为一致；provider='github' 走 GitHub Contents API（结构相同）。
     """
     r = requests.get(_contents_url(base, repo, dir_path, provider), params={"ref": branch},
-                     headers=_contents_headers(token, username, provider), timeout=(10, 30))
+                     headers=_contents_headers(token, username, provider),
+                     proxies=proxies, timeout=(10, 30))
     if r.status_code == 404:
         return []
     r.raise_for_status()
@@ -165,14 +166,16 @@ def gitea_list_dir(base: str, repo: str, branch: str, dir_path: str,
 
 
 def gitea_get_file(base: str, repo: str, branch: str, path: str, token: str,
-                   username: str = "", provider: str = "gitea") -> tuple:
+                   username: str = "", provider: str = "gitea",
+                   proxies: Optional[dict] = None) -> tuple:
     """读取仓库文件，返回 (文本, sha)；文件不存在返回 (None, None)。
 
     github 下超过 1MB 的文件 Contents API 不内联返回内容，自动降级用 raw 媒体类型重取。
     """
     url = _contents_url(base, repo, path, provider)
     headers = _contents_headers(token, username, provider)
-    r = requests.get(url, params={"ref": branch}, headers=headers, timeout=(10, 30))
+    r = requests.get(url, params={"ref": branch}, headers=headers,
+                     proxies=proxies, timeout=(10, 30))
     if r.status_code == 404:
         return None, None
     r.raise_for_status()
@@ -182,7 +185,7 @@ def gitea_get_file(base: str, repo: str, branch: str, path: str, token: str,
         if provider == "github":
             r2 = requests.get(url, params={"ref": branch},
                               headers={**headers, "Accept": "application/vnd.github.raw"},
-                              timeout=(10, 30))
+                              proxies=proxies, timeout=(10, 30))
             r2.raise_for_status()
             return r2.text, data.get("sha")
         raise ValueError("文件过大，Gitea 未返回内容（contents API 限制）")
@@ -192,7 +195,8 @@ def gitea_get_file(base: str, repo: str, branch: str, path: str, token: str,
 
 def gitea_put_file(base: str, repo: str, branch: str, path: str, token: str,
                    content_text: str, sha: Optional[str], message: str,
-                   username: str = "", provider: str = "gitea") -> dict:
+                   username: str = "", provider: str = "gitea",
+                   proxies: Optional[dict] = None) -> dict:
     """创建/更新仓库文件（一次调用 = 一次 commit）。请求体两种平台完全一致。"""
     body: dict = {
         "content": base64.b64encode(content_text.encode("utf-8")).decode("ascii"),
@@ -202,7 +206,8 @@ def gitea_put_file(base: str, repo: str, branch: str, path: str, token: str,
     if sha:
         body["sha"] = sha
     r = requests.put(_contents_url(base, repo, path, provider), json=body,
-                     headers=_contents_headers(token, username, provider), timeout=(10, 30))
+                     headers=_contents_headers(token, username, provider),
+                     proxies=proxies, timeout=(10, 30))
     r.raise_for_status()
     return r.json() if r.content else {}
 

@@ -24,6 +24,7 @@ from .media_clients import (
     BangumiClient,
     TMDBClient,
     TVDBClient,
+    build_proxies,
     load_cure_source,
 )
 from .push import (
@@ -109,6 +110,13 @@ def build_integration_settings() -> dict:
 
 
 PROVIDER_NAMES = {"gitea": "Gitea", "github": "GitHub"}
+
+
+def _push_proxies(provider: str) -> Optional[dict]:
+    """仓库 API 的代理策略：GitHub 走全局代理（若启用）；Gitea 一般是局域网自建，保持直连。"""
+    if provider == "github":
+        return build_proxies(build_integration_settings()["proxy"])
+    return None
 
 
 def _repo_settings(provider: str) -> dict:
@@ -356,7 +364,7 @@ def list_gitea_files(dir_path: str = "", provider: str = "gitea") -> list:
     # 返回文件与子目录（网页端逐级浏览），目录在前、按名称排序
     entries = gitea_list_dir(st["base"], st["repo"], st["branch"], (dir_path or "").strip().strip("/"),
                              st["token"], st.get("username", ""), include_dirs=True,
-                             provider=provider)
+                             provider=provider, proxies=_push_proxies(provider))
     dirs = sorted((e for e in entries if e["type"] == "dir"), key=lambda e: e["path"])
     files = sorted((e for e in entries if e["type"] == "file"), key=lambda e: e["path"])
     return dirs + files
@@ -386,9 +394,10 @@ def push_render_words(task_id: str, file_path: str = "", force_manual: bool = Fa
 
     import requests as _requests
 
+    proxies = _push_proxies(provider)
     username = st.get("username", "")
     content, sha = gitea_get_file(st["base"], st["repo"], st["branch"], path,
-                                  st["token"], username, provider=provider)
+                                  st["token"], username, provider=provider, proxies=proxies)
     content = content if content is not None else ""
     new_text, action, info = upsert_render_block(content, block_text, force_manual=force_manual)
     if action == "conflict":
@@ -403,7 +412,7 @@ def push_render_words(task_id: str, file_path: str = "", force_manual: bool = Fa
                        f"[Lens] 新增分季渲染词: {title} (TMDB:{tmdb_id})")
             resp = gitea_put_file(st["base"], st["repo"], st["branch"], path,
                                   st["token"], new_text, sha, message, username,
-                                  provider=provider)
+                                  provider=provider, proxies=proxies)
             commit = ((resp or {}).get("commit") or {}).get("sha") or ""
             verb = {"replaced": "已替换区块", "appended": "已追加到文末"}.get(action, "已写入")
             logger.info(f"📤 {name} {verb}: {st['repo']}/{path}（{info}）提交 {commit[:7]}")
@@ -413,7 +422,8 @@ def push_render_words(task_id: str, file_path: str = "", force_manual: bool = Fa
             sc = e.response.status_code if e.response is not None else 0
             if sc in (409, 422) and attempt < 2:
                 content, sha = gitea_get_file(st["base"], st["repo"], st["branch"], path,
-                                              st["token"], username, provider=provider)
+                                              st["token"], username, provider=provider,
+                                              proxies=proxies)
                 content = content if content is not None else ""
                 new_text, action, info = upsert_render_block(content, block_text,
                                                              force_manual=force_manual)
