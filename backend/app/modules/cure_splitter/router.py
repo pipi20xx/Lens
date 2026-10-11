@@ -49,10 +49,10 @@ async def task_result(task_id: str):
     return result
 
 
-@router.post("/gitea/list-dir", summary="列出 Gitea 仓库目录下的文件")
+@router.post("/gitea/list-dir", summary="列出仓库（Gitea/GitHub）目录内容")
 async def gitea_list_dir(req: GiteaListDirRequest):
     try:
-        files = await asyncio.to_thread(service.list_gitea_files, req.dir_path)
+        files = await asyncio.to_thread(service.list_gitea_files, req.dir_path, req.provider)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
@@ -60,11 +60,12 @@ async def gitea_list_dir(req: GiteaListDirRequest):
     return {"files": files}
 
 
-@router.post("/gitea/push", summary="推送渲染词到 Gitea")
+@router.post("/gitea/push", summary="推送渲染词到仓库（Gitea/GitHub）")
 async def gitea_push(req: GiteaPushRequest):
     try:
         data = await asyncio.to_thread(
-            service.push_render_words, req.task_id, req.file_path, req.force_manual, req.content,
+            service.push_render_words, req.task_id, req.file_path, req.force_manual,
+            req.content, req.provider,
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

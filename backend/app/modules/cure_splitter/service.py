@@ -77,6 +77,7 @@ def build_integration_settings() -> dict:
     cfg = get_config()
     proxy_cfg = cfg.get("proxy") or {}
     gitea = dict(cfg.get("gitea") or {})
+    github = dict(cfg.get("github") or {})
     sytmdb = dict(cfg.get("sytmdb") or {})
     return {
         "tmdb_key": (cfg.get("tmdb_api_key") or "").strip(),
@@ -93,11 +94,37 @@ def build_integration_settings() -> dict:
             "branch": (gitea.get("branch") or "").strip() or "main",
             "file_path": (gitea.get("file_path") or "").strip().strip("/"),
         },
+        "github": {
+            "base": (github.get("base") or "").strip() or "https://api.github.com",
+            "token": (github.get("token") or "").strip(),
+            "repo": (github.get("repo") or "").strip().strip("/"),
+            "branch": (github.get("branch") or "").strip() or "main",
+            "file_path": (github.get("file_path") or "").strip().strip("/"),
+        },
         "sytmdb": {
             "base": (sytmdb.get("base") or "").strip().rstrip("/"),
             "token": (sytmdb.get("token") or "").strip(),
         },
     }
+
+
+PROVIDER_NAMES = {"gitea": "Gitea", "github": "GitHub"}
+
+
+def _repo_settings(provider: str) -> dict:
+    """取指定推送目标（gitea/github）的仓库配置并做基础校验。"""
+    name = PROVIDER_NAMES.get(provider)
+    if not name:
+        raise ValueError(f"不支持的仓库类型: {provider}")
+    st = build_integration_settings()[provider]
+    if not st["base"] or not st["repo"]:
+        raise ValueError(f"未配置{name}地址和仓库，请先在「设置 → 第三方 API 集成」填写")
+    if provider == "github":
+        if not st["token"]:
+            raise ValueError("未配置 GitHub 访问令牌（PAT，需 Contents 读写权限）")
+    elif not st["token"] and not st["username"]:
+        raise ValueError(f"未配置{name}登录信息（用户名 + 密码/令牌，或访问令牌）")
+    return st
 
 
 def _parse_priority(priority_text: str) -> list:
@@ -321,25 +348,22 @@ def get_task_result(task_id: str) -> Optional[dict]:
 
 
 # ---------------------------------------------------------------------------
-# Gitea / SYTMDB 推送
+# Gitea / GitHub 仓库推送 + SYTMDB 写入
 # ---------------------------------------------------------------------------
 
-def list_gitea_files(dir_path: str = "") -> list:
-    st = build_integration_settings()["gitea"]
-    if not st["base"] or not st["repo"]:
-        raise ValueError("未配置 Gitea 地址和仓库，请先在「设置 → 第三方 API 集成」填写")
-    if not st["token"] and not st["username"]:
-        raise ValueError("未配置 Gitea 登录信息（用户名 + 密码/令牌，或访问令牌）")
+def list_gitea_files(dir_path: str = "", provider: str = "gitea") -> list:
+    st = _repo_settings(provider)
     # 返回文件与子目录（网页端逐级浏览），目录在前、按名称排序
     entries = gitea_list_dir(st["base"], st["repo"], st["branch"], (dir_path or "").strip().strip("/"),
-                             st["token"], st["username"], include_dirs=True)
+                             st["token"], st.get("username", ""), include_dirs=True,
+                             provider=provider)
     dirs = sorted((e for e in entries if e["type"] == "dir"), key=lambda e: e["path"])
     files = sorted((e for e in entries if e["type"] == "file"), key=lambda e: e["path"])
     return dirs + files
 
 
 def push_render_words(task_id: str, file_path: str = "", force_manual: bool = False,
-                      content: str = "") -> dict:
+                      content: str = "", provider: str = "gitea") -> dict:
     task = _tasks.get(task_id)
     if not task or not task.get("result"):
         raise ValueError("任务不存在或尚未完成拆分")
@@ -354,17 +378,17 @@ def push_render_words(task_id: str, file_path: str = "", force_manual: bool = Fa
     tmdb_id = int(m.group(1))
     title = task["result"].get("title") or f"TMDB {tmdb_id}"
 
-    st = build_integration_settings()["gitea"]
+    st = _repo_settings(provider)
+    name = PROVIDER_NAMES[provider]
     path = (file_path or "").strip().strip("/") or st["file_path"]
-    if not st["base"] or not st["repo"] or not path:
-        raise ValueError("未配置 Gitea 地址、仓库或渲染词文件路径，请先在「设置 → 第三方 API 集成」填写")
-    if not st["token"] and not st["username"]:
-        raise ValueError("未配置 Gitea 登录信息（用户名 + 密码/令牌，或访问令牌）")
+    if not path:
+        raise ValueError(f"未配置{name}渲染词文件路径，请先在「设置 → 第三方 API 集成」填写或临时选择")
 
     import requests as _requests
 
+    username = st.get("username", "")
     content, sha = gitea_get_file(st["base"], st["repo"], st["branch"], path,
-                                  st["token"], st["username"])
+                                  st["token"], username, provider=provider)
     content = content if content is not None else ""
     new_text, action, info = upsert_render_block(content, block_text, force_manual=force_manual)
     if action == "conflict":
@@ -378,17 +402,18 @@ def push_render_words(task_id: str, file_path: str = "", force_manual: bool = Fa
                        if action == "replaced" else
                        f"[Lens] 新增分季渲染词: {title} (TMDB:{tmdb_id})")
             resp = gitea_put_file(st["base"], st["repo"], st["branch"], path,
-                                  st["token"], new_text, sha, message, st["username"])
+                                  st["token"], new_text, sha, message, username,
+                                  provider=provider)
             commit = ((resp or {}).get("commit") or {}).get("sha") or ""
             verb = {"replaced": "已替换区块", "appended": "已追加到文末"}.get(action, "已写入")
-            logger.info(f"📤 Gitea {verb}: {st['repo']}/{path}（{info}）提交 {commit[:7]}")
+            logger.info(f"📤 {name} {verb}: {st['repo']}/{path}（{info}）提交 {commit[:7]}")
             return {"action": action, "info": info, "commit": commit,
-                    "message": f"{verb}：{info}（{st['repo']}/{path}，分支 {st['branch']}）"}
+                    "message": f"{verb}：{info}（{name} {st['repo']}/{path}，分支 {st['branch']}）"}
         except _requests.HTTPError as e:
             sc = e.response.status_code if e.response is not None else 0
             if sc in (409, 422) and attempt < 2:
                 content, sha = gitea_get_file(st["base"], st["repo"], st["branch"], path,
-                                              st["token"], st["username"])
+                                              st["token"], username, provider=provider)
                 content = content if content is not None else ""
                 new_text, action, info = upsert_render_block(content, block_text,
                                                              force_manual=force_manual)
@@ -399,7 +424,7 @@ def push_render_words(task_id: str, file_path: str = "", force_manual: bool = Fa
             raise
     if last_err is not None:
         raise last_err
-    raise RuntimeError("Gitea 推送失败：重试次数耗尽")
+    raise RuntimeError(f"{PROVIDER_NAMES[provider]} 推送失败：重试次数耗尽")
 
 
 def write_sytmdb(task_id: str) -> dict:

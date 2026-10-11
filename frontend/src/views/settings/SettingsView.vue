@@ -26,6 +26,7 @@ const globalConfig = ref<any>({
   bangumi_api_token: '',
   tvdb_api_key: '',
   gitea: { base: '', username: '', token: '', repo: '', branch: 'main', file_path: '' },
+  github: { base: 'https://api.github.com', token: '', repo: '', branch: 'main', file_path: '' },
   sytmdb: { base: '', token: '' },
   proxy: { enabled: false, url: '', exclude_emby: true },
   session_never_expire: false,
@@ -80,6 +81,13 @@ async function loadAll() {
         repo: cfg.gitea?.repo || '',
         branch: cfg.gitea?.branch || 'main',
         file_path: cfg.gitea?.file_path || '',
+      },
+      github: {
+        base: cfg.github?.base || 'https://api.github.com',
+        token: cfg.github?.token || '',
+        repo: cfg.github?.repo || '',
+        branch: cfg.github?.branch || 'main',
+        file_path: cfg.github?.file_path || '',
       },
       sytmdb: {
         base: cfg.sytmdb?.base || '',
@@ -364,6 +372,41 @@ onMounted(loadAll)
               <v-divider />
               <div class="d-flex justify-end pa-4">
                 <v-btn color="primary" variant="tonal" prepend-icon="mdi-content-save-outline" :loading="savingGlobal" @click="handleSaveGlobal">保存 Gitea 配置</v-btn>
+              </div>
+            </v-card>
+
+            <v-card class="liquid-glass-card mb-4" rounded="xl">
+              <v-card-title class="pa-4">
+                <v-icon start>mdi-github</v-icon>
+                GitHub 仓库集成
+              </v-card-title>
+              <v-divider />
+              <v-card-text class="pa-4">
+                <v-text-field v-model="globalConfig.github.base" label="服务地址"
+                  variant="outlined" density="compact" placeholder="https://api.github.com"
+                  hint="github.com 保持默认；私有部署 GHES 填主机地址，自动补 /api/v3" persistent-hint
+                  class="mb-3" />
+                <SecretField v-model="globalConfig.github.token" label="访问令牌 (PAT)"
+                  class="mb-3" :show-copy="false"
+                  hint="GitHub Personal Access Token：fine-grained 需 Contents 读写权限，classic 需 repo 权限" persistent-hint />
+                <v-row class="mb-3">
+                  <v-col cols="12" md="8" class="py-0">
+                    <v-text-field v-model="globalConfig.github.repo" label="仓库"
+                      variant="outlined" density="compact" placeholder="owner/repo，如 lens-tools/rules"
+                      hide-details />
+                  </v-col>
+                  <v-col cols="12" md="4" class="py-0">
+                    <v-text-field v-model="globalConfig.github.branch" label="分支"
+                      variant="outlined" density="compact" hide-details />
+                  </v-col>
+                </v-row>
+                <v-text-field v-model="globalConfig.github.file_path" label="渲染词文件路径"
+                  variant="outlined" density="compact" placeholder="anime/animeifre.txt"
+                  hint="番剧分季拆分的渲染词推送目标文件（GitHub 仓库）" persistent-hint />
+              </v-card-text>
+              <v-divider />
+              <div class="d-flex justify-end pa-4">
+                <v-btn color="primary" variant="tonal" prepend-icon="mdi-content-save-outline" :loading="savingGlobal" @click="handleSaveGlobal">保存 GitHub 配置</v-btn>
               </div>
             </v-card>
 

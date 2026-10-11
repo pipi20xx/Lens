@@ -24,6 +24,13 @@ DEFAULT_CONFIG = {
         "branch": "main",
         "file_path": ""
     },
+    "github": {
+        "base": "https://api.github.com",
+        "token": "",
+        "repo": "",
+        "branch": "main",
+        "file_path": ""
+    },
     "sytmdb": {
         "base": "",
         "token": ""

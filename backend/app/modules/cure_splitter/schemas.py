@@ -39,13 +39,15 @@ class StartTaskResponse(BaseModel):
 
 class GiteaListDirRequest(BaseModel):
     dir_path: str = Field(default="", description="仓库目录（空 = 根目录）")
+    provider: str = Field(default="gitea", pattern="^(gitea|github)$", description="仓库类型")
 
 
 class GiteaPushRequest(BaseModel):
     task_id: str
-    file_path: str = Field(default="", description="渲染词文件路径；空则使用系统设置里的 Gitea 文件路径")
+    file_path: str = Field(default="", description="渲染词文件路径；空则使用系统设置里对应仓库类型的文件路径")
     force_manual: bool = Field(default=False, description="渲染词出现在手动区块时强制替换")
     content: str = Field(default="", description="渲染词文本；空则使用任务结果中的生成文本（支持前端手动编辑后再推送）")
+    provider: str = Field(default="gitea", pattern="^(gitea|github)$", description="仓库类型")
 
 
 class SytmdbWriteRequest(BaseModel):

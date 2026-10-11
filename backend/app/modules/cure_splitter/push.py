@@ -116,15 +116,40 @@ def _gitea_contents_url(base: str, repo: str, path: str) -> str:
     return f"{base.rstrip('/')}/api/v1/repos/{repo_path}/contents/{file_path}"
 
 
+def _contents_url(base: str, repo: str, path: str, provider: str = "gitea") -> str:
+    """Contents API 地址：gitea 与 _gitea_contents_url 一致（/api/v1 前缀）；
+    github 用 api.github.com（无前缀），私有部署 GHES 自动补 /api/v3。"""
+    base = base.rstrip("/")
+    if provider == "gitea":
+        base += "/api/v1"
+    elif provider == "github" and "api.github.com" not in base and not base.endswith("/api/v3"):
+        base += "/api/v3"
+    repo_path = "/".join(_urlquote(x, safe="") for x in repo.strip("/").split("/"))
+    file_path = "/".join(_urlquote(x, safe="") for x in path.strip("/").split("/"))
+    return f"{base}/repos/{repo_path}/contents/{file_path}"
+
+
+def _contents_headers(token: str, username: str, provider: str = "gitea") -> dict:
+    """gitea 与原版一致；github 统一 Bearer PAT。"""
+    if provider == "github":
+        h = {"Accept": "application/vnd.github+json"}
+        if token:
+            h["Authorization"] = f"Bearer {token}"
+        return h
+    return gitea_api_headers(token, username)
+
+
 def gitea_list_dir(base: str, repo: str, branch: str, dir_path: str,
-                   token: str, username: str = "", include_dirs: bool = False) -> list:
+                   token: str, username: str = "", include_dirs: bool = False,
+                   provider: str = "gitea") -> list:
     """列出仓库目录内容；目录不存在返回空表。dir_path 为空表示仓库根目录。
 
     include_dirs=False（默认，与原版一致）仅返回文件路径列表；
     include_dirs=True 时返回 [{"path": ..., "type": "file"|"dir"}]，供网页端逐级浏览目录。
+    provider='gitea'（默认）与原版行为一致；provider='github' 走 GitHub Contents API（结构相同）。
     """
-    r = requests.get(_gitea_contents_url(base, repo, dir_path), params={"ref": branch},
-                     headers=gitea_api_headers(token, username), timeout=(10, 30))
+    r = requests.get(_contents_url(base, repo, dir_path, provider), params={"ref": branch},
+                     headers=_contents_headers(token, username, provider), timeout=(10, 30))
     if r.status_code == 404:
         return []
     r.raise_for_status()
@@ -140,16 +165,26 @@ def gitea_list_dir(base: str, repo: str, branch: str, dir_path: str,
 
 
 def gitea_get_file(base: str, repo: str, branch: str, path: str, token: str,
-                   username: str = "") -> tuple:
-    """读取仓库文件，返回 (文本, sha)；文件不存在返回 (None, None)。"""
-    r = requests.get(_gitea_contents_url(base, repo, path), params={"ref": branch},
-                     headers=gitea_api_headers(token, username), timeout=(10, 30))
+                   username: str = "", provider: str = "gitea") -> tuple:
+    """读取仓库文件，返回 (文本, sha)；文件不存在返回 (None, None)。
+
+    github 下超过 1MB 的文件 Contents API 不内联返回内容，自动降级用 raw 媒体类型重取。
+    """
+    url = _contents_url(base, repo, path, provider)
+    headers = _contents_headers(token, username, provider)
+    r = requests.get(url, params={"ref": branch}, headers=headers, timeout=(10, 30))
     if r.status_code == 404:
         return None, None
     r.raise_for_status()
     data = r.json()
     raw = data.get("content") or ""
     if not raw and (data.get("size") or 0) > 0:
+        if provider == "github":
+            r2 = requests.get(url, params={"ref": branch},
+                              headers={**headers, "Accept": "application/vnd.github.raw"},
+                              timeout=(10, 30))
+            r2.raise_for_status()
+            return r2.text, data.get("sha")
         raise ValueError("文件过大，Gitea 未返回内容（contents API 限制）")
     content = base64.b64decode(raw).decode("utf-8")
     return content, data.get("sha")
@@ -157,8 +192,8 @@ def gitea_get_file(base: str, repo: str, branch: str, path: str, token: str,
 
 def gitea_put_file(base: str, repo: str, branch: str, path: str, token: str,
                    content_text: str, sha: Optional[str], message: str,
-                   username: str = "") -> dict:
-    """创建/更新仓库文件（一次调用 = 一次 commit）。"""
+                   username: str = "", provider: str = "gitea") -> dict:
+    """创建/更新仓库文件（一次调用 = 一次 commit）。请求体两种平台完全一致。"""
     body: dict = {
         "content": base64.b64encode(content_text.encode("utf-8")).decode("ascii"),
         "branch": branch,
@@ -166,8 +201,8 @@ def gitea_put_file(base: str, repo: str, branch: str, path: str, token: str,
     }
     if sha:
         body["sha"] = sha
-    r = requests.put(_gitea_contents_url(base, repo, path), json=body,
-                     headers=gitea_api_headers(token, username), timeout=(10, 30))
+    r = requests.put(_contents_url(base, repo, path, provider), json=body,
+                     headers=_contents_headers(token, username, provider), timeout=(10, 30))
     r.raise_for_status()
     return r.json() if r.content else {}
 

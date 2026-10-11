@@ -40,10 +40,18 @@ const runParams = reactive({
 
 const priorityOptions = ['tvdb, bangumi', 'bangumi, tvdb', '仅 tvdb', '仅 bangumi']
 
-// Gitea / SYTMDB 推送（路径默认取系统设置里的 gitea.file_path）
-const giteaFilePath = ref(savedState.gitea_file_path || '')
+// 仓库推送：Gitea / GitHub 两套独立配置（在系统设置维护），路径按目标分别记忆
+type RepoProvider = 'gitea' | 'github'
+const pushProvider = ref<RepoProvider>((savedState.push_provider as RepoProvider) || 'gitea')
+const providerFilePaths = reactive<Record<RepoProvider, string>>({
+  gitea: savedState.gitea_file_path || '',
+  github: savedState.github_file_path || '',
+})
+const giteaFilePath = ref(providerFilePaths[pushProvider.value] || '')
 const giteaEntries = ref<{ path: string; type: string }[]>([])
 const conflictDialog = reactive({ show: false, info: '' })
+const pathLabel = computed(() =>
+  `渲染词文件路径（${pushProvider.value === 'github' ? 'GitHub' : 'Gitea'} 仓库内）`)
 // 渲染词可编辑：生成结果载入后可直接修改，推送/复制/导出均使用编辑后的文本
 const renderWordsEdit = ref('')
 const renderWordsEdited = computed(() => renderWordsEdit.value !== (result.value?.render_words ?? ''))
@@ -82,11 +90,13 @@ function listDirFor(cur: string): string {
 }
 
 // 输入变化持久化，下次进入自动恢复
-watch([tmdbId, runParams, giteaFilePath], () => {
+watch([tmdbId, runParams, pushProvider, providerFilePaths], () => {
   localStorage.setItem('lens_cure_splitter', JSON.stringify({
     tmdb_id: tmdbId.value,
     ...runParams,
-    gitea_file_path: cleanPath(giteaFilePath.value),
+    push_provider: pushProvider.value,
+    gitea_file_path: providerFilePaths.gitea,
+    github_file_path: providerFilePaths.github,
   }))
 }, { deep: true })
 
@@ -215,7 +225,7 @@ async function loadResult() {
 async function refreshGiteaFiles() {
   const dir = listDirFor(giteaFilePath.value)
   try {
-    const res = await cureSplitterApi.listGiteaFiles(dir)
+    const res = await cureSplitterApi.listGiteaFiles(dir, pushProvider.value)
     giteaEntries.value = res.files || []
     if (!giteaEntries.value.length) {
       info(`目录「${dir || '/'}」下没有内容（或目录不存在）`)
@@ -230,8 +240,16 @@ async function refreshGiteaFiles() {
   }
 }
 
+// 切换推送目标：记住当前路径、切到目标仓库各自的路径，需重新刷新列表
+watch(pushProvider, (nv, ov) => {
+  providerFilePaths[ov] = cleanPath(giteaFilePath.value)
+  giteaFilePath.value = providerFilePaths[nv] || ''
+  giteaEntries.value = []
+})
+
 // 选中目录项（📁 前缀、以 / 结尾）→ 自动进入该目录刷新列表
 watch(giteaFilePath, (v) => {
+  providerFilePaths[pushProvider.value] = cleanPath(v)
   if (typeof v === 'string' && cleanPath(v).endsWith('/')) refreshGiteaFiles()
 })
 
@@ -248,6 +266,7 @@ async function pushGitea(forceManual = false) {
       file_path: path,
       force_manual: forceManual,
       content: renderWordsEdit.value,
+      provider: pushProvider.value,
     })
     if (res.action === 'conflict') {
       conflictDialog.info = res.info || ''
@@ -342,11 +361,13 @@ function copyGroup() {
 // ── 初始化 ────────────────────────────────────────────────
 
 onMounted(async () => {
-  // 渲染词文件路径默认取系统设置（Gitea 集成配置）
+  // 渲染词文件路径默认取系统设置（Gitea / GitHub 各自的集成配置）
   try {
     const cfg: any = await configApi.getCurrent()
-    if (!giteaFilePath.value && cfg?.gitea?.file_path) {
-      giteaFilePath.value = cfg.gitea.file_path
+    providerFilePaths.gitea = providerFilePaths.gitea || cfg?.gitea?.file_path || ''
+    providerFilePaths.github = providerFilePaths.github || cfg?.github?.file_path || ''
+    if (!giteaFilePath.value) {
+      giteaFilePath.value = providerFilePaths[pushProvider.value] || ''
     }
   } catch { /* ignore */ }
 })
@@ -513,10 +534,18 @@ onBeforeUnmount(stopPoll)
             <v-window-item value="words">
               <div class="pa-4">
                 <div class="d-flex align-center mb-3 control-row">
+                  <v-select
+                    v-model="pushProvider"
+                    :items="[{ title: 'Gitea', value: 'gitea' }, { title: 'GitHub', value: 'github' }]"
+                    item-title="title" item-value="value"
+                    label="推送目标"
+                    variant="outlined" density="compact" hide-details
+                    style="max-width: 130px; flex-shrink: 0"
+                  />
                   <v-combobox
                     v-model="giteaFilePath"
                     :items="giteaItems"
-                    label="渲染词文件路径（Gitea 仓库内）"
+                    :label="pathLabel"
                     variant="outlined" density="compact" hide-details
                     placeholder="anime/animeifre.txt"
                     class="flex-grow-1"
@@ -530,7 +559,7 @@ onBeforeUnmount(stopPoll)
                     color="primary" variant="tonal" prepend-icon="mdi-cloud-upload-outline"
                     :loading="pushing" @click="pushGitea(false)"
                   >
-                    推送到 Gitea
+                    推送到仓库
                   </v-btn>
                   <v-btn
                     v-if="renderWordsEdited"
@@ -541,7 +570,7 @@ onBeforeUnmount(stopPoll)
                   </v-btn>
                 </div>
                 <p class="text-caption text-medium-emphasis mb-2">
-                  渲染词可直接编辑，修改后的内容用于复制/导出/推送；按头部 TMDB 编号定位：同号 [自动分季] 区块原位替换，无则追加文末。刷新后点 📁 文件夹可逐级进入。
+                  推送目标可选 Gitea / GitHub（在「设置 → 第三方 API 集成」分别配置，路径各自记忆）；渲染词可直接编辑，修改后的内容用于复制/导出/推送。按头部 TMDB 编号定位：同号 [自动分季] 区块原位替换，无则追加文末。刷新后点 📁 文件夹可逐级进入。
                 </p>
                 <v-textarea
                   v-model="renderWordsEdit"

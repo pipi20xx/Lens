@@ -90,13 +90,22 @@ export const cureSplitterApi = {
   taskResult: (taskId: string) =>
     api.get<SplitResult>(`/api/cure-splitter/tasks/${taskId}/result`),
 
-  /** 列出 Gitea 仓库目录内容（含子目录，目录在前），供逐级浏览选择渲染词文件 */
-  listGiteaFiles: (dirPath = '') =>
-    api.post<{ files: GiteaEntry[] }>('/api/cure-splitter/gitea/list-dir', { dir_path: dirPath }),
+  /** 列出仓库目录内容（含子目录，目录在前），供逐级浏览选择渲染词文件 */
+  listGiteaFiles: (dirPath = '', provider: 'gitea' | 'github' = 'gitea') =>
+    api.post<{ files: GiteaEntry[] }>('/api/cure-splitter/gitea/list-dir', {
+      dir_path: dirPath,
+      provider,
+    }),
 
-  /** 推送渲染词到 Gitea；content 可传手动编辑后的文本（空则用任务生成结果）；
+  /** 推送渲染词到仓库；content 可传手动编辑后的文本（空则用任务生成结果）；
    *  action=conflict 表示命中手动区块，需确认后带 force_manual 重推 */
-  pushToGitea: (payload: { task_id: string; file_path?: string; force_manual?: boolean; content?: string }) =>
+  pushToGitea: (payload: {
+    task_id: string
+    file_path?: string
+    force_manual?: boolean
+    content?: string
+    provider?: 'gitea' | 'github'
+  }) =>
     api.post<GiteaPushResult>('/api/cure-splitter/gitea/push', payload),
 
   /** 剧集组覆盖写入 SYTMDB */
