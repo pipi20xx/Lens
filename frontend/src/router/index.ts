@@ -123,6 +123,19 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/toolkit/actorLab/ActorLabView.vue'),
     meta: { requiresAuth: true, title: '演员实验室', group: 'labs' },
   },
+  // ── 分季与识别词 ──
+  {
+    path: '/toolkit/cure-splitter',
+    name: 'cureSplitter',
+    component: () => import('@/views/toolkit/cureSplitter/CureSplitterView.vue'),
+    meta: { requiresAuth: true, title: '番剧分季拆分', group: 'media-tools' },
+  },
+  {
+    path: '/toolkit/recognition-words',
+    name: 'recognitionWords',
+    component: () => import('@/views/toolkit/recognitionWords/RecognitionWordsView.vue'),
+    meta: { requiresAuth: true, title: '识别词生成器', group: 'media-tools' },
+  },
   // ── 系统与容器 ──
   {
     path: '/toolkit/terminal',

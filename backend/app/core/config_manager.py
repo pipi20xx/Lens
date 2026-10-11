@@ -14,6 +14,20 @@ DEFAULT_CONFIG = {
     "user_id": "",
     "tmdb_api_key": "",
     "bangumi_api_token": "",
+    # 番剧分季拆分（cure_splitter）相关第三方集成
+    "tvdb_api_key": "",
+    "gitea": {
+        "base": "",
+        "username": "",
+        "token": "",
+        "repo": "",
+        "branch": "main",
+        "file_path": ""
+    },
+    "sytmdb": {
+        "base": "",
+        "token": ""
+    },
     "username": "",
     "password": "",
     "session_token": "",

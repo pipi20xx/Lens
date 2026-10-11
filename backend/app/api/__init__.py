@@ -33,6 +33,8 @@ from .notification import router as notification_router
 from .terminal import router as terminal_router
 from .files import router as files_router
 from app.modules.image_builder import router as image_builder_router
+from app.modules.recognition_words import router as recognition_words_router
+from app.modules.cure_splitter import router as cure_splitter_router
 
 router = APIRouter()
 
@@ -65,6 +67,8 @@ router.include_router(pgsql_router, prefix="/pgsql", tags=["PostgreSQL"])
 router.include_router(navigation_router, prefix="/navigation", tags=["Navigation"])
 router.include_router(bookmarks_router, prefix="/bookmarks", tags=["Bookmarks"])
 router.include_router(image_builder_router, prefix="/image-builder", tags=["ImageBuilder"])
+router.include_router(recognition_words_router, prefix="/recognition-words", tags=["识别词生成器"])
+router.include_router(cure_splitter_router, prefix="/cure-splitter", tags=["番剧分季拆分"])
 router.include_router(ai_lab_router, prefix="/ai", tags=["AI 实验室"])
 router.include_router(playback_report_router, prefix="/playback-report", tags=["PlaybackReport"])
 router.include_router(emby_tasks_router, prefix="/emby-tasks", tags=["EmbyTasks"])

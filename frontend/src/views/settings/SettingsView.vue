@@ -24,6 +24,9 @@ const activeServerId = ref('')
 const globalConfig = ref<any>({
   tmdb_api_key: '',
   bangumi_api_token: '',
+  tvdb_api_key: '',
+  gitea: { base: '', username: '', token: '', repo: '', branch: 'main', file_path: '' },
+  sytmdb: { base: '', token: '' },
   proxy: { enabled: false, url: '', exclude_emby: true },
   session_never_expire: false,
 })
@@ -69,6 +72,19 @@ async function loadAll() {
     globalConfig.value = {
       tmdb_api_key: cfg.tmdb_api_key || '',
       bangumi_api_token: cfg.bangumi_api_token || '',
+      tvdb_api_key: cfg.tvdb_api_key || '',
+      gitea: {
+        base: cfg.gitea?.base || '',
+        username: cfg.gitea?.username || '',
+        token: cfg.gitea?.token || '',
+        repo: cfg.gitea?.repo || '',
+        branch: cfg.gitea?.branch || 'main',
+        file_path: cfg.gitea?.file_path || '',
+      },
+      sytmdb: {
+        base: cfg.sytmdb?.base || '',
+        token: cfg.sytmdb?.token || '',
+      },
       proxy: {
         enabled: cfg.proxy?.enabled ?? false,
         url: cfg.proxy?.url || '',
@@ -287,7 +303,7 @@ onMounted(loadAll)
 
           <!-- ====== 第三方 API 集成 ====== -->
           <v-window-item value="api">
-            <v-card class="liquid-glass-card" rounded="xl">
+            <v-card class="liquid-glass-card mb-4" rounded="xl">
               <v-card-title class="pa-4">
                 <v-icon start>mdi-key-outline</v-icon>
                 第三方 API 扩展集成
@@ -300,10 +316,73 @@ onMounted(loadAll)
                 <SecretField v-model="globalConfig.bangumi_api_token" label="Bangumi API Token"
                   class="mb-3"
                   hint="Bangumi Access Token" persistent-hint />
+                <SecretField v-model="globalConfig.tvdb_api_key" label="TVDB API Key"
+                  hint="TheTVDB v4 Key，留空使用内置默认 Key（番剧分季拆分用）" persistent-hint />
               </v-card-text>
               <v-divider />
               <div class="d-flex justify-end pa-4">
                 <v-btn color="primary" variant="tonal" prepend-icon="mdi-content-save-outline" :loading="savingGlobal" @click="handleSaveGlobal">保存 API 配置</v-btn>
+              </div>
+            </v-card>
+
+            <v-card class="liquid-glass-card mb-4" rounded="xl">
+              <v-card-title class="pa-4">
+                <v-icon start>mdi-git</v-icon>
+                Gitea 仓库集成
+              </v-card-title>
+              <v-divider />
+              <v-card-text class="pa-4">
+                <v-text-field v-model="globalConfig.gitea.base" label="Gitea 服务地址"
+                  variant="outlined" density="compact" placeholder="http://192.168.1.10:3000"
+                  class="mb-3" hide-details />
+                <v-row class="mb-3">
+                  <v-col cols="12" md="6" class="py-0">
+                    <v-text-field v-model="globalConfig.gitea.username" label="用户名"
+                      variant="outlined" density="compact" placeholder="用账号密码登录时填写；仅用令牌可留空"
+                      hide-details />
+                  </v-col>
+                  <v-col cols="12" md="6" class="py-0">
+                    <SecretField v-model="globalConfig.gitea.token" label="密码 / 访问令牌"
+                      :show-copy="false" placeholder="配合上面用户名，或只填访问令牌" />
+                  </v-col>
+                </v-row>
+                <v-row class="mb-3">
+                  <v-col cols="12" md="8" class="py-0">
+                    <v-text-field v-model="globalConfig.gitea.repo" label="仓库"
+                      variant="outlined" density="compact" placeholder="用户名/仓库名，如 admin/555999"
+                      hide-details />
+                  </v-col>
+                  <v-col cols="12" md="4" class="py-0">
+                    <v-text-field v-model="globalConfig.gitea.branch" label="分支"
+                      variant="outlined" density="compact" hide-details />
+                  </v-col>
+                </v-row>
+                <v-text-field v-model="globalConfig.gitea.file_path" label="渲染词文件路径"
+                  variant="outlined" density="compact" placeholder="anime/animeifre.txt"
+                  hint="番剧分季拆分的渲染词推送目标文件" persistent-hint />
+              </v-card-text>
+              <v-divider />
+              <div class="d-flex justify-end pa-4">
+                <v-btn color="primary" variant="tonal" prepend-icon="mdi-content-save-outline" :loading="savingGlobal" @click="handleSaveGlobal">保存 Gitea 配置</v-btn>
+              </div>
+            </v-card>
+
+            <v-card class="liquid-glass-card" rounded="xl">
+              <v-card-title class="pa-4">
+                <v-icon start>mdi-database-export-outline</v-icon>
+                SYTMDB 服务集成
+              </v-card-title>
+              <v-divider />
+              <v-card-text class="pa-4">
+                <v-text-field v-model="globalConfig.sytmdb.base" label="服务地址"
+                  variant="outlined" density="compact" placeholder="http://192.168.1.10:8121"
+                  class="mb-3" hide-details />
+                <SecretField v-model="globalConfig.sytmdb.token" label="API Token"
+                  hint="SYTMDB 系统配置里的 api_token（剧集组覆盖写入用）" persistent-hint />
+              </v-card-text>
+              <v-divider />
+              <div class="d-flex justify-end pa-4">
+                <v-btn color="primary" variant="tonal" prepend-icon="mdi-content-save-outline" :loading="savingGlobal" @click="handleSaveGlobal">保存 SYTMDB 配置</v-btn>
               </div>
             </v-card>
           </v-window-item>

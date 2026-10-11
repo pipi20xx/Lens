@@ -138,6 +138,15 @@ const navGroups = [
     ],
   },
   {
+    key: 'media-tools',
+    label: '分季与识别词',
+    icon: 'mdi-layers-triple-outline',
+    items: [
+      { title: '番剧分季拆分', icon: 'mdi-television-classic', to: '/toolkit/cure-splitter' },
+      { title: '识别词生成器', icon: 'mdi-regex', to: '/toolkit/recognition-words' },
+    ],
+  },
+  {
     key: 'system',
     label: '系统与容器',
     icon: 'mdi-cog-outline',
