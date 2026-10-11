@@ -330,15 +330,21 @@ def list_gitea_files(dir_path: str = "") -> list:
         raise ValueError("未配置 Gitea 地址和仓库，请先在「设置 → 第三方 API 集成」填写")
     if not st["token"] and not st["username"]:
         raise ValueError("未配置 Gitea 登录信息（用户名 + 密码/令牌，或访问令牌）")
-    return gitea_list_dir(st["base"], st["repo"], st["branch"], (dir_path or "").strip(),
-                          st["token"], st["username"])
+    # 返回文件与子目录（网页端逐级浏览），目录在前、按名称排序
+    entries = gitea_list_dir(st["base"], st["repo"], st["branch"], (dir_path or "").strip().strip("/"),
+                             st["token"], st["username"], include_dirs=True)
+    dirs = sorted((e for e in entries if e["type"] == "dir"), key=lambda e: e["path"])
+    files = sorted((e for e in entries if e["type"] == "file"), key=lambda e: e["path"])
+    return dirs + files
 
 
-def push_render_words(task_id: str, file_path: str = "", force_manual: bool = False) -> dict:
+def push_render_words(task_id: str, file_path: str = "", force_manual: bool = False,
+                      content: str = "") -> dict:
     task = _tasks.get(task_id)
     if not task or not task.get("result"):
         raise ValueError("任务不存在或尚未完成拆分")
-    block_text = (task["result"].get("render_words") or "").strip()
+    # 优先使用前端提交的（可能被手动编辑过的）文本，为空则回退到任务生成结果
+    block_text = (content or "").strip() or (task["result"].get("render_words") or "").strip()
     if not block_text:
         raise ValueError("当前任务没有可推送的渲染词")
 

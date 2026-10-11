@@ -117,8 +117,12 @@ def _gitea_contents_url(base: str, repo: str, path: str) -> str:
 
 
 def gitea_list_dir(base: str, repo: str, branch: str, dir_path: str,
-                   token: str, username: str = "") -> list:
-    """列出仓库目录下的文件路径；目录不存在返回空表。dir_path 为空表示仓库根目录。"""
+                   token: str, username: str = "", include_dirs: bool = False) -> list:
+    """列出仓库目录内容；目录不存在返回空表。dir_path 为空表示仓库根目录。
+
+    include_dirs=False（默认，与原版一致）仅返回文件路径列表；
+    include_dirs=True 时返回 [{"path": ..., "type": "file"|"dir"}]，供网页端逐级浏览目录。
+    """
     r = requests.get(_gitea_contents_url(base, repo, dir_path), params={"ref": branch},
                      headers=gitea_api_headers(token, username), timeout=(10, 30))
     if r.status_code == 404:
@@ -127,6 +131,10 @@ def gitea_list_dir(base: str, repo: str, branch: str, dir_path: str,
     data = r.json()
     if isinstance(data, dict):
         data = [data]
+    if include_dirs:
+        return [{"path": e.get("path") or "", "type": e.get("type") or ""}
+                for e in data
+                if isinstance(e, dict) and e.get("type") in ("file", "dir")]
     return [e.get("path") or "" for e in data
             if isinstance(e, dict) and e.get("type") == "file"]
 

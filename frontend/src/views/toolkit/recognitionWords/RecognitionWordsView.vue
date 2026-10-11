@@ -17,6 +17,19 @@ const autoAnchor = ref(true)
 const rows = ref<AnchorRow[]>([])
 const result = ref<GenerateResult | null>(null)
 const generating = ref(false)
+// 输出可编辑：手动修改后暂停自动覆盖（改动文件名或点"还原"恢复自动生成）
+const outputText = ref('')
+const outputEdited = ref(false)
+
+function onOutputEdit(v: string) {
+  outputText.value = v
+  outputEdited.value = v !== (result.value?.rules_text ?? '')
+}
+
+function resetOutput() {
+  outputEdited.value = false
+  outputText.value = result.value?.rules_text || ''
+}
 
 const saved = localStorage.getItem('lens_recognition_words')
 const params = reactive(saved ? JSON.parse(saved) : {
@@ -44,6 +57,8 @@ async function generate(keepAnchors = false) {
   if (filenames.length === 0) {
     rows.value = []
     result.value = null
+    outputText.value = ''
+    outputEdited.value = false
     return
   }
   const payload: any = { filenames, ...params }
@@ -56,6 +71,8 @@ async function generate(keepAnchors = false) {
     const res = await recognitionWordsApi.generate(payload)
     rows.value = res.rows
     result.value = res
+    // 手动改过输出时不覆盖（自动生成已暂停），还原或改文件名后恢复
+    if (!outputEdited.value) outputText.value = res.rules_text
   } catch (e: any) {
     showError('生成失败: ' + (e.message || '未知错误'))
   } finally {
@@ -63,7 +80,11 @@ async function generate(keepAnchors = false) {
   }
 }
 
-watch(inputText, () => scheduleGenerate(false))
+watch(inputText, () => {
+  // 文件名列表变化 = 重新生成意图，恢复自动生成
+  outputEdited.value = false
+  scheduleGenerate(false)
+})
 watch(params, () => scheduleGenerate(true))
 
 watch(autoAnchor, (checked) => {
@@ -79,7 +100,7 @@ function onAnchorEdit(row: AnchorRow, value: string) {
 }
 
 function copyAll() {
-  const text = result.value?.rules_text?.trim()
+  const text = outputText.value.trim()
   if (!text) { warning('当前没有可复制的内容'); return }
   copyToClipboard(text)
   success('识别词已复制到剪贴板')
@@ -236,6 +257,13 @@ onBeforeUnmount(() => {
           <v-card-title class="pa-4 d-flex align-center">
             <v-icon start>mdi-text-box-check-outline</v-icon>
             生成的识别词
+            <v-btn
+              v-if="outputEdited"
+              size="small" variant="text" prepend-icon="mdi-restore" class="ml-2"
+              @click="resetOutput"
+            >
+              还原
+            </v-btn>
             <v-spacer />
             <v-btn size="small" variant="tonal" color="primary" prepend-icon="mdi-content-copy" @click="copyAll">
               复制全部
@@ -244,13 +272,20 @@ onBeforeUnmount(() => {
           <v-divider />
           <v-card-text class="pa-4">
             <v-textarea
-              :model-value="result?.rules_text || ''"
-              readonly :rows="8" auto-grow
+              :model-value="outputText"
+              @update:model-value="onOutputEdit"
+              :rows="8" auto-grow
               variant="outlined" density="compact"
-              placeholder="生成的识别词会出现在这里"
+              placeholder="生成的识别词会出现在这里（可直接编辑后再复制）"
               class="monospace-text"
               hide-details
             />
+            <v-alert
+              v-if="outputEdited"
+              type="info" variant="tonal" density="compact" class="mt-3"
+            >
+              识别词已手动修改，自动生成已暂停（改动文件名列表或点击"还原"可恢复）。
+            </v-alert>
             <v-alert
               v-for="(w, i) in result?.warnings || []" :key="'w' + i"
               type="warning" variant="tonal" density="compact" class="mt-3"

@@ -64,7 +64,7 @@ async def gitea_list_dir(req: GiteaListDirRequest):
 async def gitea_push(req: GiteaPushRequest):
     try:
         data = await asyncio.to_thread(
-            service.push_render_words, req.task_id, req.file_path, req.force_manual,
+            service.push_render_words, req.task_id, req.file_path, req.force_manual, req.content,
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

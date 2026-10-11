@@ -65,6 +65,11 @@ export interface SplitRunPayload {
   force_reference: boolean
 }
 
+export interface GiteaEntry {
+  path: string
+  type: 'file' | 'dir'
+}
+
 export interface GiteaPushResult {
   action: 'replaced' | 'appended' | 'conflict'
   info?: string
@@ -85,12 +90,13 @@ export const cureSplitterApi = {
   taskResult: (taskId: string) =>
     api.get<SplitResult>(`/api/cure-splitter/tasks/${taskId}/result`),
 
-  /** 列出 Gitea 仓库目录下的文件（渲染词路径选择用） */
+  /** 列出 Gitea 仓库目录内容（含子目录，目录在前），供逐级浏览选择渲染词文件 */
   listGiteaFiles: (dirPath = '') =>
-    api.post<{ files: string[] }>('/api/cure-splitter/gitea/list-dir', { dir_path: dirPath }),
+    api.post<{ files: GiteaEntry[] }>('/api/cure-splitter/gitea/list-dir', { dir_path: dirPath }),
 
-  /** 推送渲染词到 Gitea；action=conflict 表示命中手动区块，需确认后带 force_manual 重推 */
-  pushToGitea: (payload: { task_id: string; file_path?: string; force_manual?: boolean }) =>
+  /** 推送渲染词到 Gitea；content 可传手动编辑后的文本（空则用任务生成结果）；
+   *  action=conflict 表示命中手动区块，需确认后带 force_manual 重推 */
+  pushToGitea: (payload: { task_id: string; file_path?: string; force_manual?: boolean; content?: string }) =>
     api.post<GiteaPushResult>('/api/cure-splitter/gitea/push', payload),
 
   /** 剧集组覆盖写入 SYTMDB */

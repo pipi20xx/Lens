@@ -45,6 +45,7 @@ class GiteaPushRequest(BaseModel):
     task_id: str
     file_path: str = Field(default="", description="渲染词文件路径；空则使用系统设置里的 Gitea 文件路径")
     force_manual: bool = Field(default=False, description="渲染词出现在手动区块时强制替换")
+    content: str = Field(default="", description="渲染词文本；空则使用任务结果中的生成文本（支持前端手动编辑后再推送）")
 
 
 class SytmdbWriteRequest(BaseModel):

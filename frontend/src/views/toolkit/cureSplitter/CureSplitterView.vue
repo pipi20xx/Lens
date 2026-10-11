@@ -42,15 +42,51 @@ const priorityOptions = ['tvdb, bangumi', 'bangumi, tvdb', '仅 tvdb', '仅 bang
 
 // Gitea / SYTMDB 推送（路径默认取系统设置里的 gitea.file_path）
 const giteaFilePath = ref(savedState.gitea_file_path || '')
-const giteaFiles = ref<string[]>([])
+const giteaEntries = ref<{ path: string; type: string }[]>([])
 const conflictDialog = reactive({ show: false, info: '' })
+// 渲染词可编辑：生成结果载入后可直接修改，推送/复制/导出均使用编辑后的文本
+const renderWordsEdit = ref('')
+const renderWordsEdited = computed(() => renderWordsEdit.value !== (result.value?.render_words ?? ''))
+
+function resetRenderWords() {
+  renderWordsEdit.value = result.value?.render_words || ''
+}
+
+// 下拉项用纯字符串（v-combobox 对对象项的选中行为不可靠）：
+// 目录显示为「📁 路径/」，value 即该字符串，选中后由 cleanPath 还原真实路径
+const giteaItems = computed(() =>
+  giteaEntries.value.map((e) => {
+    if (e.type !== 'dir') return e.path
+    const name = e.path.split('/').pop() || e.path
+    return `📁 ${name}/`
+  }),
+)
+
+/** 还原真实路径：去掉下拉项的 📁 前缀，兼容非字符串输入 */
+function cleanPath(v: unknown): string {
+  if (typeof v !== 'string') return ''
+  return v.trim().replace(/^📁\s*/, '')
+}
+
+/**
+ * 由当前路径推导要列出的目录：
+ * - 路径以 / 结尾 → 正在浏览该目录，列出其内部
+ * - 文件路径 → 列出其所在目录
+ * - 空 → 仓库根目录
+ */
+function listDirFor(cur: string): string {
+  const v = cleanPath(cur)
+  if (v.endsWith('/')) return v.replace(/\/+$/, '')
+  if (!v) return ''
+  return v.includes('/') ? v.slice(0, v.lastIndexOf('/')) : ''
+}
 
 // 输入变化持久化，下次进入自动恢复
 watch([tmdbId, runParams, giteaFilePath], () => {
   localStorage.setItem('lens_cure_splitter', JSON.stringify({
     tmdb_id: tmdbId.value,
     ...runParams,
-    gitea_file_path: giteaFilePath.value,
+    gitea_file_path: cleanPath(giteaFilePath.value),
   }))
 }, { deep: true })
 
@@ -160,6 +196,7 @@ async function loadResult() {
   try {
     const res = await cureSplitterApi.taskResult(taskId.value)
     result.value = res
+    renderWordsEdit.value = res.render_words || ''
     running.value = false
     activeTab.value = 'words'
     if (res.split_done) {
@@ -176,29 +213,41 @@ async function loadResult() {
 // ── Gitea 推送 ────────────────────────────────────────────
 
 async function refreshGiteaFiles() {
-  const cur = giteaFilePath.value.trim()
-  const dir = cur.includes('/') ? cur.slice(0, cur.lastIndexOf('/')) : ''
+  const dir = listDirFor(giteaFilePath.value)
   try {
     const res = await cureSplitterApi.listGiteaFiles(dir)
-    giteaFiles.value = res.files || []
-    if (!giteaFiles.value.length) {
-      info(`目录「${dir || '/'}」下没有文件（或目录不存在）`)
+    giteaEntries.value = res.files || []
+    if (!giteaEntries.value.length) {
+      info(`目录「${dir || '/'}」下没有内容（或目录不存在）`)
     } else {
-      success(`已列出 ${giteaFiles.value.length} 个文件`)
+      const dirCount = giteaEntries.value.filter((e) => e.type === 'dir').length
+      success(dirCount
+        ? `已列出 ${giteaEntries.value.length} 项（${dirCount} 个目录，点文件夹可进入）`
+        : `已列出 ${giteaEntries.value.length} 个文件`)
     }
   } catch (e: any) {
     showError(e.message || '获取文件列表失败')
   }
 }
 
+// 选中目录项（📁 前缀、以 / 结尾）→ 自动进入该目录刷新列表
+watch(giteaFilePath, (v) => {
+  if (typeof v === 'string' && cleanPath(v).endsWith('/')) refreshGiteaFiles()
+})
+
 async function pushGitea(forceManual = false) {
-  if (!result.value?.render_words?.trim()) { warning('当前没有可推送的渲染词，请先完成一次拆分'); return }
+  const content = renderWordsEdit.value.trim()
+  if (!content) { warning('当前没有可推送的渲染词，请先完成一次拆分'); return }
+  const path = cleanPath(giteaFilePath.value)
+  if (!path) { warning('请先填写或选择渲染词文件路径'); return }
+  if (path.endsWith('/')) { warning('推送目标必须是文件，请进入目录后选择具体文件'); return }
   pushing.value = true
   try {
     const res = await cureSplitterApi.pushToGitea({
       task_id: taskId.value,
-      file_path: giteaFilePath.value,
+      file_path: path,
       force_manual: forceManual,
+      content: renderWordsEdit.value,
     })
     if (res.action === 'conflict') {
       conflictDialog.info = res.info || ''
@@ -246,14 +295,14 @@ function downloadText(name: string, text: string, mime = 'text/plain;charset=utf
 }
 
 function copyWords() {
-  const text = result.value?.render_words?.trim()
+  const text = renderWordsEdit.value.trim()
   if (!text) { warning('当前没有可复制的渲染词'); return }
   copyToClipboard(text)
   success('渲染词已复制到剪贴板')
 }
 
 function exportWords() {
-  const text = result.value?.render_words?.trim()
+  const text = renderWordsEdit.value.trim()
   if (!text) { warning('当前没有可导出的渲染词'); return }
   downloadText(`render_words_${result.value?.tmdb_id}.txt`, text + '\n')
   success('渲染词 TXT 已导出')
@@ -346,11 +395,17 @@ onBeforeUnmount(stopPoll)
                 <span class="text-body-2">启用外部分季规则表（优先级最高）</span>
               </template>
             </v-switch>
+            <p class="text-caption text-medium-emphasis mb-2">
+              规则表命中直接作为分季定义；关闭则跳过规则表，按优先级走 TVDB / Bangumi。
+            </p>
             <v-switch v-model="runParams.force_reference" color="primary" density="compact" hide-details>
               <template #label>
                 <span class="text-body-2">忽略自动参照条件（强制尝试）</span>
               </template>
             </v-switch>
+            <p class="text-caption text-medium-emphasis mb-1">
+              自动参照默认仅处理"日本动画且有效季数 1~2"的剧集；开启后不满足条件（非日漫 / 有效季数≥3 等）也强制尝试 TVDB / Bangumi。
+            </p>
           </v-card-text>
         </v-card>
 
@@ -460,13 +515,13 @@ onBeforeUnmount(stopPoll)
                 <div class="d-flex align-center mb-3 control-row">
                   <v-combobox
                     v-model="giteaFilePath"
-                    :items="giteaFiles"
+                    :items="giteaItems"
                     label="渲染词文件路径（Gitea 仓库内）"
                     variant="outlined" density="compact" hide-details
                     placeholder="anime/animeifre.txt"
                     class="flex-grow-1"
                   />
-                  <v-tooltip text="列出仓库当前目录下的文件供选择" location="top">
+                  <v-tooltip text="列出当前目录内容，点文件夹可逐级进入" location="top">
                     <template #activator="{ props: tipProps }">
                       <v-btn v-bind="tipProps" icon="mdi-refresh" variant="tonal" size="small" @click="refreshGiteaFiles" />
                     </template>
@@ -477,15 +532,22 @@ onBeforeUnmount(stopPoll)
                   >
                     推送到 Gitea
                   </v-btn>
+                  <v-btn
+                    v-if="renderWordsEdited"
+                    variant="text" prepend-icon="mdi-restore" size="small"
+                    @click="resetRenderWords"
+                  >
+                    还原
+                  </v-btn>
                 </div>
                 <p class="text-caption text-medium-emphasis mb-2">
-                  按头部 TMDB 编号定位：同号 [自动分季] 区块原位替换，无则追加文末；路径默认取系统设置里的 Gitea 文件路径。
+                  渲染词可直接编辑，修改后的内容用于复制/导出/推送；按头部 TMDB 编号定位：同号 [自动分季] 区块原位替换，无则追加文末。刷新后点 📁 文件夹可逐级进入。
                 </p>
                 <v-textarea
-                  :model-value="result?.render_words || ''"
-                  readonly :rows="12" auto-grow
+                  v-model="renderWordsEdit"
+                  :rows="12" auto-grow
                   variant="outlined" density="compact" hide-details
-                  placeholder="拆分完成后，渲染词会出现在这里"
+                  placeholder="拆分完成后，渲染词会出现在这里（可直接编辑）"
                   class="monospace-text"
                 />
               </div>
