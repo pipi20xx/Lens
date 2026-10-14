@@ -59,6 +59,14 @@
   /* 折叠面板（引用 surface-radius，自动随主题/档位） */
   --am-panel-radius: var(--am-surface-radius);
 
+  /* 圆角默认值 — 各主题完全一致（基准取自 ACG，见 glass-acg.scss 的 --app-*-radius fallback）：
+     surface 16 / overlay 22 / dialog 24 / menu 20 / field 16 / btn 12 / tab 999
+     / list-item 12 / nav-item 16 / snackbar 14 / btn-toggle 16 / login 24 / chip 8 / code 6
+     下面三项在五个主题状态下取值相同，按本文件规则 1 放在 :root。 */
+  --am-overlay-radius: 22px;
+  --am-tab-radius: 999px;
+  --am-nav-indicator-radius: 0 3px 3px 0;
+
   /* 标签页选中字重 */
   --am-tab-active-weight: 600;
 
@@ -101,7 +109,7 @@ html.glass-theme-acg {
   --am-nav-active-color: rgb(var(--v-theme-primary));
   --am-nav-active-title-shadow: none;
   --am-nav-active-icon-filter: none;
-  --am-nav-list-item-radius: 12px;
+  --am-nav-list-item-radius: 16px;
   --am-nav-indicator-bg: transparent;
   --am-nav-indicator-shadow: none;
 
@@ -287,7 +295,7 @@ html.glass-theme-liquid .v-theme--light {
   --am-nav-active-color: rgb(var(--v-theme-primary));
   --am-nav-active-title-shadow: none;
   --am-nav-active-icon-filter: none;
-  --am-nav-list-item-radius: 12px;
+  --am-nav-list-item-radius: 16px;
   --am-nav-indicator-bg: linear-gradient(to bottom, rgb(var(--v-theme-primary)), rgb(var(--v-theme-accent)), rgb(var(--v-theme-primary)));
   --am-nav-indicator-shadow: none;
 
@@ -322,7 +330,7 @@ html.glass-theme-liquid .v-theme--light {
 
   /* Field */
   --am-field-bg: #FFFFFF;
-  --am-field-radius: 12px;
+  --am-field-radius: 16px;
   --am-field-shadow: none;
   --am-field-focus-shadow: 0 0 0 2px rgba(var(--v-theme-primary), 0.12);
   --am-field-focus-bg: #FFFFFF;
@@ -357,7 +365,7 @@ html.glass-theme-liquid .v-theme--light {
   --am-btn-blur: none;
   --am-btn-text-color: rgb(var(--v-theme-primary));
   --am-btn-font-weight: 600;
-  --am-btn-radius: 4px;
+  --am-btn-radius: 12px;
   --am-btn-border: none;
   --am-btn-hover-bg: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.15), rgba(var(--v-theme-primary), 0.08));
   --am-btn-hover-shadow: 0 0 16px rgba(var(--v-theme-primary), 0.25);
@@ -406,7 +414,7 @@ html.glass-theme-liquid .v-theme--light {
   --am-snackbar-bg: rgba(255, 255, 255, 0.92);
   --am-snackbar-blur: blur(20px) saturate(150%);
   --am-snackbar-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-  --am-snackbar-radius: 4px;
+  --am-snackbar-radius: 14px;
   --am-snackbar-text: rgb(0, 0, 0);
 
   /* Alert */
@@ -427,7 +435,7 @@ html.glass-theme-liquid .v-theme--light {
   --am-login-blur: none;
   --am-login-border: none;
   --am-login-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
-  --am-login-radius: 16px;
+  --am-login-radius: 24px;
 
   /* Button primary — 实底主色 */
   --am-btn-primary-bg: rgb(var(--v-theme-primary));
@@ -496,7 +504,7 @@ html.glass-theme-liquid .v-theme--dark {
 
   /* Field */
   --am-field-bg: rgba(255, 255, 255, 0.07);
-  --am-field-radius: 12px;
+  --am-field-radius: 16px;
   --am-field-shadow: none;
   --am-field-focus-shadow: 0 0 0 3px rgba(var(--v-theme-primary), 0.2), 0 0 20px rgba(var(--v-theme-primary), 0.1);
   --am-field-focus-bg: rgba(255, 255, 255, 0.1);
@@ -531,7 +539,7 @@ html.glass-theme-liquid .v-theme--dark {
   --am-btn-blur: blur(20px) saturate(150%);
   --am-btn-text-color: #ffffff;
   --am-btn-font-weight: 600;
-  --am-btn-radius: 4px;
+  --am-btn-radius: 12px;
   --am-btn-border: none;
   --am-btn-hover-bg: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.3), rgba(var(--v-theme-primary), 0.2));
   --am-btn-hover-shadow: 0 0 20px rgba(var(--v-theme-primary), 0.3);
@@ -580,7 +588,7 @@ html.glass-theme-liquid .v-theme--dark {
   --am-snackbar-bg: rgba(30, 30, 60, 0.9);
   --am-snackbar-blur: blur(40px) saturate(180%);
   --am-snackbar-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  --am-snackbar-radius: 4px;
+  --am-snackbar-radius: 14px;
   --am-snackbar-text: #ffffff;
 
   /* Alert */
@@ -601,7 +609,7 @@ html.glass-theme-liquid .v-theme--dark {
   --am-login-blur: none;
   --am-login-border: 1px solid rgba(255, 255, 255, 0.12);
   --am-login-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  --am-login-radius: 16px;
+  --am-login-radius: 24px;
 
   /* Button primary — 实底主色 */
   --am-btn-primary-bg: rgb(var(--v-theme-primary));
@@ -648,7 +656,7 @@ html.glass-theme-liquid .v-theme--light {
   --am-surface-blur: blur(22px) saturate(190%);
   --am-surface-border: 1px solid rgba(0, 0, 0, 0.1);
   --am-surface-shadow: var(--lg-rim), var(--lg-shadow);
-  --am-surface-radius: 22px;
+  --am-surface-radius: 16px;
   --am-surface-hover-shadow: var(--lg-rim), var(--lg-shadow-lift);
   /* Lens 补充 */
   --am-surface-elevated-shadow: var(--lg-rim), var(--lg-shadow-lift);
@@ -661,8 +669,8 @@ html.glass-theme-liquid .v-theme--light {
   --am-overlay-border: 1px solid var(--lg-border);
   --am-overlay-shadow: var(--lg-rim), var(--lg-shadow-lift);
   --am-overlay-radius: 22px;
-  --am-dialog-radius: 22px;
-  --am-menu-radius: 22px;
+  --am-dialog-radius: 24px;
+  --am-menu-radius: 20px;
   /* Lens 补充 — 本项目 visual.css 的弹窗走 dialog 令牌 */
   --am-dialog-bg: rgba(255, 255, 255, 0.52);
   --am-dialog-blur: blur(22px) saturate(190%);
@@ -681,7 +689,7 @@ html.glass-theme-liquid .v-theme--light {
   /* Lens 补充 */
   --am-nav-hover-bg: rgba(255, 255, 255, 0.5);
   --am-nav-active-bg: rgba(var(--v-theme-primary), 0.14);
-  --am-nav-list-item-radius: 14px;
+  --am-nav-list-item-radius: 16px;
   --am-nav-active-title-shadow: none;
   --am-nav-active-icon-filter: none;
   --am-nav-indicator-shadow: none;
@@ -689,7 +697,7 @@ html.glass-theme-liquid .v-theme--light {
   /* Field */
   --am-field-bg: rgba(255, 255, 255, 0.4);
   --am-field-border: 1px solid var(--lg-border);
-  --am-field-radius: 999px;
+  --am-field-radius: 16px;
   --am-field-shadow: var(--lg-rim-sm), 0 2px 10px -6px rgba(31, 38, 135, 0.3);
   --am-field-focus-shadow:
     var(--lg-rim-sm), 0 0 0 2px rgba(var(--v-theme-primary), 0.45),
@@ -707,7 +715,7 @@ html.glass-theme-liquid .v-theme--light {
   --am-btn-blur: blur(22px) saturate(190%);
   --am-btn-border: 1px solid var(--lg-border);
   --am-btn-shadow: var(--lg-rim-sm), var(--lg-shadow);
-  --am-btn-radius: 999px;
+  --am-btn-radius: 12px;
   --am-btn-hover-bg: rgba(255, 255, 255, 0.52);
   --am-btn-hover-shadow: var(--lg-rim-sm), var(--lg-shadow);
   --am-btn-font-weight: 500;
@@ -738,6 +746,7 @@ html.glass-theme-liquid .v-theme--light {
   /* Chip */
   --am-chip-blur: blur(8px) saturate(170%);
   --am-chip-border: 1px solid var(--lg-border);
+  --am-chip-radius: 8px;
   /* Lens 补充 */
   --am-chip-tonal-bg: rgba(255, 255, 255, 0.4);
   --am-chip-tonal-color: rgb(var(--v-theme-primary));
@@ -770,7 +779,7 @@ html.glass-theme-liquid .v-theme--light {
   --am-nav-active-color: rgb(var(--v-theme-primary));
   --am-nav-indicator-bg: rgb(var(--v-theme-primary));
   --am-nav-indicator-width: 2px;
-  --am-nav-indicator-radius: 0 2px 2px 0;
+  --am-nav-indicator-radius: 0 3px 3px 0;
 
   /* List */
   --am-list-active-color: rgb(var(--v-theme-primary));
@@ -787,7 +796,7 @@ html.glass-theme-liquid .v-theme--light {
   --am-login-blur: blur(22px) saturate(190%);
   --am-login-border: 1px solid var(--lg-border);
   --am-login-shadow: var(--lg-rim), var(--lg-shadow-lift);
-  --am-login-radius: 28px;
+  --am-login-radius: 24px;
 
   /* Switch */
   --am-switch-track-bg: rgba(0, 0, 0, 0.08);
@@ -817,7 +826,7 @@ html.glass-theme-liquid .v-theme--light {
 
   /* BtnToggle */
   --am-btn-toggle-border: 1px solid var(--lg-border);
-  --am-btn-toggle-radius: 999px;
+  --am-btn-toggle-radius: 16px;
   --am-btn-toggle-active-bg: rgba(var(--v-theme-primary), 0.15);
   --am-btn-toggle-active-color: rgb(var(--v-theme-primary));
   /* Lens 补充 */
@@ -857,7 +866,7 @@ html.glass-theme-liquid .v-theme--light {
   --am-panel-shadow: var(--lg-rim), var(--lg-shadow);
 
   /* List Item */
-  --am-list-item-radius: 14px;
+  --am-list-item-radius: 12px;
   --am-list-item-margin: 2px 4px;
 
   /* Filter Chip */
@@ -950,6 +959,7 @@ html.glass-theme-liquid .v-theme--dark {
   --am-switch-thumb-active-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
 
   /* ── 以下从 3a（白天）继承：不分明暗的结构性令牌 ── */
+  --am-surface-radius: 16px;
   --am-surface-blur: blur(22px) saturate(190%);
   --am-surface-shadow: var(--lg-rim), var(--lg-shadow);
   --am-surface-hover-shadow: var(--lg-rim), var(--lg-shadow-lift);
@@ -957,22 +967,22 @@ html.glass-theme-liquid .v-theme--dark {
   --am-overlay-blur: blur(22px) saturate(190%);
   --am-overlay-shadow: var(--lg-rim), var(--lg-shadow-lift);
   --am-overlay-radius: 22px;
-  --am-dialog-radius: 22px;
+  --am-dialog-radius: 24px;
   --am-dialog-blur: blur(22px) saturate(190%);
   --am-dialog-shadow: var(--lg-rim), var(--lg-shadow-lift);
   --am-dialog-border: 1px solid var(--lg-border);
-  --am-menu-radius: 22px;
+  --am-menu-radius: 20px;
   --am-scrim-blur: none;
   --am-nav-bg: transparent;
   --am-nav-blur: none;
   --am-nav-border: none;
   --am-nav-shadow: none;
-  --am-nav-list-item-radius: 14px;
+  --am-nav-list-item-radius: 16px;
   --am-nav-active-title-shadow: none;
   --am-nav-active-icon-filter: none;
   --am-nav-indicator-shadow: none;
   --am-field-border: 1px solid var(--lg-border);
-  --am-field-radius: 999px;
+  --am-field-radius: 16px;
   --am-field-shadow: var(--lg-rim-sm), 0 2px 10px -6px rgba(31, 38, 135, 0.3);
   --am-field-focus-shadow:
     var(--lg-rim-sm), 0 0 0 2px rgba(var(--v-theme-primary), 0.45),
@@ -985,7 +995,7 @@ html.glass-theme-liquid .v-theme--dark {
   --am-btn-blur: blur(22px) saturate(190%);
   --am-btn-border: 1px solid var(--lg-border);
   --am-btn-shadow: var(--lg-rim-sm), var(--lg-shadow);
-  --am-btn-radius: 999px;
+  --am-btn-radius: 12px;
   --am-btn-hover-shadow: var(--lg-rim-sm), var(--lg-shadow);
   --am-btn-font-weight: 500;
   --am-btn-text-color: rgb(var(--v-theme-primary));
@@ -1009,6 +1019,7 @@ html.glass-theme-liquid .v-theme--dark {
   --am-tab-active-shadow: none;
   --am-chip-blur: blur(8px) saturate(170%);
   --am-chip-border: 1px solid var(--lg-border);
+  --am-chip-radius: 8px;
   --am-chip-tonal-color: rgb(var(--v-theme-primary));
   --am-snackbar-blur: blur(22px) saturate(190%);
   --am-snackbar-border: 1px solid var(--lg-border);
@@ -1020,16 +1031,16 @@ html.glass-theme-liquid .v-theme--dark {
   --am-nav-active-color: rgb(var(--v-theme-primary));
   --am-nav-indicator-bg: rgb(var(--v-theme-primary));
   --am-nav-indicator-width: 2px;
-  --am-nav-indicator-radius: 0 2px 2px 0;
+  --am-nav-indicator-radius: 0 3px 3px 0;
   --am-list-active-color: rgb(var(--v-theme-primary));
-  --am-list-item-radius: 14px;
+  --am-list-item-radius: 12px;
   --am-list-item-margin: 2px 4px;
   --am-scrollbar-hover: rgba(255, 255, 255, 0.4);
   --am-login-bg: rgba(255, 255, 255, 0.4);
   --am-login-blur: blur(22px) saturate(190%);
   --am-login-border: 1px solid var(--lg-border);
   --am-login-shadow: var(--lg-rim), var(--lg-shadow-lift);
-  --am-login-radius: 28px;
+  --am-login-radius: 24px;
   --am-switch-track-active-bg: rgb(var(--v-theme-primary));
   --am-switch-track-active-shadow: none;
   --am-check-active-color: rgb(var(--v-theme-primary));
@@ -1042,7 +1053,7 @@ html.glass-theme-liquid .v-theme--dark {
   --am-progress-circular-stroke: rgb(var(--v-theme-primary));
   --am-progress-circular-glow: none;
   --am-btn-toggle-border: 1px solid var(--lg-border);
-  --am-btn-toggle-radius: 999px;
+  --am-btn-toggle-radius: 16px;
   --am-btn-toggle-active-bg: rgba(var(--v-theme-primary), 0.15);
   --am-btn-toggle-active-color: rgb(var(--v-theme-primary));
   --am-btn-toggle-active-shadow: var(--lg-rim-sm);

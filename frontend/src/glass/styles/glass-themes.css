@@ -247,7 +247,7 @@ html.glass-theme-liquid.glass-dark .v-field--variant-outlined:hover {
 
 /* textarea 用大圆角 */
 html.glass-theme-liquid .v-textarea .v-field--variant-outlined {
-  border-radius: 22px !important;
+  border-radius: var(--am-field-radius) !important;
 }
 
 /* solo / solo-filled — 玻璃底色 */
@@ -262,7 +262,7 @@ html.glass-theme-liquid.glass-dark .v-field--variant-solo-filled {
 
 /* filled 圆角 */
 html.glass-theme-liquid .v-field--variant-filled {
-  border-radius: var(--lg-r-pill) var(--lg-r-pill) 0 0 !important;
+  border-radius: var(--am-field-radius) var(--am-field-radius) 0 0 !important;
   border-bottom: 1px solid var(--lg-border) !important;
 }
 
@@ -275,7 +275,7 @@ html.glass-theme-liquid .v-select .v-list-item,
 html.glass-theme-liquid .v-autocomplete .v-list-item,
 html.glass-theme-liquid .v-combobox .v-list-item,
 html.glass-theme-liquid .v-menu .v-list-item {
-  border-radius: 14px !important;
+  border-radius: var(--am-list-item-radius) !important;
   margin: 2px 4px !important;
   transition: background-color .2s var(--lg-ease) !important;
 }
@@ -465,12 +465,12 @@ html.glass-theme-liquid .filter-bar .v-chip {
 
 html.glass-theme-liquid .v-sheet:not(.v-snackbar__wrapper) {
   box-shadow: var(--lg-rim), var(--lg-shadow) !important;
-  border-radius: 22px !important;
+  border-radius: var(--am-surface-radius) !important;
 }
 
 html.glass-theme-liquid .v-expansion-panel {
   box-shadow: var(--lg-rim), var(--lg-shadow) !important;
-  border-radius: 22px !important;
+  border-radius: var(--am-surface-radius) !important;
 }
 
 /* SnackBar 玻璃 */
@@ -534,11 +534,9 @@ html.glass-theme-liquid.glass-light .log-entry__level[data-level="success"]  { c
 html.glass-theme-liquid .log-entry--error,
 html.glass-theme-liquid .log-entry--critical {
   background: rgba(255, 55, 95, 0.08);
-  border-radius: 4px;
 }
 html.glass-theme-liquid .log-entry--warning {
   background: rgba(255, 159, 10, 0.06);
-  border-radius: 4px;
 }
 
 html.glass-theme-liquid.glass-light .log-entry--error,

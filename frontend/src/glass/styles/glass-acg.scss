@@ -895,7 +895,7 @@ html.glass-theme-acg {
   // 选中态用半透明 primary 底色 + 白字 + 圆角，去掉默认下划线指示器
   // ═══════════════════════════════════════════════════════════════
   .sticky-sub-tabs .v-tab {
-    border-radius: 999px;
+    border-radius: var(--am-tab-radius);
     text-transform: none;
     letter-spacing: 0;
     margin: 4px 2px;
@@ -1274,7 +1274,7 @@ html.glass-theme-acg .v-app-bar .v-btn--disabled .v-icon {
  * ================================================================ */
 
 html.glass-theme-acg .v-navigation-drawer .v-list-item {
-  border-radius: 16px !important;
+  border-radius: var(--am-nav-list-item-radius) !important;
   transition: all 0.3s ease-out !important;
 }
 
