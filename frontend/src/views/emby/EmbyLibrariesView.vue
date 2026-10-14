@@ -150,6 +150,21 @@ function getLibraryIcon(type: string) {
   return icons[type] || 'mdi-folder'
 }
 
+// 卡片信息行专用：统一取路径列表（兼容 LibraryOptions.PathInfos / PathInfo / Path 三种来源）
+function getLibraryPaths(lib: any): string[] {
+  const infos = lib?.LibraryOptions?.PathInfos?.length ? lib.LibraryOptions.PathInfos : (lib?.PathInfo || [])
+  const paths = (infos || []).map((p: any) => p?.Path).filter(Boolean)
+  if (paths.length) return paths
+  return lib?.Path ? [String(lib.Path)] : []
+}
+
+// 单行展示：1 个路径直接显示，多个显示「首个 等 N 个路径」，完整列表走 title
+function formatLibraryPaths(lib: any): string {
+  const paths = getLibraryPaths(lib)
+  if (!paths.length) return '无路径'
+  return paths.length === 1 ? paths[0] : `${paths[0]} 等 ${paths.length} 个路径`
+}
+
 // === 元数据下载器 & 图片下载参数 ===
 const METADATA_FETCHERS: Record<string, string[]> = {
   Movie: ['TheMovieDb', 'The Open Movie Database', 'TheTVDB'],
@@ -371,7 +386,7 @@ onMounted(loadLibraries)
       <v-icon start>mdi-folder-multiple-outline</v-icon>
       Emby 媒体库管理
     </h1>
-    <p class="text-body-2 text-medium-emphasis mb-4">管理您的 Emby 媒体库、路径配置及刮削策略。</p>
+    <p class="text-body-2 text-medium-emphasis mb-6">管理您的 Emby 媒体库、路径配置及刮削策略。</p>
 
     <!-- 高危警告 -->
     <v-alert variant="tonal" type="error" density="compact" class="mb-4" rounded="lg">
@@ -390,42 +405,53 @@ onMounted(loadLibraries)
       <v-divider />
 
       <v-card-text class="pa-4">
-        <div v-if="loading" class="text-center py-8"><v-progress-circular indeterminate color="primary" /></div>
-        <div v-else-if="!libraries.length" class="text-center py-8 text-medium-emphasis">
-          <v-icon size="48" color="grey" class="mb-2">mdi-folder-off-outline</v-icon>
+        <v-progress-linear v-if="loading" indeterminate color="primary" class="mb-4" />
+        <div v-else-if="!libraries.length" class="text-center py-12 text-medium-emphasis">
+          <v-icon size="64" color="grey" class="mb-4">mdi-folder-off-outline</v-icon>
           <div>暂无媒体库数据</div>
         </div>
         <div v-else>
           <div class="card-grid">
-            <v-card v-for="lib in libraries" :key="lib.ItemId || lib.Id" variant="outlined" rounded="lg" class="pa-4 d-flex flex-column">
-              <div class="d-flex align-center flex-wrap ga-2">
-                <v-avatar :color="lib.CollectionType === 'movies' ? 'primary' : lib.CollectionType === 'tvshows' ? 'info' : 'accent'" variant="tonal" size="40" rounded="xl">
-                  <v-icon :icon="getLibraryIcon(lib.CollectionType || lib.Type)" size="20" />
-                </v-avatar>
-                <div class="flex-grow-1" style="min-width:0">
-                  <div class="text-subtitle-2 font-weight-bold text-truncate">{{ lib.Name }}</div>
-                  <div class="text-caption text-medium-emphasis font-mono text-truncate">ID: {{ lib.Id }}</div>
+            <v-card
+              v-for="lib in libraries"
+              :key="lib.ItemId || lib.Id"
+              class="status-card liquid-glass-card"
+              rounded="lg"
+            >
+              <!-- 卡片头部：名称 + 内容类型 -->
+              <div class="card-header pa-4 pb-2">
+                <div class="card-title">
+                  <v-icon
+                    start
+                    size="20"
+                    :color="lib.CollectionType === 'movies' ? 'primary' : lib.CollectionType === 'tvshows' ? 'info' : 'accent'"
+                  >{{ getLibraryIcon(lib.CollectionType || lib.Type) }}</v-icon>
+                  <span class="text-subtitle-2 font-weight-bold text-truncate">{{ lib.Name }}</span>
                 </div>
-                <v-chip size="x-small" variant="tonal" color="info">{{ lib.CollectionType || lib.Type || '未知类型' }}</v-chip>
+                <v-chip size="small" variant="tonal" color="info" label>{{ lib.CollectionType || lib.Type || '未知类型' }}</v-chip>
               </div>
-              <!-- 路径信息 -->
-              <div class="mt-2" style="min-width:0">
-                <div v-if="lib.LibraryOptions?.PathInfos?.length">
-                  <div v-for="pi in lib.LibraryOptions.PathInfos.slice(0, 2)" :key="pi.Path" class="text-caption font-mono text-medium-emphasis text-truncate">{{ pi.Path }}</div>
-                  <div v-if="lib.LibraryOptions.PathInfos.length > 2" class="text-caption text-medium-emphasis">+{{ lib.LibraryOptions.PathInfos.length - 2 }} 更多路径</div>
+
+              <!-- 信息行：字段恒定渲染，保证同一排卡片行高对齐 -->
+              <div class="card-info card-info--stacked px-4 pb-2">
+                <div class="info-item">
+                  <span class="info-label">ID</span>
+                  <span class="font-mono text-caption text-medium-emphasis text-truncate" :title="lib.Id">{{ lib.Id }}</span>
                 </div>
-                <div v-else-if="lib.PathInfo?.length">
-                  <div v-for="pi in lib.PathInfo.slice(0, 2)" :key="pi.Path" class="text-caption font-mono text-medium-emphasis text-truncate">{{ pi.Path }}</div>
-                  <div v-if="lib.PathInfo.length > 2" class="text-caption text-medium-emphasis">+{{ lib.PathInfo.length - 2 }} 更多路径</div>
+                <div class="info-item">
+                  <span class="info-label">路径</span>
+                  <span
+                    class="font-mono text-caption text-medium-emphasis text-truncate"
+                    :title="getLibraryPaths(lib).join('\n')"
+                  >{{ formatLibraryPaths(lib) }}</span>
                 </div>
-                <div v-else class="text-caption text-medium-emphasis text-truncate">{{ lib.Path || '无路径' }}</div>
               </div>
-              <!-- 操作 -->
-              <v-divider class="mb-2 mt-2" />
-              <div class="d-flex flex-wrap ga-1">
-                <v-btn size="x-small" variant="tonal" color="info" prepend-icon="mdi-cog-outline" @click="openEdit(lib)">设置</v-btn>
-                <v-btn size="x-small" variant="tonal" color="warning" prepend-icon="mdi-backup-restore" @click="handleDirectBackup(lib)">备份</v-btn>
-                <v-btn size="x-small" color="error" variant="tonal" prepend-icon="mdi-delete-outline" @click="removeLibrary(lib.Id, lib.Name)">移除</v-btn>
+
+              <!-- 操作按钮 -->
+              <v-divider class="mt-2" />
+              <div class="d-flex flex-wrap ga-2 pa-3">
+                <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-cog-outline" @click="openEdit(lib)">设置</v-btn>
+                <v-btn size="small" variant="tonal" color="warning" prepend-icon="mdi-backup-restore" @click="handleDirectBackup(lib)">备份</v-btn>
+                <v-btn size="small" color="error" variant="tonal" prepend-icon="mdi-delete-outline" @click="removeLibrary(lib.Id, lib.Name)">移除</v-btn>
               </div>
             </v-card>
           </div>

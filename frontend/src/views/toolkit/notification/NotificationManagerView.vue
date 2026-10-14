@@ -318,44 +318,71 @@ onMounted(() => {
 
         <v-progress-linear v-if="loading" indeterminate color="primary" class="mb-4" />
 
-        <v-row>
-          <v-col v-for="bot in (settings.bots || [])" :key="bot.id" cols="12" sm="6">
-            <v-card class="liquid-glass-card" rounded="xl">
-              <v-card-title class="d-flex align-center pa-4 pb-2">
-                <v-icon start :color="bot.enabled ? 'success' : 'grey'">mdi-robot-outline</v-icon>
-                <span class="text-subtitle-2 font-weight-bold">{{ bot.name }}</span>
-                <v-spacer />
-                <v-switch :model-value="bot.enabled" @update:model-value="() => { bot.enabled = !bot.enabled; toggleBotEnabled(bot) }" density="compact" hide-details color="success" />
-              </v-card-title>
-              <v-card-text class="px-4 pb-2">
-                <div class="text-body-2 mb-1"><span class="text-medium-emphasis">类型：</span>{{ bot.type }}</div>
-                <div class="text-body-2 mb-1"><span class="text-medium-emphasis">Chat ID：</span>{{ bot.chat_id || '-' }}</div>
-                <div class="text-body-2 mb-1">
-                  <span class="text-medium-emphasis">订阅：</span>
-                  <v-chip size="x-small" variant="tonal" :color="(bot.subscribed_events || []).length ? 'primary' : 'grey'">
-                    {{ getBotEventSummary(bot) }}
-                  </v-chip>
-                </div>
-                <div v-if="bot.is_interactive" class="mt-1 d-flex align-center ga-2 flex-wrap">
-                  <v-chip size="x-small" variant="tonal" color="info">交互模式</v-chip>
+        <div v-if="settings.bots?.length" class="card-grid">
+          <v-card
+            v-for="bot in settings.bots"
+            :key="bot.id"
+            class="status-card liquid-glass-card"
+            rounded="lg"
+          >
+            <!-- 卡片头部：名称 + 启用开关 -->
+            <div class="card-header pa-4 pb-2">
+              <div class="card-title">
+                <v-icon start :color="bot.enabled ? 'success' : 'grey'" size="20">mdi-robot-outline</v-icon>
+                <span class="text-subtitle-2 font-weight-bold text-truncate">{{ bot.name }}</span>
+              </div>
+              <v-switch
+                :model-value="bot.enabled"
+                density="compact"
+                hide-details
+                color="success"
+                @update:model-value="() => { bot.enabled = !bot.enabled; toggleBotEnabled(bot) }"
+              />
+            </div>
+
+            <!-- 信息行：字段恒定渲染，保证同一排卡片行高对齐 -->
+            <div class="card-info card-info--stacked px-4 pb-2">
+              <div class="info-item">
+                <span class="info-label">类型</span>
+                <span class="text-caption text-medium-emphasis">{{ bot.type || '-' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Chat ID</span>
+                <span class="font-mono text-caption text-medium-emphasis">{{ bot.chat_id || '-' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">订阅</span>
+                <v-chip size="x-small" variant="tonal" :color="(bot.subscribed_events || []).length ? 'primary' : 'grey'">
+                  {{ getBotEventSummary(bot) }}
+                </v-chip>
+              </div>
+              <div class="info-item">
+                <span class="info-label">状态</span>
+                <div class="d-flex align-center ga-2 flex-wrap">
+                  <v-chip v-if="bot.is_interactive" size="x-small" variant="tonal" color="info">交互模式</v-chip>
                   <v-chip v-if="getStatusMeta(bot)" size="x-small" variant="tonal" :color="getStatusMeta(bot)!.color">
                     <v-icon start size="12">{{ getStatusMeta(bot)!.icon }}</v-icon>
                     {{ getStatusMeta(bot)!.label }}
                   </v-chip>
+                  <span v-if="!bot.is_interactive && !getStatusMeta(bot)" class="text-caption text-medium-emphasis">--</span>
                 </div>
-                <div v-if="bot.enabled && bot.is_interactive && botStatus[bot.id]?.error" class="text-caption text-error mt-1">
-                  {{ botStatus[bot.id].error }}
-                </div>
-              </v-card-text>
-              <v-divider />
-              <div class="d-flex flex-wrap ga-2 pa-4 pt-3">
-                <v-btn size="small" color="info" variant="tonal" prepend-icon="mdi-send-outline" @click="testBot(bot.id)">测试</v-btn>
-                <v-btn size="small" variant="tonal" color="warning" prepend-icon="mdi-pencil-outline" @click="openEditBot(bot)">编辑</v-btn>
-                <v-btn size="small" color="error" variant="tonal" prepend-icon="mdi-delete-outline" @click="deleteBot(bot.id)">删除</v-btn>
               </div>
-            </v-card>
-          </v-col>
-        </v-row>
+            </div>
+
+            <!-- 连接错误：仅出错时出现（非核心字段，不参与行高对齐） -->
+            <div v-if="bot.enabled && bot.is_interactive && botStatus[bot.id]?.error" class="px-4 pb-2">
+              <span class="text-caption text-error text-truncate-3">{{ botStatus[bot.id].error }}</span>
+            </div>
+
+            <!-- 操作按钮 -->
+            <v-divider class="mt-2" />
+            <div class="d-flex flex-wrap ga-2 pa-3">
+              <v-btn size="small" color="info" variant="tonal" prepend-icon="mdi-send-outline" @click="testBot(bot.id)">测试</v-btn>
+              <v-btn size="small" variant="tonal" color="warning" prepend-icon="mdi-pencil-outline" @click="openEditBot(bot)">编辑</v-btn>
+              <v-btn size="small" color="error" variant="tonal" prepend-icon="mdi-delete-outline" @click="deleteBot(bot.id)">删除</v-btn>
+            </div>
+          </v-card>
+        </div>
 
         <div v-if="!loading && !settings.bots?.length" class="text-center py-12 text-medium-emphasis">
           <v-icon size="64" color="grey" class="mb-4">mdi-robot-outline</v-icon>

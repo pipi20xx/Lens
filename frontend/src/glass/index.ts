@@ -174,5 +174,10 @@ export { default as BorderDialog } from './components/BorderDialog.vue'
 export { default as ShadowDialog } from './components/ShadowDialog.vue'
 export { default as PrimaryColorDialog } from './components/PrimaryColorDialog.vue'
 export { default as BorderRadiusDialog } from './components/BorderRadiusDialog.vue'
-export { default as AppGlassCard } from './components/AppGlassCard.vue'
-export { default as GlassDialog } from './components/GlassDialog.vue'
+
+// 已移除两个零引用的死导出（2025 卡片/组件清理）：
+//   AppGlassCard  — 通用玻璃卡组件，全项目无任何使用处；条目卡已统一为
+//                   .status-card.liquid-glass-card 模板写法，该组件不再需要。
+//   GlassDialog   — 与 @/components/common/GlassDialog.vue 重复（后者被 34 处使用），
+//                   本目录这份从未被引用。
+// 对应文件已一并删除，如需恢复请从版本历史取回。

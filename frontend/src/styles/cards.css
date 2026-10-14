@@ -13,10 +13,24 @@
 }
 
 /* ============================================================
- * 2. 小型列表卡片 — 关闭 overflow:hidden，内容完整展示不被裁剪
- *     v-card 默认 overflow:hidden 会裁剪内容；列表卡片需要完整显示
+ * 2. 紧凑变体 — .list-card（弹窗/面板内嵌的列表行）
+ *
+ *    这是全项目**唯一**的卡片紧凑变体：不参与 .card-grid 网格，
+ *    用于弹窗内的主机行、分集行、搜索结果行等「行」形态。
+ *
+ *    圆角刻意取 --am-list-item-radius（与 v-list-item 同档），
+ *    比整卡 --am-surface-radius 小一档，形成层级；同样跟随主题与
+ *    「圆角档位」级联。
+ *
+ *    必须用 .v-card 前缀：visual.css 的 .v-card 规则带 !important 且
+ *    后导入，此前 `.list-card { border-radius: 12px !important }` 特异性
+ *    同为 (0,1,0)，被整体覆盖而永不生效（死代码）——现已修正为
+ *    (0,2,0) 使其真正生效。
+ *
+ *    overflow: visible 保持不变：v-card 默认 overflow:hidden 会裁剪
+ *    行内的下拉/菜单等浮层。
  * ============================================================ */
-.list-card {
+.v-card.list-card {
   overflow: visible !important;
-  border-radius: 12px !important;
+  border-radius: var(--am-list-item-radius) !important;
 }

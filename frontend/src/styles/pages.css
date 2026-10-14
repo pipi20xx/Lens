@@ -545,25 +545,24 @@
 }
 
 /* ── 状态指示卡片 — 统一替代 task-card / container-card / project-card / history-card
- *    状态以卡片右上角的文字 chip 展示，不再渲染左侧竖条 */
+ *    状态以卡片右上角的文字 chip 展示，不再渲染左侧竖条。
+ *
+ *    悬浮反馈**不在此处定义**：与 .liquid-glass-card 共用 visual.css §22 的
+ *    统一 hover 规则。此前这里写了 transition + :hover box-shadow，但
+ *    visual.css 后导入且所有阴影都带 !important，导致这两条永不生效
+ *    （死代码），已移除；hover 现由 visual.css 一处统一提供。 */
 .status-card {
   position: relative;
   overflow: hidden;
-  transition: box-shadow 0.2s, border-color 0.2s;
 }
 
-.status-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.v-theme--light .status-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-/* 运行中卡片背景 */
-.running-card {
+/* 运行中卡片高亮 — 必须用 .v-card 前缀提高到 (0,2,0) 并保留 !important。
+ * visual.css 的 .v-card (0,1,0) / .v-card--variant-outlined (0,1,0) 同样带
+ * !important，此前的 .running-card (0,1,0) 特异性不足被整体覆盖，
+ * 导致「运行中」绿色边框与底色实际不渲染。 */
+.v-card.running-card {
   border-color: rgb(var(--v-theme-success)) !important;
-  background: rgba(var(--v-theme-success), 0.04);
+  background: rgba(var(--v-theme-success), 0.04) !important;
 }
 
 /* ── 卡片头部/信息行 — BackupManagerView ── */
@@ -755,22 +754,16 @@
   background: rgba(0, 0, 0, 0.03);
 }
 
-/* ── 任务卡片 hover — EmbyTasksView ── */
-.task-card-hover {
-  transition: all 0.2s ease;
-}
+/* ── 任务卡片 hover 已移除 ──
+ * EmbyTasksView 原先给卡片加 .task-card-hover 单独做上浮，与
+ * .liquid-glass-card 的悬浮反馈重复且阴影无效（被 visual.css 覆盖）。
+ * 该页卡片已统一为 .status-card.liquid-glass-card，悬浮反馈统一由
+ * visual.css §22 提供，故此规则连同其唯一使用处一并删除。 */
 
-.task-card-hover:hover {
-  transform: translateY(-2px);
-}
-
-/* ── 列表容器 — BackupManagerView ── */
-.task-list,
-.history-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
+/* ── 已删除：.task-list / .history-list ──
+ * 这两个 flex 列表容器在 src/ 下已无任何引用（BackupManagerView 早已改用
+ * .card-grid），属于零引用死选择器，已删除。弹窗内的单列卡片列表请使用
+ * 下方的 `.card-grid.card-grid--stack`。 */
 
 /* ── 卡片网格 — 一行约三张的自适应卡片列表（容器/镜像/Compose 管理）── */
 .card-grid {
@@ -789,6 +782,15 @@
   .card-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+}
+
+/* 单列变体 — 供**弹窗内**或任何窄容器内的卡片列表使用。
+ * 上面的媒体查询按视口宽度生效，与容器实际宽度无关：一个
+ * max-width=800 的弹窗在 1440px 视口下会被 .card-grid 强行排成 3 列
+ * （每列约 250px），按钮换行、文字截断。
+ * 弹窗内的列表一律改用 `.card-grid.card-grid--stack` 强制单列。 */
+.card-grid--stack {
+  grid-template-columns: 1fr !important;
 }
 
 /* 网格内卡片等高：操作栏（分割线起）贴底对齐 */
@@ -882,16 +884,10 @@
   background: rgba(255, 255, 255, 0.75) !important;
 }
 
-.v-theme--light .glass-btn-accent {
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(255, 45, 146, 0.1)) !important;
-  color: #7c3aed !important;
-}
-
 .v-theme--light .liquid-glass-subtitle {
   color: rgb(0, 0, 0) !important;
   text-shadow: none;
 }
 
-.v-theme--light .text-accent-gold {
-  color: #0891b2 !important;
-}
+/* 已删除：`.v-theme--light .glass-btn-accent` 与 `.v-theme--light .text-accent-gold`
+ * 这两个类在 utilities.css 中已作为零引用死代码删除，亮色覆盖随之移除。 */

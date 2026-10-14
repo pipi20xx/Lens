@@ -249,23 +249,42 @@ onMounted(() => { loadProfile(); loadSessions() })
           <div>暂无活跃会话</div>
         </div>
 
-        <div v-else class="d-flex flex-column ga-3">
-          <v-card v-for="session in sessions" :key="session.session_id || session.id" class="liquid-glass-card" rounded="lg">
-            <div class="pa-4">
-              <div class="d-flex align-center mb-2">
-                <v-icon start :color="session.is_current ? 'success' : 'default'" class="mr-2">
+        <div v-else class="card-grid">
+          <v-card
+            v-for="session in sessions"
+            :key="session.session_id || session.id"
+            class="status-card liquid-glass-card"
+            rounded="lg"
+          >
+            <!-- 卡片头部：设备 + 当前设备标记 / 撤销 -->
+            <div class="card-header pa-4 pb-2">
+              <div class="card-title">
+                <v-icon start :color="session.is_current ? 'success' : 'primary'" size="20">
                   {{ session.is_current ? 'mdi-laptop' : 'mdi-monitor' }}
                 </v-icon>
-                <span class="text-subtitle-2 font-weight-bold">{{ session.device_info || session.user_agent || '-' }}</span>
-                <v-spacer />
-                <v-chip v-if="session.is_current" size="x-small" variant="tonal" color="success">当前设备</v-chip>
-                <v-btn v-else size="small" variant="tonal" color="error" prepend-icon="mdi-cancel" @click="revokeSession(session)">撤销</v-btn>
+                <span class="text-subtitle-2 font-weight-bold text-truncate">{{ session.device_info || session.user_agent || '-' }}</span>
               </div>
-              <div class="d-flex flex-wrap ga-4 text-caption text-medium-emphasis">
-                <span><v-icon size="14">mdi-ip-network</v-icon> {{ session.ip_address || '-' }}</span>
-                <span><v-icon size="14">mdi-clock-outline</v-icon> 登录：{{ session.login_time || '-' }}</span>
-                <span><v-icon size="14">mdi-update</v-icon> 活动：{{ session.last_activity || '-' }}</span>
-                <span v-if="session.expires_text"><v-icon size="14">mdi-timer-sand</v-icon> {{ session.expires_text }}</span>
+              <v-chip v-if="session.is_current" size="small" variant="tonal" color="success" label>当前设备</v-chip>
+              <v-btn v-else size="small" variant="tonal" color="error" prepend-icon="mdi-cancel" @click="revokeSession(session)">撤销</v-btn>
+            </div>
+
+            <!-- 信息行：字段恒定渲染，保证同一排卡片行高对齐 -->
+            <div class="card-info card-info--stacked px-4 pb-2">
+              <div class="info-item">
+                <span class="info-label">IP</span>
+                <span class="font-mono text-caption text-medium-emphasis">{{ session.ip_address || '-' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">登录</span>
+                <span class="text-caption text-medium-emphasis">{{ session.login_time || '-' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">活动</span>
+                <span class="text-caption text-medium-emphasis">{{ session.last_activity || '-' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">有效期</span>
+                <span class="text-caption text-medium-emphasis">{{ session.expires_text || '-' }}</span>
               </div>
             </div>
           </v-card>

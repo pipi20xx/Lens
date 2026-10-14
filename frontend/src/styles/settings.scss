@@ -23,7 +23,6 @@ $rounded: (
 // 卡片 — Liquid Glass 边框
 $card-bordered-border-style: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
 
-// 全局工具类（替代已弃用的 dense 属性）
-.no-gap {
-  --v-row-gap: 4px;
-}
+// 注：原先这里还有一个 .no-gap 工具类（设 --v-row-gap: 4px）。
+// 它既零引用，又指向 Vuetify 3 的旧变量名 —— Vuetify 4 的栅格间距已改为
+// --v-col-gap-x / --v-col-gap-y，该规则实际不产生任何效果，已删除。

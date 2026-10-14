@@ -572,30 +572,36 @@ code {
 }
 
 /* ============================================================
- * 22. Hover Lift — 鼠标悬浮上浮（对齐 AM visual.css §16）
+ * 22. Hover Lift — 卡片悬浮上浮
  *
- *     两种触发方式：
- *       1) 显式加 class="hover-lift"（AM 的原始做法，上浮 3px）
- *       2) 本项目统一的卡片类 .liquid-glass-card（上浮 2px，
- *          与 .v-card--link / .v-card[link] 的悬浮参数一致）
+ *     条目卡标记类 .liquid-glass-card 与 .status-card 共用下方**唯一一条**
+ *     @media (hover: hover) 规则。全项目卡片悬浮反馈只在此处定义；
+ *     页面级 CSS 不再各写一份阴影（各写的那份会被本文件的 !important
+ *     覆盖而成为死代码，例如已删除的 pages.css `.status-card:hover` 与
+ *     `.task-card-hover`）。
  *
- *     此前 .liquid-glass-card 只有 transition 没有 :hover，
- *     所以除了带 link 的卡片，其它卡片鼠标移上去没有任何反馈。
  *     用 @media (hover: hover) 限定指针设备，避免触屏上悬浮态粘住。
+ *
+ *     注：原先还有一个独立的 `.hover-lift` 工具类（AM 的原始做法，上浮 3px），
+ *     全项目零引用，已删除；--am-hover-lift-shadow 令牌保留（主题档位仍在
+ *     定义它，未来若要恢复该工具类可直接引用）。
  * ============================================================ */
 
-.hover-lift {
-  cursor: pointer;
-  transition: transform 0.3s ease-out, box-shadow 0.3s ease-out !important;
-}
-
-.hover-lift:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--am-hover-lift-shadow) !important;
-}
-
 @media (hover: hover) {
-  .liquid-glass-card:hover {
+  /* 统一卡片悬浮 — 条目卡的两个标记类（.liquid-glass-card / .status-card）
+   * 共用同一套令牌化反馈，全项目只此一处定义。
+   *
+   * 选择器说明：
+   *   - 加 .v-card 前缀把特异性提到 (0,4,0)，确保能盖住
+   *     .v-card / .v-card--variant-outlined / .v-card--link:hover 的 !important
+   *     背景与阴影（它们是 (0,1,0)/(0,2,0)）。此前用 (0,2,0) 时，
+   *     variant="outlined" 的卡片无法被覆盖，导致玻璃卡有悬浮反馈、
+   *     outlined 卡没有 —— 这是本项目卡片观感不一致的主要来源之一。
+   *   - 排除 .glass-dialog-card：弹窗本体带 .liquid-glass-card 标记，
+   *     但它是浮层而非条目卡，不应随鼠标改变材质（弹窗材质由
+   *     --am-dialog-* 令牌负责）。 */
+  .v-card.liquid-glass-card:not(.glass-dialog-card):hover,
+  .v-card.status-card:not(.glass-dialog-card):hover {
     background: var(--am-surface-hover-bg) !important;
     box-shadow: var(--am-surface-hover-shadow) !important;
     transform: var(--am-surface-hover-transform);

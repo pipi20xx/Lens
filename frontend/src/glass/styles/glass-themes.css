@@ -688,8 +688,7 @@ html.glass-theme-liquid.glass-light .log-entry--warning {
   html.glass-theme-liquid .v-card:hover,
   html.glass-theme-liquid .v-btn:hover,
   html.glass-theme-liquid .v-btn:active,
-  html.glass-theme-liquid .v-tab:hover,
-  html.glass-theme-liquid .hover-lift:hover {
+  html.glass-theme-liquid .v-tab:hover {
     transform: none !important;
   }
 

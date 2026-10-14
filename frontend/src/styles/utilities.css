@@ -10,75 +10,33 @@
  * 1. Liquid Glass 工具类
  * ============================================================ */
 
-/* Liquid Glass 卡片 — 玻璃面板 */
+/* Liquid Glass 卡片 — 统一卡片标记类
+ *
+ * 材质（背景 / 模糊 / 边框 / 阴影 / 圆角 / 过渡）**不在此处定义**：
+ * 由第 3 层 visual.css 的 `.v-card` 规则统一提供，并通过 tokens.css 的
+ * --am-surface-* 令牌跟随主题（classic / liquid / acg）与「圆角档位」级联。
+ *
+ * 历史说明：本类原先写死了 background / backdrop-filter / border /
+ * border-radius: 24px / box-shadow / transition。由于 visual.css 在其之后
+ * 导入、特异性同为 (0,1,0) 且双方都是 !important，这些声明**全部被覆盖**，
+ * 属于永不生效的死代码 —— 已在卡片统一步骤中移除（移除前后渲染结果完全一致）。
+ *
+ * 现保留职责：作为「可悬浮卡片」标记，供 visual.css §22 的统一 hover 规则选中。
+ */
 .liquid-glass-card {
   position: relative;
-  background: rgba(255, 255, 255, 0.08) !important;
-  backdrop-filter: blur(40px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.4) !important;
-  border-radius: 24px !important;
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
-  transition: all 0.5s ease-out !important;
-  overflow: hidden;
 }
 
-/* Liquid Glass 面板 — 较浅的玻璃（用于内嵌区域） */
-.liquid-glass-panel {
-  position: relative;
-  background: rgba(255, 255, 255, 0.05) !important;
-  backdrop-filter: blur(30px) saturate(150%) !important;
-  -webkit-backdrop-filter: blur(30px) saturate(150%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.4) !important;
-  border-radius: 20px !important;
-  transition: all 0.5s ease-out !important;
-}
+/* ── 已删除的零引用工具类（2025 卡片/组件清理）──
+ * 下列类在本项目中**没有任何使用处**（全量 grep src/ 的 .vue/.ts/.css/.scss
+ * 只有定义、没有引用），且其中的材质声明同样会被 visual.css 覆盖：
+ *   .liquid-glass-panel / .liquid-glass-btn(+:hover) /
+ *   .liquid-glass-title / .liquid-glass-hero
+ * 已删除。若需要这套 Liquid Glass 工具类，`shared-ui/styles/global.css`
+ * 里保留了完整版本（该目录是刻意提取的启动套件，见 .gitignore 注释）。
+ * 删除前 vs 删除后渲染结果完全一致。 */
 
-/* Liquid Glass 按钮 — 强调色 */
-.liquid-glass-btn {
-  position: relative;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(56, 189, 248, 0.2)) !important;
-  backdrop-filter: blur(40px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
-  border: none !important;
-  border-radius: 20px !important;
-  color: white !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.02em;
-  overflow: hidden;
-  transition: all 0.5s ease-out !important;
-}
-
-.liquid-glass-btn:hover {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.35), rgba(56, 189, 248, 0.3)) !important;
-  box-shadow: 0 0 20px rgba(59, 130, 246, 0.3) !important;
-}
-
-/* Liquid Glass 标题文字 — 渐变填充 + 青色描边 + 3D阴影 */
-.liquid-glass-title {
-  background: linear-gradient(to right, #3b82f6, #38bdf8, #3b82f6);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  -webkit-text-stroke: 2px #38bdf8;
-  text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.4), 0 0 15px rgba(56, 189, 248, 0.4);
-  filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.3));
-}
-
-/* Liquid Glass Hero 标题 — 更粗描边 */
-.liquid-glass-hero {
-  background: linear-gradient(to right, #3b82f6, #38bdf8, #3b82f6);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  -webkit-text-stroke: 3px #38bdf8;
-  text-shadow: 4px 4px 0 rgba(0, 0, 0, 0.5), 0 0 20px rgba(56, 189, 248, 0.5), 0 0 40px rgba(59, 130, 246, 0.3);
-  filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.4));
-}
-
-/* Liquid Glass 副标题 — 青色发光 */
+/* Liquid Glass 副标题 — 青色发光（DefaultLayout 侧边栏 LOGO 在用） */
 .liquid-glass-subtitle {
   color: rgb(255, 255, 255);
   text-shadow: 0 0 20px rgba(56, 189, 248, 0.6), 0 0 40px rgba(56, 189, 248, 0.3), 2px 2px 0 rgba(0, 0, 0, 0.3);
@@ -87,61 +45,21 @@
 /* ============================================================
  * 2. 兼容旧 class 名
  * ============================================================ */
+
+/* 旧名 .glass-card — `.liquid-glass-card` 的别名，作为同一条规则的选择器并列。
+ * 材质同样由 visual.css + tokens.css 统一提供，此处只保留定位上下文。
+ * 新代码请使用 .liquid-glass-card。 */
 .glass-card {
   position: relative;
-  background: rgba(255, 255, 255, 0.08) !important;
-  backdrop-filter: blur(40px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.4) !important;
-  border-radius: 24px !important;
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
-  transition: all 0.5s ease-out !important;
-  overflow: hidden;
 }
 
-.glass-panel {
-  position: relative;
-  background: rgba(255, 255, 255, 0.05) !important;
-  backdrop-filter: blur(30px) saturate(150%) !important;
-  -webkit-backdrop-filter: blur(30px) saturate(150%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.4) !important;
-  border-radius: 20px !important;
-  transition: all 0.5s ease-out !important;
-}
-
-.glass-btn {
-  transition: all 0.5s ease-out !important;
-}
-
-.glass-btn-accent {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(56, 189, 248, 0.25)) !important;
-  backdrop-filter: blur(40px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
-  color: white !important;
-  font-weight: 600 !important;
-  transition: all 0.5s ease-out !important;
-}
-
-.glass-btn-accent:hover {
-  box-shadow: 0 0 20px rgba(59, 130, 246, 0.35) !important;
-}
-
-.text-accent-gold {
-  color: rgb(var(--v-theme-accent)) !important;
-}
+/* ── 已删除的零引用别名（2025 卡片/组件清理）──
+ *   .glass-panel / .glass-btn / .glass-btn-accent(+:hover) / .text-accent-gold
+ * 全部无任何使用处，已删除。`.glass-card`（上面）保留，因为 LoginView 在用。 */
 
 /* ============================================================
  * 3. 通用功能性工具类
  * ============================================================ */
-
-/* 可滚动内容区 — 高度可由 CSS 变量定制 */
-.content-scrollable {
-  height: var(--scrollable-height, calc(85vh - 250px));
-  max-height: var(--scrollable-max, 600px);
-  overflow-y: auto;
-}
 
 /* 多行文本截断 */
 .text-truncate-3 {

@@ -119,17 +119,23 @@ onUnmounted(() => {
     <p class="text-body-2 text-medium-emphasis mb-6">查看并管理 Emby 服务器的计划任务与维护操作。</p>
 
     <!-- 工具栏 -->
-    <div class="d-flex align-center mb-4">
-      <v-spacer />
-      <v-btn prepend-icon="mdi-refresh" variant="tonal" color="info" size="small" @click="fetchTasks(true)" :loading="loading">刷新</v-btn>
-    </div>
+    <v-card class="liquid-glass-card mb-4" rounded="xl">
+      <div class="d-flex align-center justify-space-between flex-wrap ga-3 pa-4">
+        <div class="d-flex align-center ga-2">
+          <v-icon color="primary">mdi-clipboard-list-outline</v-icon>
+          <span class="text-subtitle-2 font-weight-bold">计划任务</span>
+          <v-chip size="x-small" variant="tonal">{{ tasks.filter(t => !t.IsHidden).length }}</v-chip>
+        </div>
+        <v-btn prepend-icon="mdi-refresh" variant="tonal" color="info" size="small" @click="fetchTasks(true)" :loading="loading">刷新</v-btn>
+      </div>
+    </v-card>
 
     <!-- 加载中 -->
-    <div v-if="loading" class="text-center py-8"><v-progress-circular indeterminate color="primary" /></div>
+    <v-progress-linear v-if="loading" indeterminate color="primary" class="mb-4" />
 
     <!-- 空状态 -->
-    <div v-else-if="!tasks.filter(t => !t.IsHidden).length" class="text-center py-8 text-medium-emphasis">
-      <v-icon size="48" color="grey" class="mb-2">mdi-clipboard-text-off-outline</v-icon>
+    <div v-else-if="!tasks.filter(t => !t.IsHidden).length" class="text-center py-12 text-medium-emphasis">
+      <v-icon size="64" color="grey" class="mb-4">mdi-clipboard-text-off-outline</v-icon>
       <div>未发现计划任务</div>
     </div>
 
@@ -142,71 +148,72 @@ onUnmounted(() => {
           <v-chip size="x-small" variant="tonal" class="ml-2">{{ group.length }}</v-chip>
         </div>
 
-        <v-row>
-          <v-col v-for="task in group" :key="task.Id" cols="12" sm="6" md="4">
-            <v-card
-              variant="outlined"
-              rounded="lg"
-              class="pa-4 status-card task-card-hover"
-              :class="{ 'running-card': task.State === 'Running' }"
-            >
-              <!-- 卡片头部 -->
-              <div class="d-flex align-center mb-2">
-                <v-icon :color="getCategoryColor(category)" class="mr-2" size="20">{{ getCategoryIcon(category) }}</v-icon>
-                <span class="text-subtitle-2 font-weight-bold flex-grow-1">{{ task.Name }}</span>
-                <!-- 运行/停止按钮 -->
-                <v-btn
-                  v-if="task.State !== 'Running'"
-                  icon
-                  variant="tonal"
-                  size="x-small"
-                  color="primary"
-                  @click="runTask(task.Id)"
-                >
-                  <v-icon>mdi-play</v-icon>
-                </v-btn>
-                <v-btn
-                  v-else
-                  icon
-                  variant="tonal"
-                  size="x-small"
-                  color="error"
-                  @click="stopTask(task.Id)"
-                >
-                  <v-icon>mdi-stop</v-icon>
-                </v-btn>
+        <div class="card-grid">
+          <v-card
+            v-for="task in group"
+            :key="task.Id"
+            class="status-card liquid-glass-card"
+            :class="{ 'running-card': task.State === 'Running' }"
+            rounded="lg"
+          >
+            <!-- 卡片头部：名称 + 运行/停止 -->
+            <div class="card-header pa-4 pb-2">
+              <div class="card-title">
+                <v-icon start :color="getCategoryColor(category)" size="20">{{ getCategoryIcon(category) }}</v-icon>
+                <span class="text-subtitle-2 font-weight-bold text-truncate">{{ task.Name }}</span>
+                <v-chip v-if="task.State === 'Running'" size="x-small" color="success" variant="tonal" class="ml-1">运行中</v-chip>
               </div>
+              <v-btn
+                v-if="task.State !== 'Running'"
+                icon="mdi-play"
+                variant="tonal"
+                size="small"
+                color="primary"
+                title="立即运行"
+                @click="runTask(task.Id)"
+              />
+              <v-btn
+                v-else
+                icon="mdi-stop"
+                variant="tonal"
+                size="small"
+                color="error"
+                title="停止任务"
+                @click="stopTask(task.Id)"
+              />
+            </div>
 
-              <!-- 描述 -->
-              <div class="text-caption text-medium-emphasis mb-3" style="min-height: 32px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
-                {{ task.Description || '暂无任务描述' }}
+            <!-- 信息行：字段恒定渲染，保证同一排卡片行高对齐 -->
+            <div class="card-info card-info--stacked px-4 pb-2">
+              <div class="info-item">
+                <span class="info-label">上次运行</span>
+                <span class="text-caption text-medium-emphasis">{{ formatTaskDate(task.LastExecutionResult?.EndTimeUtc) }}</span>
               </div>
+              <div class="info-item">
+                <span class="info-label">说明</span>
+                <span class="text-caption text-medium-emphasis text-truncate-3" :title="task.Description || ''">{{ task.Description || '暂无任务描述' }}</span>
+              </div>
+            </div>
 
-              <!-- 状态区域 -->
-              <div style="min-height: 32px">
-                <template v-if="task.State === 'Running'">
-                  <div class="d-flex justify-space-between align-center mb-1">
-                    <span class="text-caption text-success font-weight-bold">正在运行</span>
-                    <span class="text-caption text-success">{{ task.CurrentProgressPercentage?.toFixed(1) }}%</span>
-                  </div>
-                  <v-progress-linear
-                    :model-value="task.CurrentProgressPercentage || 0"
-                    color="success"
-                    height="4"
-                    rounded
-                    stream
-                  />
-                </template>
-                <template v-else>
-                  <div class="d-flex justify-space-between align-center">
-                    <span class="text-caption text-medium-emphasis">上次运行时间</span>
-                    <span class="text-caption">{{ formatTaskDate(task.LastExecutionResult?.EndTimeUtc) }}</span>
-                  </div>
-                </template>
+            <!-- 运行进度 -->
+            <template v-if="task.State === 'Running'">
+              <v-divider class="mt-2" />
+              <div class="pa-3">
+                <div class="d-flex justify-space-between align-center mb-1">
+                  <span class="text-caption text-success font-weight-bold">正在运行</span>
+                  <span class="text-caption text-success">{{ task.CurrentProgressPercentage?.toFixed(1) }}%</span>
+                </div>
+                <v-progress-linear
+                  :model-value="task.CurrentProgressPercentage || 0"
+                  color="success"
+                  height="4"
+                  rounded
+                  stream
+                />
               </div>
-            </v-card>
-          </v-col>
-        </v-row>
+            </template>
+          </v-card>
+        </div>
       </div>
     </div>
   </v-container>

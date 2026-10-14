@@ -617,16 +617,33 @@ onMounted(loadBookmarks)
           <v-btn v-if="duplicates.length > 0" variant="tonal" color="warning" size="small" prepend-icon="mdi-merge" @click="mergeAllDuplicates">自动合并</v-btn>
         </div>
 
-        <div v-if="duplicates.length > 0" class="d-flex flex-column ga-3">
-          <v-card v-for="group in duplicates" :key="group.url" variant="outlined" rounded="lg" class="pa-3">
-            <div class="d-flex align-center mb-2">
-              <div class="flex-grow-1">
-                <div class="text-body-2 font-weight-medium">{{ group.items[0]?.title || '无标题' }}</div>
-                <div class="text-caption text-medium-emphasis font-mono">{{ group.url }}</div>
+        <div v-if="duplicates.length > 0" class="card-grid">
+          <v-card
+            v-for="group in duplicates"
+            :key="group.url"
+            class="status-card liquid-glass-card"
+            rounded="lg"
+          >
+            <!-- 卡片头部：标题 + 重复处数 -->
+            <div class="card-header pa-4 pb-2">
+              <div class="card-title">
+                <v-icon start color="warning" size="20">mdi-content-duplicate</v-icon>
+                <span class="text-subtitle-2 font-weight-bold text-truncate">{{ group.items[0]?.title || '无标题' }}</span>
               </div>
-              <v-chip size="small" variant="tonal" color="warning">{{ group.count }} 处重复</v-chip>
+              <v-chip size="small" variant="tonal" color="warning" label>{{ group.count }} 处重复</v-chip>
             </div>
-            <div class="d-flex flex-column ga-1">
+
+            <!-- 信息行 -->
+            <div class="card-info card-info--stacked px-4 pb-2">
+              <div class="info-item">
+                <span class="info-label">URL</span>
+                <span class="font-mono text-caption text-medium-emphasis text-truncate" :title="group.url">{{ group.url }}</span>
+              </div>
+            </div>
+
+            <!-- 逐项选择保留 -->
+            <v-divider class="mt-2" />
+            <div class="d-flex flex-column ga-1 pa-3">
               <div v-for="item in group.items" :key="item.id" class="d-flex align-center justify-space-between pa-2 rounded" style="background:rgba(var(--v-theme-on-surface),0.03)">
                 <div class="d-flex align-center ga-2">
                   <v-icon size="16" color="warning">mdi-folder-outline</v-icon>
@@ -637,8 +654,8 @@ onMounted(loadBookmarks)
             </div>
           </v-card>
         </div>
-        <div v-else class="text-center py-8 text-medium-emphasis">
-          <v-icon size="48" color="grey" class="mb-2">mdi-check-circle-outline</v-icon>
+        <div v-else class="text-center py-12 text-medium-emphasis">
+          <v-icon size="64" color="grey" class="mb-4">mdi-check-circle-outline</v-icon>
           <div>未发现重复书签</div>
         </div>
       </div>

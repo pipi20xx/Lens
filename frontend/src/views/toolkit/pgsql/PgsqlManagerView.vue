@@ -750,22 +750,41 @@ onMounted(fetchHosts)
           <v-progress-linear v-if="dbInfoLoading" indeterminate color="primary" class="mb-4" />
 
           <div v-if="dbInfoList.length" class="card-grid">
-            <v-card v-for="db in dbInfoList" :key="db.name" variant="outlined" rounded="lg" class="pa-3">
-              <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-1">
-                <span class="font-weight-bold">{{ db.name }}</span>
-                <v-chip size="small" color="info" variant="tonal">{{ db.owner }}</v-chip>
+            <v-card
+              v-for="db in dbInfoList"
+              :key="db.name"
+              class="status-card liquid-glass-card"
+              rounded="lg"
+            >
+              <!-- 卡片头部：库名 + 所有者 -->
+              <div class="card-header pa-4 pb-2">
+                <div class="card-title">
+                  <v-icon start color="primary" size="20">mdi-database-outline</v-icon>
+                  <span class="text-subtitle-2 font-weight-bold text-truncate">{{ db.name }}</span>
+                </div>
+                <v-chip size="small" color="info" variant="tonal" label>{{ db.owner || '未知所有者' }}</v-chip>
               </div>
-              <div class="text-body-2 text-medium-emphasis mb-2" style="font-size:12px">
-                {{ db.description || '无描述' }}
+
+              <!-- 信息行：字段恒定渲染，保证同一排卡片行高对齐 -->
+              <div class="card-info card-info--stacked px-4 pb-2">
+                <div class="info-item">
+                  <span class="info-label">描述</span>
+                  <span class="text-caption text-medium-emphasis text-truncate-3">{{ db.description || '无描述' }}</span>
+                </div>
               </div>
-              <v-divider class="mb-2" />
-              <div class="d-flex flex-wrap ga-2">
+
+              <!-- 操作按钮 -->
+              <v-divider class="mt-2" />
+              <div class="d-flex flex-wrap ga-2 pa-3">
                 <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-pencil-outline" @click="openEditDb(db)">编辑</v-btn>
                 <v-btn size="small" variant="tonal" color="error" prepend-icon="mdi-delete-outline" @click="dropDatabase(db.name)">删除</v-btn>
               </div>
             </v-card>
           </div>
-          <div v-else-if="!dbInfoLoading" class="text-center py-12 text-medium-emphasis">暂无数据库</div>
+          <div v-else-if="!dbInfoLoading" class="text-center py-12 text-medium-emphasis">
+            <v-icon size="64" color="grey" class="mb-4">mdi-database-off-outline</v-icon>
+            <div>暂无数据库</div>
+          </div>
         </template>
       </v-window-item>
 
@@ -781,35 +800,50 @@ onMounted(fetchHosts)
           <v-progress-linear v-if="userLoading" indeterminate color="primary" class="mb-4" />
 
           <div v-if="userList.length" class="card-grid">
-            <v-card v-for="row in userList" :key="row.username" variant="outlined" rounded="lg" class="pa-3"
-              style="border-left:3px solid" :style="{ borderLeftColor: row.is_superuser ? '#EF4444' : row.can_login ? '#10B981' : 'transparent' }">
-              <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-1">
-                <div class="d-flex align-center ga-2">
-                  <span class="font-weight-bold">{{ row.username }}</span>
-                  <v-chip v-if="row.is_superuser" size="x-small" color="error" variant="tonal">超级用户</v-chip>
+            <v-card
+              v-for="row in userList"
+              :key="row.username"
+              class="status-card liquid-glass-card"
+              rounded="lg"
+            >
+              <!-- 卡片头部：角色名 + 登录状态 -->
+              <div class="card-header pa-4 pb-2">
+                <div class="card-title">
+                  <v-icon start color="primary" size="20">mdi-account-outline</v-icon>
+                  <span class="text-subtitle-2 font-weight-bold text-truncate">{{ row.username }}</span>
                 </div>
-                <v-chip :color="row.can_login ? 'success' : 'grey'" size="small" variant="tonal">
+                <v-chip :color="row.can_login ? 'success' : 'grey'" size="small" variant="tonal" label>
                   {{ row.can_login ? '可登录' : '不可登录' }}
                 </v-chip>
               </div>
 
-              <!-- 权限标签 -->
-              <div v-if="getPermTags(row).length" class="d-flex flex-wrap ga-1 mb-2">
-                <v-chip v-for="perm in getPermTags(row)" :key="perm.label" size="x-small" :color="perm.color" variant="tonal">{{ perm.label }}</v-chip>
+              <!-- 信息行：字段恒定渲染，保证同一排卡片行高对齐 -->
+              <div class="card-info card-info--stacked px-4 pb-2">
+                <div class="info-item">
+                  <span class="info-label">权限</span>
+                  <div v-if="getPermTags(row).length" class="d-flex flex-wrap ga-1">
+                    <v-chip v-for="perm in getPermTags(row)" :key="perm.label" size="x-small" :color="perm.color" variant="tonal">{{ perm.label }}</v-chip>
+                  </div>
+                  <span v-else class="text-caption text-medium-emphasis">普通角色</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">连接限制</span>
+                  <span class="text-caption text-medium-emphasis">{{ row.connection_limit === -1 ? '无限制' : (row.connection_limit ?? '默认') }}</span>
+                </div>
               </div>
 
-              <div v-if="row.connection_limit !== undefined && row.connection_limit !== null" class="text-caption text-medium-emphasis mb-2">
-                连接限制: {{ row.connection_limit === -1 ? '无限制' : row.connection_limit }}
-              </div>
-
-              <v-divider class="mb-2" />
-              <div class="d-flex flex-wrap ga-2">
+              <!-- 操作按钮 -->
+              <v-divider class="mt-2" />
+              <div class="d-flex flex-wrap ga-2 pa-3">
                 <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-pencil-outline" @click="openEditUser(row)">编辑</v-btn>
                 <v-btn size="small" variant="tonal" color="error" prepend-icon="mdi-delete-outline" @click="dropUser(row.username)">删除</v-btn>
               </div>
             </v-card>
           </div>
-          <div v-else-if="!userLoading" class="text-center py-12 text-medium-emphasis">暂无用户</div>
+          <div v-else-if="!userLoading" class="text-center py-12 text-medium-emphasis">
+            <v-icon size="64" color="grey" class="mb-4">mdi-account-off-outline</v-icon>
+            <div>暂无用户</div>
+          </div>
         </template>
       </v-window-item>
 
@@ -825,25 +859,46 @@ onMounted(fetchHosts)
 
         <v-progress-linear v-if="backupLoading" indeterminate color="primary" class="mb-4" />
 
-        <div v-if="backupList.length" class="d-flex flex-column ga-3">
-          <v-card v-for="row in backupList" :key="row.filename" variant="outlined" rounded="lg" class="pa-3"
-            style="border-left:3px solid #3B82F6">
-            <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-1">
-              <span class="font-weight-bold font-mono" style="font-size:13px">{{ row.filename }}</span>
-              <v-chip size="small" color="info" variant="tonal">{{ row.db_name }}</v-chip>
+        <div v-if="backupList.length" class="card-grid">
+          <v-card
+            v-for="row in backupList"
+            :key="row.filename"
+            class="status-card liquid-glass-card"
+            rounded="lg"
+          >
+            <!-- 卡片头部：文件名 + 所属库 -->
+            <div class="card-header pa-4 pb-2">
+              <div class="card-title">
+                <v-icon start color="primary" size="20">mdi-database-arrow-down-outline</v-icon>
+                <span class="font-mono text-caption font-weight-bold text-truncate" :title="row.filename">{{ row.filename }}</span>
+              </div>
+              <v-chip size="small" color="info" variant="tonal" label>{{ row.db_name }}</v-chip>
             </div>
-            <div class="d-flex flex-wrap ga-4 text-caption text-medium-emphasis mb-2">
-              <span>大小: {{ formatSize(row.size) }}</span>
-              <span>创建时间: {{ formatDate(row.created_at) }}</span>
+
+            <!-- 信息行：字段恒定渲染，保证同一排卡片行高对齐 -->
+            <div class="card-info card-info--stacked px-4 pb-2">
+              <div class="info-item">
+                <span class="info-label">大小</span>
+                <span class="text-caption text-medium-emphasis">{{ formatSize(row.size) }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">创建时间</span>
+                <span class="text-caption text-medium-emphasis">{{ formatDate(row.created_at) }}</span>
+              </div>
             </div>
-            <v-divider class="mb-2" />
-            <div class="d-flex flex-wrap ga-2">
+
+            <!-- 操作按钮 -->
+            <v-divider class="mt-2" />
+            <div class="d-flex flex-wrap ga-2 pa-3">
               <v-btn size="small" variant="tonal" color="warning" prepend-icon="mdi-restore" @click="openRestoreModal(row)">还原</v-btn>
               <v-btn size="small" variant="tonal" color="error" prepend-icon="mdi-delete-outline" @click="deleteBackup(row.filename)">删除</v-btn>
             </div>
           </v-card>
         </div>
-        <div v-else-if="!backupLoading" class="text-center py-12 text-medium-emphasis">暂无备份文件</div>
+        <div v-else-if="!backupLoading" class="text-center py-12 text-medium-emphasis">
+          <v-icon size="64" color="grey" class="mb-4">mdi-database-off-outline</v-icon>
+          <div>暂无备份文件</div>
+        </div>
       </v-window-item>
     </v-window>
 
@@ -868,7 +923,10 @@ onMounted(fetchHosts)
           </div>
         </v-card>
       </div>
-      <div v-else class="text-center py-8 text-medium-emphasis">暂无主机配置，请点击"添加新主机"</div>
+      <div v-else class="text-center py-12 text-medium-emphasis">
+        <v-icon size="64" color="grey" class="mb-4">mdi-server-off</v-icon>
+        <div>暂无主机配置，请点击"添加新主机"</div>
+      </div>
     </GlassDialog>
 
     <!-- ==================== 添加/编辑主机弹窗 ==================== -->

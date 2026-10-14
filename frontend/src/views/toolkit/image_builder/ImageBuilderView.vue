@@ -571,40 +571,44 @@ onMounted(() => {
         <v-progress-linear v-if="projectsLoading" indeterminate color="primary" class="mb-4" />
 
         <div v-if="projects.length" class="card-grid">
-          <v-card v-for="row in projects" :key="row.id" class="liquid-glass-card" rounded="xl">
-            <div class="pa-4 d-flex flex-column h-100">
-              <!-- 头部：项目名 + 仓库标签 -->
-              <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-2">
-                <span class="text-subtitle-1 font-weight-bold">{{ row.name }}</span>
-                <v-chip v-if="getRegistry(row.registry_id)" size="small" color="warning" variant="tonal">
+          <v-card v-for="row in projects" :key="row.id" class="status-card liquid-glass-card" rounded="lg">
+            <!-- 卡片头部：项目名 + 仓库标签 -->
+            <div class="card-header pa-4 pb-2">
+              <div class="card-title">
+                <v-icon start color="primary" size="20">mdi-folder-outline</v-icon>
+                <span class="text-subtitle-2 font-weight-bold text-truncate" :title="row.name">{{ row.name }}</span>
+                <v-chip v-if="getRegistry(row.registry_id)" size="x-small" color="warning" variant="tonal" class="ml-1">
                   {{ getRegistry(row.registry_id).name }}
                 </v-chip>
-                <v-chip v-else size="small" variant="tonal">默认仓库</v-chip>
+                <v-chip v-else size="x-small" variant="tonal" class="ml-1">默认仓库</v-chip>
               </div>
+            </div>
 
-              <!-- 远程镜像名 -->
-              <div class="text-body-2 text-medium-emphasis mb-2" style="word-break:break-all">
-                远程镜像: {{ row.repo_image_name || '-' }}
+            <!-- 信息行：字段恒定渲染，保证同一排卡片行高对齐 -->
+            <div class="card-info card-info--stacked px-4 pb-2">
+              <div class="info-item">
+                <span class="info-label">远程镜像</span>
+                <span class="text-caption text-medium-emphasis text-truncate" :title="row.repo_image_name || '--'">{{ row.repo_image_name || '--' }}</span>
               </div>
+            </div>
 
-              <!-- 平台标签 -->
-              <div class="d-flex flex-wrap ga-1 mb-3">
-                <v-chip v-for="p in splitPlatforms(row.platforms)" :key="p" size="small" color="info" variant="tonal" label>{{ p }}</v-chip>
-              </div>
+            <!-- 平台标签 -->
+            <div class="d-flex flex-wrap ga-1 px-4 pb-2">
+              <v-chip v-for="p in splitPlatforms(row.platforms)" :key="p" size="x-small" color="info" variant="tonal" label>{{ p }}</v-chip>
+            </div>
 
-              <!-- Tag 输入 + 构建 -->
-              <div class="d-flex ga-2 mb-3" style="max-width:360px">
-                <v-text-field v-model="projectTags[row.id]" density="compact" variant="outlined" label="Tag" hide-details style="flex:0 0 120px" />
-                <v-btn color="primary" variant="tonal" size="small" prepend-icon="mdi-play" @click="directBuild(row)">立即构建</v-btn>
-              </div>
+            <!-- Tag 输入 + 构建 -->
+            <div class="d-flex ga-2 px-4 pb-3" style="max-width:360px">
+              <v-text-field v-model="projectTags[row.id]" density="compact" variant="outlined" label="Tag" hide-details style="flex:0 0 120px" />
+              <v-btn color="primary" variant="tonal" size="small" prepend-icon="mdi-play" @click="directBuild(row)">立即构建</v-btn>
+            </div>
 
-              <v-divider class="mb-2 mt-auto" />
-              <!-- 操作按钮 -->
-              <div class="d-flex flex-wrap ga-2 pt-1">
-                <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-history" @click="openHistory(row)">查看历史</v-btn>
-                <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-pencil-outline" @click="openEditProject(row)">修改</v-btn>
-                <v-btn size="small" variant="tonal" color="error" prepend-icon="mdi-delete-outline" @click="deleteProject(row)">删除</v-btn>
-              </div>
+            <!-- 操作按钮 -->
+            <v-divider class="mt-2" />
+            <div class="d-flex flex-wrap ga-2 pa-3">
+              <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-history" @click="openHistory(row)">查看历史</v-btn>
+              <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-pencil-outline" @click="openEditProject(row)">修改</v-btn>
+              <v-btn size="small" variant="tonal" color="error" prepend-icon="mdi-delete-outline" @click="deleteProject(row)">删除</v-btn>
             </div>
           </v-card>
         </div>
@@ -628,16 +632,29 @@ onMounted(() => {
           <v-divider />
           <div class="pa-4">
             <div v-if="regList.length" class="card-grid">
-              <v-card v-for="row in regList" :key="row.id" variant="outlined" rounded="lg" class="pa-3">
-                <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-1">
-                  <span class="font-weight-bold">{{ row.name }}</span>
-                  <v-chip :color="row.is_https ? 'success' : 'warning'" size="small" variant="tonal">
+              <v-card v-for="row in regList" :key="row.id" class="status-card liquid-glass-card" rounded="lg">
+                <!-- 卡片头部：仓库名 + 协议 -->
+                <div class="card-header pa-4 pb-2">
+                  <div class="card-title">
+                    <v-icon start color="primary" size="20">mdi-database-outline</v-icon>
+                    <span class="text-subtitle-2 font-weight-bold text-truncate" :title="row.name">{{ row.name }}</span>
+                  </div>
+                  <v-chip :color="row.is_https ? 'success' : 'warning'" size="small" variant="tonal" label>
                     {{ row.is_https ? 'HTTPS' : 'HTTP' }}
                   </v-chip>
                 </div>
-                <div class="text-body-2 text-medium-emphasis mb-2" style="word-break:break-all">{{ row.url }}</div>
-                <v-divider class="mb-2" />
-                <div class="d-flex flex-wrap ga-2">
+
+                <!-- 信息行：字段恒定渲染，保证同一排卡片行高对齐 -->
+                <div class="card-info card-info--stacked px-4 pb-2">
+                  <div class="info-item">
+                    <span class="info-label">URL</span>
+                    <span class="text-caption text-medium-emphasis text-truncate" :title="row.url">{{ row.url || '--' }}</span>
+                  </div>
+                </div>
+
+                <!-- 操作按钮 -->
+                <v-divider class="mt-2" />
+                <div class="d-flex flex-wrap ga-2 pa-3">
                   <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-lan-connect" :loading="testingRegId === row.id" @click="testRegistry(row.id)">测试</v-btn>
                   <v-btn size="small" variant="tonal" color="warning" prepend-icon="mdi-pencil-outline" @click="openEditRegistry(row)">编辑</v-btn>
                   <v-btn size="small" variant="tonal" color="error" prepend-icon="mdi-delete-outline" @click="deleteRegistry(row.id)">删除</v-btn>
@@ -657,13 +674,26 @@ onMounted(() => {
           <v-divider />
           <div class="pa-4">
             <div v-if="credList.length" class="card-grid">
-              <v-card v-for="row in credList" :key="row.id" variant="outlined" rounded="lg" class="pa-3">
-                <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-1">
-                  <span class="font-weight-bold">{{ row.name }}</span>
-                  <v-chip size="small" color="info" variant="tonal">{{ row.username }}</v-chip>
+              <v-card v-for="row in credList" :key="row.id" class="status-card liquid-glass-card" rounded="lg">
+                <!-- 卡片头部：凭据名 -->
+                <div class="card-header pa-4 pb-2">
+                  <div class="card-title">
+                    <v-icon start color="primary" size="20">mdi-key-outline</v-icon>
+                    <span class="text-subtitle-2 font-weight-bold text-truncate" :title="row.name">{{ row.name }}</span>
+                  </div>
                 </div>
-                <v-divider class="mb-2 mt-2" />
-                <div class="d-flex flex-wrap ga-2">
+
+                <!-- 信息行：字段恒定渲染，保证同一排卡片行高对齐 -->
+                <div class="card-info card-info--stacked px-4 pb-2">
+                  <div class="info-item">
+                    <span class="info-label">用户名</span>
+                    <span class="text-caption text-medium-emphasis text-truncate" :title="row.username">{{ row.username || '--' }}</span>
+                  </div>
+                </div>
+
+                <!-- 操作按钮 -->
+                <v-divider class="mt-2" />
+                <div class="d-flex flex-wrap ga-2 pa-3">
                   <v-btn size="small" variant="tonal" color="warning" prepend-icon="mdi-pencil-outline" @click="openEditCredential(row)">编辑</v-btn>
                   <v-btn size="small" variant="tonal" color="error" prepend-icon="mdi-delete-outline" @click="deleteCredential(row.id)">删除</v-btn>
                 </div>
@@ -688,14 +718,27 @@ onMounted(() => {
             <v-progress-linear v-if="proxyLoading" indeterminate color="primary" class="mb-4" />
 
             <div v-if="proxyList.length" class="card-grid">
-              <v-card v-for="row in proxyList" :key="row.id" variant="outlined" rounded="lg" class="pa-3">
-                <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-1">
-                  <span class="font-weight-bold">{{ row.name }}</span>
-                  <v-chip v-if="row.username" size="small" color="info" variant="tonal">已鉴权</v-chip>
+              <v-card v-for="row in proxyList" :key="row.id" class="status-card liquid-glass-card" rounded="lg">
+                <!-- 卡片头部：代理名 + 鉴权状态 -->
+                <div class="card-header pa-4 pb-2">
+                  <div class="card-title">
+                    <v-icon start color="primary" size="20">mdi-swap-horizontal</v-icon>
+                    <span class="text-subtitle-2 font-weight-bold text-truncate" :title="row.name">{{ row.name }}</span>
+                  </div>
+                  <v-chip v-if="row.username" size="small" color="info" variant="tonal" label>已鉴权</v-chip>
                 </div>
-                <div class="text-body-2 text-medium-emphasis mb-2" style="word-break:break-all">{{ row.url }}</div>
-                <v-divider class="mb-2" />
-                <div class="d-flex flex-wrap ga-2">
+
+                <!-- 信息行：字段恒定渲染，保证同一排卡片行高对齐 -->
+                <div class="card-info card-info--stacked px-4 pb-2">
+                  <div class="info-item">
+                    <span class="info-label">代理地址</span>
+                    <span class="text-caption text-medium-emphasis text-truncate" :title="row.url">{{ row.url || '--' }}</span>
+                  </div>
+                </div>
+
+                <!-- 操作按钮 -->
+                <v-divider class="mt-2" />
+                <div class="d-flex flex-wrap ga-2 pa-3">
                   <v-btn size="small" variant="tonal" color="warning" prepend-icon="mdi-pencil-outline" @click="openEditProxy(row)">编辑</v-btn>
                   <v-btn size="small" variant="tonal" color="error" prepend-icon="mdi-delete-outline" @click="deleteProxy(row.id)">删除</v-btn>
                 </div>
@@ -836,31 +879,56 @@ onMounted(() => {
     <!-- ==================== 构建历史弹窗 ==================== -->
     <GlassDialog v-model="showHistoryDialog" :max-width="800" icon="mdi-history" :title="'构建历史 —' + (historyProjectName)" cancel-text="关闭">
   <v-progress-linear v-if="historyLoading" indeterminate color="primary" class="mb-4" />
-          <div v-if="historyTasks.length" class="d-flex flex-column ga-3">
-            <v-card v-for="row in historyTasks" :key="row.id" variant="outlined" rounded="lg" class="pa-3">
-              <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-1">
-                <span class="font-weight-bold" style="overflow:hidden;text-overflow:ellipsis">{{ row.image_name || row.tag || '-' }}</span>
-                <v-chip :color="getStatusConfig(row.status).color" size="small" variant="tonal">
+          <div v-if="historyTasks.length" class="card-grid card-grid--stack">
+            <v-card v-for="row in historyTasks" :key="row.id" class="status-card liquid-glass-card" rounded="lg">
+              <!-- 卡片头部：镜像名 + 状态 -->
+              <div class="card-header pa-4 pb-2">
+                <div class="card-title">
+                  <v-icon start color="primary" size="20">mdi-history</v-icon>
+                  <span class="text-subtitle-2 font-weight-bold text-truncate" :title="row.image_name || row.tag || '--'">{{ row.image_name || row.tag || '--' }}</span>
+                </div>
+                <v-chip :color="getStatusConfig(row.status).color" size="small" variant="tonal" label>
                   {{ getStatusConfig(row.status).label }}
                 </v-chip>
               </div>
-              <div v-if="row.platforms" class="d-flex flex-wrap ga-1 mb-2">
+
+              <!-- 信息行：字段恒定渲染，保证同一排卡片行高对齐 -->
+              <div class="card-info card-info--stacked px-4 pb-2">
+                <div class="info-item">
+                  <span class="info-label">构建主机</span>
+                  <span class="text-caption text-medium-emphasis text-truncate" :title="row.host_name">{{ row.host_name || '--' }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">开始</span>
+                  <span class="text-caption text-medium-emphasis">{{ formatDate(row.created_at) }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">完成</span>
+                  <span class="text-caption text-medium-emphasis">{{ row.completed_at ? formatDate(row.completed_at) : '--' }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">耗时</span>
+                  <span class="text-caption text-medium-emphasis">{{ row.completed_at && row.created_at ? formatDuration(row.created_at, row.completed_at) : '--' }}</span>
+                </div>
+              </div>
+
+              <!-- 平台标签 -->
+              <div v-if="row.platforms" class="d-flex flex-wrap ga-1 px-4 pb-2">
                 <v-chip v-for="p in splitPlatforms(row.platforms)" :key="p" size="x-small" color="info" variant="tonal" label>{{ p }}</v-chip>
               </div>
-              <div class="d-flex flex-wrap ga-2 text-caption text-medium-emphasis mb-2">
-                <span v-if="row.host_name">构建主机: {{ row.host_name }}</span>
-                <span>开始: {{ formatDate(row.created_at) }}</span>
-                <span v-if="row.completed_at">完成: {{ formatDate(row.completed_at) }}</span>
-                <span v-if="row.completed_at && row.created_at">耗时: {{ formatDuration(row.created_at, row.completed_at) }}</span>
-              </div>
-              <v-divider class="mb-2" />
-              <div class="d-flex ga-2">
+
+              <!-- 操作按钮 -->
+              <v-divider class="mt-2" />
+              <div class="d-flex flex-wrap ga-2 pa-3">
                 <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-text-box-outline" @click="viewLog(row)">查看日志</v-btn>
                 <v-btn size="small" variant="tonal" color="error" prepend-icon="mdi-delete-outline" @click="deleteTaskLog(row.id)">删除</v-btn>
               </div>
             </v-card>
           </div>
-          <div v-else-if="!historyLoading" class="text-center py-8 text-medium-emphasis">暂无构建历史</div>
+          <div v-else-if="!historyLoading" class="text-center py-12 text-medium-emphasis">
+            <v-icon size="64" color="grey" class="mb-4">mdi-history</v-icon>
+            <div>暂无构建历史</div>
+          </div>
 </GlassDialog>
 
     <!-- ==================== 日志查看器弹窗 ==================== -->

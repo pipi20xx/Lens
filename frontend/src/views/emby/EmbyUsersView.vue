@@ -152,7 +152,7 @@ onMounted(loadUsers)
       <v-icon start>mdi-account-group-outline</v-icon>
       Emby 用户管理
     </h1>
-    <p class="text-body-2 text-medium-emphasis mb-4">管理您的 Emby 服务器用户、权限策略及密码。</p>
+    <p class="text-body-2 text-medium-emphasis mb-6">管理您的 Emby 服务器用户、权限策略及密码。</p>
 
     <!-- 高危警告 -->
     <v-alert variant="tonal" type="error" density="compact" class="mb-4" rounded="lg">
@@ -176,41 +176,54 @@ onMounted(loadUsers)
 
       <!-- 用户卡片列表 -->
       <v-card-text class="pa-4">
-        <div v-if="loading" class="text-center py-8"><v-progress-circular indeterminate color="primary" /></div>
-        <div v-else-if="!users.length" class="text-center py-8 text-medium-emphasis">
-          <v-icon size="48" color="grey" class="mb-2">mdi-account-off-outline</v-icon>
+        <v-progress-linear v-if="loading" indeterminate color="primary" class="mb-4" />
+        <div v-else-if="!users.length" class="text-center py-12 text-medium-emphasis">
+          <v-icon size="64" color="grey" class="mb-4">mdi-account-off-outline</v-icon>
           <div>暂无用户数据</div>
         </div>
         <div v-else>
           <div class="card-grid">
-            <v-card v-for="user in users" :key="user.Id" variant="outlined" rounded="lg" class="pa-4 d-flex flex-column">
-              <div class="d-flex align-center flex-wrap ga-2">
-                <v-avatar color="primary" variant="tonal" size="40" rounded="xl">
-                  <v-icon icon="mdi-account" size="20" />
-                </v-avatar>
-                <div class="flex-grow-1" style="min-width:0">
-                  <div class="text-subtitle-2 font-weight-bold text-truncate">{{ user.Name }}</div>
-                  <div class="text-caption text-medium-emphasis font-mono text-truncate">ID: {{ user.Id }}</div>
+            <v-card
+              v-for="user in users"
+              :key="user.Id"
+              class="status-card liquid-glass-card"
+              rounded="lg"
+            >
+              <!-- 卡片头部：名称 + 状态 -->
+              <div class="card-header pa-4 pb-2">
+                <div class="card-title">
+                  <v-icon start color="primary" size="20">mdi-account</v-icon>
+                  <span class="text-subtitle-2 font-weight-bold text-truncate">{{ user.Name }}</span>
+                  <v-chip v-if="user.Policy?.IsHidden" size="x-small" variant="tonal" class="ml-1">隐藏</v-chip>
                 </div>
-                <div class="d-flex flex-wrap ga-1">
-                  <v-chip v-if="user.Policy?.IsDisabled" size="x-small" color="error" variant="tonal">禁用</v-chip>
-                  <v-chip v-if="user.Policy?.IsAdministrator" size="x-small" color="warning" variant="tonal">管理员</v-chip>
-                  <v-chip v-if="user.Policy?.IsHidden" size="x-small" variant="tonal">隐藏</v-chip>
-                  <v-chip v-if="!user.Policy?.IsDisabled && !user.Policy?.IsAdministrator && !user.Policy?.IsHidden" size="x-small" color="success" variant="tonal">正常</v-chip>
-                </div>
+                <v-chip
+                  :color="user.Policy?.IsDisabled ? 'error' : user.Policy?.IsAdministrator ? 'warning' : 'success'"
+                  size="small"
+                  variant="tonal"
+                  label
+                >
+                  {{ user.Policy?.IsDisabled ? '禁用' : user.Policy?.IsAdministrator ? '管理员' : '正常' }}
+                </v-chip>
               </div>
 
-              <!-- 最近活动 -->
-              <div class="text-caption text-medium-emphasis mt-2">
-                最近活动: {{ user.LastActivityDate ? new Date(user.LastActivityDate).toLocaleString() : '从未登录' }}
+              <!-- 信息行：字段恒定渲染，保证同一排卡片行高对齐 -->
+              <div class="card-info card-info--stacked px-4 pb-2">
+                <div class="info-item">
+                  <span class="info-label">ID</span>
+                  <span class="font-mono text-caption text-medium-emphasis text-truncate" :title="user.Id">{{ user.Id }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">最近活动</span>
+                  <span class="text-caption text-medium-emphasis">{{ user.LastActivityDate ? new Date(user.LastActivityDate).toLocaleString() : '从未登录' }}</span>
+                </div>
               </div>
 
               <!-- 操作按钮 -->
-              <v-divider class="mb-2 mt-2" />
-              <div class="d-flex flex-wrap ga-1">
-                <v-btn size="x-small" variant="tonal" color="info" prepend-icon="mdi-cog-outline" @click="openEdit(user)">设置</v-btn>
-                <v-btn size="x-small" variant="tonal" color="warning" prepend-icon="mdi-backup-restore" @click="handleDirectBackup(user)">备份</v-btn>
-                <v-btn size="x-small" color="error" variant="tonal" prepend-icon="mdi-delete-outline" @click="deleteUser(user.Id, user.Name)">删除</v-btn>
+              <v-divider class="mt-2" />
+              <div class="d-flex flex-wrap ga-2 pa-3">
+                <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-cog-outline" @click="openEdit(user)">设置</v-btn>
+                <v-btn size="small" variant="tonal" color="warning" prepend-icon="mdi-backup-restore" @click="handleDirectBackup(user)">备份</v-btn>
+                <v-btn size="small" color="error" variant="tonal" prepend-icon="mdi-delete-outline" @click="deleteUser(user.Id, user.Name)">删除</v-btn>
               </div>
             </v-card>
           </div>
