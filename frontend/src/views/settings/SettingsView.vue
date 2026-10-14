@@ -26,7 +26,7 @@ const globalConfig = ref<any>({
   bangumi_api_token: '',
   tvdb_api_key: '',
   gitea: { base: '', username: '', token: '', repo: '', branch: 'main', file_path: '', no_ssl: false },
-  github: { base: 'https://api.github.com', token: '', repo: '', branch: 'main', file_path: '' },
+  github: { base: 'https://api.github.com', token: '', repo: '', branch: 'main', file_path: '', no_ssl: false },
   sytmdb: { base: '', token: '' },
   proxy: { enabled: false, url: '', exclude_emby: true },
   session_never_expire: false,
@@ -89,6 +89,7 @@ async function loadAll() {
         repo: cfg.github?.repo || '',
         branch: cfg.github?.branch || 'main',
         file_path: cfg.github?.file_path || '',
+        no_ssl: cfg.github?.no_ssl || false,
       },
       sytmdb: {
         base: cfg.sytmdb?.base || '',
@@ -406,6 +407,8 @@ onMounted(loadAll)
                 <v-text-field v-model="globalConfig.github.file_path" label="渲染词文件路径"
                   variant="outlined" density="compact" placeholder="anime/animeifre.txt"
                   hint="番剧分季拆分的渲染词推送目标文件（GitHub 仓库）" persistent-hint />
+                <v-switch v-model="globalConfig.github.no_ssl" class="mt-1"
+                  label="忽略 SSL 证书验证（GHES 自签名证书）" density="compact" color="primary" hide-details />
               </v-card-text>
               <v-divider />
               <div class="d-flex justify-end pa-4">

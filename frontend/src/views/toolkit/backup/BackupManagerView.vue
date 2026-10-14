@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { backupApi } from '@/api/backup'
-import type { BackupTask, BackupHistory, PathBrowserItem, GiteaRepo } from '@/api/backup'
+import type { BackupTask, BackupHistory, PathBrowserItem, GitRepo, RepoProvider } from '@/api/backup'
 import { pgsqlApi } from '@/api/pgsql'
 import { dockerApi } from '@/api/docker'
 import { useNotification } from '@/composables'
@@ -188,9 +188,9 @@ const editTask = ref<BackupTask>({
   schedule_value: '0 3 * * *',
   ignore_patterns: [],
   host_id: 'local',
-  gitea_repos: [],
-  gitea_format: 'tar.gz',
-  gitea_ref: '',
+  repo_list: [],
+  repo_format: 'tar.gz',
+  repo_ref: '',
 })
 
 const defaultTask = (): BackupTask => ({
@@ -206,46 +206,57 @@ const defaultTask = (): BackupTask => ({
   schedule_value: '0 3 * * *',
   ignore_patterns: [],
   host_id: 'local',
-  gitea_repos: [],
-  gitea_format: 'tar.gz',
-  gitea_ref: '',
+  repo_list: [],
+  repo_format: 'tar.gz',
+  repo_ref: '',
 })
 
-// ========== Gitea 仓库（复用系统设置里的 Gitea 连接配置）==========
-const giteaRepos = ref<GiteaRepo[]>([])
-const giteaReposLoading = ref(false)
-const giteaReposError = ref('')
+// ========== 代码仓库（Gitea / GitHub，复用系统设置里对应的连接配置）==========
+const gitRepos = ref<GitRepo[]>([])
+const gitReposLoading = ref(false)
+const gitReposError = ref('')
 // 「全部可见仓库」在数据层是空列表；用独立的 UI 状态表达，避免多选框空着被误读成"一个都没选"
-const giteaScope = ref<'all' | 'pick'>('all')
+const repoScope = ref<'all' | 'pick'>('all')
 
-const giteaRepoOptions = computed(() =>
-  giteaRepos.value.map((r) => ({
+// gitea / github 共用同一套仓库表单与卡片展示
+function isRepoModeValue(mode?: string) {
+  return mode === 'gitea' || mode === 'github'
+}
+
+const isRepoMode = computed(() => isRepoModeValue(editTask.value.mode))
+// 只有文件类模式才需要 存储介质 / 源路径 / 忽略模式
+const isFileMode = computed(() => ['7z', 'tar', 'sync'].includes(editTask.value.mode))
+
+const repoProvider = computed<RepoProvider>(() => (editTask.value.mode === 'github' ? 'github' : 'gitea'))
+const repoProviderLabel = computed(() => (repoProvider.value === 'github' ? 'GitHub' : 'Gitea'))
+
+const gitRepoOptions = computed(() =>
+  gitRepos.value.map((r) => ({
     title: r.private ? `🔒 ${r.full_name}` : r.full_name,
     value: r.full_name,
   }))
 )
 
-// 只有文件类模式才需要 存储介质 / 源路径 / 忽略模式
-const isFileMode = computed(() => ['7z', 'tar', 'sync'].includes(editTask.value.mode))
-
-async function fetchGiteaRepos() {
-  giteaReposLoading.value = true
-  giteaReposError.value = ''
+async function fetchRepos() {
+  const provider = repoProvider.value
+  const label = repoProviderLabel.value
+  gitReposLoading.value = true
+  gitReposError.value = ''
   try {
-    const data = await backupApi.listGiteaRepos()
-    giteaRepos.value = Array.isArray(data) ? data : []
-    if (!giteaRepos.value.length) giteaReposError.value = '该账号下没有可见的仓库'
+    const data = await backupApi.listRepos(provider)
+    gitRepos.value = Array.isArray(data) ? data : []
+    if (!gitRepos.value.length) gitReposError.value = '该账号下没有可见的仓库'
   } catch (e: any) {
-    giteaRepos.value = []
-    giteaReposError.value = e?.message || '读取 Gitea 仓库列表失败'
+    gitRepos.value = []
+    gitReposError.value = e?.message || `读取 ${label} 仓库列表失败`
   } finally {
-    giteaReposLoading.value = false
+    gitReposLoading.value = false
   }
 }
 
 // 卡片上显示备份范围：空列表 = 全部可见仓库
-function giteaScopeSummary(row: BackupTask) {
-  const list = row.gitea_repos || []
+function repoScopeSummary(row: BackupTask) {
+  const list = row.repo_list || row.gitea_repos || []
   if (!list.length) return '全部可见仓库'
   if (list.length <= 3) return list.join('、')
   return `${list.length} 个指定仓库`
@@ -253,24 +264,25 @@ function giteaScopeSummary(row: BackupTask) {
 
 function handleAddTask() {
   editTask.value = defaultTask()
-  giteaScope.value = 'all'
+  repoScope.value = 'all'
   showEditModal.value = true
 }
 
 function handleEditTask(row: BackupTask) {
   // 用默认值兜底：老任务可能没有后来新增的字段，也可能存了 null
   editTask.value = { ...defaultTask(), ...row }
-  if (!Array.isArray(editTask.value.gitea_repos)) editTask.value.gitea_repos = []
+  const scope = editTask.value.repo_list || editTask.value.gitea_repos
+  editTask.value.repo_list = Array.isArray(scope) ? scope : []
   if (!Array.isArray(editTask.value.ignore_patterns)) editTask.value.ignore_patterns = []
-  giteaScope.value = row.gitea_repos?.length ? 'pick' : 'all'
+  repoScope.value = editTask.value.repo_list.length ? 'pick' : 'all'
   showEditModal.value = true
 }
 
 async function saveTask() {
   try {
     // 「全部可见仓库」在数据层用空列表表示
-    if (editTask.value.mode === 'gitea' && giteaScope.value === 'all') {
-      editTask.value.gitea_repos = []
+    if (isRepoMode.value && repoScope.value === 'all') {
+      editTask.value.repo_list = []
     }
     await backupApi.saveTask(editTask.value)
     success('保存成功')
@@ -288,6 +300,7 @@ const modeOptions = [
   { title: '物理增量镜像 (Sync)', value: 'sync' },
   { title: 'PostgreSQL 数据库备份', value: 'pgsql' },
   { title: 'Gitea 仓库归档下载', value: 'gitea' },
+  { title: 'GitHub 仓库归档下载', value: 'github' },
 ]
 
 const storageOptions = [
@@ -314,7 +327,7 @@ const presetPatterns = [
 ]
 
 const storageLabels: Record<string, string> = { ssd: 'SSD', hdd: 'HDD', cloud: '云盘' }
-const modeLabels: Record<string, string> = { '7z': '7z 压缩', tar: 'Tar 打包', sync: 'Sync 同步', pgsql: 'PG 备份', gitea: 'Gitea 仓库' }
+const modeLabels: Record<string, string> = { '7z': '7z 压缩', tar: 'Tar 打包', sync: 'Sync 同步', pgsql: 'PG 备份', gitea: 'Gitea 仓库', github: 'GitHub 仓库' }
 
 // ========== 简化计划配置 ==========
 const simpleScheduleMode = ref('daily')
@@ -424,9 +437,13 @@ watch(() => editTask.value.mode, (newVal) => {
   if (newVal === 'pgsql') {
     if (editTask.value.pgsql_host_id) fetchPgDatabases(editTask.value.pgsql_host_id)
     if (!editTask.value.dst_path) editTask.value.dst_path = 'data/backups/pg'
-  } else if (newVal === 'gitea') {
-    if (!editTask.value.dst_path) editTask.value.dst_path = 'data/backups/gitea'
-    if (!giteaRepos.value.length && !giteaReposLoading.value) fetchGiteaRepos()
+  } else if (newVal === 'gitea' || newVal === 'github') {
+    if (!editTask.value.dst_path) {
+      editTask.value.dst_path = newVal === 'github' ? 'data/backups/github' : 'data/backups/gitea'
+    }
+    // 换 provider 时清空，避免看到上一个平台的仓库
+    gitRepos.value = []
+    fetchRepos()
   } else if (newVal === '7z' || newVal === 'tar') {
     if (!editTask.value.dst_path) editTask.value.dst_path = 'data/backups/files'
   }
@@ -613,8 +630,8 @@ onUnmounted(() => {
                 <v-chip size="x-small" variant="tonal" color="info" label>{{ modeLabels[row.mode] || row.mode || '--' }}</v-chip>
               </div>
               <div class="info-item">
-                <span class="info-label">{{ row.mode === 'gitea' ? '归档格式' : '介质' }}</span>
-                <span class="text-caption text-medium-emphasis">{{ row.mode === 'gitea' ? (row.gitea_format || 'tar.gz') : (storageLabels[row.storage_type] || 'SSD') }}</span>
+                <span class="info-label">{{ isRepoModeValue(row.mode) ? '归档格式' : '介质' }}</span>
+                <span class="text-caption text-medium-emphasis">{{ isRepoModeValue(row.mode) ? (row.repo_format || row.gitea_format || 'tar.gz') : (storageLabels[row.storage_type] || 'SSD') }}</span>
               </div>
               <div class="info-item">
                 <span class="info-label">计划</span>
@@ -624,7 +641,7 @@ onUnmounted(() => {
               <!-- 每个模式在这一行放各自最关键的"来源"：数据库 / 仓库范围 / 源路径。
                    三种情况都恒定占一行，行数才不会随模式变化 -->
               <div class="info-item">
-                <span class="info-label">{{ row.mode === 'pgsql' ? '数据库' : (row.mode === 'gitea' ? '仓库范围' : '源路径') }}</span>
+                <span class="info-label">{{ row.mode === 'pgsql' ? '数据库' : (isRepoModeValue(row.mode) ? '仓库范围' : '源路径') }}</span>
                 <span
                   v-if="row.mode === 'pgsql'"
                   class="text-caption text-truncate"
@@ -632,10 +649,10 @@ onUnmounted(() => {
                   :title="(row.db_names || []).join(', ')"
                 >{{ (row.db_names || []).join(', ') || '--' }}</span>
                 <span
-                  v-else-if="row.mode === 'gitea'"
+                  v-else-if="isRepoModeValue(row.mode)"
                   class="text-caption text-truncate"
-                  :title="(row.gitea_repos || []).join(', ')"
-                >{{ giteaScopeSummary(row) }}</span>
+                  :title="(row.repo_list || row.gitea_repos || []).join(', ')"
+                >{{ repoScopeSummary(row) }}</span>
                 <span
                   v-else
                   class="font-mono text-caption text-truncate"
@@ -650,22 +667,22 @@ onUnmounted(() => {
               </div>
 
               <div class="info-item">
-                <span class="info-label">{{ row.mode === 'gitea' ? '分支 / 标签' : '压缩级别' }}</span>
-                <span class="text-caption text-medium-emphasis">{{ row.mode === 'gitea' ? (row.gitea_ref || '各仓库默认分支') : (row.mode === '7z' ? `${row.compression_level ?? 1} 级` : '--') }}</span>
+                <span class="info-label">{{ isRepoModeValue(row.mode) ? '分支 / 标签' : '压缩级别' }}</span>
+                <span class="text-caption text-medium-emphasis">{{ isRepoModeValue(row.mode) ? (row.repo_ref || row.gitea_ref || '各仓库默认分支') : (row.mode === '7z' ? `${row.compression_level ?? 1} 级` : '--') }}</span>
               </div>
               <div class="info-item">
-                <span class="info-label">{{ row.mode === 'gitea' ? '下载方式' : '同步策略' }}</span>
+                <span class="info-label">{{ isRepoModeValue(row.mode) ? '下载方式' : '同步策略' }}</span>
                 <span
                   class="text-caption text-medium-emphasis"
-                  :title="row.mode === 'gitea' ? '通过 Gitea API 逐个仓库拉取归档包' : (row.mode === 'sync' ? (row.sync_strategy === 'incremental' ? '仅同步新增和修改，目标端已有的文件即使源端删了也保留' : '目标目录与源目录完全同步，源端删除的文件目标端也会清理') : '')"
-                >{{ row.mode === 'gitea' ? '逐个仓库归档' : (row.mode === 'sync' ? (row.sync_strategy === 'incremental' ? '增量' : '镜像') : '--') }}</span>
+                  :title="isRepoModeValue(row.mode) ? '通过代码托管平台的 API 逐个仓库拉取归档包' : (row.mode === 'sync' ? (row.sync_strategy === 'incremental' ? '仅同步新增和修改，目标端已有的文件即使源端删了也保留' : '目标目录与源目录完全同步，源端删除的文件目标端也会清理') : '')"
+                >{{ isRepoModeValue(row.mode) ? '逐个仓库归档' : (row.mode === 'sync' ? (row.sync_strategy === 'incremental' ? '增量' : '镜像') : '--') }}</span>
               </div>
               <div class="info-item">
-                <span class="info-label">{{ row.mode === 'gitea' ? '不含内容' : '忽略规则' }}</span>
+                <span class="info-label">{{ isRepoModeValue(row.mode) ? '不含内容' : '忽略规则' }}</span>
                 <span
                   class="text-caption text-medium-emphasis"
-                  :title="row.mode === 'gitea' ? 'Gitea 归档只有代码仓库，不含 issues / PR / 用户 / 附件等数据库内容' : (row.ignore_patterns || []).join(', ')"
-                >{{ row.mode === 'gitea' ? 'issues / PR / 附件' : (row.ignore_patterns?.length ? `${row.ignore_patterns.length} 条` : '--') }}</span>
+                  :title="isRepoModeValue(row.mode) ? '仓库归档只有代码，不含 issues / PR / 用户 / 附件等数据库内容' : (row.ignore_patterns || []).join(', ')"
+                >{{ isRepoModeValue(row.mode) ? 'issues / PR / 附件' : (row.ignore_patterns?.length ? `${row.ignore_patterns.length} 条` : '--') }}</span>
               </div>
             </div>
 
@@ -780,7 +797,7 @@ onUnmounted(() => {
                   {{ row.message || '-' }}
                 </td>
                 <td class="text-right">
-                  <v-btn v-if="row.status === 'success' && row.mode !== 'gitea'" size="small" variant="tonal" color="warning"
+                  <v-btn v-if="row.status === 'success' && !isRepoModeValue(row.mode)" size="small" variant="tonal" color="warning"
                     prepend-icon="mdi-restore" @click="handleRestore(row)">还原</v-btn>
                 </td>
               </tr>
@@ -817,6 +834,7 @@ onUnmounted(() => {
             <span v-if="editTask.mode === 'sync'">🔄 <b>Sync 同步</b>：直接同步原始文件（不打包），无需解压即可直接查看，支持增量更新。</span>
             <span v-if="editTask.mode === 'pgsql'">🐘 <b>PostgreSQL 备份</b>：使用 pg_dump 对指定数据库进行逻辑备份。</span>
             <span v-if="editTask.mode === 'gitea'">🔗 <b>Gitea 仓库归档</b>：通过 Gitea API 把仓库的 tar.gz / zip 归档拉回本地。连接信息复用「设置 → 第三方 API 集成 → Gitea 仓库集成」。</span>
+            <span v-if="editTask.mode === 'github'">🐙 <b>GitHub 仓库归档</b>：通过 GitHub API 把仓库的 tar.gz / zip 归档拉回本地。连接信息复用「设置 → 第三方 API 集成 → GitHub 仓库集成」。</span>
           </div>
 
           <!-- 存储介质 (仅文件类模式) -->
@@ -865,34 +883,34 @@ onUnmounted(() => {
             </div>
           </template>
 
-          <!-- Gitea 仓库字段 -->
-          <template v-if="editTask.mode === 'gitea'">
-            <v-select v-model="giteaScope"
+          <!-- 代码仓库字段（Gitea / GitHub 共用）-->
+          <template v-if="isRepoMode">
+            <v-select v-model="repoScope"
               :items="[
                 { title: '全部可见仓库', value: 'all' },
                 { title: '指定仓库', value: 'pick' }
               ]"
               label="备份范围" variant="outlined" density="compact" class="mb-2" />
 
-            <v-select v-if="giteaScope === 'pick'" v-model="editTask.gitea_repos"
-              :items="giteaRepoOptions" :loading="giteaReposLoading"
+            <v-select v-if="repoScope === 'pick'" v-model="editTask.repo_list"
+              :items="gitRepoOptions" :loading="gitReposLoading"
               label="选择仓库" placeholder="可多选" multiple chips closable-chips
               variant="outlined" density="compact" class="mb-2" />
 
             <div class="d-flex align-center ga-3 mb-2 flex-wrap">
               <v-btn size="small" variant="tonal" color="info" prepend-icon="mdi-refresh"
-                :loading="giteaReposLoading" @click="fetchGiteaRepos">读取仓库列表</v-btn>
-              <span v-if="giteaReposError" class="text-caption text-error">{{ giteaReposError }}</span>
-              <span v-else-if="giteaRepos.length" class="text-caption text-medium-emphasis">
-                共 {{ giteaRepos.length }} 个可见仓库
+                :loading="gitReposLoading" @click="fetchRepos">读取{{ repoProviderLabel }} 仓库列表</v-btn>
+              <span v-if="gitReposError" class="text-caption text-error">{{ gitReposError }}</span>
+              <span v-else-if="gitRepos.length" class="text-caption text-medium-emphasis">
+                共 {{ gitRepos.length }} 个可见仓库
               </span>
             </div>
 
-            <v-select v-model="editTask.gitea_format"
+            <v-select v-model="editTask.repo_format"
               :items="[{ title: 'tar.gz', value: 'tar.gz' }, { title: 'zip', value: 'zip' }]"
               label="归档格式" variant="outlined" density="compact" class="mb-2" />
 
-            <v-text-field v-model="editTask.gitea_ref" label="分支 / 标签（可选）"
+            <v-text-field v-model="editTask.repo_ref" label="分支 / 标签（可选）"
               placeholder="留空 = 各仓库自己的默认分支" variant="outlined" density="compact" class="mb-2" />
 
             <v-alert type="info" variant="tonal" density="compact" class="mb-3" style="font-size: 12px">
@@ -900,8 +918,8 @@ onUnmounted(() => {
             </v-alert>
           </template>
 
-          <!-- Docker 主机选择（Gitea 模式由控制端直接走 HTTP 下载，与 Docker 主机无关）-->
-          <v-select v-if="editTask.mode !== 'gitea'" v-model="editTask.host_id" :items="hostOptions"
+          <!-- Docker 主机选择（仓库归档由控制端直接走 HTTP 下载，与 Docker 主机无关）-->
+          <v-select v-if="!isRepoMode" v-model="editTask.host_id" :items="hostOptions"
             label="执行主机" variant="outlined" density="compact" class="mb-3" />
 
           <!-- 源路径 (仅文件类模式) -->

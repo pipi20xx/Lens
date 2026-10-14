@@ -125,16 +125,17 @@ async def path_browser(path: str = "/"):
     return res
 
 
-@router.get("/gitea/repos")
-async def list_gitea_repos():
-    """列出当前 Gitea 账号可见的仓库，供备份任务挑选。
+@router.get("/repos")
+async def list_git_repos(provider: str = "gitea"):
+    """列出代码托管账号可见的仓库，供备份任务挑选。
 
-    连接信息复用「设置 → 第三方 API 集成 → Gitea 仓库集成」。
+    provider: 'gitea' | 'github'
+    连接信息复用「设置 → 第三方 API 集成」里对应的仓库集成配置。
     """
-    from app.services.gitea_service import GiteaService
+    from app.services.git_repo_service import GitRepoService
 
     try:
-        repos = await GiteaService.list_repos()
+        repos = await GitRepoService.list_repos(provider)
     except Exception as e:
         raise HTTPException(status_code=502, detail=str(e))
 
@@ -145,8 +146,8 @@ async def list_gitea_repos():
             "owner": (r.get("owner") or {}).get("login", ""),
             "private": bool(r.get("private")),
             "default_branch": r.get("default_branch") or "main",
-            "size_kb": r.get("size") or 0,   # Gitea 的 size 字段单位是 KiB
-            "updated_at": r.get("updated_at"),
+            "size_kb": r.get("size") or 0,   # Gitea 单位 KiB；GitHub 单位 KB
+            "updated_at": r.get("updated_at") or r.get("pushed_at"),
             "description": r.get("description") or "",
         }
         for r in repos

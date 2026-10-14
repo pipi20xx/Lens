@@ -175,22 +175,26 @@ class BackupService:
                 output_path = dst_dir
                 total_size = sum(os.path.getsize(f) for f in backup_files) / (1024 * 1024)
             
-            elif mode == "gitea":
-                # --- Gitea 仓库归档下载 ---
-                # 纯 HTTP（走 Gitea API），不需要 SSH / docker，连接信息复用 config.gitea
-                from app.services.gitea_service import GiteaService
+            elif mode in ("gitea", "github"):
+                # --- 代码仓库归档下载（Gitea / GitHub）---
+                # 纯 HTTP，不需要 SSH / docker；连接信息复用 config.gitea / config.github
+                from app.services.git_repo_service import GitRepoService
 
-                gitea_cfg = GiteaService.load_config()   # 配置缺失在这里就失败，不浪费一次列仓库
-                fmt = (task.get("gitea_format") or "tar.gz").strip()
+                provider = mode
+                label = "Gitea" if mode == "gitea" else "GitHub"
+                repo_cfg = GitRepoService.load_config(provider)   # 配置缺失在这里就失败，不浪费一次列仓库
+
+                # repo_* 是中立字段名；gitea_* 是这一版之前用过的名字，留作兼容
+                fmt = (task.get("repo_format") or task.get("gitea_format") or "tar.gz").strip()
                 if fmt not in ("tar.gz", "zip"):
                     fmt = "tar.gz"
-                ref_override = (task.get("gitea_ref") or "").strip()
+                ref_override = (task.get("repo_ref") or task.get("gitea_ref") or "").strip()
 
-                logger.info("🔍 [Backup] 正在获取 Gitea 仓库列表...")
-                all_repos = await GiteaService.list_repos()
+                logger.info(f"🔍 [Backup] 正在获取 {label} 仓库列表...")
+                all_repos = await GitRepoService.list_repos(provider)
                 by_name = {r.get("full_name"): r for r in all_repos if r.get("full_name")}
 
-                wanted = [n for n in (task.get("gitea_repos") or []) if n]
+                wanted = [n for n in (task.get("repo_list") or task.get("gitea_repos") or []) if n]
                 if wanted:
                     targets = [by_name[n] for n in wanted if n in by_name]
                     missing = [n for n in wanted if n not in by_name]
@@ -199,9 +203,9 @@ class BackupService:
                     missing = []
 
                 if not targets:
-                    raise Exception("没有可下载的仓库（Gitea 未返回仓库，或所选仓库已不可见）")
+                    raise Exception(f"没有可下载的仓库（{label} 未返回仓库，或所选仓库已不可见）")
 
-                logger.info(f"📦 [Backup] 准备下载 {len(targets)} 个仓库归档（{fmt}）")
+                logger.info(f"📦 [Backup] 准备从 {label} 下载 {len(targets)} 个仓库归档（{fmt}）")
                 backup_files: List[str] = []
                 failures: List[str] = []
 
@@ -220,7 +224,7 @@ class BackupService:
                     dest = os.path.join(dst_dir, filename)
 
                     try:
-                        await GiteaService.download_archive(gitea_cfg, owner, name, ref, fmt, dest)
+                        await GitRepoService.download_archive(repo_cfg, owner, name, ref, fmt, dest)
                         backup_files.append(dest)
                         logger.info(f"✅ [Backup] 已下载 {full} ({ref}) → {filename}")
                     except Exception as e:
@@ -236,15 +240,16 @@ class BackupService:
 
                 if failures:
                     raise Exception(
-                        f"已下载 {len(backup_files)}/{len(targets)} 个仓库，{len(failures)} 个失败："
+                        f"{label} 已下载 {len(backup_files)}/{len(targets)} 个仓库，"
+                        f"{len(failures)} 个失败："
                         + "; ".join(failures[:3])
                         + ("…" if len(failures) > 3 else "")
                     )
                 if not backup_files:
-                    raise Exception("所有仓库都下载失败")
+                    raise Exception(f"{label} 所有仓库都下载失败")
 
                 success = True
-                message = f"已下载 {len(backup_files)} 个仓库归档（{fmt}）"
+                message = f"{label}：已下载 {len(backup_files)} 个仓库归档（{fmt}）"
                 if missing:
                     message += f"；{len(missing)} 个所选仓库已不可见，已跳过"
             
@@ -431,8 +436,8 @@ class BackupService:
             mode = history.mode
             password = task.get("password")
 
-            if mode == "gitea":
-                return False, "Gitea 仓库归档是代码快照（每仓库一个 tar.gz/zip），没有自动还原流程，请手动解压"
+            if mode in ("gitea", "github"):
+                return False, "代码仓库归档是每个仓库一个 tar.gz/zip 快照，没有自动还原流程，请手动解压"
 
             if not os.path.exists(src_file):
                 return False, f"备份文件已丢失: {src_file}"
