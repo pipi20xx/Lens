@@ -25,7 +25,7 @@ const globalConfig = ref<any>({
   tmdb_api_key: '',
   bangumi_api_token: '',
   tvdb_api_key: '',
-  gitea: { base: '', username: '', token: '', repo: '', branch: 'main', file_path: '' },
+  gitea: { base: '', username: '', token: '', repo: '', branch: 'main', file_path: '', no_ssl: false },
   github: { base: 'https://api.github.com', token: '', repo: '', branch: 'main', file_path: '' },
   sytmdb: { base: '', token: '' },
   proxy: { enabled: false, url: '', exclude_emby: true },
@@ -81,6 +81,7 @@ async function loadAll() {
         repo: cfg.gitea?.repo || '',
         branch: cfg.gitea?.branch || 'main',
         file_path: cfg.gitea?.file_path || '',
+        no_ssl: cfg.gitea?.no_ssl || false,
       },
       github: {
         base: cfg.github?.base || 'https://api.github.com',
@@ -368,6 +369,8 @@ onMounted(loadAll)
                 <v-text-field v-model="globalConfig.gitea.file_path" label="渲染词文件路径"
                   variant="outlined" density="compact" placeholder="anime/animeifre.txt"
                   hint="番剧分季拆分的渲染词推送目标文件" persistent-hint />
+                <v-switch v-model="globalConfig.gitea.no_ssl" class="mt-1"
+                  label="忽略 SSL 证书验证（自签名证书的实例）" density="compact" color="primary" hide-details />
               </v-card-text>
               <v-divider />
               <div class="d-flex justify-end pa-4">

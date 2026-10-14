@@ -22,7 +22,8 @@ DEFAULT_CONFIG = {
         "token": "",
         "repo": "",
         "branch": "main",
-        "file_path": ""
+        "file_path": "",
+        "no_ssl": False
     },
     "github": {
         "base": "https://api.github.com",

@@ -123,3 +123,32 @@ async def path_browser(path: str = "/"):
     if "error" in res and res["error"] != "Path does not exist":
         raise HTTPException(status_code=500, detail=res["error"])
     return res
+
+
+@router.get("/gitea/repos")
+async def list_gitea_repos():
+    """列出当前 Gitea 账号可见的仓库，供备份任务挑选。
+
+    连接信息复用「设置 → 第三方 API 集成 → Gitea 仓库集成」。
+    """
+    from app.services.gitea_service import GiteaService
+
+    try:
+        repos = await GiteaService.list_repos()
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=str(e))
+
+    return [
+        {
+            "full_name": r.get("full_name"),
+            "name": r.get("name"),
+            "owner": (r.get("owner") or {}).get("login", ""),
+            "private": bool(r.get("private")),
+            "default_branch": r.get("default_branch") or "main",
+            "size_kb": r.get("size") or 0,   # Gitea 的 size 字段单位是 KiB
+            "updated_at": r.get("updated_at"),
+            "description": r.get("description") or "",
+        }
+        for r in repos
+        if r.get("full_name")
+    ]

@@ -5,7 +5,7 @@ from datetime import datetime
 class BackupTaskSchema(BaseModel):
     id: Optional[str] = None
     name: str
-    mode: str # '7z', 'tar', 'sync', 'pgsql'
+    mode: str # '7z', 'tar', 'sync', 'pgsql', 'gitea'
     src_path: Optional[str] = None # For pgsql mode, this can be empty
     dst_path: str
     password: Optional[str] = None
@@ -25,6 +25,11 @@ class BackupTaskSchema(BaseModel):
     # PostgreSQL 支持
     pgsql_host_id: Optional[str] = None # 对应 pgsql_hosts 中的 id
     db_names: Optional[List[str]] = []  # 要备份的数据库列表
+
+    # Gitea 仓库归档支持（连接信息复用 config.gitea）
+    gitea_repos: Optional[List[str]] = []  # 要备份的仓库 full_name 列表；留空 = 全部可见仓库
+    gitea_format: str = "tar.gz"            # 'tar.gz' | 'zip'
+    gitea_ref: Optional[str] = ""           # 留空 = 各仓库自己的默认分支
 
 class BackupHistorySchema(BaseModel):
     id: int

@@ -1,4 +1,5 @@
 import os
+import re
 import time
 import subprocess
 import tarfile
@@ -173,6 +174,79 @@ class BackupService:
                 # 对于多文件备份，我们将最后一个作为 output_path 或记录所在目录
                 output_path = dst_dir
                 total_size = sum(os.path.getsize(f) for f in backup_files) / (1024 * 1024)
+            
+            elif mode == "gitea":
+                # --- Gitea 仓库归档下载 ---
+                # 纯 HTTP（走 Gitea API），不需要 SSH / docker，连接信息复用 config.gitea
+                from app.services.gitea_service import GiteaService
+
+                gitea_cfg = GiteaService.load_config()   # 配置缺失在这里就失败，不浪费一次列仓库
+                fmt = (task.get("gitea_format") or "tar.gz").strip()
+                if fmt not in ("tar.gz", "zip"):
+                    fmt = "tar.gz"
+                ref_override = (task.get("gitea_ref") or "").strip()
+
+                logger.info("🔍 [Backup] 正在获取 Gitea 仓库列表...")
+                all_repos = await GiteaService.list_repos()
+                by_name = {r.get("full_name"): r for r in all_repos if r.get("full_name")}
+
+                wanted = [n for n in (task.get("gitea_repos") or []) if n]
+                if wanted:
+                    targets = [by_name[n] for n in wanted if n in by_name]
+                    missing = [n for n in wanted if n not in by_name]
+                else:
+                    targets = list(by_name.values())
+                    missing = []
+
+                if not targets:
+                    raise Exception("没有可下载的仓库（Gitea 未返回仓库，或所选仓库已不可见）")
+
+                logger.info(f"📦 [Backup] 准备下载 {len(targets)} 个仓库归档（{fmt}）")
+                backup_files: List[str] = []
+                failures: List[str] = []
+
+                for repo in targets:
+                    owner = (repo.get("owner") or {}).get("login") or ""
+                    name = repo.get("name") or ""
+                    full = repo.get("full_name") or f"{owner}/{name}"
+                    if not owner or not name:
+                        failures.append(f"{full}: 仓库信息不完整")
+                        continue
+
+                    ref = ref_override or (repo.get("default_branch") or "main")
+                    # ref 可能含 /（如 feature/foo），落盘前替换掉路径分隔符
+                    safe_ref = re.sub(r"[^A-Za-z0-9._-]+", "_", ref)
+                    filename = f"{owner}_{name}-{safe_ref}_{timestamp}.{fmt}"
+                    dest = os.path.join(dst_dir, filename)
+
+                    try:
+                        await GiteaService.download_archive(gitea_cfg, owner, name, ref, fmt, dest)
+                        backup_files.append(dest)
+                        logger.info(f"✅ [Backup] 已下载 {full} ({ref}) → {filename}")
+                    except Exception as e:
+                        failures.append(f"{full}: {e}")
+                        logger.error(f"❌ [Backup] 下载 {full} 失败: {e}")
+
+                # 备份场景下"部分成功"必须暴露出来，否则会以为都备好了
+                output_path = dst_dir
+                total_size = (
+                    sum(os.path.getsize(f) for f in backup_files) / (1024 * 1024)
+                    if backup_files else 0
+                )
+
+                if failures:
+                    raise Exception(
+                        f"已下载 {len(backup_files)}/{len(targets)} 个仓库，{len(failures)} 个失败："
+                        + "; ".join(failures[:3])
+                        + ("…" if len(failures) > 3 else "")
+                    )
+                if not backup_files:
+                    raise Exception("所有仓库都下载失败")
+
+                success = True
+                message = f"已下载 {len(backup_files)} 个仓库归档（{fmt}）"
+                if missing:
+                    message += f"；{len(missing)} 个所选仓库已不可见，已跳过"
             
             elif is_remote:
                 # --- 远程备份逻辑 ---
@@ -356,6 +430,9 @@ class BackupService:
             dst_dir = task.get("src_path")
             mode = history.mode
             password = task.get("password")
+
+            if mode == "gitea":
+                return False, "Gitea 仓库归档是代码快照（每仓库一个 tar.gz/zip），没有自动还原流程，请手动解压"
 
             if not os.path.exists(src_file):
                 return False, f"备份文件已丢失: {src_file}"
