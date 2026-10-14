@@ -95,9 +95,34 @@ function formatHistoryTime(time: string) {
   return new Date(time).toLocaleString()
 }
 
-function formatSize(mb: number) {
-  if (mb >= 1024) return `${(mb / 1024).toFixed(2)} GB`
-  return `${mb.toFixed(2)} MB`
+function formatSize(mb?: number) {
+  const v = Number(mb)
+  if (!isFinite(v) || v < 0) return '--'
+  if (v >= 1024) return `${(v / 1024).toFixed(2)} GB`
+  return `${v.toFixed(2)} MB`
+}
+
+// 备份耗时：进行中的任务用当前时间实时估算
+function formatDuration(start?: string, end?: string, status?: string) {
+  if (!start) return '--'
+  const startedAt = new Date(start).getTime()
+  if (isNaN(startedAt)) return '--'
+
+  let endedAt: number
+  if (end) {
+    endedAt = new Date(end).getTime()
+    if (isNaN(endedAt)) return '--'
+  } else if (status === 'running') {
+    endedAt = Date.now()
+  } else {
+    return '--'
+  }
+
+  const sec = Math.max(0, Math.round((endedAt - startedAt) / 1000))
+  if (sec < 60) return `${sec} 秒`
+  const min = Math.floor(sec / 60)
+  if (min < 60) return sec % 60 ? `${min} 分 ${sec % 60} 秒` : `${min} 分`
+  return `${Math.floor(min / 60)} 小时 ${min % 60} 分`
 }
 
 const statusLabels: Record<string, string> = { success: '成功', running: '进行中...', failed: '失败' }
@@ -389,7 +414,7 @@ function formatSchedule(row: BackupTask) {
     }
     return cron
   }
-  return row.schedule_value
+  return row.schedule_value || '-'
 }
 
 // ========== 路径浏览器 ==========
@@ -522,19 +547,54 @@ onUnmounted(() => {
               </v-chip>
             </div>
 
-            <!-- 信息行 -->
-            <div class="card-info px-4 pb-2">
+            <!-- 信息行：所有字段恒定渲染（缺值用 -- 占位），行数固定才能保证同一排卡片对齐 -->
+            <div class="card-info card-info--stacked px-4 pb-2">
               <div class="info-item">
                 <span class="info-label">模式</span>
-                <v-chip size="x-small" variant="tonal" color="info" label>{{ modeLabels[row.mode] || row.mode }}</v-chip>
+                <v-chip size="x-small" variant="tonal" color="info" label>{{ modeLabels[row.mode] || row.mode || '--' }}</v-chip>
               </div>
-              <div class="info-item" v-if="row.mode !== 'pgsql'">
+              <div class="info-item">
                 <span class="info-label">介质</span>
                 <span class="text-caption text-medium-emphasis">{{ storageLabels[row.storage_type] || 'SSD' }}</span>
               </div>
-              <div class="info-item" v-if="row.enabled">
+              <div class="info-item">
                 <span class="info-label">计划</span>
-                <span class="text-caption text-medium-emphasis">{{ formatSchedule(row) }}</span>
+                <span class="text-caption" :class="{ 'text-medium-emphasis': !row.enabled }">{{ row.enabled ? formatSchedule(row) : '仅手动执行' }}</span>
+              </div>
+
+              <!-- PG 备份没有源目录：标签随模式切换，但恒定占一行 -->
+              <div class="info-item">
+                <span class="info-label">{{ row.mode === 'pgsql' ? '数据库' : '源路径' }}</span>
+                <span
+                  v-if="row.mode === 'pgsql'"
+                  class="text-caption text-truncate"
+                  :class="{ 'text-medium-emphasis': !row.db_names?.length }"
+                  :title="(row.db_names || []).join(', ')"
+                >{{ (row.db_names || []).join(', ') || '--' }}</span>
+                <span
+                  v-else
+                  class="font-mono text-caption text-truncate"
+                  :class="{ 'text-medium-emphasis': !row.src_path }"
+                  :title="row.src_path"
+                >{{ row.src_path || '--' }}</span>
+              </div>
+
+              <div class="info-item">
+                <span class="info-label">目标路径</span>
+                <span class="font-mono text-caption text-truncate" :class="{ 'text-medium-emphasis': !row.dst_path }" :title="row.dst_path">{{ row.dst_path || '--' }}</span>
+              </div>
+
+              <div class="info-item">
+                <span class="info-label">压缩级别</span>
+                <span class="text-caption text-medium-emphasis">{{ row.mode === '7z' ? `${row.compression_level ?? 1} 级` : '--' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">同步策略</span>
+                <span class="text-caption text-medium-emphasis" :title="row.mode === 'sync' ? (row.sync_strategy === 'incremental' ? '仅同步新增和修改，目标端已有的文件即使源端删了也保留' : '目标目录与源目录完全同步，源端删除的文件目标端也会清理') : ''">{{ row.mode === 'sync' ? (row.sync_strategy === 'incremental' ? '增量' : '镜像') : '--' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">忽略规则</span>
+                <span class="text-caption text-medium-emphasis" :title="(row.ignore_patterns || []).join(', ')">{{ row.ignore_patterns?.length ? `${row.ignore_patterns.length} 条` : '--' }}</span>
               </div>
             </div>
 
@@ -587,19 +647,31 @@ onUnmounted(() => {
               </v-chip>
             </div>
 
-            <div class="card-info px-4 pb-2">
+            <div class="card-info card-info--stacked px-4 pb-2">
               <div class="info-item">
-                <span class="info-label">时间</span>
+                <span class="info-label">开始时间</span>
                 <span class="text-caption text-medium-emphasis">{{ formatHistoryTime(row.start_time) }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">耗时</span>
+                <span class="text-caption text-medium-emphasis">{{ formatDuration(row.start_time, row.end_time, row.status) }}</span>
               </div>
               <div class="info-item">
                 <span class="info-label">大小</span>
                 <span class="text-caption text-medium-emphasis">{{ formatSize(row.size) }}</span>
               </div>
+              <div class="info-item">
+                <span class="info-label">模式</span>
+                <span class="text-caption text-medium-emphasis">{{ modeLabels[row.mode] || row.mode || '--' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">输出文件</span>
+                <span class="font-mono text-caption text-truncate" :class="{ 'text-medium-emphasis': !row.output_path }" :title="row.output_path">{{ row.output_path || '--' }}</span>
+              </div>
             </div>
 
-            <div v-if="row.message" class="card-message px-4 pb-3">
-              <span class="text-caption text-medium-emphasis">{{ row.message }}</span>
+            <div class="card-message px-4 pb-3">
+              <span class="text-caption text-medium-emphasis">{{ row.message || '--' }}</span>
             </div>
           </v-card>
         </div>
