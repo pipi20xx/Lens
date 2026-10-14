@@ -15,6 +15,14 @@ router = APIRouter()
 
 COMPOSE_DIR = "data/compose"
 
+# 合并扫描脚本的分节标记（见 _scan_projects）
+_SCAN_SEC_JSON = "@@LENS_COMPOSE_LS@@"
+_SCAN_SEC_FIND = "@@LENS_COMPOSE_FIND@@"
+_SCAN_SEC_FILES = "@@LENS_COMPOSE_FILES@@"
+
+# 项目列表缓存 TTL（秒）。扫描本身要跑一次远端 exec，5 秒太短了。
+PROJECTS_CACHE_TTL = 60
+
 class ComposeProject(BaseModel):
     name: str
     content: str
@@ -67,70 +75,110 @@ def _scan_projects(service: DockerService, host_id: str) -> List[Dict[str, Any]]
     projects = []
     managed_files = set()
 
-    # 1. 尝试通过 docker compose ls 探测项目。
+    config = get_config()
+    remembered_entries = _registry_entries(config, host_id)
+    scan_paths = [p.strip().rstrip("/") for p in (service.host_config.get("compose_scan_paths") or "").split(",") if p.strip()]
+    remembered_files = [e.get("config_file") for e in remembered_entries if e.get("config_file")]
+
+    # 0. 把"探测项目 + 扫描路径 + 校验记忆文件"合并成**一次** exec。
+    #    改前是串行的：1 次 compose ls + 每个扫描路径 2 次（[ -d ] + find）+ 1 次校验，
+    #    3 个路径就是 8 次往返。
+    script_parts = [
+        f"echo '{_SCAN_SEC_JSON}'",
+        "docker compose ls --all --format json 2>/dev/null || docker-compose ls --all --format json 2>/dev/null",
+        f"echo '{_SCAN_SEC_FIND}'",
+    ]
+    if scan_paths:
+        quoted_paths = " ".join(_shell_quote(p) for p in scan_paths)
+        script_parts.append(
+            f"for p in {quoted_paths}; do [ -d \"$p\" ] && "
+            "find \"$p\" -maxdepth 4 \\( -name 'docker-compose.yml' -o -name 'docker-compose.yaml' "
+            "-o -name 'compose.yml' -o -name 'compose.yaml' \\) 2>/dev/null; done"
+        )
+    script_parts.append(f"echo '{_SCAN_SEC_FILES}'")
+    if remembered_files:
+        quoted_files = " ".join(_shell_quote(f) for f in remembered_files)
+        script_parts.append(f"for f in {quoted_files}; do [ -f \"$f\" ] && echo \"$f\"; done")
+    # 结尾 true：保证即使 docker compose 不存在也返回 0，让下面的解析按"空结果"处理
+    script_parts.append("true")
+
+    res = service.exec_command("\n".join(script_parts), log_error=False)
+
+    section = None
+    markers_seen = set()
+    json_lines, found_files, alive_files = [], [], []
+    for line in (res.get("stdout") or "").splitlines():
+        stripped = line.strip()
+        if stripped in (_SCAN_SEC_JSON, _SCAN_SEC_FIND, _SCAN_SEC_FILES):
+            section = stripped
+            markers_seen.add(stripped)
+            continue
+        if not stripped:
+            continue
+        if section == _SCAN_SEC_JSON:
+            json_lines.append(line)
+        elif section == _SCAN_SEC_FIND:
+            found_files.append(stripped)
+        elif section == _SCAN_SEC_FILES:
+            alive_files.append(stripped)
+
+    if not markers_seen:
+        logger.warning(f"[Compose] 扫描脚本无输出，主机 {host_id} 可能不可达: {res.get('stderr')}")
+    if not res.get("success"):
+        logger.warning(f"[Compose] 扫描脚本执行失败: {res.get('stderr')}")
+
+    # 1. 解析 docker compose ls 的结果。
     #    注意：该命令依据容器上的 label 识别项目，一旦容器被删除（或更新失败导致容器被清掉），
     #    项目会从此输出中消失，因此必须配合下面的扫描路径搜索与持久记忆兜底。
-    detect_commands = ["docker compose ls --all --format json", "docker-compose ls --all --format json"]
-    for cmd in detect_commands:
-        res = service.exec_command(cmd, log_error=False)
-        if res["success"] and res["stdout"].strip():
-            try:
-                detected_projects = json.loads(res["stdout"])
-                if isinstance(detected_projects, dict):
-                    detected_projects = detected_projects.get("projects") or []
-                for p in detected_projects:
-                    name = p.get("Name") or p.get("Project")
-                    # ConfigFiles 可能是以逗号/换行分隔的多个文件，取第一个作为主配置
-                    raw_files = p.get("ConfigFiles") or p.get("ConfigPath") or ""
-                    files = [f.strip() for f in raw_files.replace(",", "\n").splitlines() if f.strip()]
-                    primary = files[0] if files else ""
-                    if name and primary:
-                        projects.append({
-                            "name": name,
-                            "path": os.path.dirname(primary),
-                            "config_file": primary,
-                            "type": "detected",
-                            "status": p.get("Status")
-                        })
-                        managed_files.update(files)
-                break
-            except Exception: continue
+    detected_projects = []
+    if json_lines:
+        json_text = "\n".join(
+            ln for ln in json_lines
+            if "obsolete" not in ln and not ln.strip().startswith("WARN")
+        )
+        try:
+            detected_projects = json.loads(json_text)
+            if isinstance(detected_projects, dict):
+                detected_projects = detected_projects.get("projects") or []
+            if not isinstance(detected_projects, list):
+                detected_projects = []
+        except Exception:
+            detected_projects = []
 
-    # 2. 根据用户配置的扫描路径进行深度搜索
-    scan_paths_str = service.host_config.get("compose_scan_paths", "")
-    if scan_paths_str:
-        paths = [p.strip() for p in scan_paths_str.split(",") if p.strip()]
-        for base_path in paths:
-            # 静默检查路径是否存在
-            check_cmd = f"[ -d {_shell_quote(base_path)} ] && echo 'ok'"
-            if service.exec_command(check_cmd, log_error=False)["stdout"].strip() != "ok":
-                continue
+    for p in detected_projects:
+        name = p.get("Name") or p.get("Project")
+        # ConfigFiles 可能是以逗号/换行分隔的多个文件，取第一个作为主配置
+        raw_files = p.get("ConfigFiles") or p.get("ConfigPath") or ""
+        files = [f.strip() for f in raw_files.replace(",", "\n").splitlines() if f.strip()]
+        primary = files[0] if files else ""
+        if name and primary:
+            projects.append({
+                "name": name,
+                "path": os.path.dirname(primary),
+                "config_file": primary,
+                "type": "detected",
+                "status": p.get("Status")
+            })
+            managed_files.update(files)
 
-            find_cmd = (f"find {_shell_quote(base_path)} -maxdepth 4 "
-                        f"\\( -name 'docker-compose.yml' -o -name 'docker-compose.yaml' "
-                        f"-o -name 'compose.yml' -o -name 'compose.yaml' \\)")
-            res = service.exec_command(find_cmd, log_error=False)
-            if res["success"] and res["stdout"].strip():
-                found_files = res["stdout"].strip().split("\n")
-                for file_path in found_files:
-                    file_path = file_path.strip()
-                    if not file_path or file_path in managed_files: continue
-                    project_dir = os.path.dirname(file_path)
-                    projects.append({
-                        "name": os.path.basename(project_dir),
-                        "path": project_dir,
-                        "config_file": file_path,
-                        "type": "scanned",
-                        "status": "exited"
-                    })
-                    managed_files.add(file_path)
+    # 2. 合并后的扫描路径搜索结果
+    for file_path in found_files:
+        if not file_path or file_path in managed_files: continue
+        project_dir = os.path.dirname(file_path)
+        projects.append({
+            "name": os.path.basename(project_dir),
+            "path": project_dir,
+            "config_file": file_path,
+            "type": "scanned",
+            "status": "exited"
+        })
+        managed_files.add(file_path)
 
     # 3. 合并持久记忆：曾经出现过、但当前 docker compose ls 已探测不到的项目
     #    （容器被删除/更新失败后仍保留在面板中，可通过“启动/更新”一键拉起）
-    config = get_config()
     listed_files = {p["config_file"] for p in projects}
     remembered = []
-    for entry in _registry_entries(config, host_id):
+    for entry in remembered_entries:
         cf = (entry or {}).get("config_file")
         if not cf or cf in listed_files: continue
         remembered.append({
@@ -143,12 +191,10 @@ def _scan_projects(service: DockerService, host_id: str) -> List[Dict[str, Any]]
         listed_files.add(cf)
 
     if remembered:
-        # 一次性校验记忆中的 yaml 文件是否仍存在，已被删除的条目从记忆中剔除
-        # （结尾 true：循环中最后一次 [ -f ] 失败会把退出码置 1，需保底为 0）
-        files_cmd = " ".join(_shell_quote(r["config_file"]) for r in remembered)
-        check_res = service.exec_command(f"for f in {files_cmd}; do [ -f \"$f\" ] && echo \"$f\"; done; true", log_error=False)
-        if check_res["success"]:
-            alive = {line.strip() for line in check_res["stdout"].splitlines() if line.strip()}
+        # "文件是否仍存在"的校验已经在第 0 步的合并脚本里做完了。
+        # 如果脚本整个没跑起来（markers_seen 为空），保守地保留全部记忆条目。
+        if _SCAN_SEC_FILES in markers_seen:
+            alive = set(alive_files)
             remembered = [r for r in remembered if r["config_file"] in alive]
 
     projects.extend(remembered)
@@ -178,10 +224,10 @@ def _scan_projects(service: DockerService, host_id: str) -> List[Dict[str, Any]]
 
 @router.get("/{host_id}/projects")
 async def list_projects(host_id: str):
-    # 1. 检查后端内存缓存 (5秒 TTL)
+    # 1. 检查后端内存缓存
     if host_id in DockerService._projects_cache:
         data, ts = DockerService._projects_cache[host_id]
-        if time.time() - ts < 5:
+        if time.time() - ts < PROJECTS_CACHE_TTL:
             return data
 
     service = get_docker_service(host_id)
@@ -291,7 +337,11 @@ async def bulk_project_action(host_id: str, action: str = Body(..., embed=True))
     """批量操作所有项目"""
     projects = await list_projects(host_id)
     results = []
-    
+
+    # 在循环外建一次 service：改前每次迭代都会调 get_docker_service()，
+    # 而 DockerService 构造会做一次连接存活探测，等于每个项目多一次往返。
+    service = get_docker_service(host_id)
+
     for p in projects:
         path = p.get("config_file") or p.get("path")
         if not path: continue
@@ -301,7 +351,6 @@ async def bulk_project_action(host_id: str, action: str = Body(..., embed=True))
             path = os.path.join(path, "docker-compose.yml")
 
         try:
-            service = get_docker_service(host_id)
             cmd_map = {
                 "up": f"docker compose -f {path} up -d",
                 "down": f"docker compose -f {path} down"

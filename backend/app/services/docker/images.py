@@ -189,14 +189,22 @@ class ImageOpsMixin(DockerServiceBase):
                 return data
 
         # 容器占用映射：镜像完整ID -> [容器名]
+        #
+        # 这里刻意绕过 model 层（containers.list / images.list）：
+        #   - containers.list() 默认会为每个容器再发一次 inspect_container；
+        #   - 访问 c.image 又会为每个容器发一次 inspect_image；
+        #   - images.list() 同样会为每个镜像发一次 inspect_image。
+        # 20 容器 + 50 镜像 = 92 次穿过 SSH 隧道的 HTTP 往返。直接取原始 JSON 只需 2 次。
         used_map = {}
         if self.client:
             try:
-                for c in self.client.containers.list(all=True):
-                    try:
-                        used_map.setdefault(c.image.id, []).append(c.name)
-                    except Exception:
+                for c in self.client.api.containers(all=True):
+                    image_id = c.get("ImageID")
+                    if not image_id:
                         continue
+                    names = c.get("Names") or []
+                    name = names[0].lstrip("/") if names else (c.get("Id") or "")[:12]
+                    used_map.setdefault(image_id, []).append(name)
             except Exception as e:
                 self._invalidate_client_on_ssh_error(e)
                 logger.warning(f"[Docker] 获取容器占用信息失败: {e}")
@@ -204,16 +212,17 @@ class ImageOpsMixin(DockerServiceBase):
         results = []
         if self.client:
             try:
-                for img in self.client.images.list(all=True):
-                    tags = img.tags or []
-                    used_by = used_map.get(img.id, [])
+                for raw in self.client.api.images(all=True):
+                    full_id = raw.get("Id") or ""
+                    tags = raw.get("RepoTags") or []
+                    used_by = used_map.get(full_id, [])
                     results.append({
-                        "id": img.short_id,
-                        "full_id": img.id,
+                        "id": full_id[:12],   # 与 docker-py Model.short_id 的截断规则一致
+                        "full_id": full_id,
                         "tags": tags,
                         "repo_tag": tags[0] if tags else "<none>:<none>",
-                        "size": self._format_size(img.attrs.get("Size")),
-                        "created": self._format_created(img.attrs.get("Created")),
+                        "size": self._format_size(raw.get("Size")),
+                        "created": self._format_created(raw.get("Created")),
                         "in_use": bool(used_by),
                         "used_by": used_by,
                         "dangling": not tags,
@@ -225,6 +234,7 @@ class ImageOpsMixin(DockerServiceBase):
                 logger.warning(f"Docker-py images.list failed, falling back to CLI: {e}")
 
         # CLI 兜底：docker images -a，占用状态通过 docker ps -a 的镜像名交叉比对
+        results = []
         res = self.exec_command("docker images -a --format '{{json .}}'", log_error=False)
         if res["success"]:
             try:
