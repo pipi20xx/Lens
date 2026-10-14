@@ -124,6 +124,9 @@ html.glass-theme-acg {
   --am-surface-outlined-bg: transparent;
   --am-surface-hover-bg: transparent;
 
+  /* Hover Lift — .hover-lift / .liquid-glass-card:hover 用的上浮阴影 */
+  --am-hover-lift-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), 0 0 16px rgba(var(--am-primary-rgb, var(--v-theme-primary)), 0.12);
+
   /* Overlay（下拉菜单） */
   --am-overlay-bg: rgba(20, 20, 40, 0.2);
   --am-overlay-blur: blur(8px) saturate(140%);
@@ -310,6 +313,9 @@ html.glass-theme-liquid .v-theme--light {
   --am-surface-outlined-bg: #FFFFFF;
   --am-surface-hover-bg: #FFFFFF;
 
+  /* Hover Lift — .hover-lift / .liquid-glass-card:hover 用的上浮阴影 */
+  --am-hover-lift-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+
   /* Overlay（下拉菜单） — 实心白底 + 紫色描边环 */
   --am-overlay-bg: #FFFFFF;
   --am-overlay-blur: none;
@@ -483,6 +489,10 @@ html.glass-theme-liquid .v-theme--dark {
   --am-surface-elevated-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   --am-surface-outlined-bg: rgba(255, 255, 255, 0.05);
   --am-surface-hover-bg: rgba(255, 255, 255, 0.1);
+
+  /* Hover Lift — 暗色下用更明显的投影（AM 的 classic 暗色沿用亮色值，这里按本项目
+     暗色 --am-surface-hover-shadow 的量级给，保证悬浮可见） */
+  --am-hover-lift-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 
   /* Overlay（下拉菜单） — 深蓝底 + 天蓝描边环 */
   --am-overlay-bg: #1a1a3e;

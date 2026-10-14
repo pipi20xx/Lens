@@ -572,7 +572,38 @@ code {
 }
 
 /* ============================================================
- * 22. Scrollbar — 滚动条
+ * 22. Hover Lift — 鼠标悬浮上浮（对齐 AM visual.css §16）
+ *
+ *     两种触发方式：
+ *       1) 显式加 class="hover-lift"（AM 的原始做法，上浮 3px）
+ *       2) 本项目统一的卡片类 .liquid-glass-card（上浮 2px，
+ *          与 .v-card--link / .v-card[link] 的悬浮参数一致）
+ *
+ *     此前 .liquid-glass-card 只有 transition 没有 :hover，
+ *     所以除了带 link 的卡片，其它卡片鼠标移上去没有任何反馈。
+ *     用 @media (hover: hover) 限定指针设备，避免触屏上悬浮态粘住。
+ * ============================================================ */
+
+.hover-lift {
+  cursor: pointer;
+  transition: transform 0.3s ease-out, box-shadow 0.3s ease-out !important;
+}
+
+.hover-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--am-hover-lift-shadow) !important;
+}
+
+@media (hover: hover) {
+  .liquid-glass-card:hover {
+    background: var(--am-surface-hover-bg) !important;
+    box-shadow: var(--am-surface-hover-shadow) !important;
+    transform: var(--am-surface-hover-transform);
+  }
+}
+
+/* ============================================================
+ * 23. Scrollbar — 滚动条
  *     统一风格，主区域 8px / 子区域 6px
  * ============================================================ */
 
