@@ -588,6 +588,14 @@
   gap: 8px 20px;
 }
 
+/* 逐行排列：每个信息项独占一行，不再"有空间就挤同一行"
+ * 用于 Docker 容器/镜像/Compose 卡片（容器ID、镜像必须各占一行） */
+.card-info--stacked {
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 4px;
+}
+
 .info-item {
   display: flex;
   align-items: center;

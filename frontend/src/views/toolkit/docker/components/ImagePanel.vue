@@ -297,7 +297,7 @@ defineExpose({ loadImages })
         </div>
 
         <!-- 信息行 -->
-        <div class="card-info px-4 pb-2">
+        <div class="card-info card-info--stacked px-4 pb-2">
           <div class="info-item">
             <span class="info-label">镜像ID</span>
             <span class="font-mono text-caption text-medium-emphasis">{{ shortId(img.full_id || img.id) }}</span>

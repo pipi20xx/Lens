@@ -271,7 +271,7 @@ defineExpose({ loadContainers, loadContainerSettings })
         </div>
 
         <!-- 信息行 -->
-        <div class="card-info px-4 pb-2">
+        <div class="card-info card-info--stacked px-4 pb-2">
           <div class="info-item">
             <span class="info-label">容器ID</span>
             <span class="font-mono text-caption text-medium-emphasis">{{ row.id }}</span>
@@ -290,13 +290,14 @@ defineExpose({ loadContainers, loadContainerSettings })
             </div>
           </template>
           <template v-if="enhancedMode">
-            <div v-if="row.ip" class="info-item">
+            <!-- IP / 运行 恒定占位：缺一项就少一行，同一排卡片的行高会对不齐 -->
+            <div class="info-item">
               <span class="info-label">IP</span>
-              <span class="font-mono text-caption">{{ row.ip }}</span>
+              <span class="font-mono text-caption" :class="{ 'text-medium-emphasis': !row.ip }">{{ row.ip || '--' }}</span>
             </div>
-            <div v-if="row.uptime" class="info-item">
+            <div class="info-item">
               <span class="info-label">运行</span>
-              <span class="text-caption">{{ formatUptime(row.uptime) }}</span>
+              <span class="text-caption" :class="{ 'text-medium-emphasis': !row.uptime }">{{ row.uptime ? formatUptime(row.uptime) : '--' }}</span>
             </div>
           </template>
           <div class="info-item">

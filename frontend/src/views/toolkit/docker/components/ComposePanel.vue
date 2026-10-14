@@ -198,7 +198,7 @@ defineExpose({ loadComposeProjects })
         </div>
 
         <!-- 信息行 -->
-        <div class="card-info px-4 pb-2">
+        <div class="card-info card-info--stacked px-4 pb-2">
           <div class="info-item">
             <span class="info-label">路径</span>
             <span class="font-mono text-caption text-medium-emphasis text-truncate">{{ project.config_file || project.path }}</span>
