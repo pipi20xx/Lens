@@ -22,16 +22,17 @@
  *   │                     自动适配 classic（白天/夜晚）与 ACG   │
  *   │                                                           │
  *   │ 第 4 层  主题覆盖（静态引入，靠声明顺序获得最高优先级）   │
- *   │   glass-acg.scss  — ACG 玻璃主题（html.glass-theme-acg）  │
+ *   │   glass-acg.scss    — ACG 玻璃（html.glass-theme-acg）     │
+ *   │   glass-themes.css  — 液态玻璃（html.glass-theme-liquid）  │
  *   └─────────────────────────────────────────────────────────────┘
  *
  * 规则：
  *   第 1 层 只放结构，不放颜色/背景/模糊/边框/阴影。
  *   第 2 层 只放变量声明，不放选择器规则。
  *   第 3 层 不带主题前缀，全部通过令牌引用适应当前主题。
- *   第 4 层 只放主题特有规则；glass-acg.scss 规则限定在
- *           html.glass-theme-acg 前缀下，classic 下不生效，
- *           靠本文件最后的导入顺序覆盖第 3 层。
+ *   第 4 层 只放主题特有规则；glass-acg.scss / glass-themes.css 的规则
+ *           限定在 html.glass-theme-acg / html.glass-theme-liquid 前缀下，
+ *           classic 下不生效，靠本文件最后的导入顺序覆盖第 3 层。
  */
 
 /* ═══════════════════════════════════════════════════════════════
@@ -84,3 +85,10 @@
  *     classic（白天/夜晚）下不生效；最后导入，覆盖第 3 层。
  *     同时把 --am-*-radius 档位令牌映射到内部 --app-*-radius。 */
 @import '../glass/styles/glass-acg.scss';
+
+/* 4.2 液态玻璃主题 — 规则限定 html.glass-theme-liquid 前缀，
+ *     提供 --lg-* 变量（折射带/弧光/mesh/弹簧曲线）与
+ *     mesh 背景、卡片与按钮弧光伪元素、日志配色、性能降级等专属效果。
+ *     组件的基础视觉（背景/模糊/边框/阴影/圆角）仍由
+ *     tokens.css 的液态玻璃令牌 + visual.css 统一处理。 */
+@import '../glass/styles/glass-themes.css';

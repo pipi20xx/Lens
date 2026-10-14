@@ -9,6 +9,7 @@
  */
 import { createVuetify } from 'vuetify'
 import { aliases, mdi } from 'vuetify/iconsets/mdi'
+import { isThemeDark, readStoredAppTheme, themeStyle } from '@/stores/useThemeStore'
 
 import 'vuetify/styles'
 
@@ -95,11 +96,13 @@ export default createVuetify({
     },
   },
   theme: {
+    // 首个 Vuetify 主题名按「视觉风格 + 明暗」推导：
+    //   acg            → 'acg'（独立主题名，隔离 .v-theme--dark 规则）
+    //   classic/liquid → 'light' / 'dark'（这两个风格共用同一套明暗色板）
     defaultTheme: (() => {
-      const t = localStorage.getItem('app_theme')
-      if (t === 'light') return 'light'
-      if (t === 'acg') return 'acg'
-      return 'dark'
+      const stored = readStoredAppTheme()
+      if (themeStyle(stored) === 'acg') return 'acg'
+      return isThemeDark(stored) ? 'dark' : 'light'
     })(),
     themes: {
       light: lightTheme,

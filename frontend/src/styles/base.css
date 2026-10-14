@@ -3,11 +3,13 @@
  *
  * 只放"不管哪个主题都需要"的基础规则：
  *   - 全局重置（字体平滑）
+ *   - 背景层脚手架（body::before / body::after 的定位与层叠）
  *   - 组件内部透明（卡片/折叠面板/侧边导航列表）
  *
  * 不放任何视觉风格（颜色/背景/模糊/边框/阴影/滚动条样式），
  * 那些由 tokens.css（设计令牌）+ visual.css（共享视觉规则）统一处理，
- * 主题专属效果由 glass-acg.scss 动态加载处理。
+ * 主题专属效果由静态引入的 glass-acg.scss / glass-themes.css 处理
+ * （见 styles/index.css 第 4 层）。
  */
 
 /* ============================================================
@@ -19,7 +21,36 @@ html {
 }
 
 /* ============================================================
- * 2. 组件内部透明
+ * 2. 背景层脚手架 — 只提供定位与层叠，不含任何颜色
+ *    液态玻璃主题（glass-themes.css）的 mesh 渐变绘制在
+ *    body::before / body::after 上，这里提供它们所需的
+ *    content / position / inset，以及 pointer-events: none
+ *    （避免这两层遮住交互）。真正的背景色/图片由主题文件填充，
+ *    classic 与 ACG 下这两层保持透明，等于不存在。
+ *
+ *    注意：这里**不写 body 自身的背景**。ACG 主题里
+ *    `html.glass-theme-acg body { background-color/background-image }`
+ *    是非 !important 声明，若在此写 `body { background: transparent
+ *    !important }` 会把它整条盖掉（连壁纸一起清掉）。
+ * ============================================================ */
+body::before,
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+body::before {
+  z-index: -2;
+}
+
+body::after {
+  z-index: -1;
+}
+
+/* ============================================================
+ * 3. 组件内部透明
  *    卡片/折叠面板内的子组件必须透明，否则实色会盖住玻璃效果
  * ============================================================ */
 

@@ -185,14 +185,17 @@ const currentTitle = computed(() => {
 // 主题切换图标与颜色
 const themeIcon = computed(() => {
   switch (themeStore.appTheme) {
-    case 'light': return 'mdi-white-balance-sunny'
+    case 'light':
+    case 'liquid-light': return 'mdi-white-balance-sunny'
     case 'acg': return 'mdi-glass-mug-variant'
-    default: return 'mdi-weather-night'
+    default: return 'mdi-weather-night' // 'dark' | 'liquid-dark'
   }
 })
 const themeColor = computed(() => {
   switch (themeStore.appTheme) {
     case 'light': return 'warning'
+    case 'liquid-light':
+    case 'liquid-dark': return 'accent'
     case 'acg': return 'primary'
     default: return 'info'
   }
@@ -392,20 +395,21 @@ onUnmounted(() => {
               />
             </template>
             <v-list density="compact" min-width="200" nav>
+              <!-- 每个主题的明暗都是写死的，切换主题即整体切换（对齐 AM 的 5 主题） -->
               <v-list-item
                 prepend-icon="mdi-white-balance-sunny"
-                title="白天"
-                subtitle="纯白明亮风格"
-                :active="themeStore.appTheme === 'light'"
-                @click="themeStore.setAppTheme('light')"
+                title="液态玻璃 · 白天"
+                subtitle="Apple 液态玻璃风格（亮）"
+                :active="themeStore.appTheme === 'liquid-light'"
+                @click="themeStore.setAppTheme('liquid-light')"
                 rounded="xl"
               />
               <v-list-item
                 prepend-icon="mdi-weather-night"
-                title="夜晚"
-                subtitle="纯黑暗色风格"
-                :active="themeStore.appTheme === 'dark'"
-                @click="themeStore.setAppTheme('dark')"
+                title="液态玻璃 · 黑夜"
+                subtitle="Apple 液态玻璃风格（暗）"
+                :active="themeStore.appTheme === 'liquid-dark'"
+                @click="themeStore.setAppTheme('liquid-dark')"
                 rounded="xl"
               />
               <v-list-item
@@ -414,6 +418,22 @@ onUnmounted(() => {
                 subtitle="二次元壁纸 + 暗色毛玻璃"
                 :active="themeStore.appTheme === 'acg'"
                 @click="themeStore.setAppTheme('acg')"
+                rounded="xl"
+              />
+              <v-list-item
+                prepend-icon="mdi-white-balance-sunny"
+                title="经典 · 白天"
+                subtitle="纯白明亮风格"
+                :active="themeStore.appTheme === 'light'"
+                @click="themeStore.setAppTheme('light')"
+                rounded="xl"
+              />
+              <v-list-item
+                prepend-icon="mdi-weather-night"
+                title="经典 · 黑夜"
+                subtitle="纯黑暗色风格"
+                :active="themeStore.appTheme === 'dark'"
+                @click="themeStore.setAppTheme('dark')"
                 rounded="xl"
               />
               <v-divider class="my-2 mx-2" />
@@ -451,7 +471,7 @@ onUnmounted(() => {
                 prepend-icon="mdi-tune-variant"
                 title="玻璃材质设置"
                 subtitle="材质 / 质量 / 动态效果 / 参数"
-                :disabled="themeStore.appTheme !== 'acg'"
+                :disabled="themeStore.glassTheme !== 'acg'"
                 @click="showGlassSettings = true"
               />
             </v-list>

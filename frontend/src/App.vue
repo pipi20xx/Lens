@@ -3,6 +3,7 @@ import { ref, watch, computed, onMounted, defineAsyncComponent } from 'vue'
 import { useRoute } from 'vue-router'
 import { useTheme } from 'vuetify'
 import { useThemeStore, useSystemStore } from '@/stores'
+import { isThemeDark, themeStyle, type AppTheme } from '@/stores/useThemeStore'
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import {
   useGlassWallpaper,
@@ -24,14 +25,29 @@ const systemStore = useSystemStore()
 // 判断当前路由是否为独立全屏页面（不带 DefaultLayout）
 const isStandalone = computed(() => route.meta.standalone === true)
 
-// 同步主题：light/dark → classic 主题的明暗两态；acg → ACG 玻璃主题
+// 同步主题：5 主题 = 视觉风格（classic / liquid / acg）+ 写死的明暗模式
 // 对齐 Anime-Manager：
-//   - Vuetify 主题名直接映射（acg 生成 .v-theme--acg 类）
-//   - html/body 挂 glass-theme-classic / glass-theme-acg class，
-//     tokens.css 的主题令牌块据此激活
-//   - classic 下再挂 glass-light / glass-dark 区分明暗
-function applyTheme(appTheme: 'light' | 'dark' | 'acg') {
-  const vuetifyThemeName = appTheme // 'light' | 'dark' | 'acg' 直接映射
+//   - Vuetify 主题名按「明暗」映射：liquid-light → light、liquid-dark → dark，
+//     acg 用独立的 'acg' 主题（生成 .v-theme--acg，避免 .v-theme--dark 规则
+//     与 glass-acg.scss 冲突）
+//   - html/body 挂 glass-theme-classic / glass-theme-liquid / glass-theme-acg，
+//     tokens.css 的主题令牌块据此激活；挂上 glass-theme-liquid 后
+//     glass-themes.css 的 --lg-* 变量与 mesh 背景才会生效
+//   - classic / liquid 下再挂 glass-light / glass-dark 区分白天/夜晚
+//   - data-theme 仅供 TS 逻辑读取（ACG='glass'、liquid='transparent'），CSS 一律用 class
+const VUETIFY_THEME_BY_APP_THEME: Record<AppTheme, string> = {
+  light: 'light',
+  dark: 'dark',
+  'liquid-light': 'light',
+  'liquid-dark': 'dark',
+  acg: 'acg',
+}
+
+function applyTheme(appTheme: AppTheme) {
+  const style = themeStyle(appTheme)
+  const isDark = isThemeDark(appTheme)
+
+  const vuetifyThemeName = VUETIFY_THEME_BY_APP_THEME[appTheme]
   if (typeof theme.change === 'function') {
     theme.change(vuetifyThemeName)
   } else {
@@ -41,23 +57,23 @@ function applyTheme(appTheme: 'light' | 'dark' | 'acg') {
   const html = document.documentElement
   const body = document.body
 
-  // 玻璃主题 class 管理（classic / acg 互斥）
+  // 玻璃主题 class 管理（classic / liquid / acg 互斥）
   html.classList.remove('glass-theme-acg', 'glass-theme-liquid', 'glass-theme-classic')
   body.classList.remove('glass-theme-acg', 'glass-theme-liquid', 'glass-theme-classic')
+  html.classList.add(`glass-theme-${style}`)
+  body.classList.add(`glass-theme-${style}`)
 
-  // 明暗 class 管理（classic 内部区分白天/夜晚）
-  html.classList.toggle('glass-dark', appTheme !== 'light')
-  html.classList.toggle('glass-light', appTheme === 'light')
+  // 明暗 class 管理（classic / liquid 内部区分白天/夜晚）
+  html.classList.toggle('glass-dark', isDark)
+  html.classList.toggle('glass-light', !isDark)
 
-  if (appTheme === 'acg') {
-    html.classList.add('glass-theme-acg')
-    body.classList.add('glass-theme-acg')
-    // 设置 data-theme 属性 —— 让 TS 文件中的 data-theme 检查和 CSS 选择器都能工作
+  if (style === 'acg') {
     html.setAttribute('data-theme', 'glass')
     body.setAttribute('data-theme', 'glass')
+  } else if (style === 'liquid') {
+    html.setAttribute('data-theme', 'transparent')
+    body.setAttribute('data-theme', 'transparent')
   } else {
-    html.classList.add('glass-theme-classic')
-    body.classList.add('glass-theme-classic')
     html.removeAttribute('data-theme')
     body.removeAttribute('data-theme')
   }

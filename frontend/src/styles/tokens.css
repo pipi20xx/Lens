@@ -5,18 +5,31 @@
  *   :root                            → 仅跨主题中性值（过渡、尺寸等）
  *   html.glass-theme-acg             → ACG 主题值（暗色玻璃）
  *   html.glass-theme-classic         → 经典主题值（白天/夜晚两态）
+ *   html.glass-theme-liquid          → 液态玻璃主题值（白天/夜晚两态）
  *
  * 规则：
- *   1. :root 只放三主题完全相同的值（过渡时长、滚动条宽度等）
+ *   1. :root 只放各主题完全相同的值（过渡时长、滚动条宽度等）
  *   2. 每个主题在自己的 html.glass-theme-xxx 前缀下定义完整令牌
- *   3. classic 主题内部用 .v-theme--light / .v-theme--dark 区分白天/夜晚
+ *   3. classic / liquid 主题内部用 .v-theme--light / .v-theme--dark 区分白天/夜晚
  *   4. 只放变量声明，不放选择器规则
  *   5. 档位控制块（data-theme-radius/shadow/border）在本文件末尾，
  *      声明在主题块之后 —— 同特异性下后者覆盖，这是档位生效的机制
+ *
+ * 液态玻璃的令牌策略（与 AM 的差异，原因见 §3 注释）：
+ *   本项目的 visual.css 是分叉版，比 AM 当前版本多消费约 40 个令牌
+ *   （--am-dialog-*、--am-list-hover-bg、--am-chip-tonal-bg、--am-code-bg、
+ *    --am-tooltip-bg、--am-table-bg 等）。AM 的液态玻璃令牌块只覆盖 AM 自己
+ *   那版 visual.css，直接照搬会让这些令牌在本项目下变成未定义，进而使
+ *   「background: var(--未定义)」整条声明失效（弹窗变透明、chip/code 底色消失）。
+ *   因此这里让 §2 的 classic 令牌块同时充当 liquid 的兜底底座（在两个
+ *   .v-theme--light / .v-theme--dark 选择器后面各追加一个
+ *   html.glass-theme-liquid 前缀的选择器），再由 §3 的液态玻璃覆盖块
+ *   把 AM 的液态玻璃值 + 本项目补充的玻璃值盖上去。
+ *   结果：liquid 下不会出现未定义令牌，且 AM 的液态玻璃观感完整生效。
  */
 
 /* ============================================================
- * 0. 中性令牌 — 三主题完全相同，不随主题变化
+ * 0. 中性令牌 — 各主题完全相同，不随主题变化
  * ============================================================ */
 
 :root {
@@ -37,7 +50,7 @@
   /* 列表项尺寸 */
   --am-list-item-min-height: 38px;
 
-  /* 开关/滑块拇指（白色圆点，三主题统一） */
+  /* 开关/滑块拇指（白色圆点，各主题统一） */
   --am-slider-thumb-bg: #fff;
 
   /* 卡片悬浮位移 */
@@ -260,8 +273,9 @@ html.glass-theme-acg {
  *    值来源：原 visual.css 中 light/dark 写死值
  * ============================================================ */
 
-/* ── 2a. Classic 白天令牌 ── */
-html.glass-theme-classic .v-theme--light {
+/* ── 2a. Classic 白天令牌（同时充当液态玻璃的兜底底座，见 §3） ── */
+html.glass-theme-classic .v-theme--light,
+html.glass-theme-liquid .v-theme--light {
   /* App / Nav — 白底 + 紫色系强调 */
   --am-app-bg: #FFFFFF;
   --am-nav-bg: #FFFFFF;
@@ -433,8 +447,9 @@ html.glass-theme-classic .v-theme--light {
   --am-code-radius: 6px;
 }
 
-/* ── 2b. Classic 夜晚令牌 ── */
-html.glass-theme-classic .v-theme--dark {
+/* ── 2b. Classic 夜晚令牌（同时充当液态玻璃的兜底底座，见 §3） ── */
+html.glass-theme-classic .v-theme--dark,
+html.glass-theme-liquid .v-theme--dark {
   /* App / Nav — 深底 + 蓝色系强调 */
   --am-app-bg: #0e0e1a;
   --am-nav-bg: #0e0e1a;
@@ -606,6 +621,448 @@ html.glass-theme-classic .v-theme--dark {
   --am-code-radius: 6px;
 }
 
+/* ============================================================
+ * 3. 液态玻璃主题 — html.glass-theme-liquid 激活
+ *    白天（.v-theme--light）/ 夜晚（.v-theme--dark）两态
+ *
+ *    本块声明在 §2（classic，同时充当 liquid 的兜底底座）之后，
+ *    同特异性下后者覆盖：这里没写到的令牌自动沿用 classic 值，
+ *    因此不会出现「令牌未定义 → background/box-shadow 整条失效」。
+ *
+ *    --lg-* 变量（折射带 / 弧光 / mesh 色块 / 弹簧曲线）定义在
+ *    glass/styles/glass-themes.css，本文件只引用。
+ *
+ *    标注「Lens 补充」的令牌：AM 的液态玻璃块未覆盖、而本项目
+ *    分叉版 visual.css 会消费；取值按 AM 液态玻璃的设计语言给出
+ *    （亮色 rgba(255,255,255,.4)、暗色 rgba(28,30,52,.44)、
+ *     边框 var(--lg-border)、阴影 var(--lg-rim[-sm]) + var(--lg-shadow[-lift])）。
+ * ============================================================ */
+
+/* ── 3a. Liquid 白天组件令牌 ── */
+html.glass-theme-liquid .v-theme--light {
+  /* App — 透明，让 body::before 的 mesh 渐变透出（与 AM 一致：AM 不定义该令牌） */
+  --am-app-bg: transparent;
+
+  /* Surface */
+  --am-surface-bg: rgba(255, 255, 255, 0.4);
+  --am-surface-blur: blur(22px) saturate(190%);
+  --am-surface-border: 1px solid rgba(0, 0, 0, 0.1);
+  --am-surface-shadow: var(--lg-rim), var(--lg-shadow);
+  --am-surface-radius: 22px;
+  --am-surface-hover-shadow: var(--lg-rim), var(--lg-shadow-lift);
+  /* Lens 补充 */
+  --am-surface-elevated-shadow: var(--lg-rim), var(--lg-shadow-lift);
+  --am-surface-outlined-bg: rgba(255, 255, 255, 0.4);
+  --am-surface-hover-bg: rgba(255, 255, 255, 0.52);
+
+  /* Overlay */
+  --am-overlay-bg: rgba(255, 255, 255, 0.52);
+  --am-overlay-blur: blur(22px) saturate(190%);
+  --am-overlay-border: 1px solid var(--lg-border);
+  --am-overlay-shadow: var(--lg-rim), var(--lg-shadow-lift);
+  --am-overlay-radius: 22px;
+  --am-dialog-radius: 22px;
+  --am-menu-radius: 22px;
+  /* Lens 补充 — 本项目 visual.css 的弹窗走 dialog 令牌 */
+  --am-dialog-bg: rgba(255, 255, 255, 0.52);
+  --am-dialog-blur: blur(22px) saturate(190%);
+  --am-dialog-shadow: var(--lg-rim), var(--lg-shadow-lift);
+  --am-dialog-border: 1px solid var(--lg-border);
+
+  /* Scrim */
+  --am-scrim-blur: none;
+  --am-scrim-bg: rgba(24, 28, 58, 0.34);
+
+  /* Nav */
+  --am-nav-bg: transparent;
+  --am-nav-blur: none;
+  --am-nav-border: none;
+  --am-nav-shadow: none;
+  /* Lens 补充 */
+  --am-nav-hover-bg: rgba(255, 255, 255, 0.5);
+  --am-nav-active-bg: rgba(var(--v-theme-primary), 0.14);
+  --am-nav-list-item-radius: 14px;
+  --am-nav-active-title-shadow: none;
+  --am-nav-active-icon-filter: none;
+  --am-nav-indicator-shadow: none;
+
+  /* Field */
+  --am-field-bg: rgba(255, 255, 255, 0.4);
+  --am-field-border: 1px solid var(--lg-border);
+  --am-field-radius: 999px;
+  --am-field-shadow: var(--lg-rim-sm), 0 2px 10px -6px rgba(31, 38, 135, 0.3);
+  --am-field-focus-shadow:
+    var(--lg-rim-sm), 0 0 0 2px rgba(var(--v-theme-primary), 0.45),
+    0 4px 16px -8px rgb(var(--v-theme-primary));
+  --am-field-outline-opacity: 0;
+  --am-field-focus-outline-color: rgb(var(--v-theme-primary));
+  /* Lens 补充 */
+  --am-field-outline-color: var(--lg-border);
+  --am-field-outline-hover-color: var(--lg-border-strong);
+  --am-field-outline-focus-color: rgb(var(--v-theme-primary));
+  --am-field-focus-bg: rgba(255, 255, 255, 0.52);
+
+  /* Button */
+  --am-btn-bg: rgba(255, 255, 255, 0.4);
+  --am-btn-blur: blur(22px) saturate(190%);
+  --am-btn-border: 1px solid var(--lg-border);
+  --am-btn-shadow: var(--lg-rim-sm), var(--lg-shadow);
+  --am-btn-radius: 999px;
+  --am-btn-hover-bg: rgba(255, 255, 255, 0.52);
+  --am-btn-hover-shadow: var(--lg-rim-sm), var(--lg-shadow);
+  --am-btn-font-weight: 500;
+  --am-btn-text-color: rgb(var(--v-theme-primary));
+  --am-btn-outlined-bg: rgba(255, 255, 255, 0.4);
+  --am-btn-outlined-hover-bg: rgba(255, 255, 255, 0.52);
+  /* Lens 补充 */
+  --am-btn-overlay-bg: rgba(255, 255, 255, 0.12);
+  --am-btn-overlay-hover-bg: rgba(255, 255, 255, 0.2);
+  --am-btn-tonal-hover-shadow: var(--lg-rim-sm), var(--lg-shadow);
+  --am-btn-outlined-border: 1px solid var(--lg-border);
+  --am-btn-outlined-hover-border: 1px solid var(--lg-border-strong);
+  --am-btn-outlined-hover-shadow: var(--lg-rim-sm), var(--lg-shadow);
+
+  /* Tab */
+  --am-tab-bg: rgba(255, 255, 255, 0.4);
+  --am-tab-blur: blur(8px) saturate(170%);
+  --am-tab-border: 1px solid var(--lg-border);
+  --am-tab-shadow: var(--lg-rim-sm);
+  --am-tab-radius: 999px;
+  --am-tab-active-color: rgb(var(--v-theme-primary));
+  --am-tab-inactive-color: rgba(0, 0, 0, 0.55);
+  --am-tab-hover-color: rgb(var(--v-theme-primary));
+  --am-tab-gap: 8px;
+  /* Lens 补充 */
+  --am-tab-active-shadow: none;
+
+  /* Chip */
+  --am-chip-blur: blur(8px) saturate(170%);
+  --am-chip-border: 1px solid var(--lg-border);
+  /* Lens 补充 */
+  --am-chip-tonal-bg: rgba(255, 255, 255, 0.4);
+  --am-chip-tonal-color: rgb(var(--v-theme-primary));
+
+  /* Snackbar */
+  --am-snackbar-bg: rgba(255, 255, 255, 0.65);
+  --am-snackbar-blur: blur(22px) saturate(190%);
+  --am-snackbar-border: 1px solid var(--lg-border);
+  --am-snackbar-shadow: var(--lg-rim-sm), var(--lg-shadow);
+  --am-snackbar-radius: 14px;
+  --am-snackbar-text: rgba(0, 0, 0, 0.87);
+
+  /* Alert */
+  --am-alert-blur: blur(10px) saturate(170%);
+  --am-alert-border: 1px solid var(--lg-border);
+  /* Lens 补充 */
+  --am-alert-tonal-bg: rgba(255, 255, 255, 0.4);
+
+  /* Divider */
+  --am-divider-color: rgba(0, 0, 0, 0.08);
+
+  /* Text */
+  --am-label-color: rgba(0, 0, 0, 0.87);
+  --am-label-focus-color: rgb(var(--v-theme-primary));
+  --am-input-text: rgba(0, 0, 0, 0.87);
+  --am-dropdown-arrow: rgba(0, 0, 0, 0.4);
+  --am-list-title: rgba(0, 0, 0, 0.87);
+
+  /* Nav Active */
+  --am-nav-active-color: rgb(var(--v-theme-primary));
+  --am-nav-indicator-bg: rgb(var(--v-theme-primary));
+  --am-nav-indicator-width: 2px;
+  --am-nav-indicator-radius: 0 2px 2px 0;
+
+  /* List */
+  --am-list-active-color: rgb(var(--v-theme-primary));
+  /* Lens 补充 */
+  --am-list-hover-bg: rgba(255, 255, 255, 0.45);
+  --am-list-active-bg: rgba(var(--v-theme-primary), 0.14);
+
+  /* Scrollbar — 亮底上用深色滑块（AM 原值 rgba(255,255,255,.35) 在亮底上不可见） */
+  --am-scrollbar-color: rgba(0, 0, 0, 0.2);
+  --am-scrollbar-hover: rgba(0, 0, 0, 0.35);
+
+  /* Login */
+  --am-login-bg: rgba(255, 255, 255, 0.4);
+  --am-login-blur: blur(22px) saturate(190%);
+  --am-login-border: 1px solid var(--lg-border);
+  --am-login-shadow: var(--lg-rim), var(--lg-shadow-lift);
+  --am-login-radius: 28px;
+
+  /* Switch */
+  --am-switch-track-bg: rgba(0, 0, 0, 0.08);
+  --am-switch-track-active-bg: rgb(var(--v-theme-primary));
+  /* Lens 补充 */
+  --am-switch-track-active-shadow: none;
+  --am-switch-thumb-active-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+
+  /* Checkbox / Radio */
+  --am-check-active-color: rgb(var(--v-theme-primary));
+  --am-check-inactive-color: rgba(120, 130, 145, 0.65);
+  /* Lens 补充 */
+  --am-check-active-shadow: none;
+
+  /* Slider */
+  --am-slider-track-bg: rgba(0, 0, 0, 0.08);
+  --am-slider-fill-bg: rgb(var(--v-theme-primary));
+  --am-slider-thumb-shadow: 0 0 6px rgba(var(--v-theme-primary), 0.35);
+  /* Lens 补充 */
+  --am-slider-fill-shadow: none;
+
+  /* Progress */
+  --am-progress-fill-bg: rgb(var(--v-theme-primary));
+  --am-progress-circular-stroke: rgb(var(--v-theme-primary));
+  /* Lens 补充 */
+  --am-progress-circular-glow: none;
+
+  /* BtnToggle */
+  --am-btn-toggle-border: 1px solid var(--lg-border);
+  --am-btn-toggle-radius: 999px;
+  --am-btn-toggle-active-bg: rgba(var(--v-theme-primary), 0.15);
+  --am-btn-toggle-active-color: rgb(var(--v-theme-primary));
+  /* Lens 补充 */
+  --am-btn-toggle-bg: rgba(255, 255, 255, 0.3);
+  --am-btn-toggle-active-shadow: var(--lg-rim-sm);
+
+  /* Tooltip */
+  --am-tooltip-blur: blur(10px) saturate(170%);
+  /* Lens 补充 */
+  --am-tooltip-bg: rgba(255, 255, 255, 0.72);
+
+  /* Avatar */
+  --am-avatar-blur: blur(10px) saturate(170%);
+  --am-avatar-border: 1px solid var(--lg-border);
+  --am-avatar-color: rgb(var(--v-theme-primary));
+  /* Lens 补充 */
+  --am-avatar-tonal-bg: rgba(255, 255, 255, 0.4);
+
+  /* Table */
+  --am-table-hover-bg: rgba(255, 255, 255, 0.35);
+  --am-table-header-bg: rgba(255, 255, 255, 0.25);
+  /* Lens 补充 — 本项目 visual.css 用令牌控制表格底色 */
+  --am-table-bg: transparent;
+
+  /* Hover Lift */
+  --am-hover-lift-shadow: var(--lg-rim), var(--lg-shadow-lift);
+
+  /* Code */
+  --am-code-radius: 6px;
+  --am-code-block-color: rgba(0, 0, 0, 0.87);
+  --am-code-block-border: 1px solid var(--lg-border);
+  /* Lens 补充 */
+  --am-code-bg: rgba(255, 255, 255, 0.45);
+  --am-code-color: rgb(var(--v-theme-primary));
+
+  /* Panel */
+  --am-panel-shadow: var(--lg-rim), var(--lg-shadow);
+
+  /* List Item */
+  --am-list-item-radius: 14px;
+  --am-list-item-margin: 2px 4px;
+
+  /* Filter Chip */
+  --am-filter-chip-bg: rgba(255, 255, 255, 0.4);
+  --am-filter-chip-border: 1px solid var(--lg-border);
+  --am-filter-chip-shadow: var(--lg-rim-sm);
+  --am-filter-chip-active-color: rgb(var(--v-theme-primary));
+  --am-filter-chip-outlined-color: rgba(0, 0, 0, 0.55);
+
+  /* Button Variants — 沿用 AM 液态玻璃取值：
+     flat 语义按钮 = 玻璃底 + 主色文字（tonal 语义按钮由 glass-themes.css 给实色底+白字） */
+  --am-btn-primary-color: rgb(var(--v-theme-primary));
+  --am-btn-success-color: rgb(var(--v-theme-primary));
+  --am-btn-warning-color: rgb(var(--v-theme-primary));
+  --am-btn-error-color: rgb(var(--v-theme-primary));
+  --am-btn-primary-bg: rgba(255, 255, 255, 0.4);
+  --am-btn-success-bg: rgba(255, 255, 255, 0.4);
+  --am-btn-warning-bg: rgba(255, 255, 255, 0.4);
+  --am-btn-error-bg: rgba(255, 255, 255, 0.4);
+
+  /* Content Border */
+  --am-content-border: 1px solid var(--lg-border);
+}
+
+/* ── 3b. Liquid 夜晚组件令牌 ── */
+html.glass-theme-liquid .v-theme--dark {
+  /* App — 透明，让 mesh 渐变透出（必须显式覆盖 §2 兜底给的 #0e0e1a） */
+  --am-app-bg: transparent;
+
+  --am-surface-bg: rgba(28, 30, 52, 0.44);
+  --am-surface-border: 1px solid rgba(255, 255, 255, 0.08);
+
+  --am-overlay-bg: rgba(28, 30, 52, 0.56);
+  --am-overlay-border: 1px solid var(--lg-border);
+
+  --am-field-bg: rgba(28, 30, 52, 0.44);
+  --am-field-hover-bg: rgba(28, 30, 52, 0.56);
+
+  --am-btn-bg: rgba(28, 30, 52, 0.44);
+  --am-btn-hover-bg: rgba(28, 30, 52, 0.56);
+  --am-btn-outlined-bg: rgba(28, 30, 52, 0.44);
+  --am-btn-outlined-hover-bg: rgba(28, 30, 52, 0.56);
+
+  --am-tab-bg: rgba(28, 30, 52, 0.44);
+  --am-tab-inactive-color: rgba(255, 255, 255, 0.55);
+
+  --am-snackbar-bg: rgba(28, 30, 52, 0.72);
+  --am-snackbar-text: rgba(255, 255, 255, 0.9);
+
+  --am-scrim-bg: rgba(2, 3, 10, 0.58);
+
+  --am-divider-color: rgba(255, 255, 255, 0.06);
+
+  --am-label-color: rgba(255, 255, 255, 0.9);
+  --am-input-text: rgba(255, 255, 255, 0.9);
+  --am-dropdown-arrow: rgba(255, 255, 255, 0.5);
+  --am-list-title: rgba(255, 255, 255, 0.9);
+
+  --am-scrollbar-color: rgba(255, 255, 255, 0.25);
+
+  --am-switch-track-bg: rgba(255, 255, 255, 0.1);
+  --am-slider-track-bg: rgba(255, 255, 255, 0.1);
+
+  --am-table-hover-bg: rgba(28, 30, 52, 0.45);
+  --am-table-header-bg: rgba(28, 30, 52, 0.3);
+
+  --am-filter-chip-bg: rgba(28, 30, 52, 0.44);
+  --am-filter-chip-outlined-color: rgba(255, 255, 255, 0.55);
+
+  --am-btn-primary-bg: rgba(28, 30, 52, 0.44);
+  --am-btn-success-bg: rgba(28, 30, 52, 0.44);
+  --am-btn-warning-bg: rgba(28, 30, 52, 0.44);
+  --am-btn-error-bg: rgba(28, 30, 52, 0.44);
+
+  /* Lens 补充 — 暗色取值与白天不同 */
+  --am-surface-outlined-bg: rgba(28, 30, 52, 0.44);
+  --am-surface-hover-bg: rgba(28, 30, 52, 0.56);
+  --am-dialog-bg: rgba(28, 30, 52, 0.56);
+  --am-nav-hover-bg: rgba(255, 255, 255, 0.08);
+  --am-nav-active-bg: rgba(var(--v-theme-primary), 0.18);
+  --am-field-focus-bg: rgba(28, 30, 52, 0.56);
+  --am-list-hover-bg: rgba(255, 255, 255, 0.08);
+  --am-list-active-bg: rgba(var(--v-theme-primary), 0.18);
+  --am-chip-tonal-bg: rgba(28, 30, 52, 0.44);
+  --am-alert-tonal-bg: rgba(28, 30, 52, 0.44);
+  --am-avatar-tonal-bg: rgba(28, 30, 52, 0.44);
+  --am-btn-toggle-bg: rgba(28, 30, 52, 0.4);
+  --am-tooltip-bg: rgba(28, 30, 52, 0.72);
+  --am-code-bg: rgba(28, 30, 52, 0.5);
+  --am-switch-thumb-active-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+
+  /* ── 以下从 3a（白天）继承：不分明暗的结构性令牌 ── */
+  --am-surface-blur: blur(22px) saturate(190%);
+  --am-surface-shadow: var(--lg-rim), var(--lg-shadow);
+  --am-surface-hover-shadow: var(--lg-rim), var(--lg-shadow-lift);
+  --am-surface-elevated-shadow: var(--lg-rim), var(--lg-shadow-lift);
+  --am-overlay-blur: blur(22px) saturate(190%);
+  --am-overlay-shadow: var(--lg-rim), var(--lg-shadow-lift);
+  --am-overlay-radius: 22px;
+  --am-dialog-radius: 22px;
+  --am-dialog-blur: blur(22px) saturate(190%);
+  --am-dialog-shadow: var(--lg-rim), var(--lg-shadow-lift);
+  --am-dialog-border: 1px solid var(--lg-border);
+  --am-menu-radius: 22px;
+  --am-scrim-blur: none;
+  --am-nav-bg: transparent;
+  --am-nav-blur: none;
+  --am-nav-border: none;
+  --am-nav-shadow: none;
+  --am-nav-list-item-radius: 14px;
+  --am-nav-active-title-shadow: none;
+  --am-nav-active-icon-filter: none;
+  --am-nav-indicator-shadow: none;
+  --am-field-border: 1px solid var(--lg-border);
+  --am-field-radius: 999px;
+  --am-field-shadow: var(--lg-rim-sm), 0 2px 10px -6px rgba(31, 38, 135, 0.3);
+  --am-field-focus-shadow:
+    var(--lg-rim-sm), 0 0 0 2px rgba(var(--v-theme-primary), 0.45),
+    0 4px 16px -8px rgb(var(--v-theme-primary));
+  --am-field-outline-opacity: 0;
+  --am-field-focus-outline-color: rgb(var(--v-theme-primary));
+  --am-field-outline-color: var(--lg-border);
+  --am-field-outline-hover-color: var(--lg-border-strong);
+  --am-field-outline-focus-color: rgb(var(--v-theme-primary));
+  --am-btn-blur: blur(22px) saturate(190%);
+  --am-btn-border: 1px solid var(--lg-border);
+  --am-btn-shadow: var(--lg-rim-sm), var(--lg-shadow);
+  --am-btn-radius: 999px;
+  --am-btn-hover-shadow: var(--lg-rim-sm), var(--lg-shadow);
+  --am-btn-font-weight: 500;
+  --am-btn-text-color: rgb(var(--v-theme-primary));
+  --am-btn-overlay-bg: rgba(255, 255, 255, 0.12);
+  --am-btn-overlay-hover-bg: rgba(255, 255, 255, 0.2);
+  --am-btn-tonal-hover-shadow: var(--lg-rim-sm), var(--lg-shadow);
+  --am-btn-outlined-border: 1px solid var(--lg-border);
+  --am-btn-outlined-hover-border: 1px solid var(--lg-border-strong);
+  --am-btn-outlined-hover-shadow: var(--lg-rim-sm), var(--lg-shadow);
+  --am-btn-primary-color: rgb(var(--v-theme-primary));
+  --am-btn-success-color: rgb(var(--v-theme-primary));
+  --am-btn-warning-color: rgb(var(--v-theme-primary));
+  --am-btn-error-color: rgb(var(--v-theme-primary));
+  --am-tab-blur: blur(8px) saturate(170%);
+  --am-tab-border: 1px solid var(--lg-border);
+  --am-tab-shadow: var(--lg-rim-sm);
+  --am-tab-radius: 999px;
+  --am-tab-gap: 8px;
+  --am-tab-active-color: rgb(var(--v-theme-primary));
+  --am-tab-hover-color: rgb(var(--v-theme-primary));
+  --am-tab-active-shadow: none;
+  --am-chip-blur: blur(8px) saturate(170%);
+  --am-chip-border: 1px solid var(--lg-border);
+  --am-chip-tonal-color: rgb(var(--v-theme-primary));
+  --am-snackbar-blur: blur(22px) saturate(190%);
+  --am-snackbar-border: 1px solid var(--lg-border);
+  --am-snackbar-shadow: var(--lg-rim-sm), var(--lg-shadow);
+  --am-snackbar-radius: 14px;
+  --am-alert-blur: blur(10px) saturate(170%);
+  --am-alert-border: 1px solid var(--lg-border);
+  --am-label-focus-color: rgb(var(--v-theme-primary));
+  --am-nav-active-color: rgb(var(--v-theme-primary));
+  --am-nav-indicator-bg: rgb(var(--v-theme-primary));
+  --am-nav-indicator-width: 2px;
+  --am-nav-indicator-radius: 0 2px 2px 0;
+  --am-list-active-color: rgb(var(--v-theme-primary));
+  --am-list-item-radius: 14px;
+  --am-list-item-margin: 2px 4px;
+  --am-scrollbar-hover: rgba(255, 255, 255, 0.4);
+  --am-login-bg: rgba(255, 255, 255, 0.4);
+  --am-login-blur: blur(22px) saturate(190%);
+  --am-login-border: 1px solid var(--lg-border);
+  --am-login-shadow: var(--lg-rim), var(--lg-shadow-lift);
+  --am-login-radius: 28px;
+  --am-switch-track-active-bg: rgb(var(--v-theme-primary));
+  --am-switch-track-active-shadow: none;
+  --am-check-active-color: rgb(var(--v-theme-primary));
+  --am-check-inactive-color: rgba(120, 130, 145, 0.65);
+  --am-check-active-shadow: none;
+  --am-slider-fill-bg: rgb(var(--v-theme-primary));
+  --am-slider-fill-shadow: none;
+  --am-slider-thumb-shadow: 0 0 6px rgba(var(--v-theme-primary), 0.35);
+  --am-progress-fill-bg: rgb(var(--v-theme-primary));
+  --am-progress-circular-stroke: rgb(var(--v-theme-primary));
+  --am-progress-circular-glow: none;
+  --am-btn-toggle-border: 1px solid var(--lg-border);
+  --am-btn-toggle-radius: 999px;
+  --am-btn-toggle-active-bg: rgba(var(--v-theme-primary), 0.15);
+  --am-btn-toggle-active-color: rgb(var(--v-theme-primary));
+  --am-btn-toggle-active-shadow: var(--lg-rim-sm);
+  --am-tooltip-blur: blur(10px) saturate(170%);
+  --am-avatar-blur: blur(10px) saturate(170%);
+  --am-avatar-border: 1px solid var(--lg-border);
+  --am-avatar-color: rgb(var(--v-theme-primary));
+  --am-table-bg: transparent;
+  --am-hover-lift-shadow: var(--lg-rim), var(--lg-shadow-lift);
+  --am-code-radius: 6px;
+  --am-code-block-color: rgba(0, 0, 0, 0.87);
+  --am-code-block-border: 1px solid var(--lg-border);
+  --am-code-color: rgb(var(--v-theme-primary));
+  --am-panel-shadow: var(--lg-rim), var(--lg-shadow);
+  --am-filter-chip-border: 1px solid var(--lg-border);
+  --am-filter-chip-shadow: var(--lg-rim-sm);
+  --am-filter-chip-active-color: rgb(var(--v-theme-primary));
+  --am-content-border: 1px solid var(--lg-border);
+}
+
 /* ════════════════════════════════════════════════════════════════
  * 全局圆角控制 — 由 useThemeCustomizer 的 radius 设置驱动
  * data-theme-radius 属性由 applyThemeCustomizerRootSettings 写入。
@@ -618,7 +1075,7 @@ html.glass-theme-classic .v-theme--dark {
  *   extra    — 更大圆角（28-36px）
  *
  * 注意：档位块声明在主题块之后（同特异性靠后者覆盖），
- * 这正是档位设置对三个主题统一生效的机制。
+ * 这正是档位设置对各主题统一生效的机制。
  * ════════════════════════════════════════════════════════════════ */
 
 /* ── 无圆角 ── */
