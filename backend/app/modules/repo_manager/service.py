@@ -32,6 +32,8 @@ DEFAULT_SETTINGS: Dict[str, Any] = {
     "max_repos": 300,
     "author_name": "",                     # 仓库未配置 user.name 时的兜底
     "author_email": "",
+    # 克隆是否走代理：auto=跟随容器环境（默认，行为不变）/ on=强制走代理 / off=强制直连
+    "clone_proxy": "auto",
     # 提交者身份档案：[{id, label, provider(github|gitea|""), name, email}]
     # 典型用法：为 GitHub 和 Gitea 各建一个，克隆时按来源自动套用
     "identities": [],
@@ -112,6 +114,8 @@ def save_settings(patch: Dict[str, Any]) -> Dict[str, Any]:
     current["roots"] = [r.strip() for r in (current.get("roots") or [])
                         if isinstance(r, str) and r.strip()]
     current["identities"] = _normalize_identities(current.get("identities"))
+    if current.get("clone_proxy") not in PROXY_MODES:
+        current["clone_proxy"] = "auto"
     cfg[SETTINGS_KEY] = current
     save_config(cfg)
     _CACHE.clear()
@@ -823,13 +827,45 @@ def _repo_name_from_url(url: str) -> str:
     return re.sub(r"[^A-Za-z0-9._\-\u4e00-\u9fff]+", "-", tail).strip("-") or "repo"
 
 
+PROXY_MODES = ("auto", "on", "off")
+
+
+def proxy_settings() -> Dict[str, Any]:
+    """读取 Lens 自己的「网络代理」配置（系统设置 → 网络代理）。"""
+    cfg = get_config().get("proxy") or {}
+    return {
+        "url": (cfg.get("url") or "").strip(),
+        "enabled": bool(cfg.get("enabled")),
+    }
+
+
+def _resolve_clone_proxy(mode: str = "") -> Dict[str, str]:
+    """把「克隆是否走代理」的选项收敛成 {mode, url}。
+
+    mode 留空时取仓库管理设置里的默认值（默认 auto = 完全沿用旧行为）。
+    """
+    chosen = (mode or get_settings().get("clone_proxy") or "auto").strip().lower()
+    if chosen not in PROXY_MODES:
+        raise GitError("代理选项非法（只能是 auto / on / off）")
+    if chosen != "on":
+        return {"mode": chosen, "url": ""}
+    url = proxy_settings()["url"]
+    if not url:
+        raise GitError("已选择「走代理」，但还没配置代理地址：请先到「系统设置 → 网络代理」填写并保存")
+    return {"mode": chosen, "url": url}
+
+
 async def start_clone(url: str, name: str = "", provider: str = "",
-                      target_dir: str = "", identity_id: str = "") -> str:
+                      target_dir: str = "", identity_id: str = "",
+                      proxy_mode: str = "") -> str:
     url = (url or "").strip()
     if not url:
         raise GitError("请填写仓库地址")
     if not (url.startswith(("http://", "https://", "git@", "ssh://"))):
         raise GitError("无法识别的仓库地址（需要 http(s) 或 ssh）")
+
+    proxy = _resolve_clone_proxy(proxy_mode)
+    mode = proxy["mode"]
 
     settings = get_settings()
     clone_dir = _real((target_dir or "").strip() or settings.get("clone_dir") or "")
@@ -847,13 +883,21 @@ async def start_clone(url: str, name: str = "", provider: str = "",
     if os.path.exists(dest) and os.listdir(dest):
         raise GitError(f"目标目录已存在且非空：{dest}")
 
-    job_id = jobs.create("clone", target=dest, url=url)
+    job_id = jobs.create("clone", target=dest, url=url, proxy=mode)
     auth_env = git_ops.auth_env_for_url(url, get_config())
 
     async def runner() -> None:
         try:
+            if mode == "on":
+                jobs.log(job_id, f"代理已开启：{proxy['url']}")
+                if url.startswith(("git@", "ssh://")):
+                    jobs.log(job_id, "注意：SSH 地址走的是 ssh 协议，HTTP 代理对它无效")
+            elif mode == "off":
+                jobs.log(job_id, "已强制直连：忽略容器内的代理环境变量")
+
             await git_ops.clone(url, dest, auth_env=auth_env,
-                                on_line=lambda line: jobs.log(job_id, line))
+                                on_line=lambda line: jobs.log(job_id, line),
+                                proxy_mode=mode, proxy_url=proxy["url"])
 
             # 克隆完成后按「来源 provider」自动套用对应的提交者身份
             detected = provider or git_ops.provider_for_url(url, get_config())
@@ -863,7 +907,7 @@ async def start_clone(url: str, name: str = "", provider: str = "",
                 jobs.log(job_id, f"已套用提交者身份：{profile['name']} <{profile['email']}>")
 
             invalidate()
-            jobs.finish(job_id, {"path": dest, "name": repo_name,
+            jobs.finish(job_id, {"path": dest, "name": repo_name, "proxy": mode,
                                  "identity": profile["label"] if profile else ""})
         except GitError as exc:
             jobs.fail(job_id, exc.message)

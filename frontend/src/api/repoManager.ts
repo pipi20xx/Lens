@@ -127,6 +127,13 @@ export interface RepoSettings {
   author_name: string
   author_email: string
   identities: IdentityProfile[]
+  /** 克隆代理默认值：auto=跟随容器环境 / on=强制走代理 / off=强制直连 */
+  clone_proxy?: 'auto' | 'on' | 'off'
+}
+
+export interface RepoProxyInfo {
+  url: string
+  enabled: boolean
 }
 
 export interface BrowseEntry {
@@ -243,13 +250,14 @@ export const repoManagerApi = {
   resolve: (path: string, file: string, strategy: 'ours' | 'theirs') =>
     api.post(`${BASE}/resolve`, { path, file, strategy }),
 
-  clone: (url: string, name = '', provider = '', targetDir = '', identityId = '') =>
+  clone: (url: string, name = '', provider = '', targetDir = '', identityId = '', proxyMode = '') =>
     api.post<{ job_id: string }>(`${BASE}/clone`, {
       url,
       name,
       provider,
       target_dir: targetDir,
       identity_id: identityId,
+      proxy_mode: proxyMode,
     }),
 
   job: (id: string) => api.get<JobState>(`${BASE}/jobs/${id}`),
@@ -310,7 +318,7 @@ export const repoManagerApi = {
     api.get<{ repos: RemoteRepo[] }>(`${BASE}/providers/${provider}/repos`),
 
   getSettings: () =>
-    api.get<{ settings: RepoSettings; roots: string[] }>(`${BASE}/settings`),
+    api.get<{ settings: RepoSettings; roots: string[]; proxy?: RepoProxyInfo }>(`${BASE}/settings`),
 
   saveSettings: (patch: Partial<RepoSettings>) =>
     api.put<{ settings: RepoSettings }>(`${BASE}/settings`, patch),

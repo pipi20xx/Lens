@@ -28,6 +28,7 @@ const saving = ref(false)
 const roots = ref<string[]>([])
 const cloneDir = ref('')
 const scanDepth = ref(3)
+const cloneProxy = ref<'auto' | 'on' | 'off'>('auto')
 const authorName = ref('')
 const authorEmail = ref('')
 const identities = ref<IdentityProfile[]>([])
@@ -40,6 +41,12 @@ const providerOptions = [
   { title: 'GitHub', value: 'github' },
   { title: 'Gitea', value: 'gitea' },
   { title: '通用', value: '' },
+]
+
+const proxyOptions = [
+  { title: '跟随容器环境（默认）', value: 'auto' },
+  { title: '强制走代理', value: 'on' },
+  { title: '强制直连（忽略环境代理）', value: 'off' },
 ]
 
 function addIdentity(kind: 'github' | 'gitea' = 'github') {
@@ -64,6 +71,7 @@ async function load() {
     roots.value = [...(settings.roots || [])]
     cloneDir.value = settings.clone_dir || ''
     scanDepth.value = settings.scan_depth || 3
+    cloneProxy.value = (settings.clone_proxy as 'auto' | 'on' | 'off') || 'auto'
     authorName.value = settings.author_name || ''
     authorEmail.value = settings.author_email || ''
     identities.value = (settings.identities || []).map((item) => ({ ...item }))
@@ -107,6 +115,7 @@ async function save() {
       roots: roots.value,
       clone_dir: cloneDir.value.trim(),
       scan_depth: Number(scanDepth.value) || 3,
+      clone_proxy: cloneProxy.value,
       author_name: authorName.value.trim(),
       author_email: authorEmail.value.trim(),
       identities: identities.value.filter((i) => i.name.trim() && i.email.trim()),
@@ -200,6 +209,22 @@ watch(show, (visible) => {
       hide-details="auto"
       class="mb-4"
       hint="相对根目录递归查找 .git 的层数，目录很多时不要设太大"
+      persistent-hint
+    />
+
+    <!-- 克隆代理 -->
+    <v-select
+      v-model="cloneProxy"
+      :items="proxyOptions"
+      item-title="title"
+      item-value="value"
+      label="克隆默认是否走代理"
+      prepend-inner-icon="mdi-shield-network-outline"
+      variant="outlined"
+      density="compact"
+      hide-details="auto"
+      class="mb-4"
+      hint="git 不认 Lens 的「网络代理」开关，只认环境变量；这里决定克隆时要不要替你注入。单次克隆时还能在克隆对话框里临时改。"
       persistent-hint
     />
 

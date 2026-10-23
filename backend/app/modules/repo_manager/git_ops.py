@@ -53,6 +53,38 @@ def _base_env(extra: Optional[Dict[str, str]] = None) -> Dict[str, str]:
     return env
 
 
+#: 会被 libcurl / git 识别的代理环境变量（大小写两套都写，兼容不同发行版）
+_PROXY_ENV_KEYS = (
+    "http_proxy", "https_proxy", "all_proxy",
+    "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY",
+)
+
+
+def proxy_env(mode: str = "auto", proxy_url: str = "") -> Dict[str, str]:
+    """按「代理模式」生成 git 子进程的代理环境变量。
+
+    git 走 libcurl，只认环境变量和 ``http.proxy`` 配置，不认识 Lens 自己的
+    「网络代理」开关（那个只作用于 httpx 请求）。所以这里把模式翻译成 env：
+
+    - ``auto``：返回空字典，完全不动 —— 继承容器/宿主已有的代理设置（默认行为）。
+    - ``on``  ：强制走 ``proxy_url``；同时清空 ``no_proxy``，避免目标主机被排除在外。
+    - ``off`` ：强制直连；把代理变量全部置空，防止 Docker 守护进程注入的
+      ``HTTP_PROXY`` 把 clone 悄悄带去代理。
+
+    空字符串对 libcurl 等价于「未设置」，所以置空是安全的下线方式。
+    """
+    mode = (mode or "auto").strip().lower()
+    url = (proxy_url or "").strip()
+    if mode == "on" and url:
+        env: Dict[str, str] = {key: url for key in _PROXY_ENV_KEYS}
+        env["no_proxy"] = ""
+        env["NO_PROXY"] = ""
+        return env
+    if mode == "off":
+        return {key: "" for key in _PROXY_ENV_KEYS}
+    return {}
+
+
 async def run(
     cwd: str,
     args: Sequence[str],
@@ -802,14 +834,17 @@ async def search(
 
 async def clone(url: str, dest: str, auth_env: Optional[Dict[str, str]] = None,
                 on_line: Optional[Callable[[str], None]] = None,
-                depth: int = 0) -> Dict[str, Any]:
+                depth: int = 0, proxy_mode: str = "auto",
+                proxy_url: str = "") -> Dict[str, Any]:
     parent = os.path.dirname(dest.rstrip("/")) or "."
     os.makedirs(parent, exist_ok=True)
     args = ["clone", "--progress", "--no-hardlinks"]
     if depth and depth > 0:
         args.extend(["--depth", str(depth)])
     args.extend(["--", url, dest])
-    code, text = await _stream(parent, args, 1800.0, auth_env=auth_env, on_line=on_line)
+    env = dict(auth_env or {})
+    env.update(proxy_env(proxy_mode, proxy_url))
+    code, text = await _stream(parent, args, 1800.0, auth_env=env or None, on_line=on_line)
     if code != 0:
         raise GitError(humanize(text, ["clone"]), text.strip())
     return {"ok": True, "path": dest}

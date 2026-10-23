@@ -262,7 +262,8 @@ async def commit_diff(path: str = Query(...), rev: str = Query(...), file: str =
 @router.post("/clone", summary="一键克隆（异步任务，返回 job_id）")
 async def clone(req: CloneRequest):
     job_id = await _guard(
-        service.start_clone(req.url, req.name, req.provider, req.target_dir, req.identity_id)
+        service.start_clone(req.url, req.name, req.provider, req.target_dir,
+                            req.identity_id, req.proxy_mode)
     )
     return {"job_id": job_id}
 
@@ -294,7 +295,8 @@ async def provider_repos(provider: str):
 @router.get("/settings", summary="读取仓库管理设置")
 async def get_settings():
     settings = service.get_settings()
-    return {"settings": settings, "roots": service.allowed_roots()}
+    return {"settings": settings, "roots": service.allowed_roots(),
+            "proxy": service.proxy_settings()}
 
 
 @router.get("/browse", summary="浏览目录（用于选择仓库根目录 / 克隆落地目录）")

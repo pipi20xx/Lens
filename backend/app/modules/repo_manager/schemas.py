@@ -33,6 +33,7 @@ class CloneRequest(BaseModel):
     url: str
     name: str = ""
     provider: str = ""
+    proxy_mode: str = Field("", description="clone proxy: auto / on / off, empty = use repo settings default")
     target_dir: str = Field("", description="克隆落地目录，留空则用设置里的默认值")
     identity_id: str = Field("", description="克隆后套用的身份档案 id，留空则按来源 provider 自动匹配")
 
@@ -86,6 +87,7 @@ class SettingsPatch(BaseModel):
     author_name: str | None = None
     author_email: str | None = None
     identities: List[Dict[str, Any]] | None = None
+    clone_proxy: str | None = None
 
     def to_patch(self) -> Dict[str, Any]:
         return {k: v for k, v in self.model_dump().items() if v is not None}

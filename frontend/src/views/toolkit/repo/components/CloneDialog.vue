@@ -13,6 +13,10 @@ const props = defineProps<{
   modelValue: boolean
   cloneDir: string
   identities?: IdentityProfile[]
+  /** 设置里保存的克隆代理默认值 */
+  cloneProxy?: 'auto' | 'on' | 'off'
+  /** 「系统设置 → 网络代理」里配置的代理地址，仅用于提示 */
+  proxyUrl?: string
 }>()
 
 const emit = defineEmits<{
@@ -34,6 +38,7 @@ const targetDir = ref('')
 const pickerOpen = ref(false)
 const identityId = ref('')
 const provider = ref<'github' | 'gitea'>('github')
+const proxyMode = ref<'auto' | 'on' | 'off'>('auto')
 
 const remoteRepos = ref<RemoteRepo[]>([])
 const remoteLoading = ref(false)
@@ -57,6 +62,25 @@ const filteredRemote = computed(() => {
 const running = computed(() => job.value?.status === 'running')
 const finished = computed(() => job.value?.status === 'done')
 const failed = computed(() => job.value?.status === 'failed')
+
+const proxyOptions = [
+  { title: '跟随容器环境（默认）', value: 'auto' },
+  { title: '强制走代理', value: 'on' },
+  { title: '强制直连（忽略环境代理）', value: 'off' },
+]
+
+const proxyHint = computed(() => {
+  if (proxyMode.value === 'auto') {
+    return '不干预：容器/宿主里配了 HTTP_PROXY 就跟着走，没配就直连。'
+  }
+  if (proxyMode.value === 'off') {
+    return '强制直连：会清空 http_proxy / https_proxy，避免被容器环境悄悄带进代理。'
+  }
+  if (!props.proxyUrl) {
+    return '还没有代理地址：请先到「系统设置 → 网络代理」填写并保存。'
+  }
+  return `将通过 ${props.proxyUrl} 克隆（SSH 地址不受影响）。`
+})
 
 const identityOptions = computed(() => {
   const options = [
@@ -133,7 +157,8 @@ async function startClone() {
       name.value.trim(),
       tab.value === 'url' ? '' : tab.value,
       targetDir.value.trim(),
-      identityId.value
+      identityId.value,
+      proxyMode.value
     )
     job.value = {
       id: res.job_id,
@@ -162,6 +187,7 @@ function reset() {
   search.value = ''
   targetDir.value = props.cloneDir
   identityId.value = ''
+  proxyMode.value = props.cloneProxy || 'auto'
 }
 
 watch(show, (visible) => {
@@ -284,6 +310,19 @@ onBeforeUnmount(stopPolling)
       variant="outlined"
       hide-details
     />
+    <v-select
+      v-model="proxyMode"
+      :items="proxyOptions"
+      item-title="title"
+      item-value="value"
+      label="网络代理"
+      prepend-inner-icon="mdi-shield-network-outline"
+      density="compact"
+      variant="outlined"
+      class="mt-3"
+      hide-details
+    />
+    <div class="text-caption mt-1">{{ proxyHint }}</div>
 
     <!-- 进度 -->
     <div v-if="job" class="mt-4">

@@ -58,6 +58,8 @@ const identityDialog = ref(false)
 const identityInfo = ref<RepoIdentity | null>(null)
 const identityProfiles = ref<IdentityProfile[]>([])
 const cloneDir = ref('/vol1/1000/NVME/repos')
+const cloneProxy = ref<'auto' | 'on' | 'off'>('auto')
+const proxyUrl = ref('')
 
 const newBranchName = ref('')
 const treeRef = ref<InstanceType<typeof FileTree> | null>(null)
@@ -612,6 +614,8 @@ async function loadSettingsHint() {
     const res = await repoManagerApi.getSettings()
     cloneDir.value = res.settings.clone_dir || cloneDir.value
     identityProfiles.value = res.settings.identities || []
+    cloneProxy.value = (res.settings.clone_proxy as 'auto' | 'on' | 'off') || 'auto'
+    proxyUrl.value = res.proxy?.url || ''
   } catch {
     /* 读不到就用默认提示 */
   }
@@ -1209,6 +1213,8 @@ onBeforeUnmount(() => {
       v-model="cloneDialog"
       :clone-dir="cloneDir"
       :identities="identityProfiles"
+      :clone-proxy="cloneProxy"
+      :proxy-url="proxyUrl"
       @cloned="onCloned"
     />
     <RepoSettingsDialog v-model="settingsDialog" @saved="onSettingsSaved" />
