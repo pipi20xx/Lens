@@ -24,6 +24,7 @@ from .schemas import (
     FileWriteRequest,
     PullRequest,
     PushRequest,
+    ReplaceRequest,
     ResolveRequest,
     SettingsPatch,
     StageRequest,
@@ -140,6 +141,36 @@ async def write_file(req: FileWriteRequest):
     return await _guard(
         asyncio.to_thread(
             service.write_repo_file, real, req.file, req.content, req.encoding, req.eol
+        )
+    )
+
+
+@router.get("/search", summary="在整个仓库里搜索文件名与文件内容")
+async def search_repo(
+    path: str = Query(...),
+    q: str = Query("", description="搜索词"),
+    case: bool = Query(False, description="区分大小写"),
+    whole: bool = Query(False, description="全字匹配"),
+    regex: bool = Query(False, description="按扩展正则解释"),
+):
+    real = await _guard(_validated(path))
+    return await _guard(
+        service.git_ops.search(
+            real, q, case_sensitive=case, whole_word=whole, use_regex=regex
+        )
+    )
+
+
+@router.post("/replace", summary="跨文件替换（全仓库或单个文件）")
+async def replace_repo(req: ReplaceRequest):
+    real = await _guard(_validated(req.path))
+    return await _guard(
+        service.replace_in_repo(
+            real, req.query, req.replacement,
+            case_sensitive=req.case,
+            whole_word=req.whole,
+            use_regex=req.regex,
+            only_file=req.file,
         )
     )
 

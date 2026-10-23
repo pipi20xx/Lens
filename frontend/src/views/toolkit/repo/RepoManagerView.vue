@@ -24,6 +24,7 @@ import DiffViewer from './components/DiffViewer.vue'
 import FileTree from './components/FileTree.vue'
 import FileViewer from './components/FileViewer.vue'
 import IdentityDialog from './components/IdentityDialog.vue'
+import RepoSearch from './components/RepoSearch.vue'
 import RepoSelect from './components/RepoSelect.vue'
 import RepoSettingsDialog from './components/RepoSettingsDialog.vue'
 
@@ -63,6 +64,8 @@ const treeRef = ref<InstanceType<typeof FileTree> | null>(null)
 const viewerRef = ref<InstanceType<typeof FileViewer> | null>(null)
 const previewFile = ref('')
 const fileDirty = ref(false)
+const searchActive = ref(false)
+const focusLine = ref(0)
 
 // 历史 / 提交详情
 const selectedCommit = ref('')
@@ -194,6 +197,8 @@ function onRepoSwitch(path: string) {
   identityInfo.value = null
   previewFile.value = ''
   fileDirty.value = false
+  searchActive.value = false
+  focusLine.value = 0
   selectedCommit.value = ''
   commitDetail.value = null
   selectedCommitFile.value = ''
@@ -551,12 +556,32 @@ async function openCommitFile(path: string) {
   }
 }
 
-/** 点树里的文件：先确认未保存改动，再切到「文件」标签 */
+/** 点树里的文件：先确认未保存改动，再切到「文件浏览」标签 */
 async function onTreeSelect(path: string) {
   const ok = (await viewerRef.value?.confirmLeave?.()) ?? true
   if (!ok) return
+  focusLine.value = 0
   previewFile.value = path
   activeTab.value = 'files'
+}
+
+/** 点搜索结果：打开文件并滚到对应行 */
+async function onSearchOpen(path: string, line: number) {
+  const ok = (await viewerRef.value?.confirmLeave?.()) ?? true
+  if (!ok) return
+  focusLine.value = line || 0
+  previewFile.value = path
+  activeTab.value = 'files'
+}
+
+/** 替换完成后：如果被改的正好是当前打开的文件，刷新内容 */
+async function onReplaced(files: string[]) {
+  if (!files.includes(previewFile.value)) return
+  if (fileDirty.value) {
+    warning('当前打开的文件刚被替换修改，请先保存或放弃改动，再重新打开查看')
+    return
+  }
+  await viewerRef.value?.reload?.()
 }
 // ---------------- 工具 ----------------
 function iconOf(file: RepoFile): string {
@@ -1150,7 +1175,13 @@ onBeforeUnmount(() => {
                         {{ current.name }}
                       </span>
                     </div>
-                    <div class="tree-body">
+                    <RepoSearch
+                      :repo-path="selected"
+                      @open="onSearchOpen"
+                      @searching="searchActive = $event"
+                      @replaced="onReplaced"
+                    />
+                    <div v-show="!searchActive" class="tree-body">
                       <FileTree
                         ref="treeRef"
                         :repo-path="selected"
@@ -1164,6 +1195,7 @@ onBeforeUnmount(() => {
                     class="files-viewer"
                     :repo-path="selected"
                     :file="previewFile"
+                    :focus-line="focusLine"
                     @dirty-change="fileDirty = $event"
                   />
                 </div>

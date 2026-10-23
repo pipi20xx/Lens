@@ -482,6 +482,130 @@ def write_repo_file(repo: str, rel: str, content: str, encoding: str = "",
     }
 
 
+MAX_REPLACE_FILES = 500
+MAX_REPLACE_HITS = 5000
+
+
+def _compile_pattern(query: str, case_sensitive: bool, whole_word: bool, use_regex: bool):
+    flags = 0 if case_sensitive else re.IGNORECASE
+    if use_regex:
+        return re.compile(query, flags)
+    escaped = re.escape(query)
+    if whole_word:
+        escaped = rf"\b{escaped}\b"
+    return re.compile(escaped, flags)
+
+
+async def replace_in_repo(
+    repo: str,
+    query: str,
+    replacement: str,
+    case_sensitive: bool = False,
+    whole_word: bool = False,
+    use_regex: bool = False,
+    only_file: str = "",
+) -> Dict[str, Any]:
+    """跨文件替换（VSCode 的 Replace All / 单文件 Replace）。
+
+    只改工作区文件，不自动 git add；保留原编码与换行风格；跳过二进制与超大文件。
+    """
+    query = (query or "").strip()
+    if not query:
+        raise GitError("搜索词不能为空")
+    try:
+        pattern = _compile_pattern(query, case_sensitive, whole_word, use_regex)
+    except re.error as exc:
+        raise GitError(f"正则表达式无效：{exc}")
+
+    if only_file:
+        targets = [only_file]
+    else:
+        found = await git_ops.search(
+            repo, query, case_sensitive, whole_word, use_regex,
+            max_matches=MAX_REPLACE_HITS, max_files=MAX_REPLACE_FILES,
+        )
+        targets = sorted({item["file"] for item in found["matches"]})
+
+    if not targets:
+        return {"files": 0, "replacements": 0, "details": [], "skipped": []}
+
+    details: List[Dict[str, Any]] = []
+    skipped: List[str] = []
+    total = 0
+
+    for rel in targets:
+        try:
+            full = _safe_join(repo, rel)
+        except GitError:
+            skipped.append(rel)
+            continue
+        if not os.path.isfile(full):
+            skipped.append(rel)
+            continue
+
+        with open(full, "rb") as handle:
+            raw = handle.read(MAX_WRITE_BYTES + 1)
+        if len(raw) > MAX_WRITE_BYTES or b"\x00" in raw[:8192]:
+            skipped.append(rel)
+            continue
+
+        text = None
+        encoding = "utf-8"
+        for enc in ("utf-8", "gb18030", "latin-1"):
+            try:
+                text = raw.decode(enc)
+                encoding = enc
+                break
+            except UnicodeDecodeError:
+                continue
+        if text is None:
+            skipped.append(rel)
+            continue
+
+        eol = _detect_eol(raw)
+        normalized = text.replace("\r\n", "\n").replace("\r", "\n")
+        if use_regex:
+            # 正则模式允许 \1 这类分组引用
+            new_text, count = pattern.subn(replacement, normalized)
+        else:
+            # 字面量模式按原样插入，避免 \ 与 $ 被解释
+            new_text, count = pattern.subn(lambda _m: replacement, normalized)
+
+        if count <= 0 or new_text == normalized:
+            continue
+
+        out = new_text
+        if eol == "crlf":
+            out = out.replace("\n", "\r\n")
+        elif eol == "cr":
+            out = out.replace("\n", "\r")
+
+        try:
+            data = out.encode(encoding)
+        except UnicodeEncodeError:
+            encoding = "utf-8"
+            data = out.encode("utf-8")
+        if len(data) > MAX_WRITE_BYTES:
+            skipped.append(rel)
+            continue
+
+        with open(full, "wb") as handle:
+            handle.write(data)
+
+        total += count
+        details.append({"file": rel, "count": count})
+        if total >= MAX_REPLACE_HITS:
+            break
+
+    invalidate(repo)
+    return {
+        "files": len(details),
+        "replacements": total,
+        "details": details,
+        "skipped": skipped,
+    }
+
+
 # ------------------------------------------------------------------ 异步任务
 
 class JobStore:

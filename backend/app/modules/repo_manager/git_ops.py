@@ -705,6 +705,99 @@ async def commit_file_diff(repo: str, rev: str, path: str,
     return text
 
 
+# ---------------------------------------------------------------- 仓库搜索
+
+async def search(
+    repo: str,
+    query: str,
+    case_sensitive: bool = False,
+    whole_word: bool = False,
+    use_regex: bool = False,
+    max_matches: int = 500,
+    max_files: int = 200,
+) -> Dict[str, Any]:
+    """在仓库里同时搜「文件名」和「文件内容」（遵循 .gitignore，含未跟踪文件）。
+
+    内容搜索交给 ``git grep``：走索引、自动跳过二进制、支持 -F/-E/-i/-w，
+    比自己遍历文件快一个量级。
+    """
+    query = (query or "").strip()
+    result: Dict[str, Any] = {
+        "query": query,
+        "files": [],
+        "matches": [],
+        "truncated": False,
+    }
+    if not query:
+        return result
+
+    needle = query if case_sensitive else query.lower()
+
+    # ---- 1) 文件名 ----
+    code, out, _ = await run(
+        repo, ["ls-files", "--cached", "--others", "--exclude-standard", "-z"]
+    )
+    if code == 0:
+        for raw in out.split(b"\x00"):
+            if not raw:
+                continue
+            path = raw.decode("utf-8", "surrogateescape")
+            hay = path if case_sensitive else path.lower()
+            if needle in hay:
+                result["files"].append({"path": path, "name": os.path.basename(path)})
+                if len(result["files"]) >= max_files:
+                    result["truncated"] = True
+                    break
+
+    # ---- 2) 文件内容 ----
+    args = ["grep", "-n", "-I", "--no-color", "-z", "--untracked",
+            "-E" if use_regex else "-F"]
+    if not case_sensitive:
+        args.append("-i")
+    if whole_word:
+        args.append("-w")
+    args.extend(["-e", query])
+
+    code, out, err = await run(repo, args, timeout=30.0)
+    if code not in (0, 1):   # 1 = 无匹配，不是错误
+        raise GitError(humanize(err, ["grep"]), err.strip())
+
+    # 记录格式：<path>\0<lineno>\0<内容>\n  （内容里不会出现换行）
+    data = out
+    pos = 0
+    while pos < len(data) and len(result["matches"]) < max_matches:
+        nul = data.find(b"\x00", pos)
+        if nul < 0:
+            break
+        path = data[pos:nul].decode("utf-8", "surrogateescape")
+        pos = nul + 1
+
+        nul = data.find(b"\x00", pos)
+        if nul < 0:
+            break
+        try:
+            lineno = int(data[pos:nul])
+        except ValueError:
+            lineno = 0
+        pos = nul + 1
+
+        nl = data.find(b"\n", pos)
+        if nl < 0:
+            nl = len(data)
+        text = data[pos:nl].decode("utf-8", "surrogateescape")
+        pos = nl + 1
+
+        result["matches"].append({
+            "file": path,
+            "line": lineno,
+            "text": text[:400],
+        })
+
+    if len(result["matches"]) >= max_matches:
+        result["truncated"] = True
+    return result
+
+
 # ---------------------------------------------------------------- 克隆
 
 async def clone(url: str, dest: str, auth_env: Optional[Dict[str, str]] = None,

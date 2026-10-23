@@ -50,6 +50,15 @@ class FileWriteRequest(RepoPath):
     eol: str = Field("", description="原文件的换行风格：lf / crlf / cr，留空按 lf")
 
 
+class ReplaceRequest(RepoPath):
+    query: str = ""
+    replacement: str = ""
+    case: bool = False
+    whole: bool = False
+    regex: bool = False
+    file: str = Field("", description="只替换这个文件；留空表示全仓库")
+
+
 class BranchCreateRequest(RepoPath):
     name: str
     checkout: bool = True

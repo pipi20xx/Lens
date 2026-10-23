@@ -170,6 +170,24 @@ export interface RepoFileContent {
   eol: 'lf' | 'crlf' | 'cr' | ''
 }
 
+export interface RepoSearchFile {
+  path: string
+  name: string
+}
+
+export interface RepoSearchMatch {
+  file: string
+  line: number
+  text: string
+}
+
+export interface RepoSearchResult {
+  query: string
+  files: RepoSearchFile[]
+  matches: RepoSearchMatch[]
+  truncated: boolean
+}
+
 const BASE = '/api/repo-manager'
 
 export const repoManagerApi = {
@@ -254,6 +272,39 @@ export const repoManagerApi = {
       `${BASE}/files/content`,
       { path, file, content, encoding, eol }
     ),
+
+  search: (
+    path: string,
+    q: string,
+    opts: { case?: boolean; whole?: boolean; regex?: boolean } = {}
+  ) =>
+    api.get<RepoSearchResult>(`${BASE}/search`, {
+      params: {
+        path,
+        q,
+        case: opts.case ?? false,
+        whole: opts.whole ?? false,
+        regex: opts.regex ?? false,
+      },
+    }),
+
+  replace: (
+    path: string,
+    payload: {
+      query: string
+      replacement: string
+      case?: boolean
+      whole?: boolean
+      regex?: boolean
+      file?: string
+    }
+  ) =>
+    api.post<{
+      files: number
+      replacements: number
+      details: { file: string; count: number }[]
+      skipped: string[]
+    }>(`${BASE}/replace`, { path, ...payload }),
 
   remoteRepos: (provider: 'gitea' | 'github') =>
     api.get<{ repos: RemoteRepo[] }>(`${BASE}/providers/${provider}/repos`),
