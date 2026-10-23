@@ -9,6 +9,7 @@ import { ref, watch, onBeforeUnmount, nextTick } from 'vue'
 import { Terminal } from 'xterm'
 import { FitAddon } from 'xterm-addon-fit'
 import 'xterm/css/xterm.css'
+import { buildXtermTheme, watchXtermTheme } from '@/composables/useXtermTheme'
 
 const props = defineProps<{
   modelValue: boolean
@@ -25,6 +26,7 @@ let term: Terminal | null = null
 let fitAddon: FitAddon | null = null
 let ws: WebSocket | null = null
 let connectTimeout: ReturnType<typeof setTimeout> | null = null
+let stopThemeWatch: (() => void) | null = null
 
 function initTerminal() {
   if (!terminalRef.value) return
@@ -36,8 +38,15 @@ function initTerminal() {
     fontSize: 14,
     lineHeight: 1.2,
     convertEol: true,
-    theme: { background: '#1a1a2e', foreground: '#e0e0e0' },
+    allowTransparency: true,
+    theme: buildXtermTheme(),
   })
+
+  if (!stopThemeWatch) {
+    stopThemeWatch = watchXtermTheme((theme) => {
+      if (term) term.options.theme = theme
+    })
+  }
 
   fitAddon = new FitAddon()
   term.loadAddon(fitAddon)
@@ -114,6 +123,8 @@ function handleResize() {
 function destroyTerminal() {
   if (connectTimeout) { clearTimeout(connectTimeout); connectTimeout = null }
   window.removeEventListener('resize', handleResize)
+  stopThemeWatch?.()
+  stopThemeWatch = null
   if (ws) {
     ws.onclose = null
     ws.onerror = null
@@ -187,7 +198,6 @@ function close() {
 .docker-terminal-container {
   height: 520px;
   min-height: 400px;
-  background: #1a1a2e;
   padding: 8px;
   overflow: hidden;
 }
@@ -197,15 +207,7 @@ function close() {
 }
 
 :deep(.xterm-viewport) {
-  background-color: #1a1a2e !important;
+  background-color: transparent !important;
   overflow-y: auto !important;
-}
-
-:deep(.xterm-screen) {
-  background: #1a1a2e;
-}
-
-:deep(.xterm .xterm-rows) {
-  color: #e0e0e0 !important;
 }
 </style>

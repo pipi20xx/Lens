@@ -186,12 +186,13 @@ watch(show, (visible) => {
         v-if="data?.local.name"
         variant="tonal"
         color="error"
+        prepend-icon="mdi-account-remove-outline"
         :loading="saving"
         @click="clearLocal"
       >
         清除本仓库身份
       </v-btn>
-      <v-btn color="primary" variant="tonal" :loading="saving" @click="save">保存</v-btn>
+      <v-btn color="primary" variant="tonal" prepend-icon="mdi-content-save-outline" :loading="saving" @click="save">保存</v-btn>
     </template>
   </GlassDialog>
 </template>

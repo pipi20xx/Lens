@@ -315,6 +315,7 @@ onBeforeUnmount(stopPolling)
       <v-btn
         color="primary"
         variant="tonal"
+        prepend-icon="mdi-download"
         :loading="starting || running"
         :disabled="finished"
         @click="startClone"

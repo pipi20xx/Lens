@@ -275,7 +275,7 @@ onMounted(() => {
   flex: 1;
   overflow: hidden;
   position: relative;
-  background: #1a1a2e;
+  background: var(--am-surface-bg);
 }
 
 .empty-terminal {

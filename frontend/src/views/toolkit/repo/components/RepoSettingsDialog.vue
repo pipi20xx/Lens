@@ -302,7 +302,7 @@ watch(show, (visible) => {
     />
 
     <template #actions>
-      <v-btn color="primary" variant="tonal" :loading="saving" @click="save">保存</v-btn>
+      <v-btn color="primary" variant="tonal" prepend-icon="mdi-content-save-outline" :loading="saving" @click="save">保存</v-btn>
     </template>
   </GlassDialog>
 </template>

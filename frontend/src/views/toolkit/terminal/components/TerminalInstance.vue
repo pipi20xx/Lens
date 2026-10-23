@@ -4,6 +4,7 @@ import { Terminal } from 'xterm'
 import { FitAddon } from 'xterm-addon-fit'
 import 'xterm/css/xterm.css'
 import { terminalApi } from '@/api/terminal'
+import { buildXtermTheme, watchXtermTheme } from '@/composables/useXtermTheme'
 
 const props = defineProps<{
   hostId: number | string
@@ -20,6 +21,7 @@ const terminalRef = ref<HTMLElement | null>(null)
 let term: Terminal | null = null
 let fitAddon: FitAddon | null = null
 let ws: WebSocket | null = null
+let stopThemeWatch: (() => void) | null = null
 
 function initTerminal() {
   term = new Terminal({
@@ -28,12 +30,8 @@ function initTerminal() {
     lineHeight: 1.2,
     fontFamily: '"Fira Code", "JetBrains Mono", Menlo, Monaco, "Courier New", monospace',
     convertEol: true,
-    theme: {
-      background: '#1a1a2e',
-      foreground: '#e0e0e0',
-      cursor: '#00e676',
-      selectionBackground: 'rgba(0, 230, 118, 0.3)',
-    },
+    allowTransparency: true,
+    theme: buildXtermTheme(),
     allowProposedApi: true,
   })
 
@@ -121,10 +119,15 @@ watch(
 onMounted(() => {
   setTimeout(initTerminal, 100)
   window.addEventListener('resize', fit)
+
+  stopThemeWatch = watchXtermTheme((theme) => {
+    if (term) term.options.theme = theme
+  })
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', fit)
+  stopThemeWatch?.()
   if (ws) ws.close()
   if (term) term.dispose()
 })
@@ -140,7 +143,6 @@ onBeforeUnmount(() => {
 .terminal-instance-wrapper {
   height: 100%;
   width: 100%;
-  background: #1a1a2e;
   padding: 8px;
   box-sizing: border-box;
 }

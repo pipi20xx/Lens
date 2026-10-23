@@ -148,7 +148,7 @@ watch(show, (visible) => {
     </div>
 
     <template #actions>
-      <v-btn color="primary" variant="tonal" :disabled="!current" @click="pick(current)">
+      <v-btn color="primary" variant="tonal" prepend-icon="mdi-folder-check-outline" :disabled="!current" @click="pick(current)">
         选择此目录
       </v-btn>
     </template>
