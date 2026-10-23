@@ -5,6 +5,13 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+# 前端锁文件：本仓库不提交 lockfile（.gitignore 里忽略了），但本地/开发容器里
+# 生成的 package-lock.json 只记录「生成它的那个平台」的原生依赖
+# （@rolldown/binding-* / @rollup/rollup-* / esbuild 等）。
+# 带进构建上下文会让 Dockerfile 走 npm ci，而 npm ci 严格按锁文件安装、
+# 不会为当前平台补 optional 依赖 → 多架构构建（arm64）时缺 binding 直接失败。
+# 如果将来要把锁文件纳入版本管理，请删除这一行，并用多平台参数重新生成。
+**/package-lock.json
 
 # Python
 **/__pycache__
