@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useAuth } from '@/composables'
 import { useNotification } from '@/composables'
 import SecretField from '@/components/common/SecretField.vue'
+import AppNotification from '@/components/common/AppNotification.vue'
 
 const { formValue, loading, handleLogin } = useAuth()
 const { error: showError } = useNotification()
@@ -63,6 +64,9 @@ async function onSubmit() {
         </v-card>
       </v-container>
     </v-main>
+
+    <!-- 登录页不套 DefaultLayout，通知宿主得自己挂一个，否则输错密码看不到任何提示 -->
+    <AppNotification />
   </v-app>
 </template>
 

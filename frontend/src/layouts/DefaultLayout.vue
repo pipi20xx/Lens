@@ -2,9 +2,9 @@
 import { ref, computed, onMounted, onUnmounted, watch, defineAsyncComponent, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useThemeStore, useSystemStore } from '@/stores'
-import { useNotification } from '@/composables'
 import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 import LogTerminal from '@/components/common/LogTerminal.vue'
+import AppNotification from '@/components/common/AppNotification.vue'
 
 // ACG 玻璃主题样式 — 已改为静态引入（styles/index.css 第 4 层），
 // 规则限定在 html.glass-theme-acg 前缀下，classic 主题下不生效，
@@ -56,7 +56,6 @@ const route = useRoute()
 const router = useRouter()
 const themeStore = useThemeStore()
 const systemStore = useSystemStore()
-const { state: notifyState } = useNotification()
 
 const username = ref(localStorage.getItem('lens_username') || 'admin')
 const appVersion = __APP_VERSION__ as string
@@ -545,18 +544,7 @@ onUnmounted(() => {
     <ConfirmDialog />
 
     <!-- 全局通知 SnackBar -->
-    <v-snackbar
-      v-model="notifyState.show"
-      :color="notifyState.color"
-      :timeout="notifyState.timeout"
-      location="top right"
-    >
-      <div v-if="notifyState.title" class="font-weight-bold mb-1">{{ notifyState.title }}</div>
-      {{ notifyState.message }}
-      <template #actions>
-        <v-btn variant="text" icon="mdi-close" size="small" @click="notifyState.show = false" />
-      </template>
-    </v-snackbar>
+    <AppNotification />
 
     <!-- 玻璃材质设置弹窗 -->
     <GlassSettingsDialog
