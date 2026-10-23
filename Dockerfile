@@ -13,8 +13,10 @@ RUN npm config set registry ${NPM_REGISTRY} && npm config set fetch-retries 5 --
 
 # 锁文件一起复制，npm ci 严格按 lockfile 安装（多架构构建下各平台原生绑定
 # 必须完整记录在 lockfile 中；依赖变更后需在宿主机重新生成 lockfile）
-COPY frontend/package.json frontend/package-lock.json ./
-RUN npm config set fetch-retries 5 --location=global && npm ci --no-audit --no-fund
+# 锁文件可能被 .gitignore 排除（本仓库即如此），缺失时退回 npm install
+COPY frontend/package*.json ./
+RUN npm config set fetch-retries 5 --location=global \
+    && if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm install --no-audit --no-fund; fi
 COPY frontend/ .
 RUN npm run build
 
@@ -39,6 +41,8 @@ RUN apt-get update \
     postgresql-client \
     p7zip-full \
     rsync \
+    git \
+    openssh-client \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .

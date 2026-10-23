@@ -159,6 +159,14 @@ const navGroups = [
     ],
   },
   {
+    key: 'repos',
+    label: '代码仓库',
+    icon: 'mdi-source-branch',
+    items: [
+      { title: '仓库管理', icon: 'mdi-git', to: '/toolkit/repo-manager' },
+    ],
+  },
+  {
     key: 'config',
     label: '配置与控制',
     icon: 'mdi-tune-vertical',

@@ -167,6 +167,13 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/toolkit/backup/BackupManagerView.vue'),
     meta: { requiresAuth: true, title: '数据备份管理', group: 'system' },
   },
+  // ── 代码仓库 ──
+  {
+    path: '/toolkit/repo-manager',
+    name: 'repoManager',
+    component: () => import('@/views/toolkit/repo/RepoManagerView.vue'),
+    meta: { requiresAuth: true, title: '代码仓库', group: 'repos' },
+  },
   // ── 配置与控制 ──
   {
     path: '/toolkit/webhook-receiver',

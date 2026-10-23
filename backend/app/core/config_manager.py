@@ -37,6 +37,16 @@ DEFAULT_CONFIG = {
         "base": "",
         "token": ""
     },
+    # 代码仓库管理（git 工作副本：扫描 / 暂存 / 提交 / 推送 / 克隆）
+    "git_manager": {
+        "roots": ["/vol1/1000/NVME"],
+        "clone_dir": "/vol1/1000/NVME/repos",
+        "pinned": [],
+        "scan_depth": 3,
+        "author_name": "",
+        "author_email": "",
+        "identities": []
+    },
     "username": "",
     "password": "",
     "session_token": "",
