@@ -102,7 +102,6 @@ const stats = computed(() => {
   justify-content: center;
   padding: 32px 12px;
   font-size: 13px;
-  color: rgba(var(--v-theme-on-surface), 0.55);
 }
 .diff-bar {
   display: flex;
@@ -137,6 +136,4 @@ const stats = computed(() => {
 .diff-add { background: rgba(76, 175, 80, 0.14); color: #81c784; }
 .diff-del { background: rgba(239, 83, 80, 0.14); color: #e57373; }
 .diff-hunk { background: rgba(33, 150, 243, 0.12); color: #64b5f6; }
-.diff-meta { color: rgba(var(--v-theme-on-surface), 0.5); }
-.diff-ctx { color: rgba(var(--v-theme-on-surface), 0.82); }
 </style>

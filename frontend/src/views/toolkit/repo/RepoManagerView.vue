@@ -743,7 +743,7 @@ onBeforeUnmount(() => {
             <div class="empty-state">
               <v-icon size="56" color="primary" style="opacity: 0.35">mdi-source-repository</v-icon>
               <div class="text-body-2 mt-3">请在上方下拉框中选择一个仓库</div>
-              <div class="text-caption mt-1" style="opacity: 0.7">
+              <div class="text-caption mt-1">
                 扫描根目录：{{ roots.join('、') || '未配置' }}
               </div>
             </div>
@@ -1226,7 +1226,6 @@ onBeforeUnmount(() => {
 }
 .tree-title {
   font-weight: 600;
-  opacity: 0.8;
 }
 .tree-body {
   flex: 1;
@@ -1316,7 +1315,6 @@ onBeforeUnmount(() => {
 }
 .detail-meta {
   font-size: 11px;
-  opacity: 0.6;
   white-space: nowrap;
 }
 .file-chips {
@@ -1359,12 +1357,10 @@ onBeforeUnmount(() => {
   font-size: 12px;
   font-weight: 600;
   padding: 8px 4px 4px;
-  opacity: 0.85;
 }
 .empty-hint {
   font-size: 12px;
   padding: 2px 4px 6px;
-  opacity: 0.45;
 }
 .file-row {
   display: flex;
@@ -1392,7 +1388,6 @@ onBeforeUnmount(() => {
 }
 .file-label {
   font-size: 11px;
-  opacity: 0.55;
   margin-left: 4px;
 }
 .commit-row {
@@ -1425,7 +1420,6 @@ onBeforeUnmount(() => {
 }
 .commit-meta {
   font-size: 11px;
-  opacity: 0.55;
   margin-top: 2px;
 }
 .branch-row {
@@ -1447,6 +1441,5 @@ onBeforeUnmount(() => {
 }
 .branch-upstream {
   font-size: 11px;
-  opacity: 0.55;
 }
 </style>

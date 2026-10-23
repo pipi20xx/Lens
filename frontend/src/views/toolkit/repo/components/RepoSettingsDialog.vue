@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 /**
  * 仓库管理设置：允许扫描的根目录（安全白名单）、克隆落地目录、提交者身份档案。
  * 两个路径字段都支持「浏览」直接挑文件夹，不用手打绝对路径。
@@ -143,11 +143,11 @@ watch(show, (visible) => {
         浏览添加
       </v-btn>
     </div>
-    <div class="text-caption mb-2" style="opacity: 0.7">
+    <div class="text-caption mb-2">
       只扫描这些目录下的 git 仓库，同时作为安全白名单 —— 范围外的路径一律拒绝操作。
     </div>
     <div class="root-list mb-4">
-      <div v-if="!roots.length" class="text-caption pa-2" style="opacity: 0.6">
+      <div v-if="!roots.length" class="text-caption pa-2">
         还没有添加任何目录
       </div>
       <div v-for="(root, index) in roots" :key="root" class="root-row">
@@ -186,7 +186,7 @@ watch(show, (visible) => {
         浏览
       </v-btn>
     </div>
-    <div class="text-caption mb-4" style="opacity: 0.7">
+    <div class="text-caption mb-4">
       「克隆仓库」默认落在这里，必须位于上面的某个根目录之内。
     </div>
 
@@ -213,11 +213,11 @@ watch(show, (visible) => {
         Gitea
       </v-btn>
     </div>
-    <div class="text-caption mb-2" style="opacity: 0.7">
+    <div class="text-caption mb-2">
       给每个远端账号各建一个。克隆仓库时会按来源自动套用对应身份，之后也能在仓库页单独改。
     </div>
 
-    <div v-if="!identities.length" class="text-caption pa-2 mb-3" style="opacity: 0.6">
+    <div v-if="!identities.length" class="text-caption pa-2 mb-3">
       还没有身份档案
     </div>
     <div v-for="(ident, index) in identities" :key="index" class="identity-card mb-2">
@@ -290,7 +290,7 @@ watch(show, (visible) => {
         />
       </v-col>
     </v-row>
-    <div class="text-caption mt-2" style="opacity: 0.7">
+    <div class="text-caption mt-2">
       优先级：仓库自己的 <code>.git/config</code> → 容器内 git 全局配置 → 这里的兜底。
     </div>
 

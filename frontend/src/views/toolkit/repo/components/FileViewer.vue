@@ -203,7 +203,6 @@ defineExpose({ confirmLeave })
   flex: 1;
   padding: 32px 12px;
   font-size: 13px;
-  opacity: 0.55;
 }
 .bar {
   display: flex;
@@ -216,7 +215,6 @@ defineExpose({ confirmLeave })
   background: var(--am-surface-bg);
 }
 .meta {
-  opacity: 0.6;
   font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
   white-space: nowrap;
 }
@@ -262,7 +260,6 @@ defineExpose({ confirmLeave })
 .tip {
   padding: 5px 10px;
   font-size: 11px;
-  opacity: 0.6;
   flex-shrink: 0;
   border-top: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
 }

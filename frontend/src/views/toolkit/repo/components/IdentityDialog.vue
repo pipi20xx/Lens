@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 /**
  * 单个仓库的提交者身份。
  * git 的身份属于「这次提交」，存在每个仓库自己的 .git/config 里，
@@ -153,7 +153,7 @@ watch(show, (visible) => {
           @click="useProfile(profile.id)"
         >
           {{ profile.label }}
-          <span class="text-caption ml-1" style="opacity: 0.7">{{ providerLabel(profile.provider) }}</span>
+          <span class="text-caption ml-1">{{ providerLabel(profile.provider) }}</span>
         </v-chip>
       </div>
     </template>
@@ -177,7 +177,7 @@ watch(show, (visible) => {
       hide-details
       class="mb-2"
     />
-    <div class="text-caption" style="opacity: 0.7">
+    <div class="text-caption">
       写入该仓库的 <code>.git/config</code>，只影响这一个仓库。
     </div>
 

@@ -180,11 +180,9 @@ defineExpose({
 }
 .mini-loading {
   font-size: 11px;
-  opacity: 0.5;
 }
 .hint {
   font-size: 12px;
   padding: 8px 6px;
-  opacity: 0.45;
 }
 </style>

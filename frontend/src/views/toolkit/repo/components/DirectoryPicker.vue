@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 /**
  * 目录选择器：给「仓库根目录」和「克隆落地目录」挑文件夹用。
  * 只列子目录，隐藏点目录；顺手标出哪些目录本身就是 git 仓库。
@@ -163,7 +163,6 @@ watch(show, (visible) => {
   border-radius: 8px;
 }
 .current-path {
-  opacity: 0.7;
   word-break: break-all;
   font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
 }
