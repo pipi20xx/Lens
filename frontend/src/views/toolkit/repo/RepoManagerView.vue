@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 /**
  * 代码仓库管理（工具 → 代码仓库）
  *
@@ -10,6 +10,7 @@ import { useRoute } from 'vue-router'
 import {
   repoManagerApi,
   type BranchItem,
+  type CommitDetail,
   type CommitItem,
   type IdentityProfile,
   type RepoFile,
@@ -62,6 +63,14 @@ const treeRef = ref<InstanceType<typeof FileTree> | null>(null)
 const viewerRef = ref<InstanceType<typeof FileViewer> | null>(null)
 const previewFile = ref('')
 const fileDirty = ref(false)
+
+// 历史 / 提交详情
+const selectedCommit = ref('')
+const commitDetail = ref<CommitDetail | null>(null)
+const commitDetailLoading = ref(false)
+const selectedCommitFile = ref('')
+const commitDiff = ref('')
+const commitDiffLoading = ref(false)
 const fetchJob = ref<{ progress: number; phase: string; status: string; result: any } | null>(null)
 let timer: number | undefined
 let fetchTimer: number | undefined
@@ -185,6 +194,10 @@ function onRepoSwitch(path: string) {
   identityInfo.value = null
   previewFile.value = ''
   fileDirty.value = false
+  selectedCommit.value = ''
+  commitDetail.value = null
+  selectedCommitFile.value = ''
+  commitDiff.value = ''
   if (!path) return
   loadStatus()
   loadBranches()
@@ -467,6 +480,57 @@ async function onSettingsSaved() {
 
 function refreshTree() {
   treeRef.value?.refresh()
+}
+
+// ---------------- 历史 / 提交详情 ----------------
+function statusColor(status: string): string {
+  switch (status) {
+    case 'A':
+      return 'success'
+    case 'D':
+      return 'error'
+    case 'R':
+      return 'info'
+    default:
+      return 'warning'
+  }
+}
+
+async function openCommit(hash: string) {
+  if (selectedCommit.value === hash) return
+  selectedCommit.value = hash
+  commitDetail.value = null
+  selectedCommitFile.value = ''
+  commitDiff.value = ''
+  commitDetailLoading.value = true
+  try {
+    const detail = await repoManagerApi.commitDetail(selected.value, hash)
+    commitDetail.value = detail
+    if (detail.files.length) await openCommitFile(detail.files[0].path)
+  } catch (e: any) {
+    showError(e.message || '读取提交详情失败')
+  } finally {
+    commitDetailLoading.value = false
+  }
+}
+
+async function openCommitFile(path: string) {
+  if (!selectedCommit.value) return
+  selectedCommitFile.value = path
+  commitDiffLoading.value = true
+  commitDiff.value = ''
+  try {
+    const res = await repoManagerApi.commitFileDiff(
+      selected.value,
+      selectedCommit.value,
+      path
+    )
+    commitDiff.value = res.diff || ''
+  } catch (e: any) {
+    showError(e.message || '读取该文件的改动失败')
+  } finally {
+    commitDiffLoading.value = false
+  }
 }
 
 /** 点树里的文件：先确认未保存改动，再切到「文件」标签 */
@@ -920,36 +984,91 @@ onBeforeUnmount(() => {
               </div>
 
               <!-- 历史 -->
-              <div v-show="activeTab === 'history'">
-                <div class="pa-3">
-                  <v-progress-linear v-if="logLoading" indeterminate />
-                  <v-alert
-                    v-else-if="!commits.length"
-                    type="info"
-                    variant="text"
-                    density="compact"
-                  >
-                    还没有提交记录。
-                  </v-alert>
-                  <div v-for="commit in commits" :key="commit.hash" class="commit-row">
-                    <v-chip size="x-small" variant="tonal" class="commit-hash">
-                      {{ commit.short }}
-                    </v-chip>
-                    <div class="commit-main">
-                      <div class="commit-subject">{{ commit.subject }}</div>
-                      <div class="commit-meta">
-                        {{ commit.author }} · {{ commit.date }}
-                        <v-chip
-                          v-for="ref in commit.refs"
-                          :key="ref"
-                          size="x-small"
-                          variant="text"
-                          color="primary"
-                          class="ml-1"
-                        >
-                          {{ ref }}
-                        </v-chip>
+              <div v-show="activeTab === 'history'" class="history-pane">
+                <div class="history-grid">
+                  <!-- 提交列表 -->
+                  <div class="commit-list">
+                    <v-progress-linear v-if="logLoading" indeterminate />
+                    <div v-if="!logLoading && !commits.length" class="empty-hint">
+                      还没有提交记录
+                    </div>
+                    <div
+                      v-for="commit in commits"
+                      :key="commit.hash"
+                      class="commit-row"
+                      :class="{ active: selectedCommit === commit.hash }"
+                      @click="openCommit(commit.hash)"
+                    >
+                      <v-chip size="x-small" variant="tonal" class="commit-hash">
+                        {{ commit.short }}
+                      </v-chip>
+                      <div class="commit-main">
+                        <div class="commit-subject">{{ commit.subject }}</div>
+                        <div class="commit-meta">
+                          {{ commit.author }} · {{ commit.date }}
+                          <v-chip
+                            v-for="ref in commit.refs"
+                            :key="ref"
+                            size="x-small"
+                            variant="text"
+                            color="primary"
+                            class="ml-1"
+                          >
+                            {{ ref }}
+                          </v-chip>
+                        </div>
                       </div>
+                    </div>
+                  </div>
+
+                  <!-- 提交详情 -->
+                  <div class="commit-detail">
+                    <v-progress-linear v-if="commitDetailLoading" indeterminate />
+                    <template v-if="commitDetail">
+                      <div class="detail-head">
+                        <v-chip size="x-small" variant="tonal">
+                          {{ commitDetail.commit.short }}
+                        </v-chip>
+                        <span class="detail-subject text-truncate">
+                          {{ commitDetail.commit.subject }}
+                        </span>
+                        <v-spacer />
+                        <span class="detail-meta">
+                          {{ commitDetail.commit.author }} · {{ commitDetail.commit.date }}
+                        </span>
+                      </div>
+
+                      <div class="file-chips">
+                        <v-chip
+                          v-for="item in commitDetail.files"
+                          :key="item.path"
+                          size="small"
+                          variant="tonal"
+                          :color="statusColor(item.status)"
+                          :class="{ picked: selectedCommitFile === item.path }"
+                          @click="openCommitFile(item.path)"
+                        >
+                          <span class="chip-status">{{ item.status }}</span>
+                          <span class="chip-path">{{ item.path }}</span>
+                          <span class="chip-stat">
+                            <span class="add">+{{ item.additions }}</span>
+                            <span class="del">-{{ item.deletions }}</span>
+                          </span>
+                        </v-chip>
+                        <span v-if="!commitDetail.files.length" class="empty-hint">
+                          这个提交没有文件改动
+                        </span>
+                      </div>
+
+                      <DiffViewer
+                        fill
+                        :diff="commitDiff"
+                        :loading="commitDiffLoading"
+                        :file="selectedCommitFile"
+                      />
+                    </template>
+                    <div v-else class="empty-hint detail-placeholder">
+                      选择左侧的提交，查看它改了哪些文件
                     </div>
                   </div>
                 </div>
@@ -1009,16 +1128,6 @@ onBeforeUnmount(() => {
                       <span class="tree-title text-truncate" :title="current.path">
                         {{ current.name }}
                       </span>
-                      <v-spacer />
-                      <v-btn
-                        icon="mdi-refresh"
-                        variant="text"
-                        size="x-small"
-                        density="compact"
-                        color="info"
-                        title="刷新目录树"
-                        @click="refreshTree"
-                      />
                     </div>
                     <div class="tree-body">
                       <FileTree
@@ -1083,7 +1192,7 @@ onBeforeUnmount(() => {
   padding: 8px;
   border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
   border-radius: 8px;
-  background: rgba(var(--v-theme-surface-variant), 0.25);
+  background: var(--am-surface-bg);
 }
 .files-pane {
   height: var(--content-h);
@@ -1113,7 +1222,7 @@ onBeforeUnmount(() => {
   flex-shrink: 0;
   font-size: 12px;
   border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
-  background: rgba(var(--v-theme-surface-variant), 0.4);
+  background: var(--am-surface-bg);
 }
 .tree-title {
   font-weight: 600;
@@ -1161,6 +1270,88 @@ onBeforeUnmount(() => {
 .diff-col {
   min-width: 0;
 }
+/* ---------- 历史：提交列表 + 提交详情 ---------- */
+.history-pane {
+  height: var(--content-h);
+  padding: 12px;
+}
+.history-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 32%) 1fr;
+  gap: 12px;
+  height: 100%;
+  min-height: 0;
+}
+@media (max-width: 960px) {
+  .history-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: 40% 1fr;
+  }
+}
+.commit-list {
+  height: 100%;
+  overflow: auto;
+  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  border-radius: 8px;
+  padding: 4px;
+}
+.commit-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+}
+.detail-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  font-size: 12px;
+}
+.detail-subject {
+  font-weight: 600;
+  min-width: 0;
+}
+.detail-meta {
+  font-size: 11px;
+  opacity: 0.6;
+  white-space: nowrap;
+}
+.file-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-height: 92px;
+  overflow: auto;
+  flex-shrink: 0;
+}
+.file-chips .picked {
+  outline: 2px solid rgb(var(--v-theme-primary));
+  outline-offset: 1px;
+}
+.chip-status {
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-weight: 700;
+}
+.chip-path {
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin: 0 5px;
+}
+.chip-stat .add {
+  color: #4caf50;
+}
+.chip-stat .del {
+  color: #ef5350;
+  margin-left: 4px;
+}
+.detail-placeholder {
+  padding-top: 24px;
+}
 .group-title {
   display: flex;
   align-items: center;
@@ -1207,8 +1398,16 @@ onBeforeUnmount(() => {
 .commit-row {
   display: flex;
   gap: 10px;
-  padding: 8px 4px;
+  padding: 8px 6px;
   border-bottom: 1px solid rgba(var(--v-border-color), 0.35);
+  cursor: pointer;
+  border-radius: 6px;
+}
+.commit-row:hover {
+  background: rgba(var(--v-theme-primary), 0.08);
+}
+.commit-row.active {
+  background: rgba(var(--v-theme-primary), 0.16);
 }
 .commit-hash {
   font-family: ui-monospace, SFMono-Regular, Consolas, monospace;

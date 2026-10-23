@@ -616,6 +616,95 @@ def provider_for_url(url: str, cfg: Dict[str, Any]) -> str:
     return ""
 
 
+# ---------------------------------------------------------------- 提交详情
+
+_REV_RE = re.compile(r"^[0-9a-fA-F]{4,40}$")
+
+
+def check_rev(rev: str) -> str:
+    """提交号只接受十六进制，避免被当成 git 选项注入。"""
+    rev = (rev or "").strip()
+    if not _REV_RE.match(rev):
+        raise GitError("提交号不合法")
+    return rev
+
+
+async def commit_detail(repo: str, rev: str) -> Dict[str, Any]:
+    """单个提交的元信息 + 本次改动的文件清单（含增删行数）。"""
+    rev = check_rev(rev)
+
+    fmt = "%H%x1f%h%x1f%an%x1f%ae%x1f%ad%x1f%s%x1f%b"
+    code, out, err = await run(repo, ["show", "-s", "--date=iso", f"--pretty=format:{fmt}", rev])
+    if code != 0:
+        raise GitError(humanize(err, ["show"]), err.strip())
+
+    fields = out.decode("utf-8", "surrogateescape").split("\x1f")
+    while len(fields) < 7:
+        fields.append("")
+    commit = {
+        "hash": fields[0].strip(),
+        "short": fields[1].strip(),
+        "author": fields[2].strip(),
+        "email": fields[3].strip(),
+        "date": fields[4].strip(),
+        "subject": fields[5].strip(),
+        "body": fields[6].strip(),
+    }
+
+    files: List[Dict[str, Any]] = []
+    code, out, _ = await run(
+        repo, ["diff-tree", "--no-commit-id", "-r", "--root", "--name-status", "-z", rev]
+    )
+    if code == 0:
+        tokens = [token for token in out.split(b"\x00") if token]
+        index = 0
+        while index + 1 < len(tokens):
+            status = tokens[index].decode("ascii", "replace")[:1] or "M"
+            path = tokens[index + 1].decode("utf-8", "surrogateescape")
+            files.append({
+                "status": status,
+                "path": path,
+                "additions": 0,
+                "deletions": 0,
+            })
+            index += 2
+
+    code, out, _ = await run(
+        repo, ["diff-tree", "--no-commit-id", "-r", "--root", "--numstat", "-z", rev]
+    )
+    if code == 0:
+        stats: Dict[str, tuple] = {}
+        for record in [token for token in out.split(b"\x00") if token]:
+            parts = record.split(b"\t")
+            if len(parts) < 3:
+                continue
+            path = b"\t".join(parts[2:]).decode("utf-8", "surrogateescape")
+            try:
+                stats[path] = (int(parts[0]), int(parts[1]))
+            except ValueError:
+                stats[path] = (0, 0)   # 二进制文件是 "-\t-\tpath"
+        for item in files:
+            item["additions"], item["deletions"] = stats.get(item["path"], (0, 0))
+
+    return {"commit": commit, "files": files}
+
+
+async def commit_file_diff(repo: str, rev: str, path: str,
+                           max_chars: int = 400_000) -> str:
+    """某个提交里单个文件的 patch。"""
+    rev = check_rev(rev)
+    args = ["diff-tree", "--no-commit-id", "-p", "--root", "--no-color", "--no-ext-diff", "-U3", rev]
+    if path:
+        args.extend(["--", path])
+    code, out, err = await run(repo, args, timeout=60.0)
+    if code != 0:
+        raise GitError(humanize(err, ["diff-tree"]), err.strip())
+    text = out.decode("utf-8", "surrogateescape")
+    if len(text) > max_chars:
+        text = text[:max_chars] + "\n... (内容过长，已截断)"
+    return text
+
+
 # ---------------------------------------------------------------- 克隆
 
 async def clone(url: str, dest: str, auth_env: Optional[Dict[str, str]] = None,

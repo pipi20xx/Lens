@@ -320,7 +320,7 @@ async def browse(path: str = "") -> Dict[str, Any]:
 MAX_PREVIEW_BYTES = 400_000   # 单个文件最多回传这么多字节
 MAX_DIR_ENTRIES = 2000        # 单个目录最多列这么多项
 MAX_WRITE_BYTES = 5_000_000   # 单个文件最多写入这么多字节
-WRITE_ENCODINGS = ("utf-8", "gb18030")
+WRITE_ENCODINGS = ("utf-8", "gb18030", "latin-1")
 
 
 def _safe_join(repo: str, rel: str) -> str:
@@ -386,6 +386,15 @@ def list_repo_dir(repo: str, rel: str = "") -> Dict[str, Any]:
     }
 
 
+def _detect_eol(raw: bytes) -> str:
+    """判断文件原本的换行风格，保存时按原样写回，避免整文件 diff。"""
+    if b"\r\n" in raw:
+        return "crlf"
+    if b"\r" in raw:
+        return "cr"
+    return "lf"
+
+
 def read_repo_file(repo: str, rel: str) -> Dict[str, Any]:
     """读取仓库内单个文件的内容（二进制只回元信息，超长截断）。"""
     full = _safe_join(repo, rel)
@@ -406,11 +415,15 @@ def read_repo_file(repo: str, rel: str) -> Dict[str, Any]:
         "truncated": size > MAX_PREVIEW_BYTES,
         "content": "",
         "encoding": "",
+        "eol": "",
     }
     if not binary:
+        result["eol"] = _detect_eol(data)
         for encoding in ("utf-8", "gb18030", "latin-1"):
             try:
-                result["content"] = data.decode(encoding)
+                text = data.decode(encoding)
+                # 统一成 LF 交给编辑器；保存时再按 eol 还原
+                result["content"] = text.replace("\r\n", "\n").replace("\r", "\n")
                 result["encoding"] = encoding
                 break
             except UnicodeDecodeError:
@@ -418,7 +431,8 @@ def read_repo_file(repo: str, rel: str) -> Dict[str, Any]:
     return result
 
 
-def write_repo_file(repo: str, rel: str, content: str, encoding: str = "") -> Dict[str, Any]:
+def write_repo_file(repo: str, rel: str, content: str, encoding: str = "",
+                    eol: str = "") -> Dict[str, Any]:
     """保存编辑后的文件内容。只改工作区，不会自动 git add。"""
     rel = (rel or "").strip().replace("\\", "/").lstrip("/")
     if not rel:
@@ -432,21 +446,30 @@ def write_repo_file(repo: str, rel: str, content: str, encoding: str = "") -> Di
     if not os.path.isfile(full):
         raise GitError("文件不存在（暂不支持新建文件）")
 
-    payload = content or ""
+    payload = (content or "").replace("\r\n", "\n").replace("\r", "\n")
+    use_eol = (eol or "").strip().lower()
+    if use_eol not in ("lf", "crlf", "cr"):
+        use_eol = "lf"
+    if use_eol == "crlf":
+        payload = payload.replace("\n", "\r\n")
+    elif use_eol == "cr":
+        payload = payload.replace("\n", "\r")
+
     use_encoding = (encoding or "").strip().lower()
     if use_encoding not in WRITE_ENCODINGS:
         use_encoding = "utf-8"
     try:
         data = payload.encode(use_encoding)
     except UnicodeEncodeError:
+        # 用户在 latin-1 / gb18030 文件里输入了无法表示的字符 → 退回 utf-8
         use_encoding = "utf-8"
         data = payload.encode("utf-8")
 
     if len(data) > MAX_WRITE_BYTES:
         raise GitError("内容超过 5MB，已拒绝保存")
 
-    with open(full, "w", encoding=use_encoding, newline="") as handle:
-        handle.write(payload)
+    with open(full, "wb") as handle:
+        handle.write(data)
 
     info = os.stat(full)
     invalidate(repo)
@@ -455,6 +478,7 @@ def write_repo_file(repo: str, rel: str, content: str, encoding: str = "") -> Di
         "size": int(info.st_size),
         "mtime": int(info.st_mtime),
         "encoding": use_encoding,
+        "eol": use_eol,
     }
 
 

@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 /**
  * 右侧文件正文 / 编辑器。
  * 保存只写工作区，不自动 git add —— 改完去「变更」页确认再提交。
@@ -89,12 +89,14 @@ async function save() {
       props.repoPath,
       props.file,
       draft.value,
-      content.value?.encoding || ''
+      content.value?.encoding || '',
+      content.value?.eol || ''
     )
     if (content.value) {
       content.value.content = draft.value
       content.value.size = res.size
       content.value.encoding = res.encoding
+      content.value.eol = res.eol as any
       content.value.truncated = false
     }
     editing.value = false
@@ -133,6 +135,7 @@ defineExpose({ confirmLeave })
         <span class="meta">
           {{ sizeText(content.size) }}
           <span v-if="content.encoding !== 'utf-8'" class="ml-2">{{ content.encoding }}</span>
+          <span v-if="content.eol === 'crlf'" class="ml-2" title="该文件使用 CRLF 换行，保存会原样写回">CRLF</span>
         </span>
         <template v-if="!editing">
           <v-btn
@@ -210,7 +213,7 @@ defineExpose({ confirmLeave })
   font-size: 12px;
   flex-shrink: 0;
   border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
-  background: rgba(var(--v-theme-surface-variant), 0.4);
+  background: var(--am-surface-bg);
 }
 .meta {
   opacity: 0.6;
@@ -247,7 +250,7 @@ defineExpose({ confirmLeave })
   border: 0;
   outline: none;
   resize: none;
-  background: rgba(var(--v-theme-surface-variant), 0.25);
+  background: var(--am-surface-bg);
   color: rgb(var(--v-theme-on-surface));
   font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
   font-size: 12px;

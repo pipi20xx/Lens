@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 /**
  * 克隆仓库：支持手动填地址，或直接从已配置的 GitHub / Gitea 账号里挑。
  * 克隆是长任务，走后端异步 job + 轮询，避免 HTTP 请求挂住。
@@ -337,7 +337,7 @@ onBeforeUnmount(stopPolling)
   overflow: auto;
   padding: 8px;
   border-radius: 8px;
-  background: rgba(var(--v-theme-surface-variant), 0.5);
+  background: var(--am-surface-bg);
   font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
   font-size: 11px;
   line-height: 1.5;

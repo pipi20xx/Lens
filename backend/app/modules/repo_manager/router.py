@@ -138,7 +138,9 @@ async def read_file(path: str = Query(...), file: str = Query(...)):
 async def write_file(req: FileWriteRequest):
     real = await _guard(_validated(req.path))
     return await _guard(
-        asyncio.to_thread(service.write_repo_file, real, req.file, req.content, req.encoding)
+        asyncio.to_thread(
+            service.write_repo_file, real, req.file, req.content, req.encoding, req.eol
+        )
     )
 
 
@@ -205,6 +207,23 @@ async def branch_delete(req: BranchDeleteRequest):
 async def log(path: str = Query(...), limit: int = Query(50, ge=1, le=200)):
     real = await _guard(_validated(path))
     return {"commits": await _guard(service.git_ops.log(real, limit))}
+
+
+@router.get("/commit", summary="单个提交的详情与改动文件清单")
+async def commit_detail(path: str = Query(...), rev: str = Query(...)):
+    real = await _guard(_validated(path))
+    return await _guard(service.git_ops.commit_detail(real, rev))
+
+
+@router.get("/commit/diff", summary="某个提交里单个文件的 patch")
+async def commit_diff(path: str = Query(...), rev: str = Query(...), file: str = Query("")):
+    real = await _guard(_validated(path))
+    if file and not os.path.realpath(
+        os.path.join(real, file)
+    ).startswith(real + os.sep):
+        raise HTTPException(status_code=400, detail="文件路径非法")
+    text = await _guard(service.git_ops.commit_file_diff(real, rev, file))
+    return {"diff": text}
 
 
 # ---------------------------------------------------------------- 克隆 / 任务

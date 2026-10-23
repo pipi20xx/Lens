@@ -70,6 +70,18 @@ export interface CommitItem {
   refs: string[]
 }
 
+export interface CommitFile {
+  status: string
+  path: string
+  additions: number
+  deletions: number
+}
+
+export interface CommitDetail {
+  commit: Omit<CommitItem, 'refs'> & { body: string }
+  files: CommitFile[]
+}
+
 export interface BranchItem {
   name: string
   current: boolean
@@ -155,6 +167,7 @@ export interface RepoFileContent {
   truncated: boolean
   content: string
   encoding: string
+  eol: 'lf' | 'crlf' | 'cr' | ''
 }
 
 const BASE = '/api/repo-manager'
@@ -203,6 +216,12 @@ export const repoManagerApi = {
   log: (path: string, limit = 50) =>
     api.get<{ commits: CommitItem[] }>(`${BASE}/log`, { params: { path, limit } }),
 
+  commitDetail: (path: string, rev: string) =>
+    api.get<CommitDetail>(`${BASE}/commit`, { params: { path, rev } }),
+
+  commitFileDiff: (path: string, rev: string, file: string) =>
+    api.get<{ diff: string }>(`${BASE}/commit/diff`, { params: { path, rev, file } }),
+
   resolve: (path: string, file: string, strategy: 'ours' | 'theirs') =>
     api.post(`${BASE}/resolve`, { path, file, strategy }),
 
@@ -230,10 +249,10 @@ export const repoManagerApi = {
   readFile: (path: string, file: string) =>
     api.get<RepoFileContent>(`${BASE}/files/content`, { params: { path, file } }),
 
-  saveFile: (path: string, file: string, content: string, encoding = '') =>
-    api.put<{ path: string; size: number; mtime: number; encoding: string }>(
+  saveFile: (path: string, file: string, content: string, encoding = '', eol = '') =>
+    api.put<{ path: string; size: number; mtime: number; encoding: string; eol: string }>(
       `${BASE}/files/content`,
-      { path, file, content, encoding }
+      { path, file, content, encoding, eol }
     ),
 
   remoteRepos: (provider: 'gitea' | 'github') =>

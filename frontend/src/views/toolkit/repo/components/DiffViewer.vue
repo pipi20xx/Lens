@@ -9,6 +9,8 @@ const props = defineProps<{
   diff: string
   loading?: boolean
   file?: string
+  /** 放进 flex 列里时用：撑满剩余高度，而不是固定高 */
+  fill?: boolean
 }>()
 
 type LineKind = 'add' | 'del' | 'hunk' | 'meta' | 'ctx'
@@ -20,7 +22,9 @@ interface DiffLine {
 
 const lines = computed<DiffLine[]>(() => {
   if (!props.diff) return []
-  return props.diff.split('\n').map((text) => {
+  // CRLF 文件的 patch 每行末尾会带 \r，在 white-space:pre 下会被当成换行 → 行高翻倍
+  const normalized = props.diff.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+  return normalized.split('\n').map((text) => {
     let kind: LineKind = 'ctx'
     if (
       text.startsWith('+++') ||
@@ -54,11 +58,11 @@ const stats = computed(() => {
 </script>
 
 <template>
-  <div class="diff-shell">
+  <div class="diff-shell" :class="{ 'diff-fill': fill }">
     <div v-if="loading" class="diff-hint">
       <v-progress-circular indeterminate size="18" width="2" class="mr-2" />正在读取 diff…
     </div>
-    <div v-else-if="!diff" class="diff-hint">选择左侧文件查看具体改动</div>
+    <div v-else-if="!diff" class="diff-hint">选择文件查看具体改动</div>
     <template v-else>
       <div class="diff-bar">
         <span class="text-truncate">{{ file || '全部改动' }}</span>
@@ -84,7 +88,13 @@ const stats = computed(() => {
   border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
   border-radius: 8px;
   overflow: hidden;
-  background: rgba(var(--v-theme-surface), 0.6);
+  background: var(--am-surface-bg);
+}
+.diff-fill {
+  height: 100%;
+  max-height: none;
+  flex: 1;
+  min-height: 0;
 }
 .diff-hint {
   display: flex;
@@ -101,7 +111,7 @@ const stats = computed(() => {
   padding: 4px 10px;
   font-size: 12px;
   border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
-  background: rgba(var(--v-theme-surface-variant), 0.4);
+  background: var(--am-surface-bg);
 }
 .diff-stat {
   margin-left: auto;

@@ -47,6 +47,7 @@ class FileWriteRequest(RepoPath):
     file: str = Field(..., description="仓库内的相对路径")
     content: str = ""
     encoding: str = Field("", description="留空或不在白名单内则按 utf-8 写入")
+    eol: str = Field("", description="原文件的换行风格：lf / crlf / cr，留空按 lf")
 
 
 class BranchCreateRequest(RepoPath):
