@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 /**
  * 代码仓库管理（工具 → 代码仓库）
  *
@@ -319,6 +319,16 @@ async function doForcePush() {
 }
 
 async function doPull(rebase = false) {
+  const ok = await confirm({
+    title: rebase ? '变基拉取（--rebase）' : '快进拉取（--ff-only）',
+    content: rebase
+      ? '会先 git fetch，再把本地还没推送的提交「搬」到远端最新提交之后，因此会重写本地提交历史。遇到冲突需要逐个手动解决，解决前仓库会停在变基中。本地有未提交改动时 git 会拒绝执行。'
+      : '会先 git fetch，再把远端的新提交快进合并到当前分支，不会产生额外的合并提交。如果本地有未提交改动、或本地提交与远端分叉（无法快进），git 会直接失败并保持原样 —— 这是最安全的一种拉取。',
+    confirmText: rebase ? '开始变基' : '开始拉取',
+    confirmColor: rebase ? 'warning' : 'primary',
+  })
+  if (!ok) return
+
   busy.value = 'pull'
   try {
     const res = await repoManagerApi.pull(selected.value, rebase)
@@ -333,6 +343,14 @@ async function doPull(rebase = false) {
 }
 
 async function doFetch() {
+  const ok = await confirm({
+    title: 'fetch 远端更新',
+    content:
+      '执行 git fetch --prune：只把远端分支的最新位置同步到本地，不会改动工作区文件，也不会自动合并。跑完就能看出当前仓库落后几个提交（列表里的 ↓ 数字）。',
+    confirmText: '开始 fetch',
+  })
+  if (!ok) return
+
   busy.value = 'fetch'
   try {
     await repoManagerApi.fetch(selected.value)
@@ -804,7 +822,7 @@ onBeforeUnmount(() => {
                             v-model="amend"
                             density="compact"
                             hide-details
-                            label="修补"
+                            label="修补上次提交"
                             color="warning"
                             class="flex-grow-0"
                           />
@@ -832,13 +850,16 @@ onBeforeUnmount(() => {
                             color="primary"
                             variant="tonal"
                             size="small"
-                            prepend-icon="mdi-check"
+                            :prepend-icon="amend ? 'mdi-content-save-edit-outline' : 'mdi-check'"
                             :disabled="!canCommit"
                             :loading="busy === 'commit'"
                             @click="doCommit"
                           >
-                            提交
+                            {{ amend ? '修补提交' : '提交' }}
                           </v-btn>
+                        </div>
+                        <div v-if="amend" class="amend-hint">
+                          会把这次的内容合并进上一个提交，历史里<b>不会新增</b>一条记录
                         </div>
                       </div>
 
@@ -1193,6 +1214,11 @@ onBeforeUnmount(() => {
   border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
   border-radius: 8px;
   background: var(--am-surface-bg);
+}
+.amend-hint {
+  font-size: 11px;
+  color: rgb(var(--v-theme-warning));
+  margin-top: 2px;
 }
 .files-pane {
   height: var(--content-h);
