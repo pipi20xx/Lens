@@ -79,7 +79,8 @@ const stats = computed(() => {
   display: flex;
   flex-direction: column;
   min-height: 160px;
-  max-height: 58vh;
+  height: var(--content-h, 58vh);
+  max-height: var(--content-h, 58vh);
   border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
   border-radius: 8px;
   overflow: hidden;

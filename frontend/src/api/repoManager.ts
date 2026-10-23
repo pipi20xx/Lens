@@ -133,6 +133,30 @@ export interface BrowseResult {
   in_roots: boolean
 }
 
+export interface RepoEntry {
+  name: string
+  path: string
+  type: 'dir' | 'file' | 'link'
+  size: number
+  mtime: number
+}
+
+export interface RepoDirListing {
+  dir: string
+  parent: string
+  entries: RepoEntry[]
+  truncated: boolean
+}
+
+export interface RepoFileContent {
+  path: string
+  size: number
+  binary: boolean
+  truncated: boolean
+  content: string
+  encoding: string
+}
+
 const BASE = '/api/repo-manager'
 
 export const repoManagerApi = {
@@ -199,6 +223,18 @@ export const repoManagerApi = {
     api.post<RepoIdentity>(`${BASE}/identity`, { path, ...payload }),
 
   browse: (path = '') => api.get<BrowseResult>(`${BASE}/browse`, { params: { path } }),
+
+  listFiles: (path: string, dir = '') =>
+    api.get<RepoDirListing>(`${BASE}/files`, { params: { path, dir } }),
+
+  readFile: (path: string, file: string) =>
+    api.get<RepoFileContent>(`${BASE}/files/content`, { params: { path, file } }),
+
+  saveFile: (path: string, file: string, content: string, encoding = '') =>
+    api.put<{ path: string; size: number; mtime: number; encoding: string }>(
+      `${BASE}/files/content`,
+      { path, file, content, encoding }
+    ),
 
   remoteRepos: (provider: 'gitea' | 'github') =>
     api.get<{ repos: RemoteRepo[] }>(`${BASE}/providers/${provider}/repos`),

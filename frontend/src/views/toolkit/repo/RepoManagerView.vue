@@ -6,6 +6,7 @@
  * 所有 git 操作都在后端以子进程执行，前端只负责展示与触发。
  */
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import {
   repoManagerApi,
   type BranchItem,
@@ -19,12 +20,15 @@ import {
 import { useConfirm, useNotification } from '@/composables'
 import CloneDialog from './components/CloneDialog.vue'
 import DiffViewer from './components/DiffViewer.vue'
+import FileTree from './components/FileTree.vue'
+import FileViewer from './components/FileViewer.vue'
 import IdentityDialog from './components/IdentityDialog.vue'
+import RepoSelect from './components/RepoSelect.vue'
 import RepoSettingsDialog from './components/RepoSettingsDialog.vue'
 
 const { success, error: showError, warning } = useNotification()
 const { confirm } = useConfirm()
-
+const route = useRoute()
 // ---------------- 状态 ----------------
 const repos = ref<RepoSummary[]>([])
 const roots = ref<string[]>([])
@@ -32,7 +36,7 @@ const listLoading = ref(false)
 const selected = ref('')
 const status = ref<RepoStatus | null>(null)
 const statusLoading = ref(false)
-const activeTab = ref<'changes' | 'history' | 'branches'>('changes')
+const activeTab = ref<'changes' | 'history' | 'branches' | 'files'>('changes')
 
 const commits = ref<CommitItem[]>([])
 const branches = ref<BranchItem[]>([])
@@ -54,42 +58,16 @@ const identityProfiles = ref<IdentityProfile[]>([])
 const cloneDir = ref('/vol1/1000/NVME/repos')
 
 const newBranchName = ref('')
+const treeRef = ref<InstanceType<typeof FileTree> | null>(null)
+const viewerRef = ref<InstanceType<typeof FileViewer> | null>(null)
+const previewFile = ref('')
+const fileDirty = ref(false)
 const fetchJob = ref<{ progress: number; phase: string; status: string; result: any } | null>(null)
 let timer: number | undefined
 let fetchTimer: number | undefined
+let preferredPath = ''
 
 // ---------------- 派生 ----------------
-// 下拉选项：把展示字段预先算好，模板里不再直接摸 item 内部结构
-interface RepoOption {
-  path: string
-  name: string
-  branch: string
-  subtitle: string
-  color: string
-  ahead: number
-  behind: number
-}
-
-const repoOptions = computed<RepoOption[]>(() =>
-  repos.value.map((repo) => ({
-    path: repo.path,
-    name: repo.name,
-    branch: repo.branch,
-    subtitle: repo.ok ? repo.branch : repo.error || '不可用',
-    color: !repo.ok ? 'error' : repo.dirty ? 'warning' : 'success',
-    ahead: repo.ahead,
-    behind: repo.behind,
-  }))
-)
-
-/**
- * 兼容取值：Vuetify 的 item 插槽在不同版本里可能给 ListItem 包装（有 .raw）
- * 也可能直接给裸数据，这里统一抹平，避免 .raw 为 undefined 时炸掉整个页面。
- */
-function opt(item: any): RepoOption {
-  return (item?.raw ?? item ?? {}) as RepoOption
-}
-
 const current = computed<RepoSummary>(
   () =>
     repos.value.find((r) => r.path === selected.value) || {
@@ -124,9 +102,6 @@ const canCommit = computed(
   () => !busy.value && (!!status.value?.counts.staged || amend.value) && commitMessage.value.trim().length > 0
 )
 
-const dirtyCount = computed(() => repos.value.filter((r) => r.dirty).length)
-const behindCount = computed(() => repos.value.filter((r) => r.behind > 0).length)
-
 // ---------------- 数据加载 ----------------
 async function loadRepos(force = false, silent = false) {
   if (!silent) listLoading.value = true
@@ -135,7 +110,10 @@ async function loadRepos(force = false, silent = false) {
     repos.value = res.repos || []
     roots.value = res.roots || []
     if (!selected.value && repos.value.length) {
-      selected.value = repos.value[0].path
+      selected.value =
+        preferredPath && repos.value.some((r) => r.path === preferredPath)
+          ? preferredPath
+          : repos.value[0].path
     } else if (selected.value && !repos.value.some((r) => r.path === selected.value)) {
       status.value = null
       selected.value = ''
@@ -205,6 +183,8 @@ function onRepoSwitch(path: string) {
   commitMessage.value = ''
   amend.value = false
   identityInfo.value = null
+  previewFile.value = ''
+  fileDirty.value = false
   if (!path) return
   loadStatus()
   loadBranches()
@@ -215,22 +195,17 @@ function onRepoSwitch(path: string) {
 // 下拉里切换仓库时统一切换上下文
 watch(selected, (path) => onRepoSwitch(path))
 
-// 仓库下拉的搜索：名称或路径都能命中
-function filterRepo(_title: string, query: string, item: any): boolean {
-  const q = (query || '').trim().toLowerCase()
-  if (!q) return true
-  const raw = item?.raw ?? item ?? {}
-  return (
-    String(raw.name || '').toLowerCase().includes(q) ||
-    String(raw.path || '').toLowerCase().includes(q)
-  )
-}
-
 async function refreshAll(silent = false) {
   await loadStatus(silent)
-  await loadRepos(false, silent)
+  await loadRepos(!silent, silent)
   await loadBranches()
   await loadIdentity()
+}
+
+/** 工具栏「刷新」：状态 + 列表 + 分支 + 身份 + 目录树，一次全刷新 */
+async function refreshEverything() {
+  await refreshAll()
+  refreshTree()
 }
 
 // ---------------- 暂存 / 提交 ----------------
@@ -490,6 +465,17 @@ async function onSettingsSaved() {
   await loadRepos(true)
 }
 
+function refreshTree() {
+  treeRef.value?.refresh()
+}
+
+/** 点树里的文件：先确认未保存改动，再切到「文件」标签 */
+async function onTreeSelect(path: string) {
+  const ok = (await viewerRef.value?.confirmLeave?.()) ?? true
+  if (!ok) return
+  previewFile.value = path
+  activeTab.value = 'files'
+}
 // ---------------- 工具 ----------------
 function iconOf(file: RepoFile): string {
   if (file.kind === 'untracked') return 'mdi-plus-circle-outline'
@@ -525,6 +511,7 @@ async function loadSettingsHint() {
 }
 
 onMounted(async () => {
+  preferredPath = String(route.query.path || '')
   await loadSettingsHint()
   await loadRepos(true)
   timer = window.setInterval(() => {
@@ -547,47 +534,33 @@ onBeforeUnmount(() => {
       管理服务器上的 git 工作副本：查看改动、暂存、提交、推送，也可以一键克隆新仓库。
     </p>
 
-    <!-- 工具栏 -->
+    <!-- 工具栏：仓库选择 + 当前仓库状态 + 全部操作都在这一行 -->
     <v-card class="liquid-glass-card mb-4" rounded="xl">
-      <div class="d-flex align-center pa-4 ga-3 flex-wrap">
-        <v-autocomplete
-          v-model="selected"
-          :items="repoOptions"
-          item-title="name"
-          item-value="path"
-          :custom-filter="filterRepo"
-          label="选择仓库"
-          density="compact"
-          variant="outlined"
-          hide-details
-          prepend-inner-icon="mdi-source-repository"
-          no-data-text="没有匹配的仓库"
-          class="repo-select"
-        >
-          <template #item="{ props: itemProps, item }">
-            <v-list-item v-bind="itemProps" :subtitle="opt(item).subtitle">
-              <template #title>{{ opt(item).name }}</template>
-              <template #prepend>
-                <v-icon size="14" :color="opt(item).color">mdi-circle</v-icon>
-              </template>
-              <template #append>
-                <v-chip v-if="opt(item).ahead" size="x-small" color="warning" variant="tonal">
-                  ↑{{ opt(item).ahead }}
-                </v-chip>
-                <v-chip v-if="opt(item).behind" size="x-small" color="info" variant="tonal" class="ml-1">
-                  ↓{{ opt(item).behind }}
-                </v-chip>
-              </template>
-            </v-list-item>
-          </template>
-        </v-autocomplete>
-        <v-chip size="small" variant="tonal">{{ repos.length }} 个仓库</v-chip>
-        <v-chip v-if="dirtyCount" size="small" color="warning" variant="tonal">
-          {{ dirtyCount }} 个有改动
-        </v-chip>
-        <v-chip v-if="behindCount" size="small" color="info" variant="tonal">
-          {{ behindCount }} 个待拉取
-        </v-chip>
+      <div class="d-flex align-center pa-4 ga-2 flex-wrap">
+        <RepoSelect v-model="selected" :repos="repos" />
+
+        <template v-if="hasCurrent">
+          <v-chip v-if="current.branch" size="small" variant="tonal">
+            {{ current.branch }}
+          </v-chip>
+          <v-chip v-if="current.ahead" size="small" color="warning" variant="tonal">
+            ↑{{ current.ahead }}
+          </v-chip>
+          <v-chip v-if="current.behind" size="small" color="info" variant="tonal">
+            ↓{{ current.behind }}
+          </v-chip>
+          <v-chip
+            size="small"
+            variant="tonal"
+            :color="identityInfo?.source === 'none' ? 'warning' : undefined"
+            title="当前仓库使用的提交者身份（点击修改）"
+            @click="identityDialog = true"
+          >
+            <v-icon start size="14">mdi-account-outline</v-icon>
+            {{ identityInfo?.display.name || '未设置提交者' }}
+          </v-chip>
+        </template>
+
         <v-chip v-if="fetchJob" size="small" color="info" variant="tonal">
           <v-progress-circular
             v-if="fetchJob.status === 'running'"
@@ -599,14 +572,16 @@ onBeforeUnmount(() => {
           {{ fetchJob.phase || 'fetch 中' }}
           <span v-if="fetchJob.status === 'running'" class="ml-1">{{ fetchJob.progress }}%</span>
         </v-chip>
+
         <v-spacer />
+
         <v-btn
           size="small"
           variant="tonal"
           color="info"
           prepend-icon="mdi-refresh"
-          :loading="listLoading"
-          @click="loadRepos(true)"
+          :loading="listLoading || statusLoading"
+          @click="refreshEverything"
         >
           刷新
         </v-btn>
@@ -614,12 +589,69 @@ onBeforeUnmount(() => {
           size="small"
           variant="tonal"
           color="info"
-          prepend-icon="mdi-cloud-download-outline"
-          title="对所有仓库执行 git fetch：只更新远端分支的最新位置，不改工作区，也不会自动合并"
-          @click="fetchAll"
+          prepend-icon="mdi-download"
+          :disabled="!hasCurrent"
+          :loading="busy === 'fetch'"
+          @click="doFetch"
         >
-          全部 fetch
+          fetch
         </v-btn>
+        <v-menu>
+          <template #activator="{ props: menuProps }">
+            <v-btn
+              size="small"
+              variant="tonal"
+              color="info"
+              prepend-icon="mdi-arrow-down-bold"
+              :disabled="!hasCurrent"
+              :loading="busy === 'pull'"
+              v-bind="menuProps"
+            >
+              拉取
+            </v-btn>
+          </template>
+          <v-list density="compact">
+            <v-list-item @click="doPull(false)">
+              <v-list-item-title>快进合并（--ff-only）</v-list-item-title>
+              <v-list-item-subtitle class="text-caption">无法快进时直接失败，最安全</v-list-item-subtitle>
+            </v-list-item>
+            <v-list-item @click="doPull(true)">
+              <v-list-item-title>变基（--rebase）</v-list-item-title>
+              <v-list-item-subtitle class="text-caption">把本地提交接到远端之后</v-list-item-subtitle>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+        <v-btn
+          size="small"
+          variant="tonal"
+          color="primary"
+          prepend-icon="mdi-arrow-up-bold"
+          :disabled="!hasCurrent"
+          :loading="busy === 'push'"
+          @click="doPush"
+        >
+          推送<span v-if="current.ahead"> ({{ current.ahead }})</span>
+        </v-btn>
+        <v-menu>
+          <template #activator="{ props: menuProps }">
+            <v-btn size="small" variant="text" prepend-icon="mdi-dots-horizontal" v-bind="menuProps">
+              更多
+            </v-btn>
+          </template>
+          <v-list density="compact">
+            <v-list-item
+              title="全部 fetch"
+              subtitle="所有仓库执行 git fetch，不改工作区"
+              @click="fetchAll"
+            />
+            <v-list-item
+              title="强制推送"
+              subtitle="--force-with-lease"
+              :disabled="!hasCurrent"
+              @click="doForcePush"
+            />
+          </v-list>
+        </v-menu>
         <v-btn
           size="small"
           variant="tonal"
@@ -654,157 +686,7 @@ onBeforeUnmount(() => {
           </template>
 
           <template v-else>
-            <!-- 仓库头 -->
-            <div class="pa-3">
-              <div class="d-flex align-center flex-wrap ga-2">
-                <v-icon>{{ current.ok ? 'mdi-folder-git-outline' : 'mdi-alert-circle-outline' }}</v-icon>
-                <span class="text-subtitle-1 font-weight-medium">{{ current.name }}</span>
-                <v-chip size="x-small" variant="tonal">{{ current.branch || '—' }}</v-chip>
-                <v-chip v-if="current.upstream" size="x-small" variant="text">
-                  {{ current.upstream }}
-                </v-chip>
-                <v-chip
-                  size="small"
-                  variant="tonal"
-                  :color="identityInfo?.source === 'none' ? 'warning' : undefined"
-                  title="当前仓库使用的提交者身份（点击修改）"
-                  class="identity-chip"
-                  @click="identityDialog = true"
-                >
-                  <v-icon start size="14">mdi-account-outline</v-icon>
-                  {{ identityInfo?.display.name || '未设置提交者' }}
-                  <v-icon end size="13">mdi-pencil-outline</v-icon>
-                </v-chip>
-                <v-spacer />
-                <v-btn
-                  size="small"
-                  variant="tonal"
-                  color="info"
-                  prepend-icon="mdi-refresh"
-                  :loading="statusLoading"
-                  @click="refreshAll()"
-                >
-                  刷新
-                </v-btn>
-                <v-btn
-                  size="small"
-                  variant="tonal"
-                  color="info"
-                  prepend-icon="mdi-download"
-                  :loading="busy === 'fetch'"
-                  @click="doFetch"
-                >
-                  fetch
-                </v-btn>
-                <v-menu>
-                  <template #activator="{ props: menuProps }">
-                    <v-btn
-                      size="small"
-                      variant="tonal"
-                      color="info"
-                      prepend-icon="mdi-arrow-down-bold"
-                      :loading="busy === 'pull'"
-                      v-bind="menuProps"
-                    >
-                      拉取
-                    </v-btn>
-                  </template>
-                  <v-list density="compact">
-                    <v-list-item @click="doPull(false)">
-                      <v-list-item-title>快进合并（--ff-only）</v-list-item-title>
-                      <v-list-item-subtitle class="text-caption">无法快进时直接失败，最安全</v-list-item-subtitle>
-                    </v-list-item>
-                    <v-list-item @click="doPull(true)">
-                      <v-list-item-title>变基（--rebase）</v-list-item-title>
-                      <v-list-item-subtitle class="text-caption">把本地提交接到远端之后</v-list-item-subtitle>
-                    </v-list-item>
-                  </v-list>
-                </v-menu>
-                <v-btn
-                  size="small"
-                  color="primary"
-                  variant="tonal"
-                  prepend-icon="mdi-arrow-up-bold"
-                  :loading="busy === 'push'"
-                  @click="doPush"
-                >
-                  推送<span v-if="current.ahead"> ({{ current.ahead }})</span>
-                </v-btn>
-                <v-menu>
-                  <template #activator="{ props: menuProps }">
-                    <v-btn size="small" variant="text" prepend-icon="mdi-dots-horizontal" v-bind="menuProps">
-                      更多
-                    </v-btn>
-                  </template>
-                  <v-list density="compact">
-                    <v-list-item @click="doForcePush">
-                      <v-list-item-title class="text-warning">强制推送</v-list-item-title>
-                      <v-list-item-subtitle class="text-caption">--force-with-lease</v-list-item-subtitle>
-                    </v-list-item>
-                  </v-list>
-                </v-menu>
-              </div>
-              <div class="text-caption mt-1 path-line">{{ current.path }}</div>
-              <v-alert
-                v-if="!current.ok && current.error"
-                type="error"
-                variant="tonal"
-                density="compact"
-                class="mt-2"
-              >
-                {{ current.error }}
-              </v-alert>
-            </div>
-
-            <v-divider />
-
-            <!-- 提交区 -->
-            <div class="pa-3">
-              <v-textarea
-                v-model="commitMessage"
-                density="compact"
-                variant="outlined"
-                rows="2"
-                auto-grow
-                max-rows="6"
-                hide-details
-                placeholder="提交说明（第一行是标题）"
-              />
-              <div class="d-flex align-center flex-wrap ga-2 mt-2">
-                <v-switch
-                  v-model="amend"
-                  density="compact"
-                  hide-details
-                  label="修补上次提交"
-                  color="warning"
-                  class="flex-grow-0"
-                />
-                <v-chip size="small" variant="tonal">
-                  已暂存 {{ status?.counts.staged || 0 }}
-                </v-chip>
-                <v-chip v-if="status?.counts.unstaged" size="small" variant="tonal" color="warning">
-                  未暂存 {{ status.counts.unstaged }}
-                </v-chip>
-                <v-chip v-if="status?.counts.untracked" size="small" variant="tonal" color="success">
-                  未跟踪 {{ status.counts.untracked }}
-                </v-chip>
-                <v-spacer />
-                <v-btn
-                  color="primary"
-                  variant="tonal"
-                  size="small"
-                  prepend-icon="mdi-check"
-                  :disabled="!canCommit"
-                  :loading="busy === 'commit'"
-                  @click="doCommit"
-                >
-                  提交
-                </v-btn>
-              </div>
-            </div>
-
-            <v-divider />
-
+            <section class="main">
             <!-- Tabs -->
             <v-tabs v-model="activeTab" density="compact" color="primary">
               <v-tab value="changes">
@@ -819,14 +701,83 @@ onBeforeUnmount(() => {
               </v-tab>
               <v-tab value="history">历史</v-tab>
               <v-tab value="branches">分支</v-tab>
+              <v-tab value="files">
+                文件
+                <v-badge v-if="fileDirty" dot color="warning" inline class="ml-1" />
+              </v-tab>
             </v-tabs>
 
-            <v-window v-model="activeTab">
+            <div class="main-scroll">
+              <v-alert
+                v-if="!current.ok && current.error"
+                type="error"
+                variant="tonal"
+                density="compact"
+                class="ma-3"
+              >
+                {{ current.error }}
+              </v-alert>
+
               <!-- 变更 -->
-              <v-window-item value="changes">
+              <div v-show="activeTab === 'changes'">
                 <div class="pa-3">
                   <div class="changes-grid">
                     <div class="changes-col">
+                      <!-- 提交区：只占左边这一列，把宽度让给 diff -->
+                      <div class="commit-box mb-3">
+                        <v-textarea
+                          v-model="commitMessage"
+                          density="compact"
+                          variant="outlined"
+                          rows="2"
+                          auto-grow
+                          max-rows="5"
+                          hide-details
+                          placeholder="提交说明（第一行是标题）"
+                        />
+                        <div class="d-flex align-center flex-wrap ga-2 mt-2">
+                          <v-switch
+                            v-model="amend"
+                            density="compact"
+                            hide-details
+                            label="修补"
+                            color="warning"
+                            class="flex-grow-0"
+                          />
+                          <v-chip size="small" variant="tonal">
+                            已暂存 {{ status?.counts.staged || 0 }}
+                          </v-chip>
+                          <v-chip
+                            v-if="status?.counts.unstaged"
+                            size="small"
+                            variant="tonal"
+                            color="warning"
+                          >
+                            未暂存 {{ status.counts.unstaged }}
+                          </v-chip>
+                          <v-chip
+                            v-if="status?.counts.untracked"
+                            size="small"
+                            variant="tonal"
+                            color="success"
+                          >
+                            未跟踪 {{ status.counts.untracked }}
+                          </v-chip>
+                          <v-spacer />
+                          <v-btn
+                            color="primary"
+                            variant="tonal"
+                            size="small"
+                            prepend-icon="mdi-check"
+                            :disabled="!canCommit"
+                            :loading="busy === 'commit'"
+                            @click="doCommit"
+                          >
+                            提交
+                          </v-btn>
+                        </div>
+                      </div>
+
                       <v-progress-linear v-if="statusLoading" indeterminate />
 
                       <!-- 冲突 -->
@@ -966,10 +917,10 @@ onBeforeUnmount(() => {
                     </div>
                   </div>
                 </div>
-              </v-window-item>
+              </div>
 
               <!-- 历史 -->
-              <v-window-item value="history">
+              <div v-show="activeTab === 'history'">
                 <div class="pa-3">
                   <v-progress-linear v-if="logLoading" indeterminate />
                   <v-alert
@@ -1002,10 +953,10 @@ onBeforeUnmount(() => {
                     </div>
                   </div>
                 </div>
-              </v-window-item>
+              </div>
 
               <!-- 分支 -->
-              <v-window-item value="branches">
+              <div v-show="activeTab === 'branches'">
                 <div class="pa-3">
                   <div class="d-flex ga-2 mb-3">
                     <v-text-field
@@ -1047,8 +998,48 @@ onBeforeUnmount(() => {
                     </v-btn>
                   </div>
                 </div>
-              </v-window-item>
-            </v-window>
+              </div>
+
+              <!-- 文件：树 + 内容，只有这个 TAB 才占宽度 -->
+              <div v-show="activeTab === 'files'" class="files-pane">
+                <div class="files-layout">
+                  <div class="files-tree">
+                    <div class="tree-head">
+                      <v-icon size="14" color="primary">mdi-file-tree-outline</v-icon>
+                      <span class="tree-title text-truncate" :title="current.path">
+                        {{ current.name }}
+                      </span>
+                      <v-spacer />
+                      <v-btn
+                        icon="mdi-refresh"
+                        variant="text"
+                        size="x-small"
+                        density="compact"
+                        color="info"
+                        title="刷新目录树"
+                        @click="refreshTree"
+                      />
+                    </div>
+                    <div class="tree-body">
+                      <FileTree
+                        ref="treeRef"
+                        :repo-path="selected"
+                        :selected="previewFile"
+                        @select="onTreeSelect"
+                      />
+                    </div>
+                  </div>
+                  <FileViewer
+                    ref="viewerRef"
+                    class="files-viewer"
+                    :repo-path="selected"
+                    :file="previewFile"
+                    @dirty-change="fileDirty = $event"
+                  />
+                </div>
+              </div>
+            </div>
+            </section>
           </template>
     </v-card>
 
@@ -1070,13 +1061,79 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .detail-panel {
-  min-height: 68vh;
+  /* 整卡高度。宁可让页面轻微滚动，也要保证内容区够大 */
+  --panel-h: clamp(640px, calc(100dvh - 260px), 3000px);
   overflow: hidden;
 }
-.repo-select {
-  min-width: 240px;
-  max-width: 380px;
-  flex: 0 1 320px;
+/* 主体：TAB + 内容，全宽 */
+.main {
+  display: flex;
+  flex-direction: column;
+  height: var(--panel-h);
+  min-height: 0;
+  min-width: 0;
+  --content-h: calc(var(--panel-h) - 60px);
+}
+.main-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+.commit-box {
+  padding: 8px;
+  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  border-radius: 8px;
+  background: rgba(var(--v-theme-surface-variant), 0.25);
+}
+.files-pane {
+  height: var(--content-h);
+  padding: 12px;
+}
+/* 文件页：树 + 内容，只在这个 TAB 里占宽度 */
+.files-layout {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 12px;
+  height: 100%;
+  min-height: 0;
+}
+.files-tree {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  border-radius: 8px;
+  overflow: hidden;
+}
+.tree-head {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px 2px 10px;
+  flex-shrink: 0;
+  font-size: 12px;
+  border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  background: rgba(var(--v-theme-surface-variant), 0.4);
+}
+.tree-title {
+  font-weight: 600;
+  opacity: 0.8;
+}
+.tree-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+@media (max-width: 1100px) {
+  .files-layout {
+    grid-template-columns: 240px 1fr;
+  }
+}
+@media (max-width: 900px) {
+  .files-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: 40% 1fr;
+  }
 }
 .empty-state {
   display: flex;
@@ -1085,14 +1142,10 @@ onBeforeUnmount(() => {
   justify-content: center;
   padding: 72px 16px;
 }
-.path-line {
-  opacity: 0.6;
-  word-break: break-all;
-  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-}
 .changes-grid {
   display: grid;
-  grid-template-columns: minmax(280px, 30%) 1fr;
+  /* 左列放提交框 + 文件组，尽量压窄，把宽度让给 diff */
+  grid-template-columns: minmax(320px, 30%) 1fr;
   gap: 12px;
 }
 @media (max-width: 960px) {
@@ -1101,7 +1154,7 @@ onBeforeUnmount(() => {
   }
 }
 .changes-col {
-  max-height: 58vh;
+  max-height: var(--content-h, 56vh);
   overflow: auto;
   padding-right: 4px;
 }

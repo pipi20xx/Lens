@@ -315,6 +315,149 @@ async def browse(path: str = "") -> Dict[str, Any]:
     return await asyncio.to_thread(browse_dirs, path)
 
 
+# ------------------------------------------------------------------ 文件浏览
+
+MAX_PREVIEW_BYTES = 400_000   # 单个文件最多回传这么多字节
+MAX_DIR_ENTRIES = 2000        # 单个目录最多列这么多项
+MAX_WRITE_BYTES = 5_000_000   # 单个文件最多写入这么多字节
+WRITE_ENCODINGS = ("utf-8", "gb18030")
+
+
+def _safe_join(repo: str, rel: str) -> str:
+    """把仓库内的相对路径解析成真实路径，并挡住 ``../`` 越界与符号链接逃逸。"""
+    rel = (rel or "").strip().replace("\\", "/").lstrip("/")
+    target = os.path.realpath(os.path.join(repo, rel))
+    if target != repo and not target.startswith(repo + os.sep):
+        raise GitError("路径越界，已拒绝访问")
+    return target
+
+
+def _rel_posix(repo: str, full: str) -> str:
+    rel = os.path.relpath(full, repo).replace(os.sep, "/")
+    return "" if rel == "." else rel
+
+
+def list_repo_dir(repo: str, rel: str = "") -> Dict[str, Any]:
+    """列出仓库内某个目录的直接子项（目录在前，按名字排序）。"""
+    base = _safe_join(repo, rel)
+    if not os.path.isdir(base):
+        raise GitError("目录不存在")
+
+    entries: List[Dict[str, Any]] = []
+    truncated = False
+    try:
+        with os.scandir(base) as scan:
+            for entry in scan:
+                if entry.name == ".git":
+                    continue
+                try:
+                    if entry.is_symlink():
+                        kind = "link"
+                    elif entry.is_dir(follow_symlinks=False):
+                        kind = "dir"
+                    else:
+                        kind = "file"
+                    info = entry.stat(follow_symlinks=False)
+                except OSError:
+                    continue
+                entries.append({
+                    "name": entry.name,
+                    "path": _rel_posix(repo, os.path.join(base, entry.name)),
+                    "type": kind,
+                    "size": 0 if kind == "dir" else int(info.st_size),
+                    "mtime": int(info.st_mtime),
+                })
+                if len(entries) >= MAX_DIR_ENTRIES:
+                    truncated = True
+                    break
+    except PermissionError:
+        raise GitError("没有权限读取该目录")
+
+    entries.sort(key=lambda item: (item["type"] != "dir", item["name"].lower()))
+    current = _rel_posix(repo, base)
+    parent = ""
+    if current:
+        parent = current.rsplit("/", 1)[0] if "/" in current else ""
+    return {
+        "dir": current,
+        "parent": parent,
+        "entries": entries,
+        "truncated": truncated,
+    }
+
+
+def read_repo_file(repo: str, rel: str) -> Dict[str, Any]:
+    """读取仓库内单个文件的内容（二进制只回元信息，超长截断）。"""
+    full = _safe_join(repo, rel)
+    if not os.path.isfile(full):
+        raise GitError("文件不存在")
+
+    size = os.path.getsize(full)
+    with open(full, "rb") as handle:
+        head = handle.read(8192)
+        binary = b"\x00" in head
+        handle.seek(0)
+        data = b"" if binary else handle.read(MAX_PREVIEW_BYTES)
+
+    result: Dict[str, Any] = {
+        "path": _rel_posix(repo, full),
+        "size": size,
+        "binary": binary,
+        "truncated": size > MAX_PREVIEW_BYTES,
+        "content": "",
+        "encoding": "",
+    }
+    if not binary:
+        for encoding in ("utf-8", "gb18030", "latin-1"):
+            try:
+                result["content"] = data.decode(encoding)
+                result["encoding"] = encoding
+                break
+            except UnicodeDecodeError:
+                continue
+    return result
+
+
+def write_repo_file(repo: str, rel: str, content: str, encoding: str = "") -> Dict[str, Any]:
+    """保存编辑后的文件内容。只改工作区，不会自动 git add。"""
+    rel = (rel or "").strip().replace("\\", "/").lstrip("/")
+    if not rel:
+        raise GitError("未指定文件")
+    # .git 内部（含索引、hooks）绝对不允许改
+    parts = rel.split("/")
+    if ".git" in parts:
+        raise GitError("不允许修改 .git 目录内的文件")
+
+    full = _safe_join(repo, rel)
+    if not os.path.isfile(full):
+        raise GitError("文件不存在（暂不支持新建文件）")
+
+    payload = content or ""
+    use_encoding = (encoding or "").strip().lower()
+    if use_encoding not in WRITE_ENCODINGS:
+        use_encoding = "utf-8"
+    try:
+        data = payload.encode(use_encoding)
+    except UnicodeEncodeError:
+        use_encoding = "utf-8"
+        data = payload.encode("utf-8")
+
+    if len(data) > MAX_WRITE_BYTES:
+        raise GitError("内容超过 5MB，已拒绝保存")
+
+    with open(full, "w", encoding=use_encoding, newline="") as handle:
+        handle.write(payload)
+
+    info = os.stat(full)
+    invalidate(repo)
+    return {
+        "path": rel,
+        "size": int(info.st_size),
+        "mtime": int(info.st_mtime),
+        "encoding": use_encoding,
+    }
+
+
 # ------------------------------------------------------------------ 异步任务
 
 class JobStore:

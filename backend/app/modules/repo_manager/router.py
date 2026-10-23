@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import os
 from typing import Any, Dict, List, Optional
 
@@ -20,6 +21,7 @@ from .schemas import (
     BranchSwitchRequest,
     CloneRequest,
     CommitRequest,
+    FileWriteRequest,
     PullRequest,
     PushRequest,
     ResolveRequest,
@@ -115,6 +117,28 @@ async def set_identity(req: ApplyIdentityRequest):
     real = await _guard(_validated(req.path))
     return await _guard(
         service.apply_repo_identity(real, req.identity_id, req.name, req.email)
+    )
+
+
+# ---------------------------------------------------------------- 文件浏览
+
+@router.get("/files", summary="列出仓库内某个目录")
+async def list_files(path: str = Query(...), dir_path: str = Query("", alias="dir")):
+    real = await _guard(_validated(path))
+    return await _guard(asyncio.to_thread(service.list_repo_dir, real, dir_path))
+
+
+@router.get("/files/content", summary="读取仓库内文件内容")
+async def read_file(path: str = Query(...), file: str = Query(...)):
+    real = await _guard(_validated(path))
+    return await _guard(asyncio.to_thread(service.read_repo_file, real, file))
+
+
+@router.put("/files/content", summary="保存仓库内文件（只写工作区，不自动 add）")
+async def write_file(req: FileWriteRequest):
+    real = await _guard(_validated(req.path))
+    return await _guard(
+        asyncio.to_thread(service.write_repo_file, real, req.file, req.content, req.encoding)
     )
 
 

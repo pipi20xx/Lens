@@ -43,6 +43,12 @@ class ApplyIdentityRequest(RepoPath):
     email: str = ""
 
 
+class FileWriteRequest(RepoPath):
+    file: str = Field(..., description="仓库内的相对路径")
+    content: str = ""
+    encoding: str = Field("", description="留空或不在白名单内则按 utf-8 写入")
+
+
 class BranchCreateRequest(RepoPath):
     name: str
     checkout: bool = True
