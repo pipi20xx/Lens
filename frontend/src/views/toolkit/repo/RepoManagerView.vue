@@ -784,7 +784,7 @@ onBeforeUnmount(() => {
               <v-tab value="history">历史</v-tab>
               <v-tab value="branches">分支</v-tab>
               <v-tab value="files">
-                文件
+                文件浏览
                 <v-badge v-if="fileDirty" dot color="warning" inline class="ml-1" />
               </v-tab>
             </v-tabs>
