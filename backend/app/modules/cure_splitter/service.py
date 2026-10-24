@@ -38,6 +38,7 @@ from .push import (
 from .splitter import (
     SeasonSplitter,
     build_finale_groups,
+    first_air_year,
     generate_group_render_words,
     generate_render_words,
     groups_to_group_json,
@@ -279,7 +280,14 @@ def run_split(settings: dict, tmdb_id: int, log: Callable) -> dict:
                 "name": label,
             })
 
-    result["render_words"] = generate_render_words(tmdb_id, title, result["reference"], org_map)
+    # 虚拟季号 → 首播年份，供渲染词生成 includes 条件规则
+    season_years = {
+        season.season_number: first_air_year(season.air_date)
+        for season in logic.seasons
+    }
+    season_years = {s: y for s, y in season_years.items() if y}
+    result["render_words"] = generate_render_words(tmdb_id, title, result["reference"],
+                                                   org_map, season_years)
     result["mapping_json"] = mapping_to_json(org_map)
     result["logic_json"] = logic.to_json()
     return result

@@ -119,7 +119,35 @@ def remove_duplicate_episodes(raw_seasons: list) -> list:
     return result
 
 
-def generate_render_words(tmdb_id: int, title: str, reference: str, org_map: dict) -> str:
+def first_air_year(air_date) -> Optional[int]:
+    """'2026-04-05' → 2026；空或非日期开头返回 None。"""
+    text = str(air_date or "").strip()
+    if len(text) >= 4 and text[:4].isdigit():
+        return int(text[:4])
+    return None
+
+
+def includes_rule_lines(tmdb_id: int, season_years: dict) -> list:
+    """按虚拟季首播年份生成 includes 条件规则行。
+
+    同一年份对应多个虚拟季时仅凭 includes 无法消歧，跳过并注释说明。
+    """
+    by_year: dict = {}
+    for season_number in sorted(season_years):
+        by_year.setdefault(int(season_years[season_number]), []).append(season_number)
+    lines: list = []
+    for year in sorted(by_year):
+        seasons = by_year[year]
+        if len(seasons) > 1:
+            names = ",".join(f"S{s}" for s in seasons)
+            lines.append(f"# 注意: 年份 {year} 对应多个虚拟季({names})，未生成 includes 规则")
+            continue
+        lines.append(f"@?{{[tmdbid={tmdb_id};type=tv;includes={year}]}} => {{[s={seasons[0]}]}}")
+    return lines
+
+
+def generate_render_words(tmdb_id: int, title: str, reference: str, org_map: dict,
+                          season_years: Optional[dict] = None) -> str:
     """
     把逐集映射转换为项目渲染词(专家规则)文本块,含来源注释头。
 
@@ -127,6 +155,8 @@ def generate_render_words(tmdb_id: int, title: str, reference: str, org_map: dic
     "季号 + 续位集号"的命名),以集号作为绝对定位依据。
     若不同原始季产生的集号区间重叠且目标不同(仅凭集号无法消歧),
     冲突段自动保留季限定并在注释中说明。
+
+    season_years: 虚拟季号 → 首播年份；提供时按年份追加 includes 条件规则。
     """
     from datetime import date as _date
 
@@ -194,6 +224,8 @@ def generate_render_words(tmdb_id: int, title: str, reference: str, org_map: dic
     if ambiguous_any:
         lines.append("# 注意: 存在跨季重叠的集号区间,冲突段已保留季限定(s=)")
     lines.extend(rules)
+    if season_years:
+        lines.extend(includes_rule_lines(tmdb_id, season_years))
     return "\n".join(lines)
 
 
@@ -290,6 +322,7 @@ def generate_group_render_words(tmdb_id: int, title: str, reference: str, groups
     窗口为全作累计集序,组间天然不重叠,因此条件无需季号限定,
     可同时命中 S2E13 这类"季号 + 续位集号"的命名(→ S2E1)。
     仅一个组时不生成。
+    另按各组首播年份追加 includes 条件规则(含首个组)。
     """
     from datetime import date as _date
 
@@ -309,6 +342,20 @@ def generate_group_render_words(tmdb_id: int, title: str, reference: str, groups
                 f"@?{{[tmdbid={tmdb_id};type=tv;e={start}-{end}]}} => {{[s={g['order']};e=EP-{cumulative}]}}"
             )
         cumulative += n
+
+    # 每组首播年份（按组内集顺序取第一个有日期的集）→ includes 条件规则
+    season_years: dict = {}
+    for g in groups:
+        order = g.get("order")
+        if not isinstance(order, int):
+            continue
+        for ep in g.get("episodes") or []:
+            year = first_air_year(ep.get("air_date"))
+            if year:
+                season_years[order] = year
+                break
+    if season_years:
+        lines.extend(includes_rule_lines(tmdb_id, season_years))
     return "\n".join(lines) if len(lines) > 1 else ""
 
 
