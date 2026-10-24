@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useDisplay } from 'vuetify'
 import HostPanel from './components/HostPanel.vue'
 import CommandPanel from './components/CommandPanel.vue'
 import TerminalInstance from './components/TerminalInstance.vue'
@@ -15,6 +16,12 @@ interface Session {
 const activeSessionId = ref('')
 const openSessions = ref<Session[]>([])
 const collapsedSider = ref(false)
+
+// 移动端抽屉（与 DefaultLayout 的 <960 断点保持一致）
+const { width } = useDisplay()
+const isMobile = computed(() => width.value < 960)
+const mobileHostsOpen = ref(false)
+const mobileCommandsOpen = ref(false)
 
 // 存储终端实例引用
 const instanceRefs = new Map<string, any>()
@@ -41,6 +48,7 @@ const currentHostName = computed(() => {
 
 // 处理主机选择：点击主机开启新会话
 function handleHostSelect(host: any) {
+  mobileHostsOpen.value = false
   const { id, name } = host
   const sessionId = Date.now().toString() + Math.random().toString(36).substring(2, 5)
   const hostSessionCount = openSessions.value.filter((s) => s.hostId === id).length
@@ -73,6 +81,7 @@ function handleCloseSession(sessionId: string) {
 
 // 快速命令发送
 function sendToActiveTerm(cmd: string, autoEnter: boolean) {
+  mobileCommandsOpen.value = false
   const instance = instanceRefs.get(activeSessionId.value)
   if (instance) {
     instance.send(cmd + (autoEnter ? '\n' : ''))
@@ -99,7 +108,11 @@ onMounted(() => {
     <!-- 顶部状态栏 -->
     <div class="terminal-top-bar">
       <div class="bar-left d-flex align-center ga-2">
-        <v-btn icon variant="text" size="small" @click="collapsedSider = !collapsedSider">
+        <v-btn
+          icon variant="text" size="small"
+          :title="isMobile ? '主机列表' : '收起/展开主机面板'"
+          @click="isMobile ? (mobileHostsOpen = true) : (collapsedSider = !collapsedSider)"
+        >
           <v-icon size="18">mdi-menu</v-icon>
         </v-btn>
         <v-divider vertical />
@@ -110,6 +123,9 @@ onMounted(() => {
         </v-chip>
       </div>
       <div class="bar-right d-flex ga-1">
+        <v-btn v-if="isMobile" icon variant="text" size="small" color="info" @click="mobileCommandsOpen = true" title="快捷指令">
+          <v-icon size="18">mdi-flash</v-icon>
+        </v-btn>
         <v-btn icon variant="text" size="small" color="info" @click="clearActiveTerm" title="清屏">
           <v-icon size="18">mdi-eraser</v-icon>
         </v-btn>
@@ -121,8 +137,8 @@ onMounted(() => {
 
     <!-- 三栏布局 -->
     <div class="terminal-body">
-      <!-- 左侧：主机列表 -->
-      <div class="terminal-sider-left" :class="{ collapsed: collapsedSider }">
+      <!-- 左侧：主机列表（移动端改为抽屉） -->
+      <div v-if="!isMobile" class="terminal-sider-left" :class="{ collapsed: collapsedSider }">
         <HostPanel :active-host-id="currentHostId" @select="handleHostSelect" />
       </div>
 
@@ -157,15 +173,25 @@ onMounted(() => {
           />
           <div v-if="openSessions.length === 0" class="empty-terminal">
             <v-icon size="48" color="grey" class="mb-3">mdi-console-line</v-icon>
-            <div class="text-body-2 text-medium-emphasis">请从左侧选择主机以开启会话</div>
+            <div class="text-body-2 text-medium-emphasis">请{{ isMobile ? '点击左上角菜单' : '从左侧' }}选择主机以开启会话</div>
           </div>
         </div>
       </div>
 
-      <!-- 右侧：快速命令 -->
-      <div class="terminal-sider-right">
+      <!-- 右侧：快速命令（移动端改为抽屉） -->
+      <div v-if="!isMobile" class="terminal-sider-right">
         <CommandPanel @send="sendToActiveTerm" />
       </div>
+
+      <!-- 移动端：主机抽屉 -->
+      <v-navigation-drawer v-if="isMobile" v-model="mobileHostsOpen" temporary location="left" width="260">
+        <HostPanel :active-host-id="currentHostId" @select="handleHostSelect" />
+      </v-navigation-drawer>
+
+      <!-- 移动端：快捷指令抽屉 -->
+      <v-navigation-drawer v-if="isMobile" v-model="mobileCommandsOpen" temporary location="right" width="280">
+        <CommandPanel @send="sendToActiveTerm" />
+      </v-navigation-drawer>
     </div>
   </div>
 </template>
@@ -284,17 +310,5 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-}
-
-/* 移动端响应式 */
-@media (max-width: 960px) {
-  .terminal-sider-left {
-    width: 0;
-    opacity: 0;
-  }
-  .terminal-sider-right {
-    width: 0;
-    opacity: 0;
-  }
 }
 </style>
