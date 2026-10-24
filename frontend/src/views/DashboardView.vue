@@ -89,6 +89,11 @@ const quickLinks = [
               Lens 是一款专为媒体发烧友和开发者打造的开源管理平台。它不仅是一个 Emby 的辅助工具，更是一个集成了自动化运维、元数据抓取、网络开发工具和系统监控的综合性 Workstation。
             </p>
 
+            <v-alert type="warning" icon="mdi-robot-outline" variant="tonal" rounded="lg" class="mb-4" density="compact">
+              <strong>本项目由 AI 全程开发，未经系统性安全审计，仅供内网个人使用。</strong>
+              请勿将本系统以任何形式暴露到公网（端口映射 / DDNS / 反向代理等），并务必修改默认密码、建议开启 2FA。
+            </v-alert>
+
             <h3 class="text-subtitle-1 font-weight-bold mb-3 mt-6" style="color:rgb(var(--v-theme-primary))">
               <v-icon start size="20" color="primary">mdi-star-outline</v-icon>
               核心特性 (Key Features)
@@ -99,13 +104,19 @@ const quickLinks = [
                 <v-list-item-title><span class="font-weight-bold">智能媒体去重 (Dedupe Ultimate):</span> 基于 TMDB ID 与画质特征的深度比对引擎，支持安全拦截、内容互补识别及白名单路径保护。</v-list-item-title>
               </v-list-item>
               <v-list-item>
-                <v-list-item-title><span class="font-weight-bold">自动化标签系统 (Auto-Tagging):</span> 通过规则引擎自动分析媒体属性，一键同步至 Emby，极大提升搜索与分拣体验。</v-list-item-title>
+                <v-list-item-title><span class="font-weight-bold">自动化标签系统 (Auto-Tagging):</span> 通过规则引擎自动分析媒体属性，联动 Webhook 新库秒级打标，极大提升搜索与分拣体验。</v-list-item-title>
+              </v-list-item>
+              <v-list-item>
+                <v-list-item-title><span class="font-weight-bold">番剧分季拆分与识别词 (Cure Splitter & Recognition Words):</span> 集成 CureTMDb 分季拆分引擎与 MoviePilot 识别词生成器，渲染词支持一键推送至 Gitea / GitHub 仓库。</v-list-item-title>
               </v-list-item>
               <v-list-item>
                 <v-list-item-title><span class="font-weight-bold">开发者实验室 (Lab Center):</span> 深度集成 TMDB、Bangumi 等元数据 API 的探测工具，支持演员池全量生成与原名自动匹配。</v-list-item-title>
               </v-list-item>
               <v-list-item>
-                <v-list-item-title><span class="font-weight-bold">全栈运维工具 (DevOps Toolkit):</span> 内置 Docker 容器管理、多主机 SSH 终端、PostgreSQL 备份还原以及多介质同步方案。</v-list-item-title>
+                <v-list-item-title><span class="font-weight-bold">全栈运维工具 (DevOps Toolkit):</span> 内置 Docker 容器管理与多架构镜像构建、多主机 SSH 终端、PostgreSQL 运维以及轻量 Git 仓库管理客户端。</v-list-item-title>
+              </v-list-item>
+              <v-list-item>
+                <v-list-item-title><span class="font-weight-bold">数据备份中心 (Backup Center):</span> 7z 压缩 / Tar 打包 / 物理同步 / PostgreSQL 逻辑备份 / Gitea & GitHub 仓库归档，支持 SSD、HDD 与云盘挂载的硬件感知策略。</v-list-item-title>
               </v-list-item>
             </v-list>
 
@@ -157,7 +168,7 @@ const quickLinks = [
                 </tr>
                 <tr>
                   <td class="text-medium-emphasis">运行环境 (Env)</td>
-                  <td class="text-right"><v-chip size="small" color="info" variant="tonal">Lens Core v2</v-chip></td>
+                  <td class="text-right"><v-chip size="small" color="info" variant="tonal">FastAPI + Vue 3</v-chip></td>
                 </tr>
               </tbody>
             </v-table>
