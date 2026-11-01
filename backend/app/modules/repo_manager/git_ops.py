@@ -19,6 +19,7 @@ import asyncio
 import base64
 import os
 import re
+import time
 from typing import Any, Callable, Dict, Iterable, List, Optional, Sequence, Tuple
 from urllib.parse import urlparse
 
@@ -735,6 +736,111 @@ async def commit_file_diff(repo: str, rev: str, path: str,
     if len(text) > max_chars:
         text = text[:max_chars] + "\n... (内容过长，已截断)"
     return text
+
+
+# ---------------------------------------------------------------- 回到历史版本
+
+_REFNAME_RE = re.compile(r"^[A-Za-z0-9._/\-]{1,200}$")
+
+
+def check_refname(name: str) -> str:
+    """分支名只接受常规字符，避免被当成 git 选项注入。"""
+    name = (name or "").strip()
+    if not _REFNAME_RE.match(name) or name.startswith("-"):
+        raise GitError("分支名不合法")
+    return name
+
+
+async def _git_path_exists(repo: str, marker: str) -> bool:
+    """判断 .git 里某个状态标记（如 MERGE_HEAD）是否存在。"""
+    code, out, _ = await run(repo, ["rev-parse", "--git-path", marker])
+    if code != 0:
+        return False
+    rel = out.decode("utf-8", "replace").strip()
+    if not rel:
+        return False
+    return os.path.exists(rel if os.path.isabs(rel) else os.path.join(repo, rel))
+
+
+async def in_progress(repo: str) -> str:
+    """合并 / 变基 / 摘樱桃进行中时返回可读名称，否则返回空串。"""
+    marks = [
+        ("MERGE_HEAD", "合并（merge）"),
+        ("rebase-merge", "变基（rebase）"),
+        ("rebase-apply", "变基 / 补丁应用"),
+        ("CHERRY_PICK_HEAD", "cherry-pick"),
+    ]
+    for marker, label in marks:
+        if await _git_path_exists(repo, marker):
+            return label
+    return ""
+
+
+async def current_branch(repo: str) -> str:
+    code, out, _ = await run(repo, ["branch", "--show-current"])
+    return out.decode("utf-8", "replace").strip() if code == 0 else ""
+
+
+async def checkout_commit(repo: str, rev: str) -> Dict[str, Any]:
+    """临时切到某个历史版本（detached HEAD）：文件变成那个版本的样子，分支历史不动。
+
+    返回 prev_branch，前端用它做「返回最新版」的一键恢复。
+    """
+    rev = check_rev(rev)
+
+    branch = await current_branch(repo)
+    if not branch:
+        raise GitError("当前已处于历史版本预览状态，先返回最新版，再预览其他版本")
+
+    doing = await in_progress(repo)
+    if doing:
+        raise GitError(f"仓库正处于{doing}过程中，完成后再预览历史版本")
+
+    code, out, _ = await run(repo, ["rev-parse", "HEAD"])
+    if code == 0 and out.decode("ascii", "replace").strip() == rev:
+        raise GitError("当前工作区已经就是这个版本，无需预览")
+
+    counts = (await status(repo))["counts"]
+    if counts["staged"] or counts["unstaged"] or counts["conflict"]:
+        raise GitError("有未提交的改动：请先提交或丢弃，再预览历史版本")
+
+    await run_ok(repo, ["switch", "--detach", rev])
+    return {"prev_branch": branch, "detached": rev}
+
+
+async def reset_to(repo: str, rev: str, keep_backup: bool = True) -> Dict[str, Any]:
+    """把当前分支永久回退到某个提交（reset --hard）：之后的提交从分支上移除。
+
+    回退前的位置默认存一个 refs/lens-backup/ 备份引用 —— 不占分支列表，
+    但误操作后还能按提交号找回。
+    """
+    rev = check_rev(rev)
+
+    branch = await current_branch(repo)
+    if not branch:
+        raise GitError("当前处于历史版本预览状态，先返回最新版再回退")
+
+    doing = await in_progress(repo)
+    if doing:
+        raise GitError(f"仓库正处于{doing}过程中，先完成或中止它再回退")
+
+    code, out, _ = await run(repo, ["rev-parse", "HEAD"])
+    if code == 0 and out.decode("ascii", "replace").strip() == rev:
+        raise GitError("当前分支已经就在这个提交上，无需回退")
+
+    backup = ""
+    if keep_backup:
+        code, out, _ = await run(repo, ["rev-parse", "--short", "HEAD"])
+        head_short = out.decode("utf-8", "replace").strip() if code == 0 else "head"
+        backup = f"refs/lens-backup/{head_short or 'head'}-{int(time.time())}"
+        await run_ok(repo, ["update-ref", backup, "HEAD"])
+
+    code, out, err = await run(repo, ["reset", "--hard", rev])
+    if code != 0:
+        raise GitError(humanize(err, ["reset"]), err.strip())
+
+    detail = out.decode("utf-8", "replace").strip().splitlines()
+    return {"branch": branch, "backup": backup, "detail": detail[0] if detail else ""}
 
 
 # ---------------------------------------------------------------- 仓库搜索

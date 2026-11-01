@@ -247,6 +247,18 @@ export const repoManagerApi = {
   commitFileDiff: (path: string, rev: string, file: string) =>
     api.get<{ diff: string }>(`${BASE}/commit/diff`, { params: { path, rev, file } }),
 
+  /** 临时切到某个历史版本预览（detached HEAD），分支历史不动 */
+  checkout: (path: string, rev: string) =>
+    api.post<{ prev_branch: string; detached: string }>(`${BASE}/checkout`, { path, rev }),
+
+  /** 把当前分支永久回退到某个提交（reset --hard） */
+  resetTo: (path: string, rev: string, keepBackup = true) =>
+    api.post<{ branch: string; backup: string; detail: string }>(`${BASE}/reset`, {
+      path,
+      rev,
+      keep_backup: keepBackup,
+    }),
+
   resolve: (path: string, file: string, strategy: 'ours' | 'theirs') =>
     api.post(`${BASE}/resolve`, { path, file, strategy }),
 

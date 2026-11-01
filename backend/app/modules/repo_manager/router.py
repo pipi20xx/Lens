@@ -19,12 +19,14 @@ from .schemas import (
     BranchCreateRequest,
     BranchDeleteRequest,
     BranchSwitchRequest,
+    CheckoutRequest,
     CloneRequest,
     CommitRequest,
     FileWriteRequest,
     PullRequest,
     PushRequest,
     ReplaceRequest,
+    ResetRequest,
     ResolveRequest,
     SettingsPatch,
     StageRequest,
@@ -255,6 +257,22 @@ async def commit_diff(path: str = Query(...), rev: str = Query(...), file: str =
         raise HTTPException(status_code=400, detail="文件路径非法")
     text = await _guard(service.git_ops.commit_file_diff(real, rev, file))
     return {"diff": text}
+
+
+@router.post("/checkout", summary="临时切到某个历史版本预览（分支历史不动，可一键返回）")
+async def checkout(req: CheckoutRequest):
+    real = await _guard(_validated(req.path))
+    res = await _guard(service.git_ops.checkout_commit(real, req.rev))
+    service.invalidate(real)
+    return res
+
+
+@router.post("/reset", summary="把当前分支永久回退到某个提交（reset --hard）")
+async def reset(req: ResetRequest):
+    real = await _guard(_validated(req.path))
+    res = await _guard(service.git_ops.reset_to(real, req.rev, keep_backup=req.keep_backup))
+    service.invalidate(real)
+    return res
 
 
 # ---------------------------------------------------------------- 克隆 / 任务

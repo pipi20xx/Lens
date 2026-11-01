@@ -76,6 +76,8 @@ const commitDetailLoading = ref(false)
 const selectedCommitFile = ref('')
 const commitDiff = ref('')
 const commitDiffLoading = ref(false)
+// 预览历史版本（detached）时记下原分支名，用于「返回最新版」
+const previewBranch = ref('')
 const fetchJob = ref<{ progress: number; phase: string; status: string; result: any } | null>(null)
 let timer: number | undefined
 let fetchTimer: number | undefined
@@ -144,6 +146,8 @@ async function loadStatus(silent = false) {
   if (!silent) statusLoading.value = true
   try {
     status.value = await repoManagerApi.status(selected.value)
+    // 已不在预览状态（比如在分支页手动切回来了）就清掉记下的分支名
+    if (!status.value.branch.detached) previewBranch.value = ''
     // 文件被处理掉后清空 diff 面板
     if (diffFile.value && !status.value.files.some((f) => f.path === diffFile.value)) {
       diffFile.value = ''
@@ -205,6 +209,7 @@ function onRepoSwitch(path: string) {
   commitDetail.value = null
   selectedCommitFile.value = ''
   commitDiff.value = ''
+  previewBranch.value = ''
   if (!path) return
   loadStatus()
   loadBranches()
@@ -555,6 +560,101 @@ async function openCommitFile(path: string) {
     showError(e.message || '读取该文件的改动失败')
   } finally {
     commitDiffLoading.value = false
+  }
+}
+
+// ---------------- 历史版本：预览 / 回退 ----------------
+/** 预览后回到最新版：优先用预览时记下的分支名 */
+const latestBranch = computed(
+  () => previewBranch.value || branches.value.find((b) => b.current)?.name || ''
+)
+
+async function afterHistoryOp() {
+  previewFile.value = ''
+  await refreshAll()
+  refreshTree()
+  await loadLog()
+}
+
+/** 一键临时切到某个历史版本（detached），分支和提交历史都不动 */
+async function previewCommit(c: Pick<CommitItem, 'hash' | 'short' | 'subject'>) {
+  if (status.value?.branch.detached) {
+    warning('正在预览历史版本，先「返回最新版」再预览其他版本')
+    return
+  }
+  if (hasChanges.value) {
+    warning('有未提交的改动：请先提交或丢弃，再预览历史版本')
+    return
+  }
+  const ok = await confirm({
+    title: '预览历史版本',
+    content:
+      `将把工作区临时切到 ${c.short}（${c.subject}）。\n\n` +
+      '只是切过去看看，文件会变成这个版本的样子，分支和提交历史完全不动，随时可以一键返回最新版。',
+    confirmText: '开始预览',
+  })
+  if (!ok) return
+  busy.value = 'preview'
+  try {
+    const res = await repoManagerApi.checkout(selected.value, c.hash)
+    previewBranch.value = res.prev_branch || current.value.branch
+    success(`已切到历史版本 ${c.short}`)
+    await afterHistoryOp()
+  } catch (e: any) {
+    showError(e.message || '预览历史版本失败')
+  } finally {
+    busy.value = ''
+  }
+}
+
+/** 预览完一键返回原分支最新版 */
+async function returnToLatest() {
+  const branch = latestBranch.value
+  if (!branch) {
+    showError('不知道该回到哪个分支，请在「分支」标签手动切换')
+    return
+  }
+  busy.value = 'preview'
+  try {
+    await repoManagerApi.switchBranch(selected.value, branch)
+    previewBranch.value = ''
+    success(`已回到 ${branch} 最新版`)
+    await afterHistoryOp()
+  } catch (e: any) {
+    showError(e.message || '返回最新版失败')
+  } finally {
+    busy.value = ''
+  }
+}
+
+/** 永久回退：分支整个回到这个提交，之后的提交从分支上移除 */
+async function resetToCommit(c: Pick<CommitItem, 'hash' | 'short' | 'subject'>) {
+  const branch = current.value.branch || latestBranch.value || '当前分支'
+  const ok = await confirm({
+    title: '永久回退到此版本',
+    confirmColor: 'error',
+    confirmText: '确认回退',
+    content:
+      `将把分支 ${branch} 永久回退到 ${c.short}（${c.subject}）：\n\n` +
+      `· ${c.short} 之后的所有提交都会从分支上移除\n` +
+      '· 未提交的改动也会被一并丢弃\n' +
+      '· 如果这些提交已推送过远端，回退后需要「强制推送」才能同步\n\n' +
+      '回退前的位置会自动留一个备份引用（refs/lens-backup/…），误操作还能找回。确定继续？',
+  })
+  if (!ok) return
+  busy.value = 'reset'
+  try {
+    const res = await repoManagerApi.resetTo(selected.value, c.hash, true)
+    success(
+      res.backup
+        ? `已回退到 ${c.short}，原位置已备份为 ${res.backup}`
+        : `已回退到 ${c.short}`
+    )
+    await afterHistoryOp()
+  } catch (e: any) {
+    showError(e.message || '回退失败')
+  } finally {
+    busy.value = ''
   }
 }
 
@@ -1035,6 +1135,33 @@ onBeforeUnmount(() => {
 
               <!-- 历史 -->
               <div v-show="activeTab === 'history'" class="history-pane">
+                <v-alert
+                  v-if="status?.branch.detached"
+                  type="info"
+                  variant="tonal"
+                  density="compact"
+                  icon="mdi-eye-outline"
+                  class="mb-2"
+                >
+                  <div class="d-flex align-center flex-wrap ga-2">
+                    <span>
+                      正在预览历史版本
+                      <code>{{ status.branch.oid.slice(0, 7) }}</code>
+                      （文件已是该版本的样子，分支和提交历史未变）
+                    </span>
+                    <v-spacer />
+                    <v-btn
+                      size="x-small"
+                      variant="tonal"
+                      color="primary"
+                      prepend-icon="mdi-arrow-u-left-top"
+                      :loading="busy === 'preview'"
+                      @click="returnToLatest"
+                    >
+                      返回最新版{{ latestBranch ? `（${latestBranch}）` : '' }}
+                    </v-btn>
+                  </div>
+                </v-alert>
                 <div class="history-grid">
                   <!-- 提交列表 -->
                   <div class="commit-list">
@@ -1068,6 +1195,33 @@ onBeforeUnmount(() => {
                           </v-chip>
                         </div>
                       </div>
+                      <div class="commit-ops" @click.stop>
+                        <v-tooltip text="预览此版本（临时，分支历史不动，可一键返回）" location="top">
+                          <template #activator="{ props: tip }">
+                            <v-btn
+                              v-bind="tip"
+                              icon="mdi-eye-outline"
+                              size="x-small"
+                              variant="text"
+                              :loading="busy === 'preview'"
+                              @click="previewCommit(commit)"
+                            />
+                          </template>
+                        </v-tooltip>
+                        <v-tooltip text="永久回退到此版本（之后的提交会被移除）" location="top">
+                          <template #activator="{ props: tip }">
+                            <v-btn
+                              v-bind="tip"
+                              icon="mdi-undo-variant"
+                              size="x-small"
+                              variant="text"
+                              color="error"
+                              :loading="busy === 'reset'"
+                              @click="resetToCommit(commit)"
+                            />
+                          </template>
+                        </v-tooltip>
+                      </div>
                     </div>
                   </div>
 
@@ -1083,6 +1237,33 @@ onBeforeUnmount(() => {
                           {{ commitDetail.commit.subject }}
                         </span>
                         <v-spacer />
+                        <v-tooltip text="预览此版本（临时，分支历史不动，可一键返回）" location="top">
+                          <template #activator="{ props: tip }">
+                            <v-btn
+                              v-bind="tip"
+                              icon="mdi-eye-outline"
+                              size="x-small"
+                              variant="text"
+                              class="mr-1"
+                              :loading="busy === 'preview'"
+                              @click="previewCommit(commitDetail.commit)"
+                            />
+                          </template>
+                        </v-tooltip>
+                        <v-tooltip text="永久回退到此版本（之后的提交会被移除）" location="top">
+                          <template #activator="{ props: tip }">
+                            <v-btn
+                              v-bind="tip"
+                              icon="mdi-undo-variant"
+                              size="x-small"
+                              variant="text"
+                              color="error"
+                              class="mr-2"
+                              :loading="busy === 'reset'"
+                              @click="resetToCommit(commitDetail.commit)"
+                            />
+                          </template>
+                        </v-tooltip>
                         <span class="detail-meta">
                           {{ commitDetail.commit.author }} · {{ commitDetail.commit.date }}
                         </span>
@@ -1475,6 +1656,17 @@ onBeforeUnmount(() => {
 }
 .commit-main {
   min-width: 0;
+}
+/* 悬停 / 选中时露出「预览 / 永久回退」按钮，平时不占地方 */
+.commit-ops {
+  display: none;
+  margin-left: auto;
+  flex: none;
+  align-items: center;
+}
+.commit-row:hover .commit-ops,
+.commit-row.active .commit-ops {
+  display: flex;
 }
 .commit-subject {
   font-size: 13px;

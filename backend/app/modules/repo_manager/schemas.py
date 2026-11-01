@@ -79,6 +79,15 @@ class ResolveRequest(RepoPath):
     strategy: str = Field(default="ours", pattern="^(ours|theirs)$")
 
 
+class CheckoutRequest(RepoPath):
+    rev: str = Field(..., description="要临时预览的提交号")
+
+
+class ResetRequest(RepoPath):
+    rev: str = Field(..., description="要永久回退到的提交号")
+    keep_backup: bool = Field(True, description="回退前把原位置存为 refs/lens-backup/ 备份引用")
+
+
 class SettingsPatch(BaseModel):
     roots: List[str] | None = None
     clone_dir: str | None = None
