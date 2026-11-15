@@ -6,9 +6,9 @@ ARG BASE_PREFIX=192.168.50.12:5000/library/
 FROM ${BASE_PREFIX}node:22-slim AS frontend-builder
 WORKDIR /frontend
 
-# NPM 源 — 默认走内网缓存（192.168.50.12）；在其他网络构建时才需要传参覆盖：
-#   --build-arg NPM_REGISTRY=https://registry.npmmirror.com
-ARG NPM_REGISTRY=http://192.168.50.12:4873
+# NPM 源 — 默认走国内镜像（npmmirror，原淘宝镜像）；需要官方源或其他源时传参覆盖：
+#   --build-arg NPM_REGISTRY=https://registry.npmjs.org
+ARG NPM_REGISTRY=https://registry.npmmirror.com
 RUN npm config set registry ${NPM_REGISTRY} && npm config set fetch-retries 5 --location=global
 
 # 锁文件一起复制，npm ci 严格按 lockfile 安装（多架构构建下各平台原生绑定

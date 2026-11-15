@@ -82,24 +82,47 @@ class TelegramBotWorker:
     # 运行时状态（供 status 接口读取，不发网络请求）
     _bot_errors: Dict[str, str] = {}
     _bot_usernames: Dict[str, str] = {}
+    # 串行化 bot 启停，避免并发 start 产生多个轮询循环（长期 409 的根源）
+    _lock: Optional[asyncio.Lock] = None
+
+    @classmethod
+    def _get_lock(cls) -> asyncio.Lock:
+        if cls._lock is None:
+            cls._lock = asyncio.Lock()
+        return cls._lock
 
     # ---------- 生命周期 ----------
 
     @classmethod
     async def start_all(cls, drop_pending: bool = False):
-        """启动所有开启了交互功能的 Bot 监听"""
-        config = get_config()
-        bots = config.get("notification_settings", {}).get("bots", [])
-        for bot in bots:
-            if bot.get("enabled") and bot.get("is_interactive"):
-                await cls.start_bot(bot, drop_pending=drop_pending)
+        """启动所有开启了交互功能的 Bot 监听，并停止已禁用/删除的残留轮询。"""
+        async with cls._get_lock():
+            config = get_config()
+            bots = config.get("notification_settings", {}).get("bots", [])
+            wanted = {
+                b["id"]: b
+                for b in bots
+                if b.get("id") and b.get("enabled") and b.get("is_interactive")
+            }
+            # 停止所有不应再运行的轮询（已禁用/已删除/关闭交互的 bot）
+            for bot_id in list(cls._tasks.keys()):
+                if bot_id not in wanted:
+                    await cls._stop_bot_unlocked(bot_id)
+            for bot_cfg in wanted.values():
+                await cls._start_bot_unlocked(bot_cfg, drop_pending=drop_pending)
 
     @classmethod
     async def start_bot(cls, bot_cfg: Dict, drop_pending: bool = False) -> bool:
         """启动单个 Bot 的交互监听，返回是否启动成功。"""
+        async with cls._get_lock():
+            return await cls._start_bot_unlocked(bot_cfg, drop_pending=drop_pending)
+
+    @classmethod
+    async def _start_bot_unlocked(cls, bot_cfg: Dict, drop_pending: bool = False) -> bool:
+        """启动单个 Bot 的交互监听（调用方需持有 _lock）。"""
         bot_id = bot_cfg.get("id")
         name = bot_cfg.get("name", bot_id)
-        await cls.stop_bot(bot_id)
+        await cls._stop_bot_unlocked(bot_id)
         cls._bot_errors.pop(bot_id, None)
 
         client = get_client(bot_cfg.get("token"))
@@ -127,6 +150,11 @@ class TelegramBotWorker:
 
     @classmethod
     async def stop_bot(cls, bot_id: str):
+        async with cls._get_lock():
+            await cls._stop_bot_unlocked(bot_id)
+
+    @classmethod
+    async def _stop_bot_unlocked(cls, bot_id: str):
         task = cls._tasks.pop(bot_id, None)
         if task is not None and not task.done():
             task.cancel()
@@ -138,13 +166,14 @@ class TelegramBotWorker:
     @classmethod
     async def stop_all(cls):
         """优雅关闭：停止所有轮询与待处理 update，释放连接。"""
-        for bot_id in list(cls._tasks.keys()):
-            await cls.stop_bot(bot_id)
-        for task in list(cls._dispatch_tasks):
-            task.cancel()
-        cls._dispatch_tasks.clear()
-        await close_all_clients()
-        logger.info("🛑 [TG Bot] 所有交互监听已停止")
+        async with cls._get_lock():
+            for bot_id in list(cls._tasks.keys()):
+                await cls._stop_bot_unlocked(bot_id)
+            for task in list(cls._dispatch_tasks):
+                task.cancel()
+            cls._dispatch_tasks.clear()
+            await close_all_clients()
+            logger.info("🛑 [TG Bot] 所有交互监听已停止")
 
     @classmethod
     def get_status(cls, bot_id: str) -> Dict[str, Any]:
@@ -182,6 +211,7 @@ class TelegramBotWorker:
 
         sem = asyncio.Semaphore(MAX_CONCURRENT_UPDATES)
         consecutive_failures = 0
+        consecutive_409 = 0
         logger.info(f"🤖 [TG Bot] 交互监听已启动: {name}")
 
         try:
@@ -192,19 +222,31 @@ class TelegramBotWorker:
                     )
                     drop = False
                     consecutive_failures = 0
+                    consecutive_409 = 0
+                    cls._bot_errors.pop(bot_id, None)
                 except TelegramAPIError as e:
                     if e.status_code in (401, 404):
                         cls._bot_errors[bot_id] = f"Token 无效 (HTTP {e.status_code})"
                         logger.error(f"❌ [TG Bot] Token 无效，停止轮询 ({name}): HTTP {e.status_code}")
                         return
                     if e.status_code == 409:
-                        # 轮询冲突（残留 webhook 或旧连接未断），清理后自愈重试
-                        logger.warning(f"⚠️ [TG Bot] 轮询冲突 409 ({name})，清理 webhook 后重试...")
+                        # 409 = 同一 Token 被另一个 getUpdates 抢占（另一实例/另一进程，
+                        # 或本进程内残留的孤儿轮询）。deleteWebhook 只对 webhook 残留有效；
+                        # 这里退避等待对方退出，而不是每 3 秒硬刷日志。
+                        consecutive_409 += 1
+                        delay = min(60, 5 * consecutive_409)
+                        cls._bot_errors[bot_id] = (
+                            f"轮询冲突 409：检测到多个实例在使用同一 Bot Token（已重试 {consecutive_409} 次）"
+                        )
+                        logger.warning(
+                            f"⚠️ [TG Bot] 轮询冲突 409 ({name})：同一 Token 存在多个轮询实例，"
+                            f"{delay}s 后重试..."
+                        )
                         try:
                             await client.delete_webhook()
                         except Exception:
                             pass
-                        await asyncio.sleep(3)
+                        await asyncio.sleep(delay)
                         continue
                     consecutive_failures += 1
                     delay = min(60, 5 * consecutive_failures)
@@ -225,7 +267,9 @@ class TelegramBotWorker:
         except asyncio.CancelledError:
             logger.info(f"🛑 [TG Bot] 交互监听已停止: {name}")
         finally:
-            cls._tasks.pop(bot_id, None)
+            # 仅当字典仍指向当前 task 时移除，避免旧 task 误删新 task 的注册
+            if cls._tasks.get(bot_id) is asyncio.current_task():
+                cls._tasks.pop(bot_id, None)
 
     @classmethod
     def _dispatch_update(cls, bot_cfg: Dict, update: Dict, sem: asyncio.Semaphore):
