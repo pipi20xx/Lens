@@ -613,6 +613,12 @@ code {
  *     统一风格，主区域 8px / 子区域 6px
  * ============================================================ */
 
+/* 主文档始终预留滚动条槽位，避免内容高度变化（有无滚动条）引起视口宽度跳动，
+   进而使 fixed 壁纸（background-size: cover）在切换内容时发生缩放。 */
+html {
+  scrollbar-gutter: stable;
+}
+
 /* Firefox — 所有可滚动区域统一 */
 html, body, .v-main, .v-main__scroller,
 .v-navigation-drawer, .v-navigation-drawer .v-navigation-drawer__content, .v-navigation-drawer .v-list,
