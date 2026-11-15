@@ -336,6 +336,27 @@ class ImageOpsMixin(DockerServiceBase):
             return True
         raise Exception(res.get("stderr") or "docker tag 执行失败")
 
+    @staticmethod
+    def _apply_pull_chunk(task: Dict[str, Any], chunk: Dict[str, Any]) -> None:
+        """把 pull stream 的单个 chunk 解析写入 task 的 layers / lines。
+
+        容器更新与镜像拉取共用同一套解析逻辑，避免两处行为不一致。
+        """
+        err = chunk.get("error")
+        if err:
+            raise Exception(err)
+        layer = chunk.get("id")
+        status = chunk.get("status", "")
+        progress = chunk.get("progress", "")
+        if layer and status in ("Downloading", "Extracting", "Waiting", "Verifying Checksum"):
+            task["layers"][layer] = {"status": status, "progress": progress}
+        elif status.startswith(("Status", "Digest")):
+            task["lines"].append(status)
+        elif status in ("Pull complete", "Already exists", "Download complete"):
+            task["lines"].append(f"{layer or ''} {status}".strip())
+        if len(task["lines"]) > 50:
+            task["lines"] = task["lines"][-50:]
+
     @classmethod
     def register_pull_task(cls, host_id: str, image_ref: str) -> str:
         """登记一个拉取任务并返回 task_id，同时清理 1 小时前的已完成任务"""
@@ -369,20 +390,7 @@ class ImageOpsMixin(DockerServiceBase):
                 stream = self.client.api.pull(repo, tag=tag, stream=True, decode=True)
                 try:
                     for chunk in stream:
-                        err = chunk.get("error")
-                        if err:
-                            raise Exception(err)
-                        layer = chunk.get("id")
-                        status = chunk.get("status", "")
-                        progress = chunk.get("progress", "")
-                        if layer and status in ("Downloading", "Extracting", "Waiting", "Verifying Checksum"):
-                            task["layers"][layer] = {"status": status, "progress": progress}
-                        elif status.startswith(("Status", "Digest")):
-                            task["lines"].append(status)
-                        elif status in ("Pull complete", "Already exists", "Download complete"):
-                            task["lines"].append(f"{layer or ''} {status}".strip())
-                        if len(task["lines"]) > 50:
-                            task["lines"] = task["lines"][-50:]
+                        self._apply_pull_chunk(task, chunk)
                 finally:
                     # 显式关闭流，避免 SSH 隧道通道泄漏
                     try:

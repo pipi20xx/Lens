@@ -70,6 +70,11 @@ class AutoUpdateMixin(DockerServiceBase):
                             if update_info and update_info.get("has_update"):
                                 logger.info(f"✨ [Docker][{host_name}] 发现镜像更新: {c_name}")
                                 c_id = container.get("full_id") or container.get("id")
+                                # 手动更新的防重键用短 ID（与前端 row.id 一致），这里按短 ID 比对
+                                short_id = container.get("id") or (c_id[:12] if c_id else "")
+                                if short_id and DockerService.is_update_running(h_id, short_id):
+                                    logger.info(f"ℹ️ [Docker][{host_name}] 容器 {c_name} 正在手动更新中，跳过本次自动更新")
+                                    continue
                                 # 使用 to_thread 异步执行重构操作
                                 if await asyncio.to_thread(service.container_action, c_id, "recreate"):
                                     updated_count += 1

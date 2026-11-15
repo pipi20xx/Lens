@@ -31,6 +31,24 @@ const enhancedMode = ref(localStorage.getItem('lens_docker_enhanced') === 'true'
 const loading = ref(false)
 const loadingActions = ref<Record<string, boolean>>({})
 
+// ========== 容器更新任务（进度 / 终止 / 防重） ==========
+const updateTasks = ref<Record<string, any>>({})
+const showUpdateDialog = ref(false)
+const activeUpdate = ref<any>(null)
+const cancelingUpdate = ref(false)
+let updateTimer: ReturnType<typeof setInterval> | null = null
+
+const updateStageLabels: Record<string, string> = {
+  pending: '等待中',
+  pull: '拉取镜像',
+  preparing: '准备配置',
+  stopping: '停止旧容器',
+  recreating: '重建容器',
+  cleanup: '清理旧容器',
+  rollback: '回滚中',
+  done: '完成',
+}
+
 const statusMap: Record<string, { label: string; color: string }> = {
   running: { label: '运行中', color: 'success' },
   exited: { label: '已停止', color: 'error' },
@@ -92,6 +110,97 @@ async function containerAction(containerId: string, action: string) {
   } catch (err: any) { showError(err.message || '操作失败') }
   finally { loadingActions.value[containerId] = false }
 }
+
+// ========== 容器更新（进度 / 终止 / 防重） ==========
+function isUpdating(containerId: string) {
+  const t = updateTasks.value[containerId]
+  return !!(t && !t.done)
+}
+
+async function startContainerUpdate(row: any) {
+  if (!props.hostId) return
+  const existing = updateTasks.value[row.id]
+  if (existing && !existing.done) {
+    // 已有进行中任务：只重新打开进度面板，不重复发起
+    activeUpdate.value = existing
+    showUpdateDialog.value = true
+    startUpdatePolling(row.id)
+    return
+  }
+  loadingActions.value[row.id] = true
+  try {
+    const res: any = await dockerApi.startContainerUpdate(props.hostId, row.id)
+    const taskId = res?.task_id
+    if (res?.already_running) {
+      info(res.message || '该容器已有更新任务正在进行')
+      if (taskId) {
+        const resumed = updateTasks.value[row.id] || {
+          task_id: taskId, container_id: row.id, container_name: row.name, image: row.image,
+          status: 'running', stage: 'pending', lines: [], layers: {}, done: false, success: false, error: null,
+        }
+        updateTasks.value[row.id] = resumed
+        activeUpdate.value = resumed
+        showUpdateDialog.value = true
+        startUpdatePolling(row.id)
+      }
+      return
+    }
+    if (!taskId) throw new Error('未返回任务 ID')
+    const task = {
+      task_id: taskId, container_id: row.id, container_name: row.name, image: row.image,
+      status: 'pending', stage: 'pending', lines: [], layers: {}, done: false, success: false, error: null,
+    }
+    updateTasks.value[row.id] = task
+    activeUpdate.value = task
+    showUpdateDialog.value = true
+    startUpdatePolling(row.id)
+  } catch (err: any) { showError(err.message || '启动更新失败') }
+  finally { loadingActions.value[row.id] = false }
+}
+
+function startUpdatePolling(containerId: string) {
+  stopUpdatePolling()
+  updateTimer = setInterval(() => pollUpdateProgress(containerId), 1000)
+  pollUpdateProgress(containerId)
+}
+
+async function pollUpdateProgress(containerId: string) {
+  const task = updateTasks.value[containerId]
+  if (!task || !props.hostId) return
+  try {
+    const data: any = await dockerApi.getContainerUpdateProgress(props.hostId, containerId, task.task_id)
+    const merged = { ...task, ...data }
+    updateTasks.value[containerId] = merged
+    activeUpdate.value = merged
+    if (data.done) {
+      stopUpdatePolling()
+      const name = data.container_name || task.container_name || containerId
+      if (data.success) { success(`容器 ${name} 更新成功`); loadContainers() }
+      else if (data.status === 'cancelled') { info(`容器 ${name} 更新已终止`) }
+      else { showError(`容器 ${name} 更新失败：${data.error || '未知错误'}`) }
+    }
+  } catch { /* 单次轮询失败忽略，等待下一轮 */ }
+}
+
+function stopUpdatePolling() {
+  if (updateTimer) { clearInterval(updateTimer); updateTimer = null }
+}
+
+async function cancelActiveUpdate() {
+  const task = activeUpdate.value
+  if (!task || !props.hostId) return
+  cancelingUpdate.value = true
+  try {
+    const res: any = await dockerApi.cancelContainerUpdate(props.hostId, task.container_id, task.task_id)
+    info(res?.message || '已请求终止')
+  } catch (err: any) { showError(err.message || '终止请求失败') }
+  finally { cancelingUpdate.value = false }
+}
+
+const activeUpdateLayerList = computed(() =>
+  Object.entries(activeUpdate.value?.layers || {}).map(([id, l]: [string, any]) => ({ id, ...l }))
+)
+const activeUpdateLines = computed(() => (activeUpdate.value?.lines || []).slice(-12))
 
 async function handleDeleteContainer(row: any) {
   const ok = await confirm({ title: '确认删除容器', content: `确定要彻底删除容器 "${row.name}" 吗？此操作不可撤销。`, confirmColor: 'error' })
@@ -226,7 +335,10 @@ function formatUptime(uptime: string) {
 }
 
 // ========== 生命周期 ==========
-onUnmounted(() => { if (statsTimer) clearInterval(statsTimer) })
+onUnmounted(() => {
+  if (statsTimer) clearInterval(statsTimer)
+  stopUpdatePolling()
+})
 
 defineExpose({ loadContainers, loadContainerSettings })
 </script>
@@ -315,7 +427,7 @@ defineExpose({ loadContainers, loadContainerSettings })
         <div class="d-flex flex-wrap ga-2 pa-3">
           <v-btn size="small" :color="row.status === 'running' ? 'error' : 'primary'" variant="tonal" :prepend-icon="row.status === 'running' ? 'mdi-stop' : 'mdi-play'" :loading="loadingActions[row.id]" @click="containerAction(row.id, row.status === 'running' ? 'stop' : 'start')">{{ row.status === 'running' ? '停止' : '启动' }}</v-btn>
           <v-btn size="small" color="warning" variant="tonal" prepend-icon="mdi-restart" :loading="loadingActions[row.id]" @click="containerAction(row.id, 'restart')">重启</v-btn>
-          <v-btn size="small" :color="updateInfo[row.image]?.has_update ? 'error' : 'warning'" variant="tonal" prepend-icon="mdi-update" :loading="loadingActions[row.id]" @click="containerAction(row.id, 'recreate')">{{ updateInfo[row.image]?.has_update ? '发现新镜像' : '更新' }}</v-btn>
+          <v-btn size="small" :color="updateInfo[row.image]?.has_update ? 'error' : 'warning'" variant="tonal" prepend-icon="mdi-update" :loading="loadingActions[row.id]" @click="startContainerUpdate(row)">{{ isUpdating(row.id) ? '更新中' : (updateInfo[row.image]?.has_update ? '发现新镜像' : '更新') }}</v-btn>
           <v-btn size="small" color="error" variant="tonal" prepend-icon="mdi-delete-outline" :loading="loadingActions[row.id]" @click="handleDeleteContainer(row)">删除</v-btn>
           <v-btn size="small" color="info" variant="tonal" @click="showLogs(row.id, row.name)"><v-icon start>mdi-text-box-outline</v-icon> 日志</v-btn>
           <v-btn size="small" color="success" variant="tonal" prepend-icon="mdi-console" @click="openTerminal(row)">终端</v-btn>
@@ -363,5 +475,36 @@ defineExpose({ loadContainers, loadContainerSettings })
       :container-name="terminalContainer.name"
       :command="terminalContainer.shell"
     />
+
+    <!-- 容器更新进度对话框 -->
+    <GlassDialog
+      v-model="showUpdateDialog"
+      :max-width="620"
+      icon="mdi-update"
+      :title="'更新容器 — ' + (activeUpdate?.container_name || '')"
+      cancel-text="关闭"
+    >
+      <template v-if="activeUpdate">
+        <div class="d-flex align-center ga-2 mb-3">
+          <v-chip
+            :color="activeUpdate.success ? 'success' : activeUpdate.done ? (activeUpdate.status === 'cancelled' ? 'warning' : 'error') : 'info'"
+            size="small" variant="tonal" label
+          >
+            {{ activeUpdate.status === 'pending' ? '等待中' : activeUpdate.status === 'running' ? (updateStageLabels[activeUpdate.stage] || '更新中') : activeUpdate.status === 'cancelled' ? '已终止' : activeUpdate.success ? '成功' : '失败' }}
+          </v-chip>
+          <v-spacer />
+          <v-btn v-if="!activeUpdate.done" size="small" color="error" variant="tonal" prepend-icon="mdi-stop" :loading="cancelingUpdate" @click="cancelActiveUpdate">终止</v-btn>
+        </div>
+        <v-progress-linear v-if="!activeUpdate.done" :indeterminate="activeUpdate.stage === 'pull'" color="primary" class="mb-3" />
+        <template v-if="activeUpdateLayerList.length && !activeUpdate.done">
+          <div v-for="layer in activeUpdateLayerList" :key="layer.id" class="d-flex justify-space-between text-caption text-medium-emphasis font-mono mb-1">
+            <span>{{ layer.id }} {{ layer.status }}</span>
+            <span>{{ layer.progress }}</span>
+          </div>
+        </template>
+        <v-alert v-if="activeUpdate.done && activeUpdate.error" type="error" variant="tonal" density="compact" class="mb-3">{{ activeUpdate.error }}</v-alert>
+        <pre v-if="activeUpdateLines.length" class="code-block code-block--flat">{{ activeUpdateLines.join('\n') }}</pre>
+      </template>
+    </GlassDialog>
   </div>
 </template>

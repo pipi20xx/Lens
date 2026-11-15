@@ -11,8 +11,9 @@
 import json
 import threading
 import time
+import uuid
 
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 from app.utils.logger import logger
 
@@ -32,6 +33,10 @@ class ContainerOpsMixin(DockerServiceBase):
     _stats_prev = {}        # { host_id: {"ts":, "host_cpu":, "cpu": {name: usec}} }
     _stats_locks = {}
     _stats_locks_guard = threading.Lock()
+    # 容器更新任务注册表（进度 / 取消 / 防重）
+    _update_tasks = {}    # { task_id: {...} }
+    _active_updates = {}  # { f"{host_id}:{container_id}": task_id }
+    _updates_guard = threading.Lock()
 
     # ------------------------------------------------------------- 缓存工具
     @classmethod
@@ -416,6 +421,307 @@ true
             self._stats_cache[host_id] = (stats, time.time())
             return stats
 
+    # ----------------------------------------------------------- 更新任务
+    @classmethod
+    def _updates_key(cls, host_id: str, container_id: str) -> str:
+        return f"{host_id}:{container_id}"
+
+    @classmethod
+    def _get_update_task_raw(cls, task_id: str) -> Optional[Dict[str, Any]]:
+        return cls._update_tasks.get(task_id)
+
+    @classmethod
+    def get_update_task(cls, task_id: str) -> Optional[Dict[str, Any]]:
+        """返回可 JSON 序列化的任务副本（剔除 threading.Event）。"""
+        task = cls._update_tasks.get(task_id)
+        if task is None:
+            return None
+        return {k: v for k, v in task.items() if k != "cancel_event"}
+
+    @classmethod
+    def get_active_update_task_id(cls, host_id: str, container_id: str) -> Optional[str]:
+        key = cls._updates_key(host_id, container_id)
+        with cls._updates_guard:
+            task_id = cls._active_updates.get(key)
+        if task_id:
+            task = cls._update_tasks.get(task_id)
+            if task and not task.get("done"):
+                return task_id
+        return None
+
+    @classmethod
+    def is_update_running(cls, host_id: str, container_id: str) -> bool:
+        return cls.get_active_update_task_id(host_id, container_id) is not None
+
+    @classmethod
+    def register_update_task(cls, host_id: str, container_id: str, container_name: str, image: str) -> Optional[str]:
+        """登记更新任务。若该容器已有进行中的任务则返回 None（防重）。"""
+        now = time.time()
+        # 清理 1 小时前已完成的任务，避免内存无限增长
+        for tid in list(cls._update_tasks.keys()):
+            t = cls._update_tasks[tid]
+            if t.get("done") and now - (t.get("finished_at") or now) > 3600:
+                del cls._update_tasks[tid]
+
+        with cls._updates_guard:
+            key = cls._updates_key(host_id, container_id)
+            existing = cls._active_updates.get(key)
+            if existing:
+                task = cls._update_tasks.get(existing)
+                if task and not task.get("done"):
+                    return None
+                cls._active_updates.pop(key, None)
+
+            task_id = f"{host_id}_{container_id[:12]}_{int(now * 1000)}_{uuid.uuid4().hex[:6]}"
+            cls._update_tasks[task_id] = {
+                "host_id": host_id,
+                "container_id": container_id,
+                "container_name": container_name,
+                "image": image,
+                "status": "pending",
+                "stage": "pending",
+                "lines": [],
+                "layers": {},
+                "done": False,
+                "success": False,
+                "error": None,
+                "cancel_requested": False,
+                "cancel_event": threading.Event(),
+                "created_at": now,
+                "finished_at": None,
+            }
+            cls._active_updates[key] = task_id
+            return task_id
+
+    @classmethod
+    def request_cancel_update(cls, task_id: str) -> bool:
+        task = cls._update_tasks.get(task_id)
+        if task is None or task.get("done"):
+            return False
+        task["cancel_requested"] = True
+        try:
+            task["cancel_event"].set()
+        except Exception:
+            pass
+        return True
+
+    def _finish_update_cancelled(self, task: Dict[str, Any], note: str = "") -> None:
+        task["status"] = "cancelled"
+        task["stage"] = "done"
+        task["success"] = False
+        if note:
+            task["lines"].append(note)
+
+    def _pull_image_for_update(self, task: Dict[str, Any], image_tag: str, cancel_event: threading.Event) -> bool:
+        """流式拉取镜像并把进度写入 task。返回 False 表示已在拉取阶段被终止。"""
+        repo, tag = self._split_image_tag(image_tag)
+        stream = self.client.api.pull(repo, tag=tag, stream=True, decode=True)
+        try:
+            for chunk in stream:
+                if cancel_event.is_set():
+                    task["lines"].append("已收到终止请求，正在中断镜像拉取…")
+                    return False
+                self._apply_pull_chunk(task, chunk)
+        finally:
+            try:
+                stream.close()
+            except Exception:
+                pass
+        # pull 流已自然结束
+        if cancel_event.is_set():
+            task["lines"].append("镜像拉取已结束，但已收到终止请求，不再继续重建。")
+            return False
+        return True
+
+    def run_container_update(self, task_id: str, container_id: str, cancel_event: threading.Event) -> None:
+        """后台执行容器更新：流式拉取 + 重建。进度/取消状态实时写入任务表。"""
+        task = self._update_tasks.get(task_id)
+        if task is None:
+            return
+        task["status"] = "running"
+        try:
+            if not self.client:
+                raise Exception("Docker client not initialized")
+
+            container = self.client.containers.get(container_id)
+            attrs = container.attrs
+            image_tag = attrs['Config']['Image']
+            name = attrs['Name'].lstrip('/')
+            task["image"] = image_tag
+            task["container_name"] = name
+
+            task["stage"] = "pull"
+            task["lines"].append(f"开始更新容器 {name}，拉取镜像 {image_tag}")
+            logger.info(f"📥 [Docker] 容器 {name} 开始更新，拉取镜像: {image_tag}")
+
+            if cancel_event.is_set():
+                self._finish_update_cancelled(task, "在拉取镜像前已请求终止，容器未受影响。")
+                return
+
+            if not self._pull_image_for_update(task, image_tag, cancel_event):
+                self._finish_update_cancelled(task, "镜像拉取阶段已终止，容器未受影响。")
+                return
+
+            # 镜像已拉取完成，但仍未触碰旧容器：这里是最后一个安全点，可无副作用地终止。
+            if cancel_event.is_set():
+                self._finish_update_cancelled(task, "镜像拉取已完成，但在重建前收到终止请求，容器未受影响。")
+                return
+
+            # 进入重建阶段即视为不可中途硬杀（避免留下半重建状态），安全收尾到一致状态。
+            self._recreate_container(container, container_id, image_tag, task=task)
+
+            task["success"] = True
+            task["status"] = "success"
+            task["stage"] = "done"
+            task["lines"].append("更新完成")
+            logger.info(f"✨ [Docker] 容器 {name} 更新成功")
+        except Exception as e:
+            task["success"] = False
+            task["status"] = "failed"
+            task["error"] = str(e)
+            task["lines"].append(f"更新失败: {e}")
+            logger.error(f"🚨 [Docker] 容器更新任务失败 {container_id}: {e}")
+        finally:
+            task["done"] = True
+            task["finished_at"] = time.time()
+            self._invalidate_containers_cache()
+            key = self._updates_key(self.host_id, container_id)
+            with self._updates_guard:
+                if self._active_updates.get(key) == task_id:
+                    self._active_updates.pop(key, None)
+
+    def _recreate_container(self, container, container_id: str, image_tag: str, task: Dict[str, Any] = None) -> None:
+        """按旧容器配置重建容器（镜像已在调用前拉取）。task 非空时写入阶段进度。"""
+        attrs = container.attrs
+        name = attrs['Name'].lstrip('/')
+        config = attrs.get('Config', {})
+        host_config = attrs.get('HostConfig', {})
+
+        if task is not None:
+            task["stage"] = "preparing"
+
+        # --- 修复：保留挂载的 Propagation 属性 (如 rslave) ---
+        mounts = attrs.get('Mounts', [])
+        current_binds = host_config.get('Binds') or []
+        final_binds = []
+
+        bind_map = {}
+        for b in current_binds:
+            parts = b.split(':')
+            if len(parts) >= 2:
+                key = f"{parts[0]}:{parts[1]}"
+                mode = parts[2] if len(parts) > 2 else ""
+                bind_map[key] = mode
+
+        for m in mounts:
+            if m.get('Type') == 'bind':
+                src = m.get('Source')
+                dst = m.get('Destination')
+                propagation = m.get('Propagation', '')
+                if propagation and propagation != 'rprivate':
+                    key = f"{src}:{dst}"
+                    if key in bind_map:
+                        mode = bind_map[key]
+                        if propagation not in mode:
+                            new_mode = f"{mode},{propagation}" if mode else propagation
+                            bind_map[key] = new_mode
+                    else:
+                        rw_mode = "rw" if m.get('RW', True) else "ro"
+                        bind_map[key] = f"{rw_mode},{propagation}"
+
+        if not bind_map and current_binds:
+            final_binds = current_binds
+        else:
+            for key, mode in bind_map.items():
+                if mode:
+                    final_binds.append(f"{key}:{mode}")
+                else:
+                    final_binds.append(key)
+
+        port_bindings = host_config.get('PortBindings') or {}
+        ports = {}
+        if port_bindings:
+            for container_port, host_ports in port_bindings.items():
+                if host_ports:
+                    ports[container_port] = host_ports[0].get('HostPort')
+
+        network_mode = host_config.get('NetworkMode', 'bridge')
+        if network_mode == "host":
+            ports = None
+
+        create_kwargs = {
+            "image": image_tag,
+            "name": name,
+            "detach": True,
+            "environment": config.get('Env', []),
+            "volumes": final_binds,
+            "ports": ports,
+            "restart_policy": host_config.get('RestartPolicy', {}),
+            "network_mode": network_mode,
+            "command": config.get('Cmd'),
+            "entrypoint": config.get('Entrypoint'),
+            "working_dir": config.get('WorkingDir'),
+            "user": config.get('User'),
+            "hostname": config.get('Hostname'),
+            "mac_address": config.get('MacAddress'),
+            "labels": config.get('Labels')
+        }
+
+        if host_config.get('Privileged'):
+            create_kwargs["privileged"] = True
+
+        old_name = container.name
+        bak_name = f"{old_name}_lens_bak_{int(time.time())}"
+
+        try:
+            if task is not None:
+                task["stage"] = "stopping"
+                task["lines"].append(f"停止旧容器 {old_name}")
+            # 再次确认容器还在且连接有效
+            container = self.client.containers.get(container_id)
+            container.stop()
+            container.rename(bak_name)
+
+            if task is not None:
+                task["stage"] = "recreating"
+                task["lines"].append("创建并启动新容器")
+            # 创建并启动新容器
+            self.client.containers.run(**create_kwargs)
+
+            if task is not None:
+                task["stage"] = "cleanup"
+                task["lines"].append("清理旧容器")
+            # 新容器启动成功，删除备份
+            container.remove(force=True)
+            logger.info(f"✨ [Docker] 容器 {old_name} 重构成功，已清理旧容器")
+        except Exception as run_err:
+            logger.error(f"❌ [Docker] 新容器启动失败，尝试回滚: {run_err}")
+            if task is not None:
+                task["stage"] = "rollback"
+                task["lines"].append("新容器启动失败，正在回滚…")
+            try:
+                # 检查新容器是否已半途创建（如果创建了但没启动成功，也需要清理掉名称占位）
+                try:
+                    failed_new = self.client.containers.get(old_name)
+                    failed_new.remove(force=True)
+                except Exception: pass
+
+                # 尝试找回备份容器（可能因为连接问题导致 container 对象失效）
+                try:
+                    bak_container = self.client.containers.get(bak_name)
+                    bak_container.rename(old_name)
+                    bak_container.start()
+                    logger.info(f"⏪ [Docker] 已成功回滚至旧容器 {old_name}")
+                except Exception as e:
+                    # 如果 rename 失败，原 container 对象可能还有效
+                    container.rename(old_name)
+                    container.start()
+                    logger.info(f"⏪ [Docker] 已成功回滚至旧容器 {old_name}")
+            except Exception as rollback_err:
+                logger.error(f"🚨 [Docker] 回滚失败! 旧容器目前名称为 {bak_name}: {rollback_err}")
+                raise Exception(f"容器启动失败: {run_err}。回滚也失败了，请手动检查宿主机上名为 {bak_name} 的备份容器。")
+            raise run_err
+
     # --------------------------------------------------------------- 操作
     def container_action(self, container_id: str, action: str):
         if not self.client:
@@ -445,119 +751,7 @@ true
                     # 更新操作中，pull 失败即视为整体失败，立即中止以保护原容器
                     raise Exception(f"镜像更新失败: 无法拉取最新镜像 ({e})。操作已终止，原容器未受影响。")
 
-                # 提取完整配置
-                config = attrs.get('Config', {})
-                host_config = attrs.get('HostConfig', {})
-
-                # --- 修复：保留挂载的 Propagation 属性 (如 rslave) ---
-                mounts = attrs.get('Mounts', [])
-                current_binds = host_config.get('Binds') or []
-                final_binds = []
-
-                bind_map = {}
-                for b in current_binds:
-                    parts = b.split(':')
-                    if len(parts) >= 2:
-                        key = f"{parts[0]}:{parts[1]}"
-                        mode = parts[2] if len(parts) > 2 else ""
-                        bind_map[key] = mode
-
-                for m in mounts:
-                    if m.get('Type') == 'bind':
-                        src = m.get('Source')
-                        dst = m.get('Destination')
-                        propagation = m.get('Propagation', '')
-                        if propagation and propagation != 'rprivate':
-                            key = f"{src}:{dst}"
-                            if key in bind_map:
-                                mode = bind_map[key]
-                                if propagation not in mode:
-                                    new_mode = f"{mode},{propagation}" if mode else propagation
-                                    bind_map[key] = new_mode
-                            else:
-                                rw_mode = "rw" if m.get('RW', True) else "ro"
-                                bind_map[key] = f"{rw_mode},{propagation}"
-
-                if not bind_map and current_binds:
-                    final_binds = current_binds
-                else:
-                    for key, mode in bind_map.items():
-                        if mode:
-                            final_binds.append(f"{key}:{mode}")
-                        else:
-                            final_binds.append(key)
-
-                port_bindings = host_config.get('PortBindings') or {}
-                ports = {}
-                if port_bindings:
-                    for container_port, host_ports in port_bindings.items():
-                        if host_ports:
-                            ports[container_port] = host_ports[0].get('HostPort')
-
-                network_mode = host_config.get('NetworkMode', 'bridge')
-                if network_mode == "host":
-                    ports = None
-
-                create_kwargs = {
-                    "image": image_tag,
-                    "name": name,
-                    "detach": True,
-                    "environment": config.get('Env', []),
-                    "volumes": final_binds,
-                    "ports": ports,
-                    "restart_policy": host_config.get('RestartPolicy', {}),
-                    "network_mode": network_mode,
-                    "command": config.get('Cmd'),
-                    "entrypoint": config.get('Entrypoint'),
-                    "working_dir": config.get('WorkingDir'),
-                    "user": config.get('User'),
-                    "hostname": config.get('Hostname'),
-                    "mac_address": config.get('MacAddress'),
-                    "labels": config.get('Labels')
-                }
-
-                if host_config.get('Privileged'):
-                    create_kwargs["privileged"] = True
-
-                old_name = container.name
-                bak_name = f"{old_name}_lens_bak_{int(time.time())}"
-
-                try:
-                    # 再次确认容器还在且连接有效
-                    container = self.client.containers.get(container_id)
-                    container.stop()
-                    container.rename(bak_name)
-
-                    # 创建并启动新容器
-                    self.client.containers.run(**create_kwargs)
-
-                    # 新容器启动成功，删除备份
-                    container.remove(force=True)
-                    logger.info(f"✨ [Docker] 容器 {old_name} 重构成功，已清理旧容器")
-                except Exception as run_err:
-                    logger.error(f"❌ [Docker] 新容器启动失败，尝试回滚: {run_err}")
-                    try:
-                        # 检查新容器是否已半途创建（如果创建了但没启动成功，也需要清理掉名称占位）
-                        try:
-                            failed_new = self.client.containers.get(old_name)
-                            failed_new.remove(force=True)
-                        except Exception: pass
-
-                        # 尝试找回备份容器（可能因为连接问题导致 container 对象失效）
-                        try:
-                            bak_container = self.client.containers.get(bak_name)
-                            bak_container.rename(old_name)
-                            bak_container.start()
-                            logger.info(f"⏪ [Docker] 已成功回滚至旧容器 {old_name}")
-                        except Exception as e:
-                            # 如果 rename 失败，原 container 对象可能还有效
-                            container.rename(old_name)
-                            container.start()
-                            logger.info(f"⏪ [Docker] 已成功回滚至旧容器 {old_name}")
-                    except Exception as rollback_err:
-                        logger.error(f"🚨 [Docker] 回滚失败! 旧容器目前名称为 {bak_name}: {rollback_err}")
-                        raise Exception(f"容器启动失败: {run_err}。回滚也失败了，请手动检查宿主机上名为 {bak_name} 的备份容器。")
-                    raise run_err
+                self._recreate_container(container, container_id, image_tag)
 
             # 操作后清理列表缓存与统计缓存
             self._invalidate_containers_cache()

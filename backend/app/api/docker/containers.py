@@ -4,6 +4,7 @@ import select
 import time
 
 from fastapi import APIRouter, Body, HTTPException, WebSocket, WebSocketDisconnect
+from app.services.docker_service import DockerService
 from app.services.notification_service import NotificationService
 from app.utils.logger import logger, audit_log
 
@@ -133,24 +134,59 @@ async def container_action(host_id: str, container_id: str, action: str = Body(.
     }
     display_action = action_map.get(action, action)
 
-    # 对于耗时操作（recreate/update），采用后台任务模式，防止前端超时
+    # 对于耗时操作（recreate/update），采用后台任务模式，防止前端超时；
+    # 同时注册可轮询/可取消的任务，支持进度展示与二次点击防重。
     if action in ["recreate", "update"]:
+        existing_task_id = DockerService.get_active_update_task_id(host_id, container_id)
+        if existing_task_id:
+            return {
+                "already_running": True,
+                "task_id": existing_task_id,
+                "message": "该容器已有更新任务正在进行，请勿重复操作",
+                "async": True,
+            }
+
+        task_id = DockerService.register_update_task(host_id, container_id, container_name, "")
+        if not task_id:
+            # 极端并发下 register 自身也会防重，此时取回已存在任务
+            existing_task_id = DockerService.get_active_update_task_id(host_id, container_id)
+            if existing_task_id:
+                return {
+                    "already_running": True,
+                    "task_id": existing_task_id,
+                    "message": "该容器已有更新任务正在进行，请勿重复操作",
+                    "async": True,
+                }
+            raise HTTPException(status_code=500, detail="无法创建更新任务")
+
+        cancel_event = DockerService._get_update_task_raw(task_id)["cancel_event"]
+
         async def run_recreate_task():
             try:
                 # 记录审计日志
                 audit_log(f"Docker Async Action: {action}", 0, [f"Host: {host_id}", f"Container: {container_name}"])
                 
-                # 执行操作
-                success = await asyncio.to_thread(service.container_action, container_id, action)
+                # 执行操作（流式进度写入任务表）
+                await asyncio.to_thread(service.run_container_update, task_id, container_id, cancel_event)
                 
-                status_text = "成功" if success else "失败"
+                task = DockerService.get_update_task(task_id) or {}
+                status = task.get("status")
+                status_text = {
+                    "success": "成功",
+                    "failed": "失败",
+                    "cancelled": "已终止",
+                }.get(status, status or "完成")
                 logger.info(f"🏁 [Docker] 异步操作 {action} 执行完成: {status_text}")
                 
                 # 执行完成后的通知
                 await NotificationService.emit(
                     event="docker.container_action",
                     title="Docker 容器更新结果",
-                    message=f"主机: {host_id}\n容器: {container_name}\n操作: {display_action}\n结果: {status_text}"
+                    message=(
+                        f"主机: {host_id}\n容器: {container_name}\n"
+                        f"操作: {display_action}\n结果: {status_text}"
+                        + (f"\n错误: {task.get('error')}" if task.get("error") else "")
+                    )
                 )
             except Exception as e:
                 logger.error(f"🚨 [Docker] 异步重构任务崩溃: {e}")
@@ -161,7 +197,11 @@ async def container_action(host_id: str, container_id: str, action: str = Body(.
                 )
 
         asyncio.create_task(run_recreate_task())
-        return {"message": f"容器 {display_action} 任务已在后台启动，请留意系统通知", "async": True}
+        return {
+            "message": f"容器 {display_action} 任务已启动，可在容器卡片查看进度",
+            "async": True,
+            "task_id": task_id,
+        }
 
     # 普通操作依然同步等待
     success = await asyncio.to_thread(service.container_action, container_id, action)
@@ -186,6 +226,30 @@ async def container_action(host_id: str, container_id: str, action: str = Body(.
     ])
     
     return {"message": f"Action {action} performed successfully"}
+
+
+@router.get("/{host_id}/containers/{container_id}/update/{task_id}")
+async def get_container_update_progress(host_id: str, container_id: str, task_id: str):
+    """轮询容器更新任务进度（只读内存，不产生 SSH 往返）。"""
+    task = DockerService.get_update_task(task_id)
+    if not task or task.get("host_id") != host_id or task.get("container_id") != container_id:
+        raise HTTPException(status_code=404, detail="更新任务不存在")
+    return task
+
+
+@router.post("/{host_id}/containers/{container_id}/update/{task_id}/cancel")
+async def cancel_container_update(host_id: str, container_id: str, task_id: str):
+    """请求终止容器更新任务（在安全点停止，拉取阶段可即时中止）。"""
+    task = DockerService.get_update_task(task_id)
+    if not task or task.get("host_id") != host_id or task.get("container_id") != container_id:
+        raise HTTPException(status_code=404, detail="更新任务不存在")
+    if task.get("done"):
+        return {"message": "任务已结束", "cancelled": False}
+    cancelled = DockerService.request_cancel_update(task_id)
+    return {
+        "message": "已请求终止，将在安全点停止（拉取阶段可即时中止；重建阶段会安全收尾）" if cancelled else "任务已结束",
+        "cancelled": cancelled,
+    }
 
 
 @router.get("/{host_id}/containers/{container_id}/logs")

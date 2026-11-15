@@ -17,6 +17,12 @@ export const dockerApi = {
     api.get(`/api/docker/${hostId}/containers/stats`),
   containerAction: (hostId: string, containerId: string, action: string) =>
     api.post(`/api/docker/${hostId}/containers/${containerId}/action`, { action }),
+  startContainerUpdate: (hostId: string, containerId: string) =>
+    api.post(`/api/docker/${hostId}/containers/${containerId}/action`, { action: 'recreate' }),
+  getContainerUpdateProgress: (hostId: string, containerId: string, taskId: string) =>
+    api.get(`/api/docker/${hostId}/containers/${containerId}/update/${taskId}`),
+  cancelContainerUpdate: (hostId: string, containerId: string, taskId: string) =>
+    api.post(`/api/docker/${hostId}/containers/${containerId}/update/${taskId}/cancel`),
   getContainerLogs: (hostId: string, containerId: string, tail?: number) =>
     api.get(`/api/docker/${hostId}/containers/${containerId}/logs`, { params: { tail } }),
 
