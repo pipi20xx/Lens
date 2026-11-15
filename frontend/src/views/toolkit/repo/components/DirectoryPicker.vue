@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 /**
  * 目录选择器：给「仓库根目录」和「克隆落地目录」挑文件夹用。
  * 只列子目录，隐藏点目录；顺手标出哪些目录本身就是 git 仓库。
@@ -18,6 +18,8 @@ const props = defineProps<{
   modelValue: boolean
   initialPath?: string
   title?: string
+  /** 提供后切换为「仓库内目录」模式：只浏览该仓库下的子目录，返回仓库相对路径 */
+  repoPath?: string
 }>()
 
 const emit = defineEmits<{
@@ -39,17 +41,40 @@ const pathInput = ref('')
 const error = ref('')
 const isGit = ref(false)
 
+const isRepoMode = computed(() => !!props.repoPath)
+const currentLabel = computed(() => {
+  if (!isRepoMode.value) return current.value
+  return current.value || '仓库根目录'
+})
+
 async function load(path: string) {
   loading.value = true
   error.value = ''
   try {
-    const res = await repoManagerApi.browse(path || '')
-    current.value = res.path
-    pathInput.value = res.path
-    parent.value = res.parent
-    entries.value = res.entries || []
-    shortcuts.value = res.shortcuts || []
-    isGit.value = !!res.is_git
+    if (isRepoMode.value) {
+      const res = await repoManagerApi.listFiles(props.repoPath!, path || '')
+      current.value = res.dir || ''
+      parent.value = res.parent || ''
+      pathInput.value = res.dir || ''
+      entries.value = (res.entries || [])
+        .filter((entry) => entry.type === 'dir')
+        .map((entry) => ({
+          name: entry.name,
+          path: entry.path,
+          is_git: false,
+          in_roots: true,
+        }))
+      shortcuts.value = [{ label: '仓库根目录', path: '' }]
+      isGit.value = false
+    } else {
+      const res = await repoManagerApi.browse(path || '')
+      current.value = res.path
+      pathInput.value = res.path
+      parent.value = res.parent
+      entries.value = res.entries || []
+      shortcuts.value = res.shortcuts || []
+      isGit.value = !!res.is_git
+    }
   } catch (e: any) {
     error.value = e.message || '读取目录失败'
   } finally {
@@ -104,7 +129,7 @@ watch(show, (visible) => {
         density="compact"
         variant="outlined"
         hide-details
-        placeholder="/vol1/1000/NVME"
+        :placeholder="isRepoMode ? '相对路径，例如 src/components' : '/vol1/1000/NVME'"
         @keyup.enter="load(pathInput)"
       />
       <v-btn size="small" variant="tonal" color="primary" @click="load(pathInput)">前往</v-btn>
@@ -141,14 +166,20 @@ watch(show, (visible) => {
     </v-list>
 
     <div class="text-caption current-path mt-3">
-      {{ current }}
-      <v-chip v-if="isGit" size="x-small" color="primary" variant="tonal" class="ml-1">
+      {{ currentLabel }}
+      <v-chip v-if="!isRepoMode && isGit" size="x-small" color="primary" variant="tonal" class="ml-1">
         本身是 git 仓库
       </v-chip>
     </div>
 
     <template #actions>
-      <v-btn color="primary" variant="tonal" prepend-icon="mdi-folder-check-outline" :disabled="!current" @click="pick(current)">
+      <v-btn
+        color="primary"
+        variant="tonal"
+        prepend-icon="mdi-folder-check-outline"
+        :disabled="!isRepoMode && !current"
+        @click="pick(current)"
+      >
         选择此目录
       </v-btn>
     </template>

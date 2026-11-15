@@ -6,7 +6,7 @@
  * 渲染可控、能一键全收，也不会因为深层递归拖慢列表。
  * 子目录仍然是点开时才请求的（懒加载），大仓库不会一次拉爆。
  */
-import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { repoManagerApi, type RepoEntry } from '@/api/repoManager'
 import { useNotification } from '@/composables'
 import { fileIcon } from '../fileIcons'
@@ -18,6 +18,9 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'select', path: string): void
+  (e: 'file-delete', entry: RepoEntry): void
+  (e: 'file-copy', entry: RepoEntry): void
+  (e: 'file-move', entry: RepoEntry): void
 }>()
 
 const { error: showError } = useNotification()
@@ -105,10 +108,62 @@ watch(
   }
 )
 
-onMounted(() => loadDir('', true))
+// ---------------- 右键菜单（删除 / 复制 / 移动） ----------------
+const ctx = reactive({
+  show: false,
+  x: 0,
+  y: 0,
+  entry: null as RepoEntry | null,
+})
+
+function openCtx(event: MouseEvent, entry: RepoEntry) {
+  ctx.entry = entry
+  ctx.x = Math.max(4, Math.min(event.clientX, window.innerWidth - 200))
+  ctx.y = Math.max(4, Math.min(event.clientY, window.innerHeight - 150))
+  ctx.show = true
+}
+
+function closeCtx() {
+  ctx.show = false
+  ctx.entry = null
+}
+
+function ctxAction(action: 'delete' | 'copy' | 'move') {
+  const entry = ctx.entry
+  closeCtx()
+  if (!entry) return
+  if (action === 'delete') emit('file-delete', entry)
+  else if (action === 'copy') emit('file-copy', entry)
+  else emit('file-move', entry)
+}
+
+function onGlobalKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape') closeCtx()
+}
+
+onMounted(() => {
+  loadDir('', true)
+  window.addEventListener('click', closeCtx)
+  window.addEventListener('contextmenu', closeCtx, true)
+  window.addEventListener('keydown', onGlobalKeydown)
+  window.addEventListener('resize', closeCtx)
+  window.addEventListener('scroll', closeCtx, true)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('click', closeCtx)
+  window.removeEventListener('contextmenu', closeCtx, true)
+  window.removeEventListener('keydown', onGlobalKeydown)
+  window.removeEventListener('resize', closeCtx)
+  window.removeEventListener('scroll', closeCtx, true)
+})
 
 defineExpose({
   refresh: () => loadDir('', true),
+  reload: () => {
+    reset()
+    loadDir('', true)
+  },
   collapseAll,
 })
 </script>
@@ -124,6 +179,7 @@ defineExpose({
       :class="{ active: selected === row.entry.path, dir: row.entry.type === 'dir' }"
       :style="{ paddingLeft: `${row.depth * 14 + 6}px` }"
       @click="toggle(row.entry)"
+      @contextmenu.prevent.stop="openCtx($event, row.entry)"
     >
       <v-icon v-if="row.entry.type === 'dir'" size="16" class="chevron">
         {{ expanded[row.entry.path] ? 'mdi-chevron-down' : 'mdi-chevron-right' }}
@@ -138,6 +194,28 @@ defineExpose({
 
     <div v-if="!rootLoading && !rootEntries.length" class="hint">空仓库</div>
     <div v-if="rootTruncated" class="hint">条目过多，仅显示前部分</div>
+
+    <Teleport to="body">
+      <div
+        v-if="ctx.show"
+        class="ctx-menu"
+        :style="{ left: ctx.x + 'px', top: ctx.y + 'px' }"
+        @click.stop
+      >
+        <v-list density="compact">
+          <v-list-item prepend-icon="mdi-content-copy" @click="ctxAction('copy')">
+            <v-list-item-title>复制到…</v-list-item-title>
+          </v-list-item>
+          <v-list-item prepend-icon="mdi-folder-move-outline" @click="ctxAction('move')">
+            <v-list-item-title>移动到…</v-list-item-title>
+          </v-list-item>
+          <v-divider />
+          <v-list-item prepend-icon="mdi-delete-outline" color="error" @click="ctxAction('delete')">
+            <v-list-item-title>删除</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -184,5 +262,15 @@ defineExpose({
 .hint {
   font-size: 12px;
   padding: 8px 6px;
+}
+.ctx-menu {
+  position: fixed;
+  z-index: 3000;
+  min-width: 180px;
+  background: rgb(var(--v-theme-surface));
+  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  border-radius: 8px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.28);
+  overflow: hidden;
 }
 </style>

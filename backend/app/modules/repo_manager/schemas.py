@@ -51,6 +51,13 @@ class FileWriteRequest(RepoPath):
     eol: str = Field("", description="原文件的换行风格：lf / crlf / cr，留空按 lf")
 
 
+class FileOperationRequest(RepoPath):
+    action: str = Field(..., pattern="^(delete|copy|move)$")
+    source: str = Field(..., description="仓库内源文件/目录相对路径")
+    target_dir: str = Field("", description="目标目录相对路径，留空表示仓库根目录")
+    new_name: str = Field("", description="目标名称（仅 basename），留空沿用原名")
+
+
 class ReplaceRequest(RepoPath):
     query: str = ""
     replacement: str = ""

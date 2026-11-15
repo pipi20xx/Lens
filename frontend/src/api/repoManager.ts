@@ -293,6 +293,20 @@ export const repoManagerApi = {
       { path, file, content, encoding, eol }
     ),
 
+  fileOp: (
+    path: string,
+    payload: {
+      action: 'delete' | 'copy' | 'move'
+      source: string
+      target_dir?: string
+      new_name?: string
+    }
+  ) =>
+    api.post<{ ok: boolean; action: string; source: string; to?: string }>(
+      `${BASE}/files/op`,
+      { path, ...payload }
+    ),
+
   search: (
     path: string,
     q: string,

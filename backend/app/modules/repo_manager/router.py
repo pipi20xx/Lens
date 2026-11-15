@@ -22,6 +22,7 @@ from .schemas import (
     CheckoutRequest,
     CloneRequest,
     CommitRequest,
+    FileOperationRequest,
     FileWriteRequest,
     PullRequest,
     PushRequest,
@@ -145,6 +146,26 @@ async def write_file(req: FileWriteRequest):
             service.write_repo_file, real, req.file, req.content, req.encoding, req.eol
         )
     )
+
+
+@router.post("/files/op", summary="文件操作：删除 / 复制 / 移动（只动工作区，不自动 git 记录）")
+async def file_operation(req: FileOperationRequest):
+    real = await _guard(_validated(req.path))
+    if req.action == "delete":
+        return await _guard(asyncio.to_thread(service.delete_repo_path, real, req.source))
+    if req.action == "copy":
+        return await _guard(
+            asyncio.to_thread(
+                service.copy_repo_path, real, req.source, req.target_dir, req.new_name
+            )
+        )
+    if req.action == "move":
+        return await _guard(
+            asyncio.to_thread(
+                service.move_repo_path, real, req.source, req.target_dir, req.new_name
+            )
+        )
+    raise HTTPException(status_code=400, detail="未知的文件操作")
 
 
 @router.get("/search", summary="在整个仓库里搜索文件名与文件内容")

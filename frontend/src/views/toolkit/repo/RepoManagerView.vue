@@ -13,6 +13,7 @@ import {
   type CommitDetail,
   type CommitItem,
   type IdentityProfile,
+  type RepoEntry,
   type RepoFile,
   type RepoIdentity,
   type RepoStatus,
@@ -21,6 +22,7 @@ import {
 import { useConfirm, useNotification } from '@/composables'
 import CloneDialog from './components/CloneDialog.vue'
 import DiffViewer from './components/DiffViewer.vue'
+import DirectoryPicker from './components/DirectoryPicker.vue'
 import FileTree from './components/FileTree.vue'
 import FileViewer from './components/FileViewer.vue'
 import IdentityDialog from './components/IdentityDialog.vue'
@@ -68,6 +70,12 @@ const previewFile = ref('')
 const fileDirty = ref(false)
 const searchActive = ref(false)
 const focusLine = ref(0)
+// 文件右键：复制 / 移动对话框
+const fileOpDialog = ref(false)
+const fileOpPicker = ref(false)
+const fileOp = ref<{ action: 'copy' | 'move'; entry: RepoEntry } | null>(null)
+const fileOpTarget = ref('')
+const fileOpName = ref('')
 
 // 历史 / 提交详情
 const selectedCommit = ref('')
@@ -113,6 +121,13 @@ const hasChanges = computed(() => {
   const c = status.value?.counts
   return !!c && c.staged + c.unstaged + c.untracked + c.conflict > 0
 })
+
+/** 可被「全部放弃」的文件：已暂存 + 未暂存 + 未跟踪（冲突需要单独用 用我的/用远端 解决） */
+const discardableFiles = computed(() => [
+  ...stagedFiles.value,
+  ...unstagedFiles.value,
+  ...untrackedFiles.value,
+])
 
 const canCommit = computed(
   () => !busy.value && (!!status.value?.counts.staged || amend.value) && commitMessage.value.trim().length > 0
@@ -510,6 +525,103 @@ async function onSettingsSaved() {
 
 function refreshTree() {
   treeRef.value?.refresh()
+}
+
+// ---------------- 文件右键：删除 / 复制 / 移动 ----------------
+function parentOf(p: string): string {
+  const i = p.lastIndexOf('/')
+  return i < 0 ? '' : p.slice(0, i)
+}
+
+function copyName(name: string): string {
+  const i = name.lastIndexOf('.')
+  if (i <= 0) return `${name} - 副本`
+  return `${name.slice(0, i)} - 副本${name.slice(i)}`
+}
+
+function openFileOp(entry: RepoEntry, action: 'copy' | 'move') {
+  fileOp.value = { action, entry }
+  fileOpTarget.value = parentOf(entry.path)
+  fileOpName.value = action === 'copy' ? copyName(entry.name) : entry.name
+  fileOpDialog.value = true
+}
+
+async function submitFileOp() {
+  const op = fileOp.value
+  if (!op || !selected.value) return
+  busy.value = op.action
+  try {
+    await repoManagerApi.fileOp(selected.value, {
+      action: op.action,
+      source: op.entry.path,
+      target_dir: fileOpTarget.value.trim(),
+      new_name: fileOpName.value.trim() || undefined,
+    })
+    success(op.action === 'copy' ? '已复制' : '已移动')
+    fileOpDialog.value = false
+    if (previewFile.value === op.entry.path || previewFile.value.startsWith(op.entry.path + '/')) {
+      previewFile.value = ''
+      fileDirty.value = false
+    }
+    await refreshAll(true)
+    treeRef.value?.reload()
+  } catch (e: any) {
+    showError(e.message || '操作失败')
+  } finally {
+    busy.value = ''
+  }
+}
+
+async function onFileDelete(entry: RepoEntry) {
+  const isDir = entry.type === 'dir'
+  const ok = await confirm({
+    title: '删除',
+    content: `确定删除 ${entry.path}${isDir ? '（含目录下全部内容）' : ''}？此操作不可撤销。`,
+    confirmText: '删除',
+    confirmColor: 'error',
+  })
+  if (!ok) return
+  busy.value = 'delete'
+  try {
+    await repoManagerApi.fileOp(selected.value, { action: 'delete', source: entry.path })
+    success('已删除')
+    if (previewFile.value === entry.path || previewFile.value.startsWith(entry.path + '/')) {
+      previewFile.value = ''
+      fileDirty.value = false
+    }
+    await refreshAll(true)
+    treeRef.value?.reload()
+  } catch (e: any) {
+    showError(e.message || '删除失败')
+  } finally {
+    busy.value = ''
+  }
+}
+
+// ---------------- 变更：全部放弃 ----------------
+async function discardAll() {
+  const files = discardableFiles.value
+  if (!files.length) return
+  const staged = stagedFiles.value.map((f) => f.path)
+  const ok = await confirm({
+    title: '全部放弃',
+    content: `将丢弃全部工作区改动（共 ${files.length} 个文件），包括已暂存、未暂存和未跟踪的内容。此操作不可撤销。`,
+    confirmText: '全部放弃',
+    confirmColor: 'error',
+  })
+  if (!ok) return
+  busy.value = 'discard'
+  try {
+    // 先取消暂存，让已暂存文件回落到「未暂存」，再统一丢弃工作区 + 清理未跟踪
+    if (staged.length) await repoManagerApi.stage(selected.value, 'unstage', staged)
+    await repoManagerApi.stage(selected.value, 'discard', files.map((f) => f.path))
+    success('已放弃全部改动')
+    await refreshAll()
+  } catch (e: any) {
+    showError(e.message || '操作失败')
+  } finally {
+    busy.value = ''
+  }
 }
 
 // ---------------- 历史 / 提交详情 ----------------
@@ -976,6 +1088,17 @@ onBeforeUnmount(() => {
                           </v-chip>
                           <v-spacer />
                           <v-btn
+                            size="small"
+                            variant="tonal"
+                            color="error"
+                            prepend-icon="mdi-undo-variant"
+                            :disabled="!discardableFiles.length"
+                            :loading="busy === 'discard'"
+                            @click="discardAll"
+                          >
+                            全部放弃
+                          </v-btn>
+                          <v-btn
                             color="primary"
                             variant="tonal"
                             size="small"
@@ -1372,6 +1495,9 @@ onBeforeUnmount(() => {
                         :repo-path="selected"
                         :selected="previewFile"
                         @select="onTreeSelect"
+                        @file-delete="onFileDelete"
+                        @file-copy="openFileOp($event, 'copy')"
+                        @file-move="openFileOp($event, 'move')"
                       />
                     </div>
                   </div>
@@ -1389,6 +1515,67 @@ onBeforeUnmount(() => {
             </section>
           </template>
     </v-card>
+
+    <!-- 文件复制 / 移动 -->
+    <v-dialog v-model="fileOpDialog" max-width="560">
+      <v-card class="liquid-glass-card" rounded="xl">
+        <v-card-title class="text-subtitle-1 font-weight-bold">
+          {{ fileOp?.action === 'copy' ? '复制' : '移动' }}
+        </v-card-title>
+        <v-card-text>
+          <div class="text-body-2 mb-3">
+            源：<code>{{ fileOp?.entry.path }}</code>
+          </div>
+          <div class="d-flex ga-3 align-center mb-3">
+            <v-text-field
+              v-model="fileOpTarget"
+              label="目标目录（仓库内相对路径，留空为仓库根目录）"
+              variant="outlined"
+              density="compact"
+              hide-details
+              placeholder="例如：src/components"
+            />
+            <v-btn
+              size="small"
+              variant="tonal"
+              color="info"
+              prepend-icon="mdi-folder-search-outline"
+              @click="fileOpPicker = true"
+            >
+              浏览
+            </v-btn>
+          </div>
+          <v-text-field
+            v-model="fileOpName"
+            label="目标名称"
+            variant="outlined"
+            density="compact"
+            hide-details
+          />
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="fileOpDialog = false">取消</v-btn>
+          <v-btn
+            variant="tonal"
+            color="primary"
+            :disabled="!fileOpName.trim()"
+            :loading="busy === fileOp?.action"
+            @click="submitFileOp"
+          >
+            {{ fileOp?.action === 'copy' ? '复制' : '移动' }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <DirectoryPicker
+      v-model="fileOpPicker"
+      :repo-path="selected"
+      :initial-path="fileOpTarget"
+      title="选择目标目录"
+      @picked="fileOpTarget = $event"
+    />
 
     <CloneDialog
       v-model="cloneDialog"

@@ -13,6 +13,7 @@ from __future__ import annotations
 import asyncio
 import os
 import re
+import shutil
 import time
 import uuid
 from typing import Any, Dict, List, Optional
@@ -484,6 +485,105 @@ def write_repo_file(repo: str, rel: str, content: str, encoding: str = "",
         "encoding": use_encoding,
         "eol": use_eol,
     }
+
+
+# ------------------------------------------------------------------ 文件操作（删除 / 复制 / 移动）
+
+def _normalize_rel(rel: str) -> str:
+    return (rel or "").strip().replace("\\", "/").lstrip("/")
+
+
+def _source_path(repo: str, rel: str) -> str:
+    """解析并校验「源」路径：必须存在、不能是仓库根、不能碰 .git、拒绝符号链接。"""
+    rel = _normalize_rel(rel)
+    if not rel:
+        raise GitError("不能对整个仓库执行该操作")
+    if ".git" in rel.split("/"):
+        raise GitError("不允许操作 .git 目录")
+    raw = os.path.join(repo, rel)
+    if os.path.islink(raw):
+        raise GitError("暂不支持对符号链接执行该操作")
+    full = _safe_join(repo, rel)
+    if not os.path.exists(full):
+        raise GitError("源路径不存在")
+    return full
+
+
+def _target_dir(repo: str, rel: str) -> str:
+    """解析并校验「目标目录」：必须存在、不能位于 .git 内。"""
+    rel = _normalize_rel(rel)
+    if ".git" in rel.split("/"):
+        raise GitError("不允许操作 .git 目录")
+    base = _safe_join(repo, rel)
+    if not os.path.isdir(base):
+        raise GitError("目标目录不存在")
+    return base
+
+
+def _target_name(new_name: str, source_full: str) -> str:
+    name = (new_name or "").strip().replace("\\", "/").rstrip("/")
+    if not name:
+        return os.path.basename(source_full.rstrip("/"))
+    if "/" in name or name in (".", "..") or name == ".git":
+        raise GitError("目标名称不合法")
+    return name
+
+
+def delete_repo_path(repo: str, rel: str) -> Dict[str, Any]:
+    """删除仓库内的文件或目录（只动工作区，不自动 git 记录）。"""
+    full = _source_path(repo, rel)
+    try:
+        if os.path.isdir(full) and not os.path.islink(full):
+            shutil.rmtree(full)
+        else:
+            os.remove(full)
+    except OSError as exc:
+        raise GitError(f"删除失败：{exc}")
+    invalidate(repo)
+    return {"ok": True, "action": "delete", "source": rel}
+
+
+def _copy_or_move(repo: str, rel: str, target_dir: str, new_name: str,
+                  action: str) -> Dict[str, Any]:
+    src = _source_path(repo, rel)
+    base = _target_dir(repo, target_dir)
+    name = _target_name(new_name, src)
+    dst = os.path.join(base, name)
+
+    if os.path.exists(dst) or os.path.islink(dst):
+        raise GitError(f"目标已存在：{_rel_posix(repo, dst)}")
+    # 目录复制/移动到自身内部会无限递归或破坏层级，直接拒绝
+    if os.path.isdir(src):
+        try:
+            common = os.path.commonpath([src, dst])
+        except ValueError:
+            common = ""
+        if common == src:
+            raise GitError("不能把目录复制/移动到它自身内部")
+
+    try:
+        if action == "copy":
+            if os.path.isdir(src):
+                shutil.copytree(src, dst)
+            else:
+                shutil.copy2(src, dst)
+        else:
+            shutil.move(src, dst)
+    except OSError as exc:
+        raise GitError(f"{'复制' if action == 'copy' else '移动'}失败：{exc}")
+
+    invalidate(repo)
+    return {"ok": True, "action": action, "source": rel, "to": _rel_posix(repo, dst)}
+
+
+def copy_repo_path(repo: str, rel: str, target_dir: str = "",
+                   new_name: str = "") -> Dict[str, Any]:
+    return _copy_or_move(repo, rel, target_dir, new_name, "copy")
+
+
+def move_repo_path(repo: str, rel: str, target_dir: str = "",
+                   new_name: str = "") -> Dict[str, Any]:
+    return _copy_or_move(repo, rel, target_dir, new_name, "move")
 
 
 MAX_REPLACE_FILES = 500
