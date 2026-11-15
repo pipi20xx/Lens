@@ -5,6 +5,9 @@ import App from './App.vue'
 import router from './router'
 import { glassI18n } from '@/glass/host/i18n'
 
+// MDI 图标字体：本地打包（不再走 CDN），Vuetify 的 mdi 图标集依赖它
+import '@mdi/font/css/materialdesignicons.css'
+
 // 全局样式 — 四层架构入口（结构 → 令牌 → 视觉 → 主题）
 // 第 4 层 ACG 主题由 DefaultLayout.vue 动态加载/卸载
 import '@/styles/index.css'
