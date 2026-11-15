@@ -5,6 +5,14 @@ from typing import Dict, Any
 
 CONFIG_FILE = "data/config.json"
 
+# 默认推荐的 Docker Hub 加速源（社区/公共源，可用性可能随时间变化）
+DEFAULT_PULL_MIRRORS = [
+    "docker.m.daocloud.io",
+    "docker.1panel.live",
+    "docker.fnnas.com",
+    "dockerproxy.net",
+]
+
 DEFAULT_CONFIG = {
     "emby_servers": [],
     "active_server_id": "",
@@ -84,6 +92,10 @@ DEFAULT_CONFIG = {
         "enabled": True,
         "type": "cron",
         "value": "03:00"
+    },
+    "docker_pull_mirror": {
+        "enabled": True,
+        "mirrors": list(DEFAULT_PULL_MIRRORS),
     },
     "pgsql_hosts": [],
     "backup_tasks": [],

@@ -4,7 +4,7 @@ import asyncio
 from typing import Dict, Any
 from fastapi import APIRouter, Body
 
-from app.core.config_manager import get_config, save_config
+from app.core.config_manager import get_config, save_config, DEFAULT_PULL_MIRRORS
 from app.services.docker_service import DockerService
 
 from .common import DockerAutoUpdateSettings, PullMirrorSettings
@@ -42,14 +42,6 @@ async def save_auto_update_settings(settings: DockerAutoUpdateSettings):
     
     return {"message": "Settings updated and scheduler reloaded"}
 
-
-# 默认推荐的 Docker Hub 加速源（社区/公共源，可用性可能随时间变化，用户可在界面中增删）
-DEFAULT_PULL_MIRRORS = [
-    "docker.m.daocloud.io",
-    "docker.1panel.live",
-    "docker.fnnas.com",
-    "dockerproxy.net",
-]
 
 @router.get("/pull-mirror/settings")
 async def get_pull_mirror_settings():
