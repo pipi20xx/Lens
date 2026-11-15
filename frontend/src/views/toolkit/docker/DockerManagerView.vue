@@ -10,6 +10,7 @@ import MaintenancePanel from './components/MaintenancePanel.vue'
 import FileBrowserPanel from './components/FileBrowserPanel.vue'
 import HostManagerDialog from './components/HostManagerDialog.vue'
 import AutoUpdateDialog from './components/AutoUpdateDialog.vue'
+import PullMirrorDialog from './components/PullMirrorDialog.vue'
 import ScanScopeDialog from './components/ScanScopeDialog.vue'
 
 const { success } = useNotification()
@@ -18,6 +19,7 @@ const { selectedHostId, currentHost, hostOptions, fetchHosts } = useDockerHost()
 const activeTab = ref('containers')
 const showHostManager = ref(false)
 const showAutoUpdate = ref(false)
+const showPullMirror = ref(false)
 const showScanScope = ref(false)
 
 const scanPathCount = computed(() =>
@@ -72,6 +74,7 @@ onMounted(() => { fetchHosts() })
         </template>
 
         <v-spacer />
+        <v-btn prepend-icon="mdi-rocket-launch-outline" variant="tonal" size="small" color="success" @click="showPullMirror = true">拉取加速</v-btn>
         <v-btn prepend-icon="mdi-timer-outline" variant="tonal" size="small" color="warning" @click="showAutoUpdate = true">计划设置</v-btn>
         <v-btn prepend-icon="mdi-refresh" variant="tonal" color="info" size="small" @click="refreshAll">全部刷新</v-btn>
       </div>
@@ -110,6 +113,7 @@ onMounted(() => { fetchHosts() })
     <!-- 全局弹窗 -->
     <HostManagerDialog v-model="showHostManager" />
     <AutoUpdateDialog v-model="showAutoUpdate" />
+    <PullMirrorDialog v-model="showPullMirror" />
     <ScanScopeDialog v-model="showScanScope" />
   </v-container>
 </template>

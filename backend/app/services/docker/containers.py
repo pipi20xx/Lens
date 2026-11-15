@@ -454,7 +454,7 @@ true
         return cls.get_active_update_task_id(host_id, container_id) is not None
 
     @classmethod
-    def register_update_task(cls, host_id: str, container_id: str, container_name: str, image: str) -> Optional[str]:
+    def register_update_task(cls, host_id: str, container_id: str, container_name: str, image: str, mirror: str = "") -> Optional[str]:
         """登记更新任务。若该容器已有进行中的任务则返回 None（防重）。"""
         now = time.time()
         # 清理 1 小时前已完成的任务，避免内存无限增长
@@ -478,6 +478,7 @@ true
                 "container_id": container_id,
                 "container_name": container_name,
                 "image": image,
+                "mirror": mirror or "",
                 "status": "pending",
                 "stage": "pending",
                 "lines": [],
@@ -533,6 +534,49 @@ true
             return False
         return True
 
+    @staticmethod
+    def _is_docker_hub_ref(repo: str) -> bool:
+        """判断是否为 Docker Hub 隐式引用（未写 registry 前缀，如 pipi20xx/lens、nginx）。"""
+        if not repo:
+            return True
+        head = repo.split("/")[0]
+        return "." not in head and ":" not in head
+
+    def _pull_image_via_mirror(self, task: Dict[str, Any], image_tag: str, mirror: str, cancel_event: threading.Event) -> bool:
+        """显式从镜像源拉取，成功后 tag 回原镜像名。返回 False 表示已终止。"""
+        repo, tag = self._split_image_tag(image_tag)
+        m = (mirror or "").strip().rstrip("/")
+        m = m.replace("http://", "").replace("https://", "").strip().rstrip("/")
+        if not m:
+            return self._pull_image_for_update(task, image_tag, cancel_event)
+
+        repo_path = repo if "/" in repo else f"library/{repo}"
+        mirror_ref = f"{m}/{repo_path}:{tag}"
+        task["lines"].append(f"使用加速源 {m} 拉取 {repo_path}:{tag}")
+        logger.info(f"📥 [Docker] 通过加速源 {m} 拉取 {mirror_ref}")
+
+        stream = self.client.api.pull(f"{m}/{repo_path}", tag=tag, stream=True, decode=True)
+        try:
+            for chunk in stream:
+                if cancel_event.is_set():
+                    task["lines"].append("已收到终止请求，正在中断镜像拉取…")
+                    return False
+                self._apply_pull_chunk(task, chunk)
+        finally:
+            try:
+                stream.close()
+            except Exception:
+                pass
+
+        if cancel_event.is_set():
+            task["lines"].append("镜像拉取已结束，但已收到终止请求，不再继续重建。")
+            return False
+
+        # 把加速源镜像 tag 回原始名字，后续重建逻辑无需感知加速源
+        self.client.api.tag(image=mirror_ref, repository=repo, tag=tag)
+        task["lines"].append(f"已将 {mirror_ref} 标记为 {repo}:{tag}")
+        return True
+
     def run_container_update(self, task_id: str, container_id: str, cancel_event: threading.Event) -> None:
         """后台执行容器更新：流式拉取 + 重建。进度/取消状态实时写入任务表。"""
         task = self._update_tasks.get(task_id)
@@ -558,7 +602,24 @@ true
                 self._finish_update_cancelled(task, "在拉取镜像前已请求终止，容器未受影响。")
                 return
 
-            if not self._pull_image_for_update(task, image_tag, cancel_event):
+            mirror = (task.get("mirror") or "").strip()
+            repo_for_check, _ = self._split_image_tag(image_tag)
+            use_mirror = bool(mirror) and self._is_docker_hub_ref(repo_for_check)
+
+            if use_mirror:
+                try:
+                    pulled = self._pull_image_via_mirror(task, image_tag, mirror, cancel_event)
+                except Exception as e:
+                    logger.warning(f"[Docker] 加速源 {mirror} 拉取失败，回退默认源: {e}")
+                    task["lines"].append(f"加速源拉取失败，回退默认源: {e}")
+                    if cancel_event.is_set():
+                        self._finish_update_cancelled(task, "加速源拉取阶段已终止，容器未受影响。")
+                        return
+                    pulled = self._pull_image_for_update(task, image_tag, cancel_event)
+            else:
+                pulled = self._pull_image_for_update(task, image_tag, cancel_event)
+
+            if not pulled:
                 self._finish_update_cancelled(task, "镜像拉取阶段已终止，容器未受影响。")
                 return
 

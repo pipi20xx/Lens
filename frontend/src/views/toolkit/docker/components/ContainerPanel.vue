@@ -38,6 +38,12 @@ const activeUpdate = ref<any>(null)
 const cancelingUpdate = ref(false)
 let updateTimer: ReturnType<typeof setInterval> | null = null
 
+// ========== 更新时临时选择镜像源 ==========
+const showMirrorDialog = ref(false)
+const pendingUpdateRow = ref<any>(null)
+const selectedMirror = ref('')
+const pullMirrorSettings = ref<{ enabled: boolean; mirrors: string[] }>({ enabled: false, mirrors: [] })
+
 const updateStageLabels: Record<string, string> = {
   pending: '等待中',
   pull: '拉取镜像',
@@ -117,7 +123,7 @@ function isUpdating(containerId: string) {
   return !!(t && !t.done)
 }
 
-async function startContainerUpdate(row: any) {
+async function startContainerUpdate(row: any, mirror = '') {
   if (!props.hostId) return
   const existing = updateTasks.value[row.id]
   if (existing && !existing.done) {
@@ -129,7 +135,7 @@ async function startContainerUpdate(row: any) {
   }
   loadingActions.value[row.id] = true
   try {
-    const res: any = await dockerApi.startContainerUpdate(props.hostId, row.id)
+    const res: any = await dockerApi.startContainerUpdate(props.hostId, row.id, mirror)
     const taskId = res?.task_id
     if (res?.already_running) {
       info(res.message || '该容器已有更新任务正在进行')
@@ -156,6 +162,43 @@ async function startContainerUpdate(row: any) {
     startUpdatePolling(row.id)
   } catch (err: any) { showError(err.message || '启动更新失败') }
   finally { loadingActions.value[row.id] = false }
+}
+
+async function loadPullMirrorSettings() {
+  try {
+    const data: any = await dockerApi.getPullMirrorSettings()
+    pullMirrorSettings.value = { enabled: data?.enabled ?? true, mirrors: data?.mirrors || [] }
+  } catch {
+    pullMirrorSettings.value = { enabled: false, mirrors: [] }
+  }
+}
+
+async function requestUpdate(row: any) {
+  if (!props.hostId) return
+  const existing = updateTasks.value[row.id]
+  if (existing && !existing.done) {
+    activeUpdate.value = existing
+    showUpdateDialog.value = true
+    startUpdatePolling(row.id)
+    return
+  }
+  await loadPullMirrorSettings()
+  const mirrors = pullMirrorSettings.value.mirrors || []
+  if (!pullMirrorSettings.value.enabled || mirrors.length === 0) {
+    await startContainerUpdate(row, '')
+    return
+  }
+  pendingUpdateRow.value = row
+  selectedMirror.value = ''
+  showMirrorDialog.value = true
+}
+
+async function confirmUpdateWithMirror() {
+  const row = pendingUpdateRow.value
+  showMirrorDialog.value = false
+  pendingUpdateRow.value = null
+  if (!row) return
+  await startContainerUpdate(row, selectedMirror.value)
 }
 
 function startUpdatePolling(containerId: string) {
@@ -427,7 +470,7 @@ defineExpose({ loadContainers, loadContainerSettings })
         <div class="d-flex flex-wrap ga-2 pa-3">
           <v-btn size="small" :color="row.status === 'running' ? 'error' : 'primary'" variant="tonal" :prepend-icon="row.status === 'running' ? 'mdi-stop' : 'mdi-play'" :loading="loadingActions[row.id]" @click="containerAction(row.id, row.status === 'running' ? 'stop' : 'start')">{{ row.status === 'running' ? '停止' : '启动' }}</v-btn>
           <v-btn size="small" color="warning" variant="tonal" prepend-icon="mdi-restart" :loading="loadingActions[row.id]" @click="containerAction(row.id, 'restart')">重启</v-btn>
-          <v-btn size="small" :color="updateInfo[row.image]?.has_update ? 'error' : 'warning'" variant="tonal" prepend-icon="mdi-update" :loading="loadingActions[row.id]" @click="startContainerUpdate(row)">{{ isUpdating(row.id) ? '更新中' : (updateInfo[row.image]?.has_update ? '发现新镜像' : '更新') }}</v-btn>
+          <v-btn size="small" :color="updateInfo[row.image]?.has_update ? 'error' : 'warning'" variant="tonal" prepend-icon="mdi-update" :loading="loadingActions[row.id]" @click="requestUpdate(row)">{{ isUpdating(row.id) ? '更新中' : (updateInfo[row.image]?.has_update ? '发现新镜像' : '更新') }}</v-btn>
           <v-btn size="small" color="error" variant="tonal" prepend-icon="mdi-delete-outline" :loading="loadingActions[row.id]" @click="handleDeleteContainer(row)">删除</v-btn>
           <v-btn size="small" color="info" variant="tonal" @click="showLogs(row.id, row.name)"><v-icon start>mdi-text-box-outline</v-icon> 日志</v-btn>
           <v-btn size="small" color="success" variant="tonal" prepend-icon="mdi-console" @click="openTerminal(row)">终端</v-btn>
@@ -475,6 +518,18 @@ defineExpose({ loadContainers, loadContainerSettings })
       :container-name="terminalContainer.name"
       :command="terminalContainer.shell"
     />
+
+    <!-- 更新前选择镜像源 -->
+    <GlassDialog v-model="showMirrorDialog" :max-width="440" icon="mdi-rocket-launch-outline" title="选择本次拉取源">
+      <div class="text-caption text-medium-emphasis mb-3">本次更新使用哪个源拉取镜像？（仅对 Docker Hub 镜像生效）</div>
+      <v-radio-group v-model="selectedMirror" density="compact">
+        <v-radio :value="''" label="默认源（不加速）" />
+        <v-radio v-for="m in pullMirrorSettings.mirrors" :key="m" :value="m" :label="m" />
+      </v-radio-group>
+      <template #actions>
+        <v-btn color="primary" variant="tonal" prepend-icon="mdi-update" @click="confirmUpdateWithMirror">开始更新</v-btn>
+      </template>
+    </GlassDialog>
 
     <!-- 容器更新进度对话框 -->
     <GlassDialog

@@ -17,8 +17,8 @@ export const dockerApi = {
     api.get(`/api/docker/${hostId}/containers/stats`),
   containerAction: (hostId: string, containerId: string, action: string) =>
     api.post(`/api/docker/${hostId}/containers/${containerId}/action`, { action }),
-  startContainerUpdate: (hostId: string, containerId: string) =>
-    api.post(`/api/docker/${hostId}/containers/${containerId}/action`, { action: 'recreate' }),
+  startContainerUpdate: (hostId: string, containerId: string, mirror?: string) =>
+    api.post(`/api/docker/${hostId}/containers/${containerId}/action`, { action: 'recreate', mirror }),
   getContainerUpdateProgress: (hostId: string, containerId: string, taskId: string) =>
     api.get(`/api/docker/${hostId}/containers/${containerId}/update/${taskId}`),
   cancelContainerUpdate: (hostId: string, containerId: string, taskId: string) =>
@@ -109,6 +109,10 @@ export const dockerApi = {
     api.post(`/api/docker/${hostId}/daemon-config/raw`, { content, restart }),
 
   // ========== 容器设置 & 自动更新 ==========
+  getPullMirrorSettings: () =>
+    api.get('/api/docker/pull-mirror/settings'),
+  savePullMirrorSettings: (data: { enabled: boolean; mirrors: string[] }) =>
+    api.post('/api/docker/pull-mirror/settings', data),
   getContainerSettings: () =>
     api.get('/api/docker/container-settings'),
   saveContainerSettings: (containerName: string, settings: any) =>

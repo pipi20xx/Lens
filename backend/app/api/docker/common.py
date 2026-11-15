@@ -1,5 +1,5 @@
 """Docker API 公共模型与依赖。"""
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from pydantic import BaseModel
 from fastapi import HTTPException
 
@@ -26,6 +26,14 @@ class ImagePullRequest(BaseModel):
 class ImageTagRequest(BaseModel):
     repo: str
     tag: str = "latest"
+
+class ContainerActionRequest(BaseModel):
+    action: str
+    mirror: Optional[str] = None
+
+class PullMirrorSettings(BaseModel):
+    enabled: bool = True
+    mirrors: List[str] = []
 
 
 class DaemonUpdate(BaseModel):

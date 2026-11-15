@@ -8,7 +8,7 @@ from app.services.docker_service import DockerService
 from app.services.notification_service import NotificationService
 from app.utils.logger import logger, audit_log
 
-from .common import get_docker_service
+from .common import get_docker_service, ContainerActionRequest
 
 router = APIRouter()
 
@@ -109,9 +109,11 @@ async def check_single_image_update(host_id: str, image: str):
     return {image: info}
 
 @router.post("/{host_id}/containers/{container_id}/action")
-async def container_action(host_id: str, container_id: str, action: str = Body(..., embed=True)):
+async def container_action(host_id: str, container_id: str, req: ContainerActionRequest):
+    action = req.action
+    mirror = req.mirror
     start_time = time.time()
-    logger.info(f"🚀 [Docker] 收到容器操作请求: 动作={action}, 容器ID={container_id}, 主机={host_id}")
+    logger.info(f"🚀 [Docker] 收到容器操作请求: 动作={action}, 容器ID={container_id}, 主机={host_id}, 镜像源={mirror or '默认'}")
     service = get_docker_service(host_id)
     
     # 尝试获取容器名称，用于通知
@@ -146,7 +148,7 @@ async def container_action(host_id: str, container_id: str, action: str = Body(.
                 "async": True,
             }
 
-        task_id = DockerService.register_update_task(host_id, container_id, container_name, "")
+        task_id = DockerService.register_update_task(host_id, container_id, container_name, "", mirror or "")
         if not task_id:
             # 极端并发下 register 自身也会防重，此时取回已存在任务
             existing_task_id = DockerService.get_active_update_task_id(host_id, container_id)
