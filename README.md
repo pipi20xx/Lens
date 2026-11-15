@@ -457,7 +457,6 @@ Lens/
     services:
       lens:
         image: pipi20xx/lens:latest
-        container_name: lens
         network_mode: bridge
         ports:
           - "6565:6565"

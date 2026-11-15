@@ -2,7 +2,6 @@
 services:
   lens:
     image: pipi20xx/lens:latest
-    container_name: lens
     ports:
       - "6565:6565"
     volumes:
