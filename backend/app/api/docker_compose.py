@@ -10,6 +10,7 @@ import asyncio
 from app.utils.logger import logger, audit_log
 from app.core.config_manager import get_config, save_config
 from app.services.docker_service import DockerService
+from app.services.notification_service import NotificationService
 
 router = APIRouter()
 
@@ -264,109 +265,175 @@ async def save_project(host_id: str, project: ComposeProject, path: Optional[str
         return {"message": "Saved", "path": path}
     raise HTTPException(status_code=500, detail="Save failed")
 
+
+_COMPOSE_ACTIONS = ("up", "down", "pull", "restart")
+
+# 后台任务强引用集合：asyncio 只保留弱引用，不自己记住任务对象时，
+# 长任务可能在执行途中被 GC 掉（compose up 动辄几分钟）。
+_bg_tasks: set = set()
+
+
+def _spawn(coro):
+    task = asyncio.create_task(coro)
+    _bg_tasks.add(task)
+    task.add_done_callback(_bg_tasks.discard)
+    return task
+
+
+async def _emit_compose_result(host_id: str, task_id: str, project: str, label: str) -> None:
+    """任务结束后推一条通知（失败不抛出，避免影响主流程）。"""
+    try:
+        task = DockerService.get_compose_task(task_id) or {}
+        status = task.get("status")
+        status_text = {"success": "成功", "failed": "失败", "cancelled": "已终止"}.get(status, status or "完成")
+        await NotificationService.emit(
+            event="docker.compose_action",
+            title="Docker Compose 操作结果",
+            message=(
+                f"主机: {host_id}\n项目: {project}\n操作: {label}\n结果: {status_text}"
+                + (f"\n错误: {task.get('error')}" if task.get("error") else "")
+            ),
+        )
+    except Exception as e:
+        logger.debug(f"[Compose] 结果通知发送失败: {e}")
+
+
 @router.post("/{host_id}/projects/{name}/action")
 async def project_action(host_id: str, name: str, action: str = Body(..., embed=True), path: Optional[str] = Body(None, embed=True)):
+    """启动/停止/拉取/重启单个 Compose 项目。
+
+    改为后台任务模式：立刻返回 task_id，前端轮询进度接口展示阶段、条目进度
+    与实时输出（改前是一次最长 300s 的同步请求，前端只有一个转圈，看不到任何进度）。
+    """
     service = get_docker_service(host_id)
     if not path:
         raise HTTPException(status_code=400, detail="Path is required")
-    
-    cmd_map = {
-        "up": f"docker compose -f {path} up -d",
-        "down": f"docker compose -f {path} down",
-        "pull": f"docker compose -f {path} pull",
-        "restart": f"docker compose -f {path} restart"
-    }
-    
-    # 为不同操作设置不同的超时时间
-    # up 和 pull 操作可能需要拉取镜像，耗时较长
-    timeout = 300 if action in ["up", "pull"] else 90
-    
-    # 在线程池执行
-    res = await asyncio.to_thread(service.exec_command, cmd_map[action], os.path.dirname(path), timeout=timeout)
-    
-    success = res["success"]
-    
-    # --- 状态回检逻辑 ---
-    # 如果执行结果不成功（或者是由于超时导致的“失败”），我们进行二次状态确认
-    if not success:
-        logger.info(f"🔍 [Compose] 操作 {action} 返回未成功 (超时={res.get('timeout')})，开始回检状态...")
-        
-        if action == "up":
-            # 检查项目中的容器是否已经在运行
-            check_cmd = f"docker compose -f {path} ps --format json"
-            check_res = await asyncio.to_thread(service.exec_command, check_cmd, os.path.dirname(path), timeout=30)
-            if check_res["success"] and check_res["stdout"].strip():
-                try:
-                    ps_data = json.loads(check_res["stdout"])
-                    # 如果是列表且不为空，或者是非空对象
-                    if ps_data:
-                        # 只要有容器处于 running 状态，我们就认为 up 成功了（即使之前的命令超时）
-                        is_running = any(c.get("State") == "running" or c.get("Status") == "running" for c in (ps_data if isinstance(ps_data, list) else [ps_data]))
-                        if is_running:
-                            logger.info(f"✨ [Compose] 回检发现容器已在运行，判定操作成功")
-                            success = True
-                except Exception: pass
-        
-        elif action == "down":
-            # 检查项目中的容器是否已全部移除
-            check_cmd = f"docker compose -f {path} ps --format json"
-            check_res = await asyncio.to_thread(service.exec_command, check_cmd, os.path.dirname(path), timeout=30)
-            if check_res["success"]:
-                stdout = check_res["stdout"].strip()
-                # 如果输出为空或表示没有容器，则认为 down 成功
-                if not stdout or stdout == "[]":
-                    logger.info(f"✨ [Compose] 回检发现已无运行容器，判定操作成功")
-                    success = True
-        
-        elif action == "pull":
-            # pull 操作如果超时，很难简单验证，但通常镜像已经在后台下载中或已完成
-            # 如果没有明确报错（只是超时），我们可以暂时认为它在后台继续进行
-            if res.get("timeout"):
-                logger.info(f"ℹ️ [Compose] Pull 操作超时，但可能仍在后台下载，提示用户稍后刷新")
-                # 这种情况下我们仍然返回 False，但可以自定义更友好的错误详情
-                res["stderr"] = "操作耗时较长，镜像可能仍在后台下载中，请稍后刷新查看。"
+    if action not in _COMPOSE_ACTIONS:
+        raise HTTPException(status_code=400, detail=f"不支持的动作: {action}")
 
-    # 操作后清理缓存
-    if host_id in DockerService._projects_cache:
-        del DockerService._projects_cache[host_id]
-        
-    return {"success": success, "stdout": res["stdout"], "stderr": res["stderr"], "timeout": res.get("timeout", False)}
+    existing = DockerService.get_active_compose_task_id(host_id, path)
+    if existing:
+        return {
+            "async": True,
+            "already_running": True,
+            "task_id": existing,
+            "message": "该项目已有任务正在执行，请在进度面板查看",
+        }
+
+    task_id = DockerService.register_compose_task(host_id, name, path, action)
+    if not task_id:
+        existing = DockerService.get_active_compose_task_id(host_id, path)
+        if existing:
+            return {
+                "async": True,
+                "already_running": True,
+                "task_id": existing,
+                "message": "该项目已有任务正在执行，请在进度面板查看",
+            }
+        raise HTTPException(status_code=500, detail="无法创建 Compose 任务")
+
+    cancel_event = DockerService._get_compose_task_raw(task_id)["cancel_event"]
+    label = (DockerService.get_compose_task(task_id) or {}).get("action_label") or action
+
+    async def _runner():
+        try:
+            audit_log("Docker Compose Action", 0, [f"Host: {host_id}", f"Project: {name}", f"Action: {action}"])
+            await asyncio.to_thread(service.run_compose_action, task_id, cancel_event)
+        except Exception as e:
+            logger.error(f"🚨 [Compose] 后台任务崩溃: {e}")
+        finally:
+            await _emit_compose_result(host_id, task_id, name, label)
+
+    _spawn(_runner())
+    return {
+        "async": True,
+        "task_id": task_id,
+        "message": f"{label}任务已启动，可查看实时进度",
+    }
+
+
+@router.get("/{host_id}/tasks/{task_id}")
+async def get_compose_task_progress(host_id: str, task_id: str):
+    """轮询 Compose 任务进度（只读内存，不产生 SSH 往返）。"""
+    task = DockerService.get_compose_task(task_id)
+    if not task or task.get("host_id") != host_id:
+        raise HTTPException(status_code=404, detail="任务不存在")
+    return task
+
+
+@router.post("/{host_id}/tasks/{task_id}/cancel")
+async def cancel_compose_task(host_id: str, task_id: str):
+    """请求终止 Compose 任务（中断当前 compose CLI 进程）。"""
+    task = DockerService.get_compose_task(task_id)
+    if not task or task.get("host_id") != host_id:
+        raise HTTPException(status_code=404, detail="任务不存在")
+    if task.get("done"):
+        return {"message": "任务已结束", "cancelled": False}
+    cancelled = DockerService.request_cancel_compose_task(task_id)
+    return {
+        "message": "已请求终止：compose 命令会被中断，已创建/已停止的容器不会自动回滚" if cancelled else "任务已结束",
+        "cancelled": cancelled,
+    }
+
 
 @router.post("/{host_id}/projects/bulk-action")
 async def bulk_project_action(host_id: str, action: str = Body(..., embed=True)):
-    """批量操作所有项目"""
+    """批量操作所有项目（逐项目执行，进度写入同一个任务供前端轮询）。"""
+    if action not in ("up", "down"):
+        raise HTTPException(status_code=400, detail=f"不支持的批量动作: {action}")
+
     projects = await list_projects(host_id)
-    results = []
-
-    # 在循环外建一次 service：改前每次迭代都会调 get_docker_service()，
-    # 而 DockerService 构造会做一次连接存活探测，等于每个项目多一次往返。
-    service = get_docker_service(host_id)
-
+    targets = []
     for p in projects:
         path = p.get("config_file") or p.get("path")
-        if not path: continue
-        
+        if not path:
+            continue
         # 统一处理路径：如果是目录则尝试寻找 yml
         if not path.endswith((".yml", ".yaml")):
             path = os.path.join(path, "docker-compose.yml")
+        item = dict(p)
+        item["config_file"] = path
+        targets.append(item)
 
+    existing = DockerService.get_active_compose_task_id(host_id, "__bulk__")
+    if existing:
+        return {
+            "async": True,
+            "already_running": True,
+            "task_id": existing,
+            "message": "批量任务已在执行，请在进度面板查看",
+        }
+
+    task_id = DockerService.register_compose_task(
+        host_id, "全部项目", "__bulk__", action, is_bulk=True, total=len(targets)
+    )
+    if not task_id:
+        existing = DockerService.get_active_compose_task_id(host_id, "__bulk__")
+        if existing:
+            return {"async": True, "already_running": True, "task_id": existing, "message": "批量任务已在执行"}
+        raise HTTPException(status_code=500, detail="无法创建批量任务")
+
+    service = get_docker_service(host_id)
+    cancel_event = DockerService._get_compose_task_raw(task_id)["cancel_event"]
+    label = (DockerService.get_compose_task(task_id) or {}).get("action_label") or action
+
+    async def _runner():
         try:
-            cmd_map = {
-                "up": f"docker compose -f {path} up -d",
-                "down": f"docker compose -f {path} down"
-            }
-            if action not in cmd_map: continue
-            
-            res = service.exec_command(cmd_map[action], cwd=os.path.dirname(path))
-            results.append({"name": p['name'], "success": res["success"]})
+            audit_log("Docker Compose Bulk Action", 0, [f"Host: {host_id}", f"Action: {action}", f"Projects: {len(targets)}"])
+            await asyncio.to_thread(service.run_compose_bulk, task_id, targets, action, cancel_event)
         except Exception as e:
-            results.append({"name": p['name'], "success": False, "error": str(e)})
-    
-    # 批量操作后清理缓存
-    if host_id in DockerService._projects_cache:
-        del DockerService._projects_cache[host_id]
-            
-    return {"results": results}
+            logger.error(f"🚨 [Compose] 批量任务崩溃: {e}")
+        finally:
+            await _emit_compose_result(host_id, task_id, f"全部项目（{len(targets)} 个）", label)
+
+    _spawn(_runner())
+    return {
+        "async": True,
+        "task_id": task_id,
+        "total": len(targets),
+        "message": f"批量{label}任务已启动（{len(targets)} 个项目）",
+    }
+
 
 @router.post("/{host_id}/chmod")
 async def chmod_path(host_id: str, path: str = Body(..., embed=True), mode: Optional[str] = Body(None, embed=True), 

@@ -39,6 +39,10 @@ export const dockerApi = {
     api.post(`/api/docker/compose/${hostId}/projects/${name}/action`, { action, path }),
   composeBulkAction: (hostId: string, data: any) =>
     api.post(`/api/docker/compose/${hostId}/projects/bulk-action`, data),
+  getComposeTask: (hostId: string, taskId: string) =>
+    api.get(`/api/docker/compose/${hostId}/tasks/${taskId}`),
+  cancelComposeTask: (hostId: string, taskId: string) =>
+    api.post(`/api/docker/compose/${hostId}/tasks/${taskId}/cancel`),
   composeChmod: (hostId: string, data: any) =>
     api.post(`/api/docker/compose/${hostId}/chmod`, data),
   deleteComposeProject: (hostId: string, name: string, path?: string) =>

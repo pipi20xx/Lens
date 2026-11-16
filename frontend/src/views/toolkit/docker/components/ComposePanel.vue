@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { dockerApi } from '@/api/docker'
 import { useNotification } from '@/composables'
 import { useConfirm } from '@/composables'
@@ -14,7 +14,9 @@ const props = defineProps<{
 }>()
 
 // ========== 自动加载 ==========
-watch([() => props.active, () => props.hostId], ([active, hostId]) => {
+watch([() => props.active, () => props.hostId], ([active, hostId], old) => {
+  // 换主机时丢掉上一台主机的任务进度，避免张冠李戴
+  if (old && old[1] !== hostId) { composeTasks.value = {}; activeTask.value = null; stopTaskPolling() }
   if (active && hostId) loadComposeProjects()
 })
 onMounted(() => { if (props.active && props.hostId) loadComposeProjects() })
@@ -23,7 +25,7 @@ onMounted(() => { if (props.active && props.hostId) loadComposeProjects() })
 const composeProjects = ref<any[]>([])
 const loadingCompose = ref(false)
 const composeSearchQuery = ref('')
-const loadingActions = ref<Record<string, boolean>>({})
+const startingActions = ref<Record<string, boolean>>({})
 
 const filteredComposeProjects = computed(() => {
   if (!composeSearchQuery.value) return composeProjects.value
@@ -41,16 +43,170 @@ async function loadComposeProjects() {
   finally { loadingCompose.value = false }
 }
 
-// ========== 项目操作 ==========
-async function composeAction(projectName: string, action: string, projectPath?: string) {
+// ========== 任务进度（阶段 / 条目 / 输出 / 终止） ==========
+const BULK_KEY = '__bulk__'
+const composeTasks = ref<Record<string, any>>({})
+const showTaskDialog = ref(false)
+const activeTask = ref<any>(null)
+const cancelingTask = ref(false)
+let taskTimer: ReturnType<typeof setInterval> | null = null
+
+const composeStageLabels: Record<string, string> = {
+  pending: '等待中',
+  preparing: '准备配置',
+  pulling: '拉取镜像',
+  creating: '创建容器',
+  starting: '启动容器',
+  stopping: '停止/移除容器',
+  done: '完成',
+}
+
+const ACTION_LABELS: Record<string, string> = {
+  up: '启动/更新',
+  down: '停止',
+  pull: '拉取镜像',
+  restart: '重启',
+}
+
+function taskFor(projectName: string) {
+  const t = composeTasks.value[projectName]
+  return t && !t.done ? t : null
+}
+
+/** 批量任务（模板里用它避免非空断言） */
+const bulkTask = computed(() => taskFor(BULK_KEY))
+
+function taskStageText(task: any) {
+  if (!task) return ''
+  if (task.done) {
+    if (task.status === 'cancelled') return '已终止'
+    return task.success ? '完成' : '失败'
+  }
+  return composeStageLabels[task.stage] || '执行中'
+}
+
+function taskProgressText(task: any) {
+  const p = task?.progress || {}
+  if (!p.total) return ''
+  return `已完成 ${p.completed || 0}/${p.total}`
+}
+
+/** 任务条目列表（后端 items 是字典，顺序由 item_order 决定） */
+function taskItemList(task: any) {
+  if (!task?.items) return []
+  const order: string[] = Array.isArray(task.item_order) ? task.item_order : Object.keys(task.items)
+  return order.map((k) => ({ key: k, ...task.items[k] })).filter((i) => !!i.name)
+}
+
+const activeTaskItems = computed(() => taskItemList(activeTask.value))
+const activeTaskLines = computed(() => (activeTask.value?.lines || []).slice(-14))
+
+const itemColorMap: Record<string, string> = {
+  error: 'error', failed: 'error', cancelled: 'warning',
+  started: 'success', done: 'success', pulled: 'success', created: 'success',
+  'up-to-date': 'success', running: 'success', restarted: 'success',
+  pulling: 'info', downloading: 'info', creating: 'info', starting: 'info',
+  stopping: 'warning', removing: 'warning', skipped: 'grey',
+  waiting: 'grey', extracting: 'info', restarting: 'warning',
+}
+
+function startTaskPolling() {
+  if (taskTimer) return
+  taskTimer = setInterval(() => { pollTasks() }, 1000)
+  pollTasks()
+}
+
+function stopTaskPolling() {
+  if (taskTimer) { clearInterval(taskTimer); taskTimer = null }
+}
+
+async function pollTasks() {
   if (!props.hostId) return
-  loadingActions.value[projectName] = true
+  const entries = (Object.entries(composeTasks.value) as [string, any][]).filter(([, t]) => t?.task_id && !t.done)
+  if (entries.length === 0) { stopTaskPolling(); return }
+  for (const [key, task] of entries) {
+    try {
+      const data: any = await dockerApi.getComposeTask(props.hostId, task.task_id)
+      const merged = { ...task, ...data }
+      composeTasks.value = { ...composeTasks.value, [key]: merged }
+      if (activeTask.value?.task_id === task.task_id) activeTask.value = merged
+      if (data.done) handleTaskDone(key, merged)
+    } catch {
+      // 单次失败（网络抖动）忽略；连续失败多半是后端重启导致任务表丢失
+      task._pollFailures = (task._pollFailures || 0) + 1
+      if (task._pollFailures >= 5) {
+        const lost = {
+          ...task, done: true, success: false, status: 'failed',
+          error: '任务状态已丢失（后端可能重启），请刷新列表确认实际结果',
+        }
+        composeTasks.value = { ...composeTasks.value, [key]: lost }
+        if (activeTask.value?.task_id === task.task_id) activeTask.value = lost
+        handleTaskDone(key, lost)
+      }
+    }
+  }
+  if (!Object.values(composeTasks.value).some((t: any) => t?.task_id && !t.done)) stopTaskPolling()
+}
+
+function handleTaskDone(key: string, task: any) {
+  if (task._notified) return
+  task._notified = true
+  composeTasks.value = { ...composeTasks.value, [key]: task }
+  const name = task.is_bulk ? '批量任务' : (task.project || key)
+  if (task.success) success(`${name} ${ACTION_LABELS[task.action] || ''}完成`)
+  else if (task.status === 'cancelled') info(`${name} 已终止`)
+  else showError(`${name} 失败：${task.error || '未知错误'}`)
+  loadComposeProjects()
+}
+
+function openTaskDialog(key: string) {
+  const task = composeTasks.value[key]
+  if (!task) return
+  activeTask.value = task
+  showTaskDialog.value = true
+  if (!task.done) startTaskPolling()
+}
+
+async function cancelActiveTask() {
+  const task = activeTask.value
+  if (!task || !props.hostId || !task.task_id) return
+  cancelingTask.value = true
   try {
-    await dockerApi.composeProjectAction(props.hostId, projectName, action, projectPath)
-    success(`${action} 已触发`)
-    setTimeout(() => loadComposeProjects(), 3000)
+    const res: any = await dockerApi.cancelComposeTask(props.hostId, task.task_id)
+    info(res?.message || '已请求终止')
+  } catch (err: any) { showError(err.message || '终止请求失败') }
+  finally { cancelingTask.value = false }
+}
+
+// ========== 项目操作 ==========
+async function composeAction(project: any, action: string) {
+  if (!props.hostId) return
+  const key = project.name
+  const running = taskFor(key)
+  if (running) {
+    // 已有进行中的任务：只重新打开进度面板，不重复发起
+    openTaskDialog(key)
+    info('该项目已有任务正在执行')
+    return
+  }
+  startingActions.value[key] = true
+  try {
+    const res: any = await dockerApi.composeProjectAction(props.hostId, project.name, action, project.config_file || project.path)
+    const taskId = res?.task_id
+    if (!taskId) throw new Error(res?.message || '未返回任务 ID')
+    const task = {
+      task_id: taskId, project: project.name, action,
+      status: 'pending', stage: 'pending',
+      items: {}, item_order: [], lines: [], progress: { total: 0, completed: 0 },
+      done: false, success: false, error: null,
+    }
+    composeTasks.value = { ...composeTasks.value, [key]: task }
+    activeTask.value = task
+    showTaskDialog.value = true
+    if (res?.already_running) info(res.message || '该项目已有任务正在执行')
+    startTaskPolling()
   } catch (err: any) { showError(err.message || '操作失败') }
-  finally { loadingActions.value[projectName] = false }
+  finally { startingActions.value[key] = false }
 }
 
 async function handleBulkComposeAction(action: string) {
@@ -58,11 +214,25 @@ async function handleBulkComposeAction(action: string) {
   const actionText = action === 'up' ? '启动/更新' : '停止'
   const ok = await confirm({ title: `批量${actionText}`, content: `确定要${actionText}当前主机下的所有 Compose 项目吗？`, confirmColor: 'warning' })
   if (!ok) return
+  if (taskFor(BULK_KEY)) { openTaskDialog(BULK_KEY); return }
+  startingActions.value[BULK_KEY] = true
   try {
-    await dockerApi.composeBulkAction(props.hostId, { action })
-    success(`批量${actionText}指令已发送`)
-    loadComposeProjects()
+    const res: any = await dockerApi.composeBulkAction(props.hostId, { action })
+    const taskId = res?.task_id
+    if (!taskId) throw new Error(res?.message || '未返回任务 ID')
+    const task = {
+      task_id: taskId, project: '全部项目', action, is_bulk: true,
+      status: 'pending', stage: action === 'up' ? 'creating' : 'stopping',
+      items: {}, item_order: [], lines: [], progress: { total: res?.total || 0, completed: 0 },
+      done: false, success: false, error: null,
+    }
+    composeTasks.value = { ...composeTasks.value, [BULK_KEY]: task }
+    activeTask.value = task
+    showTaskDialog.value = true
+    if (res?.already_running) info(res.message || '批量任务已在执行')
+    startTaskPolling()
   } catch { showError('操作失败') }
+  finally { startingActions.value[BULK_KEY] = false }
 }
 
 async function handleDeleteComposeProject(project: any) {
@@ -151,6 +321,10 @@ function formatComposeStatus(status: string) {
   return status
 }
 
+const hasRunningTask = computed(() => Object.values(composeTasks.value).some((t: any) => t?.task_id && !t.done))
+
+onUnmounted(() => { stopTaskPolling() })
+
 defineExpose({ loadComposeProjects })
 </script>
 
@@ -162,12 +336,22 @@ defineExpose({ loadComposeProjects })
       <v-spacer />
       <v-btn-group density="compact">
         <v-btn prepend-icon="mdi-refresh" variant="tonal" size="small" color="info" @click="loadComposeProjects" :loading="loadingCompose">刷新</v-btn>
-        <v-btn prepend-icon="mdi-play" variant="tonal" size="small" color="success" @click="handleBulkComposeAction('up')">全部启动</v-btn>
-        <v-btn prepend-icon="mdi-stop" variant="tonal" size="small" color="error" @click="handleBulkComposeAction('down')">全部停止</v-btn>
+        <v-btn prepend-icon="mdi-play" variant="tonal" size="small" color="success" :loading="startingActions[BULK_KEY]" @click="handleBulkComposeAction('up')">全部启动</v-btn>
+        <v-btn prepend-icon="mdi-stop" variant="tonal" size="small" color="error" :loading="startingActions[BULK_KEY]" @click="handleBulkComposeAction('down')">全部停止</v-btn>
       </v-btn-group>
     </div>
 
     <v-progress-linear v-if="loadingCompose" indeterminate color="primary" class="mb-4" />
+
+    <!-- 批量任务进行中的常驻提示条 -->
+    <v-alert v-if="bulkTask" type="info" variant="tonal" density="compact" class="mb-4" prominent>
+      <div class="d-flex align-center ga-2">
+        <v-progress-circular size="16" width="2" indeterminate color="info" />
+        <span class="text-body-2">批量{{ ACTION_LABELS[bulkTask.action] }}任务进行中：{{ taskStageText(bulkTask) }} {{ taskProgressText(bulkTask) }}</span>
+        <v-spacer />
+        <v-btn size="small" variant="text" @click="openTaskDialog(BULK_KEY)">查看进度</v-btn>
+      </div>
+    </v-alert>
 
     <v-row v-if="!loadingCompose && filteredComposeProjects.length === 0">
       <v-col cols="12" class="text-center py-12 text-medium-emphasis">
@@ -205,18 +389,76 @@ defineExpose({ loadComposeProjects })
           </div>
         </div>
 
+        <!-- 任务进行中：卡内实时进度 -->
+        <div v-if="taskFor(project.name)" class="px-4 pb-2">
+          <div class="d-flex align-center ga-2 mb-1">
+            <v-progress-circular size="14" width="2" indeterminate color="primary" />
+            <span class="text-caption">{{ ACTION_LABELS[taskFor(project.name)?.action || ''] }} · {{ taskStageText(taskFor(project.name)) }}</span>
+            <span class="text-caption text-medium-emphasis">{{ taskProgressText(taskFor(project.name)) }}</span>
+            <v-spacer />
+            <v-btn size="x-small" variant="text" color="primary" @click="openTaskDialog(project.name)">查看进度</v-btn>
+          </div>
+          <v-progress-linear indeterminate color="primary" height="4" rounded />
+        </div>
+
         <!-- 操作按钮 -->
         <v-divider class="mt-2" />
         <div class="d-flex flex-wrap ga-2 pa-3">
-          <v-btn size="small" color="primary" variant="tonal" prepend-icon="mdi-play" :loading="loadingActions[project.name]" @click="composeAction(project.name, 'up', project.config_file || project.path)">启动/更新</v-btn>
-          <v-btn size="small" color="warning" variant="tonal" prepend-icon="mdi-download" :loading="loadingActions[project.name]" @click="composeAction(project.name, 'pull', project.config_file || project.path)">拉取</v-btn>
-          <v-btn size="small" color="error" variant="tonal" prepend-icon="mdi-stop" :loading="loadingActions[project.name]" @click="composeAction(project.name, 'down', project.config_file || project.path)">停止</v-btn>
+          <v-btn size="small" color="primary" variant="tonal" prepend-icon="mdi-play" :loading="startingActions[project.name]" @click="composeAction(project, 'up')">启动/更新</v-btn>
+          <v-btn size="small" color="warning" variant="tonal" prepend-icon="mdi-download" :loading="startingActions[project.name]" @click="composeAction(project, 'pull')">拉取</v-btn>
+          <v-btn size="small" color="error" variant="tonal" prepend-icon="mdi-stop" :loading="startingActions[project.name]" @click="composeAction(project, 'down')">停止</v-btn>
           <v-btn size="small" variant="tonal" color="warning" prepend-icon="mdi-pencil-outline" @click="editProject(project)">编辑</v-btn>
           <v-btn size="small" color="error" variant="tonal" prepend-icon="mdi-delete-outline" @click="handleDeleteComposeProject(project)">删除</v-btn>
           <v-btn size="small" color="info" variant="tonal" prepend-icon="mdi-backup-restore" @click="createBackupTask(project)">备份</v-btn>
         </div>
       </v-card>
     </div>
+
+    <!-- Compose 任务进度对话框 -->
+    <GlassDialog
+      v-model="showTaskDialog"
+      :max-width="680"
+      icon="mdi-progress-wrench"
+      :title="'Compose ' + (ACTION_LABELS[activeTask?.action] || '任务') + ' — ' + (activeTask?.project || '')"
+      cancel-text="关闭"
+    >
+      <template v-if="activeTask">
+        <div class="d-flex align-center ga-2 mb-3">
+          <v-chip
+            :color="activeTask.success ? 'success' : activeTask.done ? (activeTask.status === 'cancelled' ? 'warning' : 'error') : 'info'"
+            size="small" variant="tonal" label
+          >
+            {{ taskStageText(activeTask) }}
+          </v-chip>
+          <span class="text-caption text-medium-emphasis">{{ taskProgressText(activeTask) }}</span>
+          <v-spacer />
+          <v-btn v-if="!activeTask.done" size="small" color="error" variant="tonal" prepend-icon="mdi-stop" :loading="cancelingTask" @click="cancelActiveTask">终止</v-btn>
+        </div>
+
+        <v-progress-linear v-if="!activeTask.done" indeterminate color="primary" height="6" rounded class="mb-3" />
+        <v-progress-linear v-else :model-value="100" :color="activeTask.success ? 'success' : (activeTask.status === 'cancelled' ? 'warning' : 'error')" height="6" rounded class="mb-3" />
+
+        <!-- 条目进度（Container / Image / Network 或批量中的项目） -->
+        <div v-if="activeTaskItems.length" class="mb-3">
+          <div
+            v-for="item in activeTaskItems"
+            :key="item.key"
+            class="d-flex align-center ga-2 text-caption mb-1"
+          >
+            <v-icon size="14" :color="itemColorMap[item.status] || 'grey'">
+              {{ item.status === 'error' || item.status === 'failed' ? 'mdi-alert-circle-outline' : (['done', 'started', 'pulled', 'created', 'running', 'up-to-date', 'restarted', 'skipped'].includes(item.status) ? 'mdi-check-circle-outline' : 'mdi-circle-slice-4') }}
+            </v-icon>
+            <span v-if="item.kind" class="text-medium-emphasis">{{ item.kind }}</span>
+            <span class="font-mono">{{ item.name }}</span>
+            <v-spacer />
+            <span :class="`text-${itemColorMap[item.status] || 'medium-emphasis'}`">{{ item.status_text || item.status }}</span>
+          </div>
+        </div>
+
+        <v-alert v-if="activeTask.done && activeTask.error" type="error" variant="tonal" density="compact" class="mb-3">{{ activeTask.error }}</v-alert>
+        <pre v-if="activeTaskLines.length" class="code-block code-block--flat">{{ activeTaskLines.join('\n') }}</pre>
+      </template>
+    </GlassDialog>
 
     <!-- Compose 编辑/新建弹窗 -->
     <GlassDialog v-model="showComposeModal" :max-width="800"

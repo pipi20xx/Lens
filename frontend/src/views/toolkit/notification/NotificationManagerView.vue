@@ -71,6 +71,7 @@ const EVENT_GROUPS = [
     icon: 'mdi-docker',
     events: [
       { value: 'docker.container_action', label: '容器操作' },
+      { value: 'docker.compose_action', label: 'Compose 操作' },
       { value: 'docker.cleanup', label: '资源清理' },
       { value: 'docker.auto_update', label: '自动更新' },
       { value: 'docker.host_action', label: '主机操作' },

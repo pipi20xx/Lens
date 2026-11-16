@@ -87,6 +87,7 @@ Lens 的每一项功能都以独立工具的形式存在，你可以通过侧边
 *   **智能更新 (Update)**：一键拉取最新镜像并自动重构容器。
     *   **配置保全**：重构时自动识别并保留高级挂载传播属性（如 `rslave`, `rshared`），确保 CloudDrive2/Rclone 等挂载环境在更新后依然稳定。
 *   **Compose 管理**：内置管理器，支持 YAML 在线编辑、目录扫描、项目记忆及按名称固定排序。
+    *   **实时执行进度**：启动/更新、拉取、停止均以后台任务执行，实时展示当前阶段（拉取镜像 / 创建容器 / 启动容器）、逐条 Container/Image/Network 状态、实时输出日志与「已完成 x/y」，并支持随时终止与重复点击防重；批量启动/停止按项目逐个展示进度。
     *   **一键远程备份 (Relay Backup)**：支持将远程 Compose 项目文件夹整体打包并拉取回 Lens 本地进行中转存档。
     *   **任意文件夹 SSH 备份**：支持在文件浏览器中将任意远程文件夹（配置/数据目录）一键设为 SSH 自动备份任务，不再局限于 Compose 目录。
     *   **实时语法校验**：集成 `js-yaml`，编辑时自动进行语法检测并提供**中文错误提示**（含行号、列号）。
@@ -303,7 +304,7 @@ Lens 的每一项功能都以独立工具的形式存在，你可以通过侧边
     *   **安全审计**：用户登录提醒 (`auth.login`)。
     *   **数据备份**：任务成功或失败的即时状态 (`backup.success`, `backup.failed`)。
     *   **自动化打标**：Webhook 实时匹配成功及批量任务汇总 (`autotag.match`, `autotag.task_done`)。
-    *   **Docker 运维**：容器操作及主机环境维护提醒 (`docker.container_action`, `docker.host_action`)。
+    *   **Docker 运维**：容器操作、Compose 项目操作及主机环境维护提醒 (`docker.container_action`, `docker.compose_action`, `docker.host_action`)。
 *   **交互式移动控制台 (Interactive Bot)**：
     *   **实时指令**：通过 `/hosts` 呼出交互菜单，直接在 Telegram 中管理多台主机的 Docker 容器。
     *   **生命周期管理**：支持在对话框中一键执行容器的启动、停止、重启、更新 (Update) 及详情刷新。
