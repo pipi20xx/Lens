@@ -138,7 +138,12 @@ DEFAULT_CONFIG = {
         "api_source_id": "loliapi_acg_pc",
         "custom_url": "",
         "upload_filename": "",
-        "cache_ttl": 30,
+        "history_filename": "",
+        "refresh_interval": 60,
+        "display_mode": "latest",
+        "rotation_interval": 60,
+        "rotation_include_history": True,
+        "rotation_include_uploads": False,
     },
 }
 

@@ -15,6 +15,13 @@ import {
   loadGlassWallpaperTone,
   type GlassWallpaperToneProfile,
 } from '@/glass'
+import {
+  createLoginBackgroundLayers,
+  prepareLoginBackgroundLayer,
+  activateLoginBackgroundLayer,
+  settleLoginBackgroundLayers,
+  type LoginBackgroundLayer,
+} from '@/glass/host/loginPresentation'
 import { useThemeCustomizer } from '@/glass/host/useThemeCustomizer'
 
 const route = useRoute()
@@ -105,41 +112,8 @@ const GlassOpticalLayer = defineAsyncComponent(() => import('@/glass/components/
 // 玻璃壁纸与光学设置
 const glass = useGlassWallpaper()
 
-// 壁纸背景层状态
-interface BackgroundLayer {
-  key: string
-  role: 'active' | 'previous'
-  url: string
-}
-
-function createBackgroundLayers(): BackgroundLayer[] {
-  return [
-    { key: 'bg-1', role: 'active', url: '' },
-    { key: 'bg-2', role: 'previous', url: '' },
-  ]
-}
-
-function prepareBackgroundLayer(layers: BackgroundLayer[], newUrl: string): BackgroundLayer[] {
-  return layers.map(layer =>
-    layer.role === 'active'
-      ? { ...layer, role: 'previous' as const, url: layer.url }
-      : { ...layer, role: 'active' as const, url: newUrl },
-  )
-}
-
-function activateBackgroundLayer(layers: BackgroundLayer[]): BackgroundLayer[] {
-  return layers
-    .filter(layer => layer.role === 'active' || layer.url)
-    .map(layer => layer.role === 'previous' && !layer.url ? { ...layer, role: 'active' as const } : layer)
-}
-
-function settleBackgroundLayers(layers: BackgroundLayer[]): BackgroundLayer[] {
-  return layers.map(layer =>
-    layer.role === 'previous' ? { ...layer, role: 'active' as const, url: '' } : layer,
-  )
-}
-
-const backgroundLayers = ref<BackgroundLayer[]>(createBackgroundLayers())
+// 壁纸背景层状态（沿用 loginPresentation 的稳定双槽位 + 三角色交叉淡化方案）
+const backgroundLayers = ref<LoginBackgroundLayer[]>(createLoginBackgroundLayers())
 const backgroundToneProfiles = ref<Record<string, GlassWallpaperToneProfile>>({})
 const backgroundDisplayImages = ref<Record<string, string>>({})
 const backgroundCorsReady = ref<Record<string, boolean>>({})
@@ -160,19 +134,19 @@ const activeBackgroundImage = computed(() => glass.wallpaperUrl.value)
 const previousBackgroundImage = computed(() => glass.previousWallpaperUrl.value)
 const isBackgroundCrossfadingNow = computed(() => isBackgroundCrossfading.value)
 
-function getBackgroundDisplayUrl(layer: BackgroundLayer): string {
+function getBackgroundDisplayUrl(layer: LoginBackgroundLayer): string {
   return layer.url
 }
 
-function getBackgroundLayerImageSource(layer: BackgroundLayer): string {
+function getBackgroundLayerImageSource(layer: LoginBackgroundLayer): string {
   return backgroundCorsReady.value[layer.url] ? getBackgroundDisplayUrl(layer) : ''
 }
 
-function getBackgroundLayerCrossOrigin(layer: BackgroundLayer): 'anonymous' | undefined {
+function getBackgroundLayerCrossOrigin(layer: LoginBackgroundLayer): 'anonymous' | undefined {
   return backgroundCorsReady.value[layer.url] ? 'anonymous' : undefined
 }
 
-function getBackgroundLayerStyle(layer: BackgroundLayer) {
+function getBackgroundLayerStyle(layer: LoginBackgroundLayer) {
   const profile = backgroundToneProfiles.value[layer.url] ?? DEFAULT_GLASS_WALLPAPER_TONE_PROFILE
   const appearance = glass.effectiveGlassSettings.value.glassAppearance
   const materialExposure = appearance === 'frosted' ? 0.82 : appearance === 'tinted' ? 0.85 : 0.86
@@ -225,13 +199,16 @@ watch(activeBackgroundImage, async (newUrl, oldUrl) => {
 
   await preloadWallpaperCandidate(newUrl)
 
-  backgroundLayers.value = prepareBackgroundLayer(backgroundLayers.value, newUrl)
+  // 立即开始交叉淡化：新图 standby→active 淡入，旧图 active→previous 淡出，
+  // 与 WebGL 双纹理过渡共用同一 1.5s 时钟，避免旧图残影。
+  backgroundLayers.value = prepareLoginBackgroundLayer(backgroundLayers.value, newUrl)
+  backgroundLayers.value = activateLoginBackgroundLayer(backgroundLayers.value)
   isBackgroundCrossfading.value = true
   backgroundCrossfadeStartedAt.value = performance.now()
 
+  // 淡出完成后回收旧图层
   window.setTimeout(() => {
-    backgroundLayers.value = activateBackgroundLayer(backgroundLayers.value)
-    backgroundLayers.value = settleBackgroundLayers(backgroundLayers.value)
+    backgroundLayers.value = settleLoginBackgroundLayers(backgroundLayers.value)
     isBackgroundCrossfading.value = false
   }, BACKGROUND_CROSSFADE_DURATION_MS)
 }, { immediate: true })

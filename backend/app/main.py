@@ -229,6 +229,13 @@ async def startup_event():
     audit_val = await ConfigService.get("audit_enabled", True)
     set_perf_audit_enabled(audit_val is True or str(audit_val).lower() == "true")
 
+    # 壁纸后台预取：启动即预取当前源，之后按 refresh_interval 定时换图（避免打开页面实时下载卡顿）
+    try:
+        from app.services.wallpaper_service import wallpaper_prefetch_loop
+        asyncio.create_task(wallpaper_prefetch_loop())
+    except Exception as e:
+        logger.warning(f"壁纸后台预取启动失败: {e}")
+
     # 强制禁用 SSH 主机密钥检查
 
 
